@@ -1,0 +1,22 @@
+{
+  "name": "create-zcash-app",
+  "version": "0.1.0",
+  "description": "Scaffolder CLI for building shielded Zcash apps on the Z3 stack",
+  "bin": {
+    "create-zcash-app": "./dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/prompts": "^2.4.9",
+    "typescript": "^5.6.3"
+  }
+}
