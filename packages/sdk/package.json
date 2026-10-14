@@ -1,0 +1,21 @@
+{
+  "name": "@zcash-app/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for building shielded Zcash apps on the Z3 stack",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.6",
+    "@grpc/proto-loader": "^0.7.15",
+    "@zcash-app/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
