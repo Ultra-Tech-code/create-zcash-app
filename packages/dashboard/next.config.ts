@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     config.externals = [...(config.externals || []), "@zcash-app/core", "@zcash-app/sdk"];
     return config;
   },
+  turbopack: {},
 };
 
 export default nextConfig;
