@@ -72,10 +72,29 @@ A glassmorphic Next.js App Router UI providing real-time visibility into your lo
 - **Health / Logs**: Zaino gRPC connection status, version pin verification (≥ 0.10.0), and active network upgrade (`NU6.3`).
 
 ### 5. `create-zcash-app` (Scaffolder CLI)
-Scaffold new shielded applications ready to run against local Z3:
+Scaffold new shielded applications with guided network and indexer configuration:
 ```bash
 npx create-zcash-app my-shielded-app
 ```
+
+**Interactive Prompts**:
+1. **Network**: `regtest` (instant local chain & faucet), `testnet` (staging with TAZ), or `mainnet` (production).
+2. **Connection Mode** (for testnet/mainnet):
+   - 🌐 **Remote Public RPC** (e.g. `zcash-testnet.zec.rocks:443`) — Zero-install, no node required.
+   - 🐳 **Local Z3 Node** (`127.0.0.1:8137`) — Self-hosted privacy stack (generates `docker-compose.yml`).
+
+### 6. Network Switcher CLI (`zcash-dev switch`)
+Switch an existing project between networks at any time:
+```bash
+# Interactive selection
+npx zcash-dev switch
+
+# Or switch directly
+npx zcash-dev switch testnet --remote
+npx zcash-dev switch mainnet --remote
+npx zcash-dev switch regtest
+```
+Automatically updates `.env.local` and `zcash.config.json`. The developer dashboard instantly hot-reloads and reflects the new network!
 
 ---
 
