@@ -39,6 +39,18 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
+    // Initial load: read project configuration (zcash.config.json or .env)
+    fetch('/api/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.config?.network) {
+          setNetwork(data.config.network);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     // Reset data immediately on network switch so user sees the change
     setNodeInfo(null);
     setActionStatus('');
