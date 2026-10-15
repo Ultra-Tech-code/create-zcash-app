@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createClient, dev, getBalance, detectIncoming } from '@zcash-app/sdk';
+import { NETWORK_ENDPOINTS, Network } from '../../endpoints';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const network = (searchParams.get('network') || 'regtest') as any;
-  const endpoint = searchParams.get('endpoint') || '127.0.0.1:8137';
+  const network = (searchParams.get('network') || 'regtest') as Network;
+  const endpoint = searchParams.get('endpoint') || NETWORK_ENDPOINTS[network] || '127.0.0.1:8137';
   const fixtureIndex = parseInt(searchParams.get('index') || '0', 10);
 
   try {
-    const client = createClient({ endpoint, network });
-    const acct = dev.fixtures.account(fixtureIndex, network);
+    const acct = dev.fixtures.account(fixtureIndex, network as any);
     const ua = acct.getUnifiedAddress();
     const ufvk = acct.getUnifiedFullViewingKey();
 
@@ -22,7 +22,9 @@ export async function GET(request: Request) {
     };
     let incomingNotes: any[] = [];
 
+    // Attempt balance and note scanning
     try {
+      const client = createClient({ endpoint, network });
       const rawBalances = await getBalance(client, acct);
       balances = {
         orchard: rawBalances.orchard.toString(),
@@ -36,16 +38,16 @@ export async function GET(request: Request) {
         ...n,
         value: n.value.toString(),
       }));
+      await client.close();
     } catch (e: any) {
-      // Indexer might be cold or syncing
+      // Remote or local indexer may be unreachable or scanning
     }
-
-    await client.close();
 
     return NextResponse.json({
       success: true,
       accountIndex: fixtureIndex,
       network,
+      endpoint,
       unifiedAddress: ua,
       ufvk,
       balances,
