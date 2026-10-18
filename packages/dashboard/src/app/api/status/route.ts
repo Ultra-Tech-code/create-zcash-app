@@ -5,7 +5,11 @@ import { NETWORK_ENDPOINTS, Network } from '../../endpoints';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const network = (searchParams.get('network') || 'regtest') as Network;
-  const endpoint = searchParams.get('endpoint') || NETWORK_ENDPOINTS[network] || '127.0.0.1:8137';
+  const defaultEndpoint = NETWORK_ENDPOINTS[network] || '127.0.0.1:8137';
+  const queryEndpoint = searchParams.get('endpoint');
+  const endpoint = (queryEndpoint && (queryEndpoint.startsWith('127.0.0.1:') || queryEndpoint.startsWith('localhost:') || Object.values(NETWORK_ENDPOINTS).includes(queryEndpoint)))
+    ? queryEndpoint
+    : defaultEndpoint;
 
   try {
     const client = createClient({ endpoint, network });

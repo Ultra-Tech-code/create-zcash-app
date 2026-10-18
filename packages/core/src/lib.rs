@@ -27,7 +27,7 @@ pub fn get_spending_key(handle: u32) -> Option<UnifiedSpendingKey> {
     map_guard.as_ref()?.get(&handle).cloned()
 }
 
-/// Returns a LocalNetwork configured for Z3 regtest (NU6.3 active from height 2).
+/// Returns a LocalNetwork configured for Z3 regtest (matching Zebra regtest schedule).
 pub fn regtest_params() -> LocalNetwork {
     LocalNetwork {
         overwinter: Some(BlockHeight::from_u32(1)),
@@ -35,10 +35,10 @@ pub fn regtest_params() -> LocalNetwork {
         blossom: Some(BlockHeight::from_u32(1)),
         heartwood: Some(BlockHeight::from_u32(1)),
         canopy: Some(BlockHeight::from_u32(1)),
-        nu5: Some(BlockHeight::from_u32(1)),
-        nu6: Some(BlockHeight::from_u32(1)),
-        nu6_1: Some(BlockHeight::from_u32(1)),
-        nu6_2: Some(BlockHeight::from_u32(1)),
+        nu5: Some(BlockHeight::from_u32(2)),
+        nu6: Some(BlockHeight::from_u32(2)),
+        nu6_1: Some(BlockHeight::from_u32(2)),
+        nu6_2: Some(BlockHeight::from_u32(2)),
         nu6_3: Some(BlockHeight::from_u32(2)),
     }
 }

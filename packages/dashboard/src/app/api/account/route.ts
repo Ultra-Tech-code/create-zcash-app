@@ -5,7 +5,12 @@ import { NETWORK_ENDPOINTS, Network } from '../../endpoints';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const network = (searchParams.get('network') || 'regtest') as Network;
-  const endpoint = searchParams.get('endpoint') || NETWORK_ENDPOINTS[network] || '127.0.0.1:8137';
+  const defaultEndpoint = NETWORK_ENDPOINTS[network] || '127.0.0.1:8137';
+  const queryEndpoint = searchParams.get('endpoint');
+  // Security guard: only allow known endpoints or localhost in development
+  const endpoint = (queryEndpoint && (queryEndpoint.startsWith('127.0.0.1:') || queryEndpoint.startsWith('localhost:') || Object.values(NETWORK_ENDPOINTS).includes(queryEndpoint)))
+    ? queryEndpoint
+    : defaultEndpoint;
   const fixtureIndex = parseInt(searchParams.get('index') || '0', 10);
 
   try {
@@ -33,7 +38,7 @@ export async function GET(request: Request) {
         transparent: rawBalances.transparent.toString(),
         total: rawBalances.total.toString(),
       };
-      const notes = await detectIncoming(client, acct);
+      const { notes } = await detectIncoming(client, acct);
       incomingNotes = notes.map((n) => ({
         ...n,
         value: n.value.toString(),
