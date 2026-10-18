@@ -5,36 +5,56 @@ import { Account, IncomingNote, PoolBalances, SyncResult, Ufvk, WatchOnlyAccount
 export async function detectIncoming(
   client: ZcashClient,
   key: Ufvk | WatchOnlyAccount | Account,
-  opts?: { sinceHeight?: number }
-): Promise<IncomingNote[]> {
+  opts?: { sinceHeight?: number; endHeight?: number }
+): Promise<{ notes: IncomingNote[]; spentNullifiers: Set<string> }> {
   const ufvk = typeof key === 'string' ? key : key.getUnifiedFullViewingKey();
   const network = client.config.network;
 
   const info = await client.getInfo();
   const currentHeight = parseInt(info.blockHeight, 10);
-  const startHeight = opts?.sinceHeight ?? Math.max(1, currentHeight - 100);
+  const targetEndHeight = opts?.endHeight ?? currentHeight;
+
+  let startHeight = opts?.sinceHeight;
+  if (startHeight === undefined) {
+    const acctBirthday = typeof key !== 'string' ? key.birthdayHeight : undefined;
+    startHeight = acctBirthday ?? 1;
+  }
+
+  if (startHeight > targetEndHeight) {
+    return { notes: [], spentNullifiers: new Set() };
+  }
 
   const detected: IncomingNote[] = [];
+  const spentNullifiers = new Set<string>();
 
-  const blockStream = client.getBlockRange(startHeight, currentHeight);
+  const blockStream = client.getBlockRange(startHeight, targetEndHeight);
 
   for await (const block of blockStream) {
-    const blockHeight = typeof block.height === 'string' ? parseInt(block.height, 10) : block.height;
+    const blockHeight = typeof block.height === 'string' ? parseInt(block.height, 10) : Number(block.height);
     if (!block.vtx) continue;
 
     for (const tx of block.vtx) {
-      const txid = Buffer.isBuffer(tx.hash) ? tx.hash.toString('hex') : String(tx.hash);
+      const txid = Buffer.isBuffer(tx.hash) ? tx.hash.toString('hex') : String(tx.hash ?? '');
 
-      // 1. Scan Orchard actions
+      // Record any spent nullifiers in actions
       if (tx.actions && tx.actions.length > 0) {
         for (let i = 0; i < tx.actions.length; i++) {
           const action = tx.actions[i];
+          if (action.nullifier && action.nullifier.length === 32) {
+            const nfHex = Buffer.from(action.nullifier).toString('hex');
+            spentNullifiers.add(nfHex);
+          }
+
+          // In protobuf keepCase: true, field is ciphertext
+          const encCiphertext = action.ciphertext || action.cipherText;
+          if (!encCiphertext) continue;
+
           const result = core.tryDecryptAction(
             ufvk,
             network,
             action.ephemeralKey,
             action.cmx,
-            action.cipherText,
+            encCiphertext,
             false,
             i
           );
@@ -50,16 +70,24 @@ export async function detectIncoming(
         }
       }
 
-      // 2. Scan Ironwood actions
+      // Record any spent nullifiers in ironwoodActions
       if (tx.ironwoodActions && tx.ironwoodActions.length > 0) {
         for (let i = 0; i < tx.ironwoodActions.length; i++) {
           const action = tx.ironwoodActions[i];
+          if (action.nullifier && action.nullifier.length === 32) {
+            const nfHex = Buffer.from(action.nullifier).toString('hex');
+            spentNullifiers.add(nfHex);
+          }
+
+          const encCiphertext = action.ciphertext || action.cipherText;
+          if (!encCiphertext) continue;
+
           const result = core.tryDecryptAction(
             ufvk,
             network,
             action.ephemeralKey,
             action.cmx,
-            action.cipherText,
+            encCiphertext,
             true,
             i
           );
@@ -77,19 +105,22 @@ export async function detectIncoming(
     }
   }
 
-  return detected;
+  return { notes: detected, spentNullifiers };
 }
 
 export async function getBalance(
   client: ZcashClient,
   key: Ufvk | WatchOnlyAccount | Account
 ): Promise<PoolBalances> {
-  const notes = await detectIncoming(client, key);
+  const { notes, spentNullifiers } = await detectIncoming(client, key);
 
   let orchard = 0n;
   let ironwood = 0n;
 
   for (const n of notes) {
+    if (n.nullifier && spentNullifiers.has(n.nullifier)) {
+      continue;
+    }
     if (n.pool === 'orchard') {
       orchard += n.value;
     } else if (n.pool === 'ironwood') {
@@ -128,7 +159,7 @@ export async function sync(
 ): Promise<SyncResult> {
   const info = await client.getInfo();
   const currentHeight = parseInt(info.blockHeight, 10);
-  const notes = await detectIncoming(client, key, opts);
+  const { notes } = await detectIncoming(client, key, opts);
   const balances = await getBalance(client, key);
 
   return {
@@ -146,17 +177,31 @@ export function watch(
 ): () => void {
   const pollInterval = opts?.pollMs ?? 15000;
   let active = true;
-  let lastHeight = 0;
+  let lastScannedHeight = 0;
 
   const poll = async () => {
     if (!active) return;
     try {
-      const notes = await detectIncoming(client, key, { sinceHeight: lastHeight > 0 ? lastHeight : undefined });
-      for (const note of notes) {
-        if (note.height > lastHeight) {
-          lastHeight = note.height;
+      const info = await client.getInfo();
+      const currentHeight = parseInt(info.blockHeight, 10);
+
+      if (lastScannedHeight === 0) {
+        // First run: establish tip without re-emitting history unless birthdayHeight is set
+        const birthday = typeof key !== 'string' ? key.birthdayHeight : undefined;
+        lastScannedHeight = birthday ? birthday - 1 : currentHeight;
+      }
+
+      if (currentHeight > lastScannedHeight) {
+        const nextStart = lastScannedHeight + 1;
+        const { notes } = await detectIncoming(client, key, {
+          sinceHeight: nextStart,
+          endHeight: currentHeight,
+        });
+
+        for (const note of notes) {
+          onNote(note);
         }
-        onNote(note);
+        lastScannedHeight = currentHeight;
       }
     } catch (err) {
       // transient network poll error

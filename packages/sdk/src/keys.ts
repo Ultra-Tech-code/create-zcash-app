@@ -5,11 +5,26 @@ export function generateMnemonic(): string {
   return core.generateMnemonic();
 }
 
+const KNOWN_TEST_MNEMONICS = [
+  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+  'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong',
+  'legal winner thank year wave sausage worth useful legal winner thank yellow',
+];
+
 export function accountFromMnemonic(
   mnemonic: string,
   accountIndex: number = 0,
   network: Network = 'regtest'
 ): Account {
+  if (network === 'mainnet') {
+    const normalized = mnemonic.trim().toLowerCase();
+    if (KNOWN_TEST_MNEMONICS.includes(normalized)) {
+      throw new Error(
+        'Security Error: Using known test fixture mnemonics on mainnet is strictly prohibited to prevent fund loss.'
+      );
+    }
+  }
+
   const derived = core.deriveAccountFromMnemonic(mnemonic, accountIndex, network);
 
   return {

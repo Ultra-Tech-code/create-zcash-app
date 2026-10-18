@@ -12,6 +12,7 @@ export interface Account {
   getUnifiedAddress(diversifierIndex?: number): string;
   getUnifiedFullViewingKey(): Ufvk;
   getTransparentAddress?(): string;
+  birthdayHeight?: number;
   network: Network;
   readonly spendHandle: number;
 }
@@ -20,6 +21,7 @@ export interface WatchOnlyAccount {
   getUnifiedFullViewingKey(): Ufvk;
   getUnifiedAddress(diversifierIndex?: number): string;
   getTransparentAddress?(): string;
+  birthdayHeight?: number;
   network: Network;
 }
 
@@ -38,6 +40,7 @@ export interface IncomingNote {
   txid: string;
   height: number;
   recipient: string;
+  nullifier?: string;
 }
 
 export interface Note extends IncomingNote {

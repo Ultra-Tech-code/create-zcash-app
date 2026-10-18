@@ -37,7 +37,8 @@ export interface CompactOrchardAction {
   nullifier: Buffer;
   cmx: Buffer;
   ephemeralKey: Buffer;
-  cipherText: Buffer;
+  ciphertext?: Buffer;
+  cipherText?: Buffer;
 }
 
 export class ZcashClient {
@@ -89,26 +90,7 @@ export class ZcashClient {
       start: { height: startHeight },
       end: { height: endHeight },
     });
-
-    return {
-      [Symbol.asyncIterator]() {
-        return {
-          async next() {
-            return new Promise((resolve, reject) => {
-              stream.once('data', (block: any) => {
-                resolve({ value: block, done: false });
-              });
-              stream.once('end', () => {
-                resolve({ value: undefined as any, done: true });
-              });
-              stream.once('error', (err: any) => {
-                reject(err);
-              });
-            });
-          },
-        };
-      },
-    };
+    return stream as unknown as AsyncIterable<CompactBlock>;
   }
 
   public getAddressUtxos(addresses: string[], startHeight = 0, maxEntries = 0): Promise<any[]> {

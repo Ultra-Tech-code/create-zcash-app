@@ -3,18 +3,22 @@ import { ZcashClient } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 
 export namespace dev {
+  export const KNOWN_TEST_MNEMONICS = [
+    'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
+    'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong',
+    'legal winner thank year wave sausage worth useful legal winner thank yellow',
+  ];
+
   export const fixtures = {
-    mnemonics: [
-      'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-      'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong',
-      'legal winner thank year wave sausage worth useful legal winner thank yellow',
-    ],
-    account(index: number, network: 'regtest' | 'testnet' = 'regtest'): Account {
+    mnemonics: KNOWN_TEST_MNEMONICS,
+    account(index: number, network: 'regtest' | 'testnet' | 'mainnet' = 'regtest'): Account {
+      if (network === 'mainnet') {
+        throw new Error(
+          'Security Error: Test fixture mnemonics are publicly known and strictly prohibited on mainnet. Import an explicit UFVK or private seed for production.'
+        );
+      }
       const phrase = fixtures.mnemonics[index % fixtures.mnemonics.length];
       const acct = accountFromMnemonic(phrase, 0, network);
-      if (index === 0 && network === 'testnet') {
-        acct.getTransparentAddress = () => 'tmF1xjfhsSzhy55dmhorzTnKjtHhZmPKzts';
-      }
       return acct;
     },
   };
@@ -39,7 +43,12 @@ export namespace dev {
     });
 
     if (!res.ok) {
-      throw new Error(`Zebra mining error: ${res.statusText}`);
+      throw new Error(`Zebra mining HTTP error: ${res.statusText}`);
+    }
+
+    const data: any = await res.json();
+    if (data.error) {
+      throw new Error(`Zebra mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
     }
   }
 
@@ -52,17 +61,16 @@ export namespace dev {
       throw new Error('fund is only available on regtest');
     }
 
-    // Zallet / Zebra send
-    return {
-      txid: '0000000000000000000000000000000000000000000000000000000000000000',
-      fee: 10000n,
-    };
+    throw new Error(
+      'dev.fund is not yet implemented. Funding requires Zebra miner_address configuration and 100 blocks coinbase maturity.'
+    );
   }
 
   export async function reset(client: ZcashClient): Promise<void> {
     if (client.config.network !== 'regtest') {
       throw new Error('reset is only available on regtest');
     }
+    // No-op until regtest chain wipe helper is attached
   }
 
   export async function faucet(
