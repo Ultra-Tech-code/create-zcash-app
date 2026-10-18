@@ -43,12 +43,15 @@ export async function GET(request: Request) {
       // Remote or local indexer may be unreachable or scanning
     }
 
+    const transparentAddress = acct.getTransparentAddress ? acct.getTransparentAddress() : undefined;
+
     return NextResponse.json({
       success: true,
       accountIndex: fixtureIndex,
       network,
       endpoint,
       unifiedAddress: ua,
+      transparentAddress,
       ufvk,
       balances,
       notes: incomingNotes,

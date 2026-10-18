@@ -180,6 +180,13 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Network Notice / Split Warning */}
+      {network === 'testnet' && (
+        <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '8px', marginBottom: '1.5rem', color: '#fde047', fontSize: '0.85rem', lineHeight: '1.5' }}>
+          ⚠️ <strong>Notice on Testnet Chain Split:</strong> NU7 activated on public testnet at height 4,465,026 with consensus branch ID <code>77190ad9</code> (Zebra 7.0.0-rc.0). Local nodes on Zebra 6.4.2 remain on pre-NU7 consensus branch <code>37a5165b</code>. Remote mode (<code>testnet.zec.rocks:443</code>) is the default and connects to the active NU7 testnet. Local testnet mode may diverge.
+        </div>
+      )}
+
       {/* Tabs */}
       <nav style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', paddingBottom: '0.5rem' }}>
         {(['overview', 'addresses', 'transactions', 'faucet', 'health'] as const).map((tab) => (
@@ -232,6 +239,16 @@ export default function Dashboard() {
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                 Legacy Shielded (Sealed)
+              </div>
+            </div>
+
+            <div className="glass-card">
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Transparent Pool</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent-gold)', marginTop: '0.5rem' }}>
+                {zatoshisToZec(accountData?.balances?.transparent)} <span style={{ fontSize: '1rem', fontWeight: '500' }}>ZEC</span>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                Transparent P2PKH UTXOs
               </div>
             </div>
           </div>
@@ -350,6 +367,35 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+
+          {accountData?.transparentAddress && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
+                Transparent Address (P2PKH) — {network}
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  readOnly
+                  value={accountData.transparentAddress}
+                  className="mono-text"
+                  style={{
+                    flex: 1,
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid var(--border-color)',
+                    padding: '0.65rem',
+                    borderRadius: '6px',
+                    color: 'var(--accent-gold)',
+                  }}
+                />
+                <button
+                  onClick={() => navigator.clipboard.writeText(accountData.transparentAddress)}
+                  className="btn-secondary"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -494,11 +540,16 @@ export default function Dashboard() {
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-              <span>Consensus Upgrade</span>
-              <span style={{ color: 'var(--accent-gold)', fontWeight: '600' }}>
-                ● {nodeInfo?.upgradeName ?? 'NU6.3'}
+              <span>Consensus Branch ID</span>
+              <span className="mono-text" style={{ color: 'var(--accent-gold)', fontWeight: '600' }}>
+                {nodeInfo?.consensusBranchId ?? 'N/A'}
               </span>
             </div>
+            {network === 'testnet' && nodeInfo?.consensusBranchId && nodeInfo.consensusBranchId !== '77190ad9' && (
+              <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#fca5a5', fontSize: '0.85rem' }}>
+                ⚠️ <strong>Consensus Branch ID Mismatch:</strong> Connected node is reporting branch <code>{nodeInfo.consensusBranchId}</code>, while the public NU7 testnet chain tip is <code>77190ad9</code>. Transactions created against this node may not be accepted by peers on the NU7 testnet.
+              </div>
+            )}
           </div>
         </div>
       )}
