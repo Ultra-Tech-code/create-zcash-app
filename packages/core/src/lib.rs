@@ -313,5 +313,20 @@ mod tests {
         assert!(acct.unified_address.starts_with("uregtest1"));
         assert!(acct.ufvk.starts_with("uviewregtest1"));
         assert!(acct.spend_handle > 0);
+
+        let testnet_params = DynamicNetwork::Test(Network::TestNetwork);
+        let mnemonic = Mnemonic::<English>::from_phrase(phrase).unwrap();
+        let seed = mnemonic.to_seed("");
+        let usk = UnifiedSpendingKey::from_seed(&testnet_params, &seed, 0.try_into().unwrap()).unwrap();
+        let ufvk = usk.to_unified_full_viewing_key();
+        use zcash_keys::address::Address;
+        use zcash_transparent::keys::{IncomingViewingKey, NonHardenedChildIndex};
+
+        let t_fvk = ufvk.transparent().unwrap();
+        let ivk = t_fvk.derive_external_ivk().unwrap();
+        let t_addr = ivk.derive_address(NonHardenedChildIndex::ZERO).unwrap();
+        let addr = Address::from(t_addr);
+        let encoded = addr.encode(&testnet_params);
+        assert_eq!(encoded, "tmF1xjfhsSzhy55dmhorzTnKjtHhZmPKzts");
     }
 }

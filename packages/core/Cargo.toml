@@ -22,5 +22,8 @@ thiserror = "2"
 zcash_client_backend = { version = "0.24.0", features = ["orchard"] }
 zcash_note_encryption = "=0.4.2"
 
+[dev-dependencies]
+zcash_transparent = "0.10.0"
+
 [build-dependencies]
 napi-build = "2"
