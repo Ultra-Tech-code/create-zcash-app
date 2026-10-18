@@ -59,9 +59,13 @@ zcash-dev fixtures
 # Mine blocks on demand
 zcash-dev mine 1
 
-# Fund a Unified Address with regtest ZEC
+# Fund a Unified Address with regtest ZEC (requires Zallet funded account or miner address assignment)
 zcash-dev fund <UNIFIED_ADDRESS> 1.0
 ```
+
+> [!NOTE]
+> `zcash-dev mine` generates coinbase rewards via Zebra. Note that `zcash-dev fund` (via `z_sendmany`) requires 100 blocks of coinbase maturity and an active Zallet account with spendable balance.
+
 
 ### 4. `@zcash-app/dashboard` (Developer Dashboard)
 A glassmorphic Next.js App Router UI providing real-time visibility into your local Zcash stack:
@@ -106,11 +110,12 @@ Automatically updates `.env.local` and `zcash.config.json`. The developer dashbo
 4. **Node & Indexer (Optional for Remote Mode)**:
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
    - **Local Regtest Mode (Z3 Stack)**:
-     - **Zebra**: `zfnd/zebra:6.4.2` on JSON-RPC `127.0.0.1:8181` (or `18232`).
-     - **Zaino**: Image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:8137`.
+     - **Zebra Node**: Pinned to official stable release `zfnd/zebra:6.4.2` on JSON-RPC `127.0.0.1:8181` (or `18232`).
+     - **Zaino Indexer**: Pinned to image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:8137`.
 
 > [!IMPORTANT]
-> When running local Zaino, the image version must be **≥ 0.10.0** (tested: `0.10.0-no-tls`). Z3's default pin (`0.6.0`) rejects Ironwood `GetSubtreeRoots` queries.
+> - **Zebra pin**: Must use `zfnd/zebra:6.4.2` (recalled versions 6.4.0/6.4.1 contain pre-NU6.3 branch ID re-serialization DoS GHSA-h5rr-8pqv-grp9). Do not move to pre-release `7.0.0-rc.0` for regtest/mainnet.
+> - **Zaino pin**: Must use `zingodevops/zainod:0.10.0-no-tls` (≥ 0.10.0). Earlier versions like Z3's default (`0.6.0`) reject Ironwood `GetSubtreeRoots` queries.
 
 ---
 
