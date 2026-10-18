@@ -97,12 +97,27 @@ export async function getBalance(
     }
   }
 
+  let transparent = 0n;
+  const tAddr = typeof key !== 'string' && key.getTransparentAddress ? key.getTransparentAddress() : undefined;
+  if (tAddr) {
+    try {
+      const utxos = await client.getAddressUtxos([tAddr]);
+      for (const u of utxos) {
+        if (u.valueZat) {
+          transparent += BigInt(u.valueZat);
+        }
+      }
+    } catch (e) {
+      // transparent index not available or empty
+    }
+  }
+
   return {
     orchard,
     ironwood,
     sapling: 0n,
-    transparent: 0n,
-    total: orchard + ironwood,
+    transparent,
+    total: orchard + ironwood + transparent,
   };
 }
 

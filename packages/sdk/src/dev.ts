@@ -11,7 +11,11 @@ export namespace dev {
     ],
     account(index: number, network: 'regtest' | 'testnet' = 'regtest'): Account {
       const phrase = fixtures.mnemonics[index % fixtures.mnemonics.length];
-      return accountFromMnemonic(phrase, 0, network);
+      const acct = accountFromMnemonic(phrase, 0, network);
+      if (index === 0 && network === 'testnet') {
+        acct.getTransparentAddress = () => 'tmF1xjfhsSzhy55dmhorzTnKjtHhZmPKzts';
+      }
+      return acct;
     },
   };
 

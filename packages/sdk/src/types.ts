@@ -11,6 +11,7 @@ export type Ufvk = string;
 export interface Account {
   getUnifiedAddress(diversifierIndex?: number): string;
   getUnifiedFullViewingKey(): Ufvk;
+  getTransparentAddress?(): string;
   network: Network;
   readonly spendHandle: number;
 }
@@ -18,6 +19,7 @@ export interface Account {
 export interface WatchOnlyAccount {
   getUnifiedFullViewingKey(): Ufvk;
   getUnifiedAddress(diversifierIndex?: number): string;
+  getTransparentAddress?(): string;
   network: Network;
 }
 

@@ -111,6 +111,21 @@ export class ZcashClient {
     };
   }
 
+  public getAddressUtxos(addresses: string[], startHeight = 0, maxEntries = 0): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      this.client.GetAddressUtxos(
+        { addresses, startHeight, maxEntries },
+        (err: any, response: any) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(response?.addressUtxos || []);
+          }
+        }
+      );
+    });
+  }
+
   public close(): Promise<void> {
     return new Promise((resolve) => {
       this.client.close();
