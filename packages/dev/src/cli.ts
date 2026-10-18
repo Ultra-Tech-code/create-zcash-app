@@ -3,12 +3,13 @@ import { Command } from 'commander';
 import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import { createClient, dev, accountFromMnemonic } from '@zcash-app/sdk';
 
 const REMOTE_ENDPOINTS: Record<string, string> = {
   regtest: '127.0.0.1:8137',
-  testnet: 'zcash-testnet.zec.rocks:443',
-  mainnet: 'zcash-mainnet.zec.rocks:443',
+  testnet: 'testnet.zec.rocks:443',
+  mainnet: 'zec.rocks:443',
 };
 
 const program = new Command();
@@ -178,7 +179,7 @@ program
 ZCASH_NETWORK=${targetNetwork}
 ZCASH_CONNECTION_MODE=${connectionMode}
 ZCASH_ENDPOINT=${endpoint}
-Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0
+Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
 `;
     fs.writeFileSync(envPath, envContent);
 
@@ -200,6 +201,39 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0
     console.log(`   Endpoint:        ${endpoint}`);
     console.log(`   Updated files:   .env.local, zcash.config.json`);
     console.log(`\nThe developer dashboard will automatically reflect the ${targetNetwork} network.\n`);
+  });
+
+program
+  .command('dashboard')
+  .description('Launch the Zcash Developer Dashboard')
+  .option('-p, --port <port>', 'Port to run dashboard on', '3050')
+  .action((options) => {
+    const port = options.port;
+    console.log(`\n🚀 Launching Zcash Developer Dashboard on http://localhost:${port} ...\n`);
+
+    // Look for dashboard directory in monorepo packages or locally installed package
+    const monorepoDashboard = path.resolve(__dirname, '../../dashboard');
+    let dashboardCwd = process.cwd();
+
+    if (fs.existsSync(monorepoDashboard) && fs.existsSync(path.join(monorepoDashboard, 'package.json'))) {
+      dashboardCwd = monorepoDashboard;
+    }
+
+    const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+    const child = spawn(npx, ['next', 'dev', '-p', port], {
+      cwd: dashboardCwd,
+      stdio: 'inherit',
+      env: { ...process.env, PORT: port },
+    });
+
+    child.on('error', (err) => {
+      console.error('Failed to start dashboard:', err);
+      process.exit(1);
+    });
+
+    child.on('exit', (code) => {
+      process.exit(code ?? 0);
+    });
   });
 
 program.parse(process.argv);

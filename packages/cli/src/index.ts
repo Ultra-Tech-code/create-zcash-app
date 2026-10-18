@@ -5,8 +5,8 @@ import fs from 'fs';
 import path from 'path';
 
 export const REMOTE_ENDPOINTS = {
-  testnet: 'zcash-testnet.zec.rocks:443',
-  mainnet: 'zcash-mainnet.zec.rocks:443',
+  testnet: 'testnet.zec.rocks:443',
+  mainnet: 'zec.rocks:443',
 };
 
 const program = new Command();
@@ -162,7 +162,7 @@ program
       network,
       connectionMode,
       endpoint,
-      zainoPin: 'zingodevops/zainod:0.10.0',
+      zainoPin: 'zingodevops/zainod:0.10.0-no-tls',
       createdAt: new Date().toISOString(),
     };
     fs.writeFileSync(
@@ -177,7 +177,7 @@ ZCASH_CONNECTION_MODE=${connectionMode}
 ZCASH_ENDPOINT=${endpoint}
 
 # Z3 Stack Pin Override: Zaino >= 0.10.0 required for Ironwood support
-Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0
+Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
 `;
     fs.writeFileSync(path.join(targetDir, '.env.local'), envContent);
 
@@ -185,7 +185,7 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0
     if (generateDockerCompose) {
       const composeContent = `services:
   zebra:
-    image: zfnd/zebrad:6.4.2
+    image: zfnd/zebrad:6.2.3
     restart: unless-stopped
     ports:
       - "8181:8181"
@@ -194,7 +194,7 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0
       - NETWORK=${network}
 
   zaino:
-    image: zingodevops/zainod:0.10.0
+    image: zingodevops/zainod:0.10.0-no-tls
     restart: unless-stopped
     ports:
       - "8137:8137"

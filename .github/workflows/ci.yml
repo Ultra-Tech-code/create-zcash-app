@@ -1,0 +1,80 @@
+name: CI & Native Addon Matrix
+on:
+  push:
+    branches:
+      - main
+    tags-ignore:
+      - '**'
+    paths-ignore:
+      - '**/*.md'
+      - 'LICENSE'
+      - '**/.gitignore'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: pnpm --filter @zcash-app/core run build --target aarch64-apple-darwin
+          - host: macos-13
+            target: x86_64-apple-darwin
+            build: pnpm --filter @zcash-app/core run build --target x86_64-apple-darwin
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: pnpm --filter @zcash-app/core run build --target x86_64-unknown-linux-gnu
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: pnpm --filter @zcash-app/core run build --target x86_64-pc-windows-msvc
+
+    name: stable - ${{ matrix.settings.target }} - node@20
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.settings.target }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Build Rust core addon
+        run: ${{ matrix.settings.build }}
+
+      - name: Test Rust crate
+        run: cargo test
+        working-directory: packages/core
+
+      - name: Build TypeScript packages
+        run: |
+          pnpm --filter @zcash-app/sdk run build
+          pnpm --filter zcash-dev run build
+          pnpm --filter create-zcash-app run build
+
+      - name: Upload native artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: packages/core/*.node
+          if-no-files-found: error

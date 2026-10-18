@@ -103,12 +103,14 @@ Automatically updates `.env.local` and `zcash.config.json`. The developer dashbo
 1. **Rust / Cargo**: `1.85+` (verified with `cargo 1.95.0`).
 2. **Node.js**: `v20+` (verified with `v22.22.2`).
 3. **pnpm**: `v9+` or `v11+` (`corepack enable`).
-4. **Running Z3 Stack (Zebra + Zaino)**:
-   - **Zebra**: Listening on JSON-RPC `127.0.0.1:8181` (or regtest default `18232`).
-   - **Zaino**: Image `zingodevops/zainod:0.10.0` or newer listening on gRPC port `127.0.0.1:8137`.
+4. **Node & Indexer (Optional for Remote Mode)**:
+   - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
+   - **Local Regtest Mode (Z3 Stack)**:
+     - **Zebra**: `zfnd/zebrad:6.2.3` on JSON-RPC `127.0.0.1:8181` (or `18232`).
+     - **Zaino**: Image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:8137`.
 
 > [!IMPORTANT]
-> Zaino version must be **≥ 0.10.0**. Z3's default pin (`0.6.0`) rejects Ironwood `GetSubtreeRoots` queries.
+> When running local Zaino, the image version must be **≥ 0.10.0** (tested: `0.10.0-no-tls`). Z3's default pin (`0.6.0`) rejects Ironwood `GetSubtreeRoots` queries.
 
 ---
 
@@ -118,14 +120,14 @@ Automatically updates `.env.local` and `zcash.config.json`. The developer dashbo
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/create-zcash-app.git
+git clone https://github.com/Ultra-Tech-code/create-zcash-app.git
 cd create-zcash-app
 
 # Install all workspace dependencies
 pnpm install
 
-# Build the Rust native addon
-pnpm --filter @zcash-app/core run build:debug
+# Build the Rust native addon (debug or release)
+pnpm --filter @zcash-app/core run build
 
 # Build the TypeScript SDK, CLI, and Dashboard
 pnpm --filter @zcash-app/sdk run build
@@ -136,7 +138,7 @@ pnpm --filter dashboard run build
 
 ### 2. Run SDK Smoke Test
 
-With Zaino running on `127.0.0.1:8137`, test the connection, key derivation, and ZIP-321 encoding:
+With local Zaino running on `127.0.0.1:8137` (or against testnet/mainnet):
 ```bash
 node packages/sdk/test-e2e.mjs
 ```
@@ -144,10 +146,14 @@ node packages/sdk/test-e2e.mjs
 ### 3. Launch the Developer Dashboard
 
 ```bash
+# Launch directly via zcash-dev:
+npx zcash-dev dashboard
+
+# Or from the dashboard package:
 cd packages/dashboard
 pnpm dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view chain state, inspect fixture balances, and trigger on-demand mining.
+Open [http://localhost:3050](http://localhost:3050) to view chain state, inspect balances across pools (Orchard + Ironwood), and perform developer actions.
 
 ---
 

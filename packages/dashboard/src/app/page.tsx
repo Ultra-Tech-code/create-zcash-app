@@ -153,20 +153,28 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'center' }}>
           <div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Network</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', textTransform: 'capitalize' }}>{network}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', textTransform: 'capitalize' }}>
+              {network}
+            </div>
           </div>
           <div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Height</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>#{nodeInfo?.blockHeight ?? (network === 'regtest' ? 'Connecting...' : 'External')}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
+              {nodeInfo?.blockHeight ? `#${nodeInfo.blockHeight}` : loading ? 'Syncing...' : 'Unreachable'}
+            </div>
           </div>
           <div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Upgrade</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: 'var(--accent-gold)' }}>{nodeInfo?.upgradeName ?? (network === 'regtest' ? 'NU6.3' : 'NU6.3')}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: 'var(--accent-gold)' }}>
+              {nodeInfo?.upgradeName || (network === 'regtest' ? 'NU6.3' : 'NU5 / NU6')}
+            </div>
           </div>
           <div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Zaino / Endpoint</div>
+            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Connection / Endpoint</div>
             <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-              {network === 'regtest' ? 'Local v0.10.0 (8137)' : network === 'testnet' ? 'testnet (443)' : 'mainnet (443)'}
+              {network === 'regtest'
+                ? '🐳 Local Z3 (127.0.0.1:8137)'
+                : `🌐 External RPC (${network === 'testnet' ? 'testnet.zec.rocks:443' : 'zec.rocks:443'})`}
             </div>
           </div>
         </div>
@@ -275,11 +283,19 @@ export default function Dashboard() {
       {activeTab === 'addresses' && (
         <div className="glass-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem' }}>Fixture Account #0</h2>
+            <h2 style={{ fontSize: '1.25rem' }}>
+              {network === 'mainnet' ? 'Production Address (Watch-Only)' : 'Fixture Account #0'}
+            </h2>
             <span className={`badge badge-${network}`}>
               {network} address set
             </span>
           </div>
+
+          {network === 'mainnet' && (
+            <div style={{ padding: '0.875rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', marginBottom: '1.5rem', color: '#fca5a5', fontSize: '0.85rem' }}>
+              🛡️ <strong>Mainnet Safety Guard:</strong> Fixture private keys are never derived or loaded for mainnet. The address below is an example watch-only derivation. For real funds, import an explicit UFVK via server environment.
+            </div>
+          )}
           
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
@@ -406,24 +422,47 @@ export default function Dashboard() {
             </>
           ) : network === 'testnet' ? (
             <>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>ztap Testnet Faucet</h2>
+              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Testnet Faucet Options</h2>
               <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Self-hosted, self-mining, Ironwood-capable faucet with browser proof-of-work.
+                Acquire testnet TAZ to fund your shielded Unified Address.
               </p>
-              <div style={{ padding: '1.25rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px' }}>
-                <div style={{ fontWeight: '600', marginBottom: '0.5rem', color: 'var(--accent-blue)' }}>Request TAZ for {accountData?.unifiedAddress?.slice(0, 24)}...</div>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                  Solve the browser proof-of-work challenge on your ztap node to receive shielded testnet funds.
-                </p>
-                <a
-                  href={`http://127.0.0.1:3000/faucet?address=${encodeURIComponent(accountData?.unifiedAddress || '')}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-primary"
-                  style={{ display: 'inline-block' }}
-                >
-                  Open ztap Faucet UI ↗
-                </a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ padding: '1.25rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: '600', color: 'var(--accent-blue)' }}>Local ztap Faucet Service</div>
+                    <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Milestone 2 (Planned)</span>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                    Self-hosted, self-mining, Ironwood-capable faucet running locally on port 3000 with browser proof-of-work.
+                  </p>
+                  <a
+                    href={`http://127.0.0.1:3000/faucet?address=${encodeURIComponent(accountData?.unifiedAddress || '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-secondary"
+                    style={{ display: 'inline-block', fontSize: '0.85rem' }}
+                  >
+                    Check Local ztap UI (127.0.0.1:3000) ↗
+                  </a>
+                </div>
+
+                <div style={{ padding: '1.25rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
+                  <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Public Community Faucets</div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+                    While ztap is running in development mode, you can request public testnet TAZ from community faucets:
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                    <a
+                      href="https://faucet.zecpages.com/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn-primary"
+                      style={{ fontSize: '0.85rem' }}
+                    >
+                      ZecPages Testnet Faucet ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             </>
           ) : (

@@ -59,9 +59,16 @@ export class ZcashClient {
     const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
     const Service = protoDescriptor.cash.z.wallet.sdk.rpc.CompactTxStreamer;
 
+    const isTls =
+      config.endpoint.endsWith(':443') ||
+      config.endpoint.startsWith('https://') ||
+      (config as any).tls === true;
+
+    const cleanEndpoint = config.endpoint.replace(/^https?:\/\//, '');
+
     this.client = new Service(
-      config.endpoint,
-      grpc.credentials.createInsecure()
+      cleanEndpoint,
+      isTls ? grpc.credentials.createSsl() : grpc.credentials.createInsecure()
     );
   }
 
