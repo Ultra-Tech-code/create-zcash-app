@@ -106,7 +106,7 @@ Automatically updates `.env.local` and `zcash.config.json`. The developer dashbo
 4. **Node & Indexer (Optional for Remote Mode)**:
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
    - **Local Regtest Mode (Z3 Stack)**:
-     - **Zebra**: `zfnd/zebrad:6.2.3` on JSON-RPC `127.0.0.1:8181` (or `18232`).
+     - **Zebra**: `zfnd/zebra:6.4.2` on JSON-RPC `127.0.0.1:8181` (or `18232`).
      - **Zaino**: Image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:8137`.
 
 > [!IMPORTANT]
