@@ -65,6 +65,7 @@ export async function detectIncoming(
               txid,
               height: blockHeight,
               recipient: result.recipient,
+              nullifier: result.nullifier,
             });
           }
         }
@@ -98,6 +99,7 @@ export async function detectIncoming(
               txid,
               height: blockHeight,
               recipient: result.recipient,
+              nullifier: result.nullifier,
             });
           }
         }

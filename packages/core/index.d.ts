@@ -14,6 +14,7 @@ export interface DecryptedNote {
   valueZatoshis: number
   recipient: string
   actionIndex: number
+  nullifier: string
 }
 
 export declare function deriveAccountFromMnemonic(mnemonicStr: string, accountIndex: number, networkStr: string): DerivedAccount

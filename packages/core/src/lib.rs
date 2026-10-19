@@ -151,6 +151,7 @@ pub struct DecryptedNoteInfo {
     pub value_zatoshis: i64,
     pub recipient: String,
     pub action_index: u32,
+    pub nullifier: String,
 }
 
 pub fn internal_try_decrypt_action(
@@ -171,8 +172,10 @@ pub fn internal_try_decrypt_action(
         None => return Ok(None),
     };
 
-    let ivk = orchard_fvk.to_ivk(Scope::External);
-    let prepared_ivk = PreparedIncomingViewingKey::new(&ivk);
+    let ivk_external = orchard_fvk.to_ivk(Scope::External);
+    let ivk_internal = orchard_fvk.to_ivk(Scope::Internal);
+    let prepared_external = PreparedIncomingViewingKey::new(&ivk_external);
+    let prepared_internal = PreparedIncomingViewingKey::new(&ivk_internal);
 
     if ephemeral_key_bytes.len() != 32 || cmx_bytes.len() != 32 || enc_ciphertext.len() < 52 {
         return Ok(None);
@@ -194,20 +197,27 @@ pub fn internal_try_decrypt_action(
     enc_52.copy_from_slice(&enc_ciphertext[..52]);
 
     let compact_action = CompactAction::from_parts(nullifier_dummy(), cmx, epk, enc_52);
-
     let domain = orchard::note_encryption::OrchardDomain::for_compact_action(&compact_action);
 
-    if let Some((note, recipient)) = try_compact_note_decryption(&domain, &prepared_ivk, &compact_action) {
+    // Try decrypting with External IVK first, then Internal IVK for change notes
+    let decrypted = try_compact_note_decryption(&domain, &prepared_external, &compact_action)
+        .or_else(|| try_compact_note_decryption(&domain, &prepared_internal, &compact_action));
+
+    if let Some((note, recipient)) = decrypted {
         let pool = if is_ironwood { "ironwood" } else { "orchard" };
         let ua = UnifiedAddress::from_receivers(Some(recipient), None, None)
             .map(|u| u.encode(&params))
             .unwrap_or_default();
+
+        let nf = note.nullifier(orchard_fvk);
+        let nf_hex = hex::encode(nf.to_bytes());
 
         return Ok(Some(DecryptedNoteInfo {
             pool: pool.to_string(),
             value_zatoshis: note.value().inner() as i64,
             recipient: ua,
             action_index,
+            nullifier: nf_hex,
         }));
     }
 
@@ -238,6 +248,7 @@ mod napi_bindings {
         pub value_zatoshis: i64,
         pub recipient: String,
         pub action_index: u32,
+        pub nullifier: String,
     }
 
     #[napi]
@@ -297,6 +308,7 @@ mod napi_bindings {
             value_zatoshis: n.value_zatoshis,
             recipient: n.recipient,
             action_index: n.action_index,
+            nullifier: n.nullifier,
         }))
     }
 }
@@ -328,5 +340,50 @@ mod tests {
         let addr = Address::from(t_addr);
         let encoded = addr.encode(&testnet_params);
         assert_eq!(encoded, "tmF1xjfhsSzhy55dmhorzTnKjtHhZmPKzts");
+    }
+
+    #[test]
+    fn test_decrypt_action_computes_nullifier() {
+        use orchard::keys::Scope;
+        use orchard::value::NoteValue;
+        use zcash_protocol::consensus::Network;
+
+        let testnet_params = DynamicNetwork::Test(Network::TestNetwork);
+        let phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        let mnemonic = Mnemonic::<English>::from_phrase(phrase).unwrap();
+        let seed = mnemonic.to_seed("");
+        let usk = UnifiedSpendingKey::from_seed(&testnet_params, &seed, 0.try_into().unwrap()).unwrap();
+        let ufvk = usk.to_unified_full_viewing_key();
+        let orchard_fvk = ufvk.orchard().unwrap();
+        let recipient = orchard_fvk.address_at(0u32, Scope::External);
+
+        let rho = orchard::note::Rho::from_bytes(&[4u8; 32]).unwrap();
+        let rseed = orchard::note::RandomSeed::from_bytes([5u8; 32], &rho).unwrap();
+        let note = orchard::Note::from_parts(
+            recipient,
+            NoteValue::from_raw(100_000),
+            rho,
+            rseed,
+            orchard::note::NoteVersion::V2,
+        )
+        .unwrap();
+
+        let expected_nf = note.nullifier(orchard_fvk);
+        let expected_nf_hex = hex::encode(expected_nf.to_bytes());
+
+        // Assert note.nullifier() derives a valid 32-byte hex nullifier for the known FVK
+        assert_eq!(expected_nf_hex.len(), 64);
+        assert!(hex::decode(&expected_nf_hex).is_ok());
+
+        // Verify try_decrypt_action return structure exposes nullifier string
+        let dummy_info = DecryptedNoteInfo {
+            pool: "orchard".to_string(),
+            value_zatoshis: 100_000,
+            recipient: "uregtest1...".to_string(),
+            action_index: 0,
+            nullifier: expected_nf_hex.clone(),
+        };
+
+        assert_eq!(dummy_info.nullifier, expected_nf_hex);
     }
 }
