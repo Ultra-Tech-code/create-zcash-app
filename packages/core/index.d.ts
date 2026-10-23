@@ -30,4 +30,4 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
-export declare function tryDecryptAction(ufvkStr: string, networkStr: string, ephemeralKey: Buffer, cmx: Buffer, encCiphertext: Buffer, isIronwood: boolean, actionIndex: number): DecryptedNote | null
+export declare function tryDecryptAction(ufvkStr: string, networkStr: string, ephemeralKey: Buffer, cmx: Buffer, encCiphertext: Buffer, isIronwood: boolean, actionIndex: number, nullifier?: Buffer | undefined | null): DecryptedNote | null

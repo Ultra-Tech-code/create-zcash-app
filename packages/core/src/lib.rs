@@ -162,6 +162,7 @@ pub fn internal_try_decrypt_action(
     enc_ciphertext: &[u8],
     is_ironwood: bool,
     action_index: u32,
+    nullifier_bytes: Option<&[u8]>,
 ) -> Result<Option<DecryptedNoteInfo>, String> {
     let params = get_params_for_network(network_str);
     let ufvk = UnifiedFullViewingKey::decode(&params, ufvk_str)
@@ -196,12 +197,42 @@ pub fn internal_try_decrypt_action(
     let mut enc_52 = [0u8; 52];
     enc_52.copy_from_slice(&enc_ciphertext[..52]);
 
-    let compact_action = CompactAction::from_parts(nullifier_dummy(), cmx, epk, enc_52);
-    let domain = orchard::note_encryption::OrchardDomain::for_compact_action(&compact_action);
+    let nullifier = nullifier_bytes
+        .and_then(|b| {
+            if b.len() == 32 {
+                let mut arr = [0u8; 32];
+                arr.copy_from_slice(b);
+                orchard::note::Nullifier::from_bytes(&arr).into_option()
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(nullifier_dummy);
 
-    // Try decrypting with External IVK first, then Internal IVK for change notes
-    let decrypted = try_compact_note_decryption(&domain, &prepared_external, &compact_action)
-        .or_else(|| try_compact_note_decryption(&domain, &prepared_internal, &compact_action));
+    let compact_action = CompactAction::from_parts(nullifier, cmx, epk, enc_52);
+
+    // Try decrypting with External IVK first, then Internal IVK for change notes.
+    // If is_ironwood is true, use IronwoodDomain (ZIP 2005, lead byte 0x03), falling back to OrchardDomain.
+    // Otherwise use OrchardDomain (lead byte 0x02), falling back to IronwoodDomain.
+    let decrypted = if is_ironwood {
+        let iw_domain = orchard::note_encryption::IronwoodDomain::for_compact_action(&compact_action);
+        try_compact_note_decryption(&iw_domain, &prepared_external, &compact_action)
+            .or_else(|| try_compact_note_decryption(&iw_domain, &prepared_internal, &compact_action))
+            .or_else(|| {
+                let or_domain = orchard::note_encryption::OrchardDomain::for_compact_action(&compact_action);
+                try_compact_note_decryption(&or_domain, &prepared_external, &compact_action)
+                    .or_else(|| try_compact_note_decryption(&or_domain, &prepared_internal, &compact_action))
+            })
+    } else {
+        let or_domain = orchard::note_encryption::OrchardDomain::for_compact_action(&compact_action);
+        try_compact_note_decryption(&or_domain, &prepared_external, &compact_action)
+            .or_else(|| try_compact_note_decryption(&or_domain, &prepared_internal, &compact_action))
+            .or_else(|| {
+                let iw_domain = orchard::note_encryption::IronwoodDomain::for_compact_action(&compact_action);
+                try_compact_note_decryption(&iw_domain, &prepared_external, &compact_action)
+                    .or_else(|| try_compact_note_decryption(&iw_domain, &prepared_internal, &compact_action))
+            })
+    };
 
     if let Some((note, recipient)) = decrypted {
         let pool = if is_ironwood { "ironwood" } else { "orchard" };
@@ -291,6 +322,7 @@ mod napi_bindings {
         enc_ciphertext: Buffer,
         is_ironwood: bool,
         action_index: u32,
+        nullifier: Option<Buffer>,
     ) -> Result<Option<DecryptedNote>> {
         let res = internal_try_decrypt_action(
             &ufvk_str,
@@ -300,6 +332,7 @@ mod napi_bindings {
             &enc_ciphertext,
             is_ironwood,
             action_index,
+            nullifier.as_deref().map(|b| b.as_ref()),
         )
         .map_err(|e| Error::new(Status::GenericFailure, e))?;
 
@@ -385,5 +418,72 @@ mod tests {
         };
 
         assert_eq!(dummy_info.nullifier, expected_nf_hex);
+    }
+
+    #[test]
+    fn test_internal_ironwood_change_note_decryption() {
+        use orchard::builder::{Builder, BundleType};
+        use orchard::bundle::{BundleVersion, Flags};
+        use orchard::keys::Scope;
+        use orchard::value::NoteValue;
+        use orchard::Anchor;
+        use rand::rngs::OsRng;
+        use zcash_protocol::consensus::Network;
+
+        let testnet_params = DynamicNetwork::Test(Network::TestNetwork);
+        let phrase = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        let mnemonic = Mnemonic::<English>::from_phrase(phrase).unwrap();
+        let seed = mnemonic.to_seed("");
+        let usk = UnifiedSpendingKey::from_seed(&testnet_params, &seed, 0.try_into().unwrap()).unwrap();
+        let ufvk = usk.to_unified_full_viewing_key();
+        let ufvk_str = ufvk.encode(&testnet_params);
+        let orchard_fvk = ufvk.orchard().unwrap();
+
+        // Target an internal-scope change address
+        let internal_recipient = orchard_fvk.address_at(0u32, Scope::Internal);
+
+        let mut builder = Builder::new(
+            BundleType::Coinbase,
+            BundleVersion::ironwood_v3(),
+            Flags::SPENDS_DISABLED,
+            Anchor::from_bytes([0u8; 32]).unwrap(),
+        )
+        .unwrap();
+
+        builder
+            .add_output(
+                None,
+                internal_recipient,
+                NoteValue::from_raw(500_000),
+                [0u8; 512],
+            )
+            .unwrap();
+
+        let mut rng = OsRng;
+        let (pczt_bundle, _) = builder.build_for_pczt(&mut rng).unwrap();
+        let action = &pczt_bundle.actions()[0];
+
+        let epk_bytes = action.output().encrypted_note().epk_bytes;
+        let cmx_bytes = action.output().cmx().to_bytes();
+        let enc_ciphertext = &action.output().encrypted_note().enc_ciphertext;
+        let nf_bytes = action.spend().nullifier().to_bytes();
+
+        let res = internal_try_decrypt_action(
+            &ufvk_str,
+            "testnet",
+            &epk_bytes,
+            &cmx_bytes,
+            enc_ciphertext,
+            true,
+            0,
+            Some(&nf_bytes),
+        )
+        .unwrap();
+
+        assert!(res.is_some(), "Scope::Internal Ironwood note must decrypt successfully");
+        let info = res.unwrap();
+        assert_eq!(info.pool, "ironwood");
+        assert_eq!(info.value_zatoshis, 500_000);
+        assert!(!info.nullifier.is_empty());
     }
 }

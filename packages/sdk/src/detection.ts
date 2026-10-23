@@ -34,7 +34,10 @@ export async function detectIncoming(
     if (!block.vtx) continue;
 
     for (const tx of block.vtx) {
-      const txid = Buffer.isBuffer(tx.hash) ? tx.hash.toString('hex') : String(tx.hash ?? '');
+      const rawTxid = (tx as any).txid ?? tx.hash;
+      const txid = Buffer.isBuffer(rawTxid)
+        ? Buffer.from(rawTxid).reverse().toString('hex')
+        : String(rawTxid ?? '');
 
       // Record any spent nullifiers in actions
       if (tx.actions && tx.actions.length > 0) {
@@ -56,7 +59,8 @@ export async function detectIncoming(
             action.cmx,
             encCiphertext,
             false,
-            i
+            i,
+            action.nullifier
           );
           if (result) {
             detected.push({
@@ -90,7 +94,8 @@ export async function detectIncoming(
             action.cmx,
             encCiphertext,
             true,
-            i
+            i,
+            action.nullifier
           );
           if (result) {
             detected.push({

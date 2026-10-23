@@ -26,6 +26,7 @@ export interface CompactBlock {
 export interface CompactTx {
   index: string | number;
   hash: Buffer;
+  txid?: Buffer;
   fee: number;
   spends: any[];
   outputs: any[];

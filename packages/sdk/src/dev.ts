@@ -61,9 +61,92 @@ export namespace dev {
       throw new Error('fund is only available on regtest');
     }
 
-    throw new Error(
-      'dev.fund is not yet implemented. Funding requires Zebra miner_address configuration and 100 blocks coinbase maturity.'
-    );
+    // 1. Get sender UA from Zallet
+    const addrRes = await fetch('http://127.0.0.1:8181', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'fund-listaddresses',
+        method: 'listaddresses',
+        params: [],
+      }),
+    });
+    if (!addrRes.ok) throw new Error(`Zallet listaddresses error: ${addrRes.statusText}`);
+    const addrData: any = await addrRes.json();
+    const accounts = addrData?.result?.[0]?.unified;
+    const senderUa = accounts?.[0]?.addresses?.[0]?.address;
+    if (!senderUa) {
+      throw new Error('No sender address found in Zallet regtest wallet');
+    }
+
+    // 2. Call z_sendmany
+    const amountZec = Number(value) / 1e8;
+    const sendRes = await fetch('http://127.0.0.1:8181', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'fund-sendmany',
+        method: 'z_sendmany',
+        params: [
+          senderUa,
+          [{ address: to, amount: amountZec }],
+        ],
+      }),
+    });
+    if (!sendRes.ok) throw new Error(`Zallet z_sendmany error: ${sendRes.statusText}`);
+    const sendData: any = await sendRes.json();
+    if (sendData.error) {
+      throw new Error(`Zallet z_sendmany error: ${sendData.error.message || JSON.stringify(sendData.error)}`);
+    }
+    const opid = sendData.result;
+
+    // 3. Poll z_getoperationstatus for success
+    let txid = '';
+    for (let attempts = 0; attempts < 30; attempts++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      const statusRes = await fetch('http://127.0.0.1:8181', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'fund-opstatus',
+          method: 'z_getoperationstatus',
+          params: [[opid]],
+        }),
+      });
+      const statusData: any = await statusRes.json();
+      const op = statusData?.result?.[0];
+      if (op?.status === 'success') {
+        txid = op.result?.txid;
+        break;
+      }
+      if (op?.status === 'failed') {
+        throw new Error(`Zallet send operation failed: ${op.error?.message || JSON.stringify(op.error)}`);
+      }
+    }
+
+    if (!txid) {
+      throw new Error(`Timed out waiting for send operation ${opid} to complete`);
+    }
+
+    // 4. Mine 1 block to confirm the transaction
+    await mine(client, 1);
+
+    return {
+      txid,
+      fee: 10000n,
+    };
   }
 
   export async function reset(client: ZcashClient): Promise<void> {
