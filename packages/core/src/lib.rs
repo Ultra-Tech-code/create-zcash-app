@@ -1,3 +1,5 @@
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use bip0039::{Count, English, Mnemonic};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU32, Ordering};
@@ -16,14 +18,20 @@ static SPEND_HANDLES: Mutex<Option<HashMap<u32, UnifiedSpendingKey>>> = Mutex::n
 
 pub fn store_spending_key(usk: UnifiedSpendingKey) -> u32 {
     let id = NEXT_SPEND_HANDLE.fetch_add(1, Ordering::SeqCst);
-    let mut map_guard = SPEND_HANDLES.lock().unwrap();
+    let mut map_guard = match SPEND_HANDLES.lock() {
+        Ok(g) => g,
+        Err(poisoned) => poisoned.into_inner(),
+    };
     let map = map_guard.get_or_insert_with(HashMap::new);
     map.insert(id, usk);
     id
 }
 
 pub fn get_spending_key(handle: u32) -> Option<UnifiedSpendingKey> {
-    let map_guard = SPEND_HANDLES.lock().unwrap();
+    let map_guard = match SPEND_HANDLES.lock() {
+        Ok(g) => g,
+        Err(poisoned) => poisoned.into_inner(),
+    };
     map_guard.as_ref()?.get(&handle).cloned()
 }
 
@@ -200,17 +208,21 @@ pub fn internal_try_decrypt_action(
     let mut enc_52 = [0u8; 52];
     enc_52.copy_from_slice(&enc_ciphertext[..52]);
 
-    let nullifier = nullifier_bytes
-        .and_then(|b| {
-            if b.len() == 32 {
-                let mut arr = [0u8; 32];
-                arr.copy_from_slice(b);
-                orchard::note::Nullifier::from_bytes(&arr).into_option()
-            } else {
-                None
-            }
-        })
-        .unwrap_or_else(nullifier_dummy);
+    let nullifier = match nullifier_bytes.and_then(|b| {
+        if b.len() == 32 {
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(b);
+            orchard::note::Nullifier::from_bytes(&arr).into_option()
+        } else {
+            None
+        }
+    }) {
+        Some(nf) => nf,
+        None => match orchard::note::Nullifier::from_bytes(&[0u8; 32]).into_option() {
+            Some(nf) => nf,
+            None => return Ok(None),
+        },
+    };
 
     let compact_action = CompactAction::from_parts(nullifier, cmx, epk, enc_52);
 
@@ -260,10 +272,6 @@ pub fn internal_try_decrypt_action(
     }
 
     Ok(None)
-}
-
-fn nullifier_dummy() -> orchard::note::Nullifier {
-    orchard::note::Nullifier::from_bytes(&[0u8; 32]).unwrap()
 }
 
 #[cfg(not(test))]
@@ -359,6 +367,7 @@ mod napi_bindings {
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 mod tests {
     use super::*;
 
@@ -518,6 +527,8 @@ pub use scanner::{
     ChainMetadata, CompactBlock, CompactOrchardAction, CompactTx, ScanResult, Scanner,
     WalletError,
 };
+#[doc(hidden)]
+pub use scanner::INJECT_FAULT_BEFORE_CHECKPOINT;
 pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
 pub use shard_store::{
     IronwoodShardTree, ShardStoreError, SqliteShardStore, IRONWOOD_SHARD_HEIGHT,

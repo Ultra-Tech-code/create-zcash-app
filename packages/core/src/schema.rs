@@ -99,14 +99,14 @@ fn apply_migration_v1(tx: &Transaction) -> Result<(), SchemaError> {
         -- 4. Pending Spends (In-flight reservation state machine: reserved -> broadcast -> mined)
         CREATE TABLE IF NOT EXISTS pending_spends (
             nullifier BLOB PRIMARY KEY,
-            note_id INTEGER NOT NULL,
+            note_id INTEGER,
             txid BLOB NOT NULL,
             created_at INTEGER NOT NULL,
             expiry_height INTEGER NOT NULL,
             state TEXT NOT NULL CHECK(state IN ('reserved', 'broadcast', 'mined')),
             owner_pid INTEGER NOT NULL,
             heartbeat_at INTEGER NOT NULL,
-            FOREIGN KEY(note_id) REFERENCES received_notes(id) ON DELETE CASCADE
+            FOREIGN KEY(note_id) REFERENCES received_notes(id) ON DELETE SET NULL
         );
         CREATE INDEX IF NOT EXISTS idx_pending_spends_txid ON pending_spends(txid);
         CREATE INDEX IF NOT EXISTS idx_pending_spends_state ON pending_spends(state);

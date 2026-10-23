@@ -41,6 +41,23 @@ impl PendingSpendsManager {
         Ok(deleted)
     }
 
+    /// Re-links orphaned reservations whose `note_id` was set to NULL by a reorg
+    /// when the same note is re-mined at a new height with a new row ID.
+    pub fn relink_reservations(conn: &Connection) -> Result<usize, WalletError> {
+        let updated = conn.execute(
+            "UPDATE pending_spends 
+             SET note_id = (
+                 SELECT id FROM received_notes 
+                 WHERE nullifier = pending_spends.nullifier 
+                   AND spent_in_txid IS NULL
+                 LIMIT 1
+             )
+             WHERE note_id IS NULL",
+            [],
+        )?;
+        Ok(updated)
+    }
+
     /// Reserves a set of unspent notes for an in-flight transaction under `BEGIN IMMEDIATE`.
     ///
     /// Validates that:

@@ -130,6 +130,14 @@ pub enum WalletError {
 
     #[error("Stale reservation or lock error: {0}")]
     LockError(String),
+
+    #[error("Fault injected: {0}")]
+    FaultInjected(String),
+}
+
+#[doc(hidden)]
+thread_local! {
+    pub static INJECT_FAULT_BEFORE_CHECKPOINT: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
 }
 
 pub struct Scanner;
@@ -171,6 +179,38 @@ impl Scanner {
         // Use BEGIN IMMEDIATE to acquire write lock upfront, preventing concurrent deadlocks
         let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
 
+        let first_block = &blocks[0];
+
+        // Upfront ChainReset verification: if block is at first_scanned_height, verify hash matches
+        let first_scanned_h_val: Option<String> = tx
+            .query_row(
+                "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_height'",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
+        let first_scanned_hash_val: Option<String> = tx
+            .query_row(
+                "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_hash'",
+                [],
+                |row| row.get(0),
+            )
+            .optional()?;
+
+        if let (Some(expected_h), Some(exp_hash)) = (first_scanned_h_val.as_ref(), first_scanned_hash_val.as_ref()) {
+            let expected_h_num = expected_h.parse::<u64>().unwrap_or(first_block.height);
+            if first_block.height == expected_h_num {
+                let block_hash_hex = hex::encode(&first_block.hash);
+                if &block_hash_hex != exp_hash {
+                    return Err(WalletError::ChainReset {
+                        expected: exp_hash.clone(),
+                        actual: block_hash_hex,
+                        height: first_block.height as u32,
+                    });
+                }
+            }
+        }
+
         // Query tip of scanned_blocks
         let tip: Option<(u32, Vec<u8>, u32)> = tx
             .query_row(
@@ -182,7 +222,6 @@ impl Scanner {
 
         let mut current_tree_size = match tip {
             Some((last_h, ref last_hash, tree_sz)) => {
-                let first_block = &blocks[0];
                 if first_block.height != (last_h as u64) + 1 {
                     // Check if block connects or if reorg ancestor hashes are needed
                     if first_block.prev_hash != *last_hash {
@@ -201,48 +240,14 @@ impl Scanner {
                 tree_sz
             }
             None => {
-                // First scan ever: verify chain identity if set
-                let first_scanned_h_val: Option<String> = tx
-                    .query_row(
-                        "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_height'",
-                        [],
-                        |row| row.get(0),
-                    )
-                    .optional()?;
-                let first_scanned_hash_val: Option<String> = tx
-                    .query_row(
-                        "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_hash'",
-                        [],
-                        |row| row.get(0),
-                    )
-                    .optional()?;
-
-                let first_block = &blocks[0];
-                if let Some(ref expected_h) = first_scanned_h_val {
-                    let expected_h_num = expected_h.parse::<u64>().unwrap_or(first_block.height);
-                    if first_block.height == expected_h_num {
-                        if let Some(ref exp_hash) = first_scanned_hash_val {
-                            let block_hash_hex = hex::encode(&first_block.hash);
-                            if &block_hash_hex != exp_hash {
-                                return Err(WalletError::ChainReset {
-                                    expected: exp_hash.clone(),
-                                    actual: block_hash_hex,
-                                    height: first_block.height as u32,
-                                });
-                            }
-                        } else {
-                            // Set first_scanned_hash in wallet_metadata
-                            tx.execute(
-                                "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_hash', ?1)",
-                                params![hex::encode(&first_block.hash)],
-                            )?;
-                        }
-                    }
-                } else {
+                // First scan ever: record chain identity if not yet set
+                if first_scanned_h_val.is_none() {
                     tx.execute(
                         "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_height', ?1)",
                         params![first_block.height.to_string()],
                     )?;
+                }
+                if first_scanned_hash_val.is_none() {
                     tx.execute(
                         "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_hash', ?1)",
                         params![hex::encode(&first_block.hash)],
@@ -448,6 +453,15 @@ impl Scanner {
                 }
             }
 
+            // Re-link any orphaned pending spend reservations if their notes were re-mined
+            crate::PendingSpendsManager::relink_reservations(&tx)?;
+
+            if INJECT_FAULT_BEFORE_CHECKPOINT.with(|c| c.get()) {
+                return Err(WalletError::FaultInjected(
+                    "Simulated crash between received_notes write and shard/checkpoint write".into(),
+                ));
+            }
+
             // Checkpoint ShardTree at block height
             tree.checkpoint(BlockHeight::from_u32(b_height as u32))?;
 
@@ -457,10 +471,10 @@ impl Scanner {
                 params![b_height as i64, &block.hash, &block.prev_hash, current_tree_size as i64, now],
             )?;
 
-            // Maintain sliding window: delete headers older than 100 blocks
-            if b_height > 100 {
+            // Maintain sliding window: retain exactly 100 blocks
+            if b_height >= 100 {
                 tx.execute(
-                    "DELETE FROM scanned_blocks WHERE height < ?1",
+                    "DELETE FROM scanned_blocks WHERE height <= ?1",
                     params![(b_height - 100) as i64],
                 )?;
             }
@@ -536,7 +550,13 @@ impl Scanner {
             params![fork_h as i64],
         )?;
 
-        // 3. Delete notes received on the orphaned chain (cascades to pending_spends)
+        // 3. Detach orphaned note_ids in pending_spends so in-flight reservations are preserved
+        tx.execute(
+            "UPDATE pending_spends SET note_id = NULL WHERE note_id IN (SELECT id FROM received_notes WHERE height > ?1)",
+            params![fork_h as i64],
+        )?;
+
+        // Delete notes received on the orphaned chain
         tx.execute(
             "DELETE FROM received_notes WHERE height > ?1",
             params![fork_h as i64],

@@ -13,4 +13,8 @@ create-zcash-app-zcg-draft-4.md
 packages/core/src/test_cmxs.json
 packages/core/tests/fixtures/test_cmxs.json
 packages/core/src/real_tx_v6.hex
+packages/core/tests/fixtures/*.bin
 *.hex
+*.db*
+packages/core/tests/wallet_integration_run/
+packages/sdk/scratch/
