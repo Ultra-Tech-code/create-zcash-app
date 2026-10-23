@@ -510,6 +510,7 @@ pub mod shard_store;
 pub mod spendable;
 pub mod transaction;
 pub mod wallet_db;
+pub mod wallet_handle;
 
 pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
 pub use pending_spends::PendingSpendsManager;
@@ -531,3 +532,4 @@ pub use transaction::{
     TransactionBuilder, TransactionConfig, ZIP302_NO_MEMO,
 };
 pub use wallet_db::{WalletDb, WalletDbError};
+pub use wallet_handle::{JsScanResult, JsSpendableNote, WalletHandle, WalletSummary};

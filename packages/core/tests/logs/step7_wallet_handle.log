@@ -1,0 +1,17 @@
+
+running 1 test
+
+=== TEST: WALLET HANDLE NAPI LIFECYCLE & ASYNC SCAN ===
+  Opening WalletHandle on /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/.tmp7yOoxE/napi_wallet.db...
+  WalletHandle opened with clean initial summary
+  Executing scan_blocks_sync with raw protobuf bytes...
+  Scan computed: synced at height 2, detected 1 notes
+  Summary reflects scanned balance: 750,000 zatoshis
+  NAPI querySpendableNotes returned confirmed note id 1
+  Reserving note id 1 for send txid...
+  Reservation confirmed: spendable balance accurately deducted
+  Reservation cancel returned status 0
+test test_wallet_handle_lifecycle_and_async_scan ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
