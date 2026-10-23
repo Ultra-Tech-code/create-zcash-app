@@ -156,6 +156,7 @@ pub struct DecryptedNoteInfo {
     pub rseed: String,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn internal_try_decrypt_action(
     ufvk_str: &str,
     network_str: &str,
@@ -322,6 +323,7 @@ mod napi_bindings {
     }
 
     #[napi]
+    #[allow(clippy::too_many_arguments)]
     pub fn try_decrypt_action(
         ufvk_str: String,
         network_str: String,
@@ -340,7 +342,7 @@ mod napi_bindings {
             &enc_ciphertext,
             is_ironwood,
             action_index,
-            nullifier.as_deref().map(|b| b.as_ref()),
+            nullifier.as_deref(),
         )
         .map_err(|e| Error::new(Status::GenericFailure, e))?;
 
@@ -500,7 +502,6 @@ mod tests {
     }
 }
 
-pub mod send_spike;
 pub mod transaction;
 
 pub use transaction::{

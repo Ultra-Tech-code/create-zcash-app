@@ -1,3 +1,5 @@
+#![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::cmp::max;
 use std::iter;
 
@@ -555,7 +557,7 @@ impl<'a> TransactionBuilder<'a> {
             .collect();
 
         let authorized_bundle = proven_bundle
-            .apply_signatures(&mut rng, sighash_bytes, &asks)
+            .apply_signatures(rng, sighash_bytes, &asks)
             .map_err(|e| TransactionBuildError::SigningError(format!("{:?}", e)))?;
 
         // 12. Freeze into final authorized Transaction

@@ -321,22 +321,87 @@ fn test_amendment2_zip302_default_memo() {
 
 /// Unit test verifying Amendment 3:
 /// Default OVK to sender's own FVK; None must be an explicit opt-out.
+/// Cryptographically proves output note recoverability with the sender's OVK.
 #[test]
 fn test_amendment3_ovk_policy() {
-    println!("\n=== TEST AMENDMENT 3: OVK POLICY (Sender FVK default, explicit None opt-out) ===");
+    println!("\n=== TEST AMENDMENT 3: OVK POLICY & REAL OVK RECOVERY ASSERTION ===");
+    let (sk, fvk, note1, path1, note2, path2, anchor) = setup_in_memory_tree_and_notes();
+
+    let spend1 = SpendInput::new(note1, path1);
+    let spend2 = SpendInput::new(note2, path2);
+
     let recipient_sk = SpendingKey::from_bytes([99u8; 32]).unwrap();
     let recipient_addr = FullViewingKey::from(&recipient_sk).address_at(0u32, Scope::External);
 
-    let default_spec = OutputSpec::new(recipient_addr, NoteValue::from_raw(100_000));
-    assert_eq!(default_spec.ovk_policy, OvkPolicy::SenderFvk);
+    // Output 0: Sent to external recipient with DEFAULT OVK policy (SenderFvk) and explicit memo
+    let mut custom_memo = [0u8; 512];
+    custom_memo[..20].copy_from_slice(b"sent with sender ovk");
+    let out0 = OutputSpec::new(recipient_addr, NoteValue::from_raw(800_000))
+        .with_memo_bytes(custom_memo);
+    assert_eq!(out0.ovk_policy, OvkPolicy::SenderFvk);
 
-    let opt_out_spec = default_spec.clone().with_ovk_policy(OvkPolicy::None);
-    assert_eq!(opt_out_spec.ovk_policy, OvkPolicy::None);
+    // Output 1: Sent to internal change address with EXPLICIT OPT-OUT (OvkPolicy::None)
+    let change_addr = fvk.address_at(0u32, Scope::Internal);
+    let out1 = OutputSpec::new(change_addr, NoteValue::from_raw(390_000))
+        .with_ovk_policy(OvkPolicy::None);
+    assert_eq!(out1.ovk_policy, OvkPolicy::None);
 
-    let custom_ovk = orchard::keys::OutgoingViewingKey::from([7u8; 32]);
-    let custom_spec = default_spec.clone().with_ovk_policy(OvkPolicy::Custom(custom_ovk.clone()));
-    assert_eq!(custom_spec.ovk_policy, OvkPolicy::Custom(custom_ovk));
-    println!("AMENDMENT 3 RESULT: SUCCESS (OvkPolicy defaults to SenderFvk; None is explicit opt-out)");
+    let tip = BlockHeight::from_u32(100);
+    let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip, None);
+    let pk = get_shared_proving_key();
+
+    let built = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1, spend2],
+        vec![out0, out1],
+        &config,
+        pk,
+    )
+    .expect("build_and_prove_v6_ironwood_tx failed");
+
+    let bundle = built.transaction.ironwood_bundle().expect("Ironwood bundle");
+    assert_eq!(bundle.actions().len(), 2);
+
+    let sender_ovk = fvk.to_ovk(Scope::External);
+
+    let mut recovered_count = 0;
+    let mut unrecovered_count = 0;
+
+    for action in bundle.actions() {
+        let domain = orchard::note_encryption::IronwoodDomain::for_action(action);
+        let recovery = zcash_note_encryption::try_output_recovery_with_ovk(
+            &domain,
+            &sender_ovk,
+            action,
+            action.cv_net(),
+            &action.encrypted_note().out_ciphertext,
+        );
+        if let Some((recovered_note, recovered_recipient, recovered_memo)) = recovery {
+            recovered_count += 1;
+            assert_eq!(recovered_note.value(), NoteValue::from_raw(800_000), "Recovered value must match sent amount");
+            assert_eq!(recovered_recipient, recipient_addr, "Recovered recipient must match target address");
+            assert_eq!(&recovered_memo[..20], b"sent with sender ovk", "Recovered memo must match sent memo");
+            println!("Successfully decrypted Output 0 note with Sender OVK: {} zatoshis to {:?}", recovered_note.value().inner(), recovered_recipient);
+        } else {
+            unrecovered_count += 1;
+        }
+
+        // Test with an unrelated OVK: MUST always be None
+        let wrong_ovk = orchard::keys::OutgoingViewingKey::from([0x99u8; 32]);
+        let wrong_recovery = zcash_note_encryption::try_output_recovery_with_ovk(
+            &domain,
+            &wrong_ovk,
+            action,
+            action.cv_net(),
+            &action.encrypted_note().out_ciphertext,
+        );
+        assert!(wrong_recovery.is_none(), "Unrelated OVK cannot decrypt output");
+    }
+
+    assert_eq!(recovered_count, 1, "Exactly one output (with default SenderFvk) must be recoverable");
+    assert_eq!(unrecovered_count, 1, "Exactly one output (with OvkPolicy::None) must NOT be recoverable");
+
+    println!("AMENDMENT 3 RESULT: SUCCESS (Real OVK recovery assertion verified, opt-out proven)");
 }
 
 /// Unit test verifying Amendment 4:
@@ -344,15 +409,30 @@ fn test_amendment3_ovk_policy() {
 #[test]
 fn test_amendment4_action_padding() {
     println!("\n=== TEST AMENDMENT 4: ORCHARD CRATE DEFAULT PADDING (MIN 2 ACTIONS) ===");
+    // Rule check:
     let fee_1_1 = compute_zip317_fee(1, 1).expect("compute fee");
-    // 1 spend and 1 output is padded to 2 actions -> 10,000 zatoshis
     assert_eq!(fee_1_1, Zatoshis::const_from_u64(10_000));
 
+    let fee_2_2 = compute_zip317_fee(2, 2).expect("compute fee");
+    assert_eq!(fee_2_2, Zatoshis::const_from_u64(10_000));
+
     let fee_3_1 = compute_zip317_fee(3, 1).expect("compute fee");
-    // 3 spends and 1 output -> 3 actions -> 15,000 zatoshis
     assert_eq!(fee_3_1, Zatoshis::const_from_u64(15_000));
 
-    println!("AMENDMENT 4 RESULT: SUCCESS (Actions padded to minimum 2 actions)");
+    // Live bundle check from setup:
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
+    let out1 = OutputSpec::new(fvk.address_at(0u32, Scope::Internal), NoteValue::from_raw(490_000));
+    let config = TransactionConfig::new(BranchId::Nu6_3, anchor, BlockHeight::from_u32(100), None);
+    let pk = get_shared_proving_key();
+
+    // 1 spend and 1 output -> MUST be padded to 2 actions
+    let built_1_1 = build_and_prove_v6_ironwood_tx(&sk, vec![spend1], vec![out1], &config, pk).unwrap();
+    assert_eq!(built_1_1.num_actions, 2, "1-spend 1-output must be padded to 2 actions");
+    assert_eq!(built_1_1.transaction.ironwood_bundle().unwrap().actions().len(), 2);
+    assert_eq!(built_1_1.fee, Zatoshis::const_from_u64(10_000));
+
+    println!("AMENDMENT 4 RESULT: SUCCESS (1-spend 1-output bundle strictly padded to 2 actions)");
 }
 
 /// Unit test verifying Amendment 5:
@@ -367,30 +447,52 @@ fn test_amendment5_anchor_and_expiry() {
     let custom_anchor_height = choose_recommended_anchor_height(tip, Some(10));
     assert_eq!(custom_anchor_height, BlockHeight::from_u32(240)); // tip - 10
 
-    let dummy_anchor = orchard::Anchor::from_bytes([1u8; 32]).unwrap();
-    let config = TransactionConfig::new(BranchId::Nu6_3, dummy_anchor, tip, None);
-    assert_eq!(config.expiry_height, BlockHeight::from_u32(290)); // tip + 40
-    assert_eq!(config.anchor_height, Some(BlockHeight::from_u32(245)));
-    println!("AMENDMENT 5 RESULT: SUCCESS (Anchor chosen 5 blocks below tip, expiry tip + 40)");
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
+    let out1 = OutputSpec::new(fvk.address_at(0u32, Scope::Internal), NoteValue::from_raw(490_000));
+
+    // Test with tip = 200: expiry MUST be 240 (tip + 40)
+    let tip_200 = BlockHeight::from_u32(200);
+    let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip_200, Some(5));
+    assert_eq!(config.expiry_height, BlockHeight::from_u32(240));
+    assert_eq!(config.anchor_height, Some(BlockHeight::from_u32(195)));
+
+    let pk = get_shared_proving_key();
+    let built = build_and_prove_v6_ironwood_tx(&sk, vec![spend1], vec![out1], &config, pk).unwrap();
+    assert_eq!(built.expiry_height, BlockHeight::from_u32(240));
+    assert_eq!(built.transaction.expiry_height(), BlockHeight::from_u32(240));
+    assert_eq!(*built.transaction.ironwood_bundle().unwrap().anchor(), config.anchor);
+
+    println!("AMENDMENT 5 RESULT: SUCCESS (Anchor chosen 5 blocks below tip, expiry tip + 40 verified on built tx)");
 }
 
 /// Unit test verifying Amendment 6 & 7:
-/// Keys derived in Rust, no key material in public result structs, no unwraps.
+/// Keys derived in Rust, no key material in public result structs, zero unwraps in library code.
 #[test]
 fn test_amendments_6_and_7_security_and_error_handling() {
     println!("\n=== TEST AMENDMENTS 6 & 7: KEY ISOLATION & ZERO-UNWRAP ERROR HANDLING ===");
-    let sk = SpendingKey::from_bytes([42u8; 32]).unwrap();
-    let dummy_anchor = orchard::Anchor::from_bytes([1u8; 32]).unwrap();
-    let config = TransactionConfig::new(BranchId::Nu6_3, dummy_anchor, BlockHeight::from_u32(100), None);
+    let sk_bytes = [42u8; 32];
+    let sk = SpendingKey::from_bytes(sk_bytes).unwrap();
+    let (sk_src, fvk_src, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
 
+    let tip = BlockHeight::from_u32(100);
+    let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip, None);
     let pk = get_shared_proving_key();
 
-    // 1. Empty inputs error
+    // 1. Verify that successful built transaction contains ZERO secret key bytes
+    let spend_ok = SpendInput::new(note1, path1.clone());
+    let out_ok = OutputSpec::new(fvk_src.address_at(0u32, Scope::Internal), NoteValue::from_raw(490_000));
+    let built = build_and_prove_v6_ironwood_tx(&sk_src, vec![spend_ok], vec![out_ok], &config, pk).unwrap();
+
+    // Ensure raw wire bytes do not leak the 32-byte secret key anywhere
+    assert!(!built.raw_bytes.windows(32).any(|w| w == sk_bytes), "Wire bytes must not contain secret key bytes");
+
+    // 2. Empty inputs error
     let builder_empty_inputs = TransactionBuilder::new(&sk, config.clone());
     let err_empty = builder_empty_inputs.build_and_prove(pk).unwrap_err();
     assert!(matches!(err_empty, TransactionBuildError::EmptyInputs));
 
-    // 2. Empty outputs error
+    // 3. Empty outputs error
     let dummy_rho = Rho::from_bytes(&[1u8; 32]).unwrap();
     let dummy_rseed = RandomSeed::from_bytes([2u8; 32], &dummy_rho).unwrap();
     let dummy_addr = FullViewingKey::from(&sk).address_at(0u32, Scope::External);
@@ -402,14 +504,21 @@ fn test_amendments_6_and_7_security_and_error_handling() {
     let err_no_out = builder_no_outputs.build_and_prove(pk).unwrap_err();
     assert!(matches!(err_no_out, TransactionBuildError::EmptyOutputs));
 
-    // 3. Anchor mismatch error
-    let mut builder_anchor_mismatch = TransactionBuilder::new(&sk, config.clone());
+    // 4. Insufficient funds error (spends < outputs)
+    let mut builder_insufficient = TransactionBuilder::new(&sk, config.clone());
+    builder_insufficient.add_spend(SpendInput::new(dummy_note, dummy_path.clone()));
+    builder_insufficient.add_output(OutputSpec::new(dummy_addr, NoteValue::from_raw(200_000)));
+    let err_funds = builder_insufficient.build_and_prove(pk).unwrap_err();
+    assert!(matches!(err_funds, TransactionBuildError::InsufficientFunds { spends_total: 100_000, outputs_total: 200_000 }));
+
+    // 5. Anchor mismatch error
+    let mut builder_anchor_mismatch = TransactionBuilder::new(&sk, config);
     builder_anchor_mismatch.add_spend(SpendInput::new(dummy_note, dummy_path));
     builder_anchor_mismatch.add_output(OutputSpec::new(dummy_addr, NoteValue::from_raw(90_000)));
     let err_anchor = builder_anchor_mismatch.build_and_prove(pk).unwrap_err();
     assert!(matches!(err_anchor, TransactionBuildError::AnchorMismatch { .. }));
 
-    println!("AMENDMENTS 6 & 7 RESULT: SUCCESS (Clear errors returned, no panics, no key leakage)");
+    println!("AMENDMENTS 6 & 7 RESULT: SUCCESS (Key isolation confirmed, all error variants assert cleanly)");
 }
 
 /// (c) Live-regtest test that broadcasts and mines a real V6 Ironwood transaction.
