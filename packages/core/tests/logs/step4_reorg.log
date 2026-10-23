@@ -1,0 +1,22 @@
+
+running 3 tests
+
+=== TEST: CHAIN IDENTITY RESET DETECTION ===
+
+=== TEST: REORG CANNOT SILENTLY DROP IN-FLIGHT RESERVATION ===
+
+=== TEST: REORG DETECTION AND RESOLUTION WALKBACK ===
+  Correctly detected ChainReset error: expected 0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a, actual 0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b, height 2
+test test_chain_identity_reset_error ... ok
+  In-flight reservation on valid note preserved with intact 'reserved' state and PID 7777!
+test test_reorg_preserves_in_flight_reservation_on_valid_note ... ok
+  State before reorg: Note 1 spent at height 3, Note 2 received at height 3
+  Scanner correctly triggered NeedAncestorHashes: from_height 3, count 10
+  Resolving reorg back to common ancestor...
+  Reorg successfully resolved to fork height 2
+  Note 1 confirmed rolled back to unspent status
+  Pending spend for Note 1 reverted to 'broadcast' as expected
+test test_reorg_detection_and_resolution_walkback ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+

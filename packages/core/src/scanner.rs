@@ -478,6 +478,86 @@ impl Scanner {
             notes_detected: total_notes_detected,
         })
     }
+
+    /// Resolves a detected reorg by walking back from `from_height` along `ancestor_hashes`.
+    ///
+    /// Identifies the fork height `H_fork` where `scanned_blocks.block_hash` matches the node's block hash.
+    /// Atomically:
+    /// 1. Truncates `IronwoodShardTree` back to checkpoint `H_fork`.
+    /// 2. Deletes `scanned_blocks` above `H_fork`.
+    /// 3. Deletes `received_notes` created above `H_fork` (cascading to `pending_spends`).
+    /// 4. Reverts confirmed spends mined above `H_fork` back to unspent (`spent_in_txid = NULL`).
+    /// 5. Transitions `pending_spends` for notes created at or below `H_fork` from `'mined'` back to `'broadcast'`.
+    pub fn resolve_reorg(
+        conn: &mut Connection,
+        from_height: u32,
+        ancestor_hashes: &[[u8; 32]],
+    ) -> Result<u32, WalletError> {
+        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+
+        let mut fork_height = None;
+        for (idx, hash) in ancestor_hashes.iter().enumerate() {
+            let h = match from_height.checked_sub(idx as u32) {
+                Some(val) => val,
+                None => break,
+            };
+
+            let row_hash: Option<Vec<u8>> = tx
+                .query_row(
+                    "SELECT block_hash FROM scanned_blocks WHERE height = ?1",
+                    params![h as i64],
+                    |row| row.get(0),
+                )
+                .optional()?;
+
+            if let Some(ref rh) = row_hash {
+                if rh.as_slice() == hash.as_slice() {
+                    fork_height = Some(h);
+                    break;
+                }
+            }
+        }
+
+        let fork_h = fork_height.ok_or_else(|| WalletError::ReorgTooDeep {
+            height: from_height,
+            max_depth: ancestor_hashes.len() as u32,
+        })?;
+
+        // 1. Rewind ShardTree to checkpoint H_fork
+        {
+            let store = SqliteShardStore::new(&tx, "ironwood_tree");
+            let mut tree = crate::IronwoodShardTree::new(store, 100);
+            tree.truncate_to_checkpoint(&BlockHeight::from_u32(fork_h))?;
+        }
+
+        // 2. Remove orphaned scanned_blocks
+        tx.execute(
+            "DELETE FROM scanned_blocks WHERE height > ?1",
+            params![fork_h as i64],
+        )?;
+
+        // 3. Delete notes received on the orphaned chain (cascades to pending_spends)
+        tx.execute(
+            "DELETE FROM received_notes WHERE height > ?1",
+            params![fork_h as i64],
+        )?;
+
+        // 4. Reset spends that were mined on the orphaned chain back to unspent
+        tx.execute(
+            "UPDATE received_notes SET spent_in_txid = NULL, spent_at_height = NULL WHERE spent_at_height > ?1",
+            params![fork_h as i64],
+        )?;
+
+        // 5. Revert pending_spends from 'mined' to 'broadcast' for notes that still exist
+        tx.execute(
+            "UPDATE pending_spends SET state = 'broadcast' WHERE state = 'mined' AND note_id IN (SELECT id FROM received_notes WHERE height <= ?1)",
+            params![fork_h as i64],
+        )?;
+
+        tx.commit()?;
+
+        Ok(fork_h)
+    }
 }
 
 fn format_address(addr: &Address, network: &DynamicNetwork) -> String {
