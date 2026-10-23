@@ -8,7 +8,7 @@ use orchard::note_encryption::CompactAction;
 use zcash_keys::address::UnifiedAddress;
 use zcash_keys::keys::{UnifiedAddressRequest, UnifiedFullViewingKey, UnifiedSpendingKey};
 use zcash_note_encryption::{try_compact_note_decryption, EphemeralKeyBytes};
-use zcash_protocol::consensus::{self, BlockHeight, Network, Parameters};
+use zcash_protocol::consensus::{self as protocol_consensus, BlockHeight, Network, Parameters};
 use zcash_protocol::local_consensus::LocalNetwork;
 
 static NEXT_SPEND_HANDLE: AtomicU32 = AtomicU32::new(1);
@@ -51,7 +51,7 @@ pub enum DynamicNetwork {
 }
 
 impl Parameters for DynamicNetwork {
-    fn network_type(&self) -> consensus::NetworkType {
+    fn network_type(&self) -> protocol_consensus::NetworkType {
         match self {
             DynamicNetwork::Regtest(p) => p.network_type(),
             DynamicNetwork::Test(p) => p.network_type(),
@@ -59,7 +59,7 @@ impl Parameters for DynamicNetwork {
         }
     }
 
-    fn activation_height(&self, nu: consensus::NetworkUpgrade) -> Option<BlockHeight> {
+    fn activation_height(&self, nu: protocol_consensus::NetworkUpgrade) -> Option<BlockHeight> {
         match self {
             DynamicNetwork::Regtest(p) => p.activation_height(nu),
             DynamicNetwork::Test(p) => p.activation_height(nu),
@@ -502,10 +502,16 @@ mod tests {
     }
 }
 
+pub mod consensus;
+pub mod schema;
 pub mod transaction;
+pub mod wallet_db;
 
+pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
+pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
 pub use transaction::{
     build_and_prove_v6_ironwood_tx, choose_recommended_anchor_height, compute_zip317_fee,
     BuiltTransaction, OutputSpec, OvkPolicy, SpendInput, TransactionBuildError,
     TransactionBuilder, TransactionConfig, ZIP302_NO_MEMO,
 };
+pub use wallet_db::{WalletDb, WalletDbError};

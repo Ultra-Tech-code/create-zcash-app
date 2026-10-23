@@ -1,0 +1,38 @@
+   Compiling zcash-core v0.1.0 (/Users/0xblackadam/Downloads/zcash_scafolder/packages/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.76s
+     Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-3c6647e93fec4ffd)
+
+running 4 tests
+
+=== TEST: METADATA BINDING AND MISMATCH ENFORCEMENT ===
+
+=== TEST: RECEIVED_NOTES UNIQUE(txid, action_index) CONSTRAINT ===
+
+=== TEST: SCHEMA INITIALIZATION & PERMISSIONS ENFORCEMENT ===
+
+=== TEST: NU6.3 ACTIVATION HEIGHTS & BRANCH ID FROM CONSENSUS ===
+  Mainnet NU6.3 Activation Height: 3428143
+  Testnet NU6.3 Activation Height: 4134000
+  Regtest NU6.3 Activation Height: 2
+  NU6.3 Consensus Branch ID:       0x37a5165b
+test test_nu6_3_activation_heights_from_consensus ... ok
+  Parent directory mode: 0o700 (expected 0o700)
+  Database file mode:    0o600 (expected 0o600)
+  Table verified: schema_migrations
+  Table verified: wallet_metadata
+  Table verified: scanned_blocks
+  Table verified: received_notes
+  Successfully rejected duplicate (txid, action_index) via UNIQUE constraint
+  Table verified: pending_spends
+  Table verified: ironwood_tree_shards
+  Table verified: ironwood_tree_cap
+  Table verified: ironwood_tree_checkpoints
+  Table verified: ironwood_tree_checkpoint_marks_removed
+test test_notes_unique_txid_action_constraint ... ok
+test test_schema_initialization_and_permissions ... ok
+  Correctly rejected network mismatch! key: network, expected: mainnet, found: regtest
+  Correctly rejected fingerprint mismatch! key: ufvk_fingerprint, expected: fingerprint_B, found: fingerprint_A
+test test_metadata_binding_and_mismatch ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
