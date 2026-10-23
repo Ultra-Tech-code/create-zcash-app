@@ -1,0 +1,41 @@
+
+running 6 tests
+
+=== TEST: ACTIVATION SCAN PREVENTS UNSEEDED COMMITMENT TREE GAPS ===
+
+=== TEST: KILL -9 & ABRUPT SHUTDOWN WAL INTEGRITY RECOVERY ===
+
+=== TEST: PERSISTED STATE EQUALS RESCAN BIT-FOR-BIT ===
+
+=== TEST: ATOMICITY CRASH & ROLLBACK ON BATCH FAILURE ===
+
+=== TEST: SLIDING WINDOW PRUNES HEADERS WITHOUT TOUCHING NOTES ===
+
+=== TEST: IRONWOOD CRYPTOGRAPHIC ISOLATION (REJECTS ORCHARD V2) ===
+  IronwoodDomain strictly rejected Orchard V2 note: cryptographic isolation confirmed!
+  Attempting unseeded scan from height 10 without prior activation blocks...
+  Correctly rejected unseeded scan with TreeSizeGap: expected 1, actual 15, height 10
+  Verified: Scanner strictly requires continuous scan from activation height to guarantee witness validity!
+test test_activation_scan_prevents_unseeded_tree_gap ... ok
+  Ironwood V3 note successfully decrypted with IronwoodDomain
+test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+  Simulating new process reopening DB after kill -9...
+  PRAGMA integrity_check passed: ok
+  Verified: kill -9 recovery preserves WAL integrity and frees orphaned reservations!
+test test_kill_9_and_abrupt_shutdown_wal_recovery ... ok
+  Scanning batch with corrupted block 4 to test atomic rollback...
+  Batch scan failed as expected with error: Some(TreeSizeGap { expected: 3, actual: 999, height: 4 })
+  Retrying with valid batch...
+  Verified: Batch atomicity and rollback fully guaranteed under failure!
+test test_atomicity_crash_rollback_on_batch_failure ... ok
+  Scanning 10 blocks into DB 1...
+  Rescanning identical 10 blocks into DB 2...
+  Verified: Persisted state and rescan produce identical roots and notes!
+test test_persisted_equals_rescan_bit_for_bit ... ok
+  Scanning 150 blocks to exceed 100-block sliding window...
+  Scanned headers in sliding window: min height = 51, max height = 151, total = 101
+  Verified: Note from Block 2 preserved despite Block 2 header being pruned from sliding window
+test test_sliding_window_prunes_headers_without_deleting_notes ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.43s
+
