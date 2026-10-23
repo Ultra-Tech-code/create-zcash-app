@@ -33,6 +33,11 @@ export interface PoolBalances {
   total: bigint;
 }
 
+export interface AccountBalance extends PoolBalances {
+  confirmed: PoolBalances;
+  pending: PoolBalances;
+}
+
 export interface IncomingNote {
   pool: 'orchard' | 'ironwood';
   value: bigint;
@@ -41,6 +46,10 @@ export interface IncomingNote {
   height: number;
   recipient: string;
   nullifier?: string;
+  rho?: string;
+  rseed?: string;
+  cmx?: string;
+  treePosition?: number;
 }
 
 export interface Note extends IncomingNote {
@@ -50,7 +59,7 @@ export interface Note extends IncomingNote {
 export interface SyncResult {
   syncedHeight: number;
   newNotes: IncomingNote[];
-  balances: PoolBalances;
+  balances: AccountBalance;
 }
 
 export interface SendRequest {

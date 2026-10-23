@@ -1,14 +1,9 @@
 import { Account, TxResult } from './types.js';
 import { ZcashClient } from './client.js';
 import { accountFromMnemonic } from './keys.js';
+import { KNOWN_TEST_MNEMONICS } from './constants.js';
 
 export namespace dev {
-  export const KNOWN_TEST_MNEMONICS = [
-    'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-    'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong',
-    'legal winner thank year wave sausage worth useful legal winner thank yellow',
-  ];
-
   export const fixtures = {
     mnemonics: KNOWN_TEST_MNEMONICS,
     account(index: number, network: 'regtest' | 'testnet' | 'mainnet' = 'regtest'): Account {
@@ -17,8 +12,12 @@ export namespace dev {
           'Security Error: Test fixture mnemonics are publicly known and strictly prohibited on mainnet. Import an explicit UFVK or private seed for production.'
         );
       }
-      const phrase = fixtures.mnemonics[index % fixtures.mnemonics.length];
-      const acct = accountFromMnemonic(phrase, 0, network);
+      if (index < 0) {
+        throw new Error('Fixture account index must be non-negative');
+      }
+      const phrase = index < fixtures.mnemonics.length ? fixtures.mnemonics[index] : fixtures.mnemonics[0];
+      const accountIdx = index < fixtures.mnemonics.length ? 0 : index;
+      const acct = accountFromMnemonic(phrase, accountIdx, network);
       return acct;
     },
   };
@@ -83,8 +82,13 @@ export namespace dev {
       throw new Error('No sender address found in Zallet regtest wallet');
     }
 
-    // 2. Call z_sendmany
-    const amountZec = Number(value) / 1e8;
+    // 2. Call z_sendmany with exact decimal string (no float)
+    const isNegative = value < 0n;
+    const abs = isNegative ? -value : value;
+    const whole = abs / 100_000_000n;
+    const frac = abs % 100_000_000n;
+    const amountZec = `${isNegative ? '-' : ''}${whole}.${frac.toString().padStart(8, '0')}`;
+
     const sendRes = await fetch('http://127.0.0.1:8181', {
       method: 'POST',
       headers: {
@@ -140,12 +144,39 @@ export namespace dev {
       throw new Error(`Timed out waiting for send operation ${opid} to complete`);
     }
 
-    // 4. Mine 1 block to confirm the transaction
+    // 4. Query z_viewtransaction for the real fee reported by Zallet
+    let fee = 10000n;
+    try {
+      const viewRes = await fetch('http://127.0.0.1:8181', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'fund-viewtx',
+          method: 'z_viewtransaction',
+          params: [txid],
+        }),
+      });
+      if (viewRes.ok) {
+        const viewData: any = await viewRes.json();
+        if (viewData?.result?.fee != null) {
+          const feeStr = String(viewData.result.fee);
+          const [w, f = ''] = feeStr.split('.');
+          const paddedFrac = f.padEnd(8, '0').slice(0, 8);
+          fee = BigInt(w) * 100_000_000n + BigInt(paddedFrac);
+        }
+      }
+    } catch (e) {}
+
+    // 5. Mine 1 block to confirm the transaction
     await mine(client, 1);
 
     return {
       txid,
-      fee: 10000n,
+      fee,
     };
   }
 

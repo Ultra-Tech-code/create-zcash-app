@@ -1,6 +1,6 @@
 import * as core from '@zcash-app/core';
 import { ZcashClient } from './client.js';
-import { Account, IncomingNote, PoolBalances, SyncResult, Ufvk, WatchOnlyAccount } from './types.js';
+import { Account, AccountBalance, IncomingNote, PoolBalances, SyncResult, Ufvk, WatchOnlyAccount } from './types.js';
 
 export async function detectIncoming(
   client: ZcashClient,
@@ -29,6 +29,9 @@ export async function detectIncoming(
 
   const blockStream = client.getBlockRange(startHeight, targetEndHeight);
 
+  let orchardTreePosition = 0;
+  let ironwoodTreePosition = 0;
+
   for await (const block of blockStream) {
     const blockHeight = typeof block.height === 'string' ? parseInt(block.height, 10) : Number(block.height);
     if (!block.vtx) continue;
@@ -43,6 +46,9 @@ export async function detectIncoming(
       if (tx.actions && tx.actions.length > 0) {
         for (let i = 0; i < tx.actions.length; i++) {
           const action = tx.actions[i];
+          const hasCmx = action.cmx && action.cmx.length === 32;
+          const currentPos = hasCmx ? orchardTreePosition++ : undefined;
+
           if (action.nullifier && action.nullifier.length === 32) {
             const nfHex = Buffer.from(action.nullifier).toString('hex');
             spentNullifiers.add(nfHex);
@@ -70,6 +76,10 @@ export async function detectIncoming(
               height: blockHeight,
               recipient: result.recipient,
               nullifier: result.nullifier,
+              rho: result.rho,
+              rseed: result.rseed,
+              cmx: hasCmx ? Buffer.from(action.cmx).toString('hex') : undefined,
+              treePosition: currentPos,
             });
           }
         }
@@ -79,6 +89,9 @@ export async function detectIncoming(
       if (tx.ironwoodActions && tx.ironwoodActions.length > 0) {
         for (let i = 0; i < tx.ironwoodActions.length; i++) {
           const action = tx.ironwoodActions[i];
+          const hasCmx = action.cmx && action.cmx.length === 32;
+          const currentPos = hasCmx ? ironwoodTreePosition++ : undefined;
+
           if (action.nullifier && action.nullifier.length === 32) {
             const nfHex = Buffer.from(action.nullifier).toString('hex');
             spentNullifiers.add(nfHex);
@@ -105,6 +118,10 @@ export async function detectIncoming(
               height: blockHeight,
               recipient: result.recipient,
               nullifier: result.nullifier,
+              rho: result.rho,
+              rseed: result.rseed,
+              cmx: hasCmx ? Buffer.from(action.cmx).toString('hex') : undefined,
+              treePosition: currentPos,
             });
           }
         }
@@ -117,32 +134,61 @@ export async function detectIncoming(
 
 export async function getBalance(
   client: ZcashClient,
-  key: Ufvk | WatchOnlyAccount | Account
-): Promise<PoolBalances> {
-  const { notes, spentNullifiers } = await detectIncoming(client, key);
+  key: Ufvk | WatchOnlyAccount | Account,
+  opts?: { minConf?: number; sinceHeight?: number; endHeight?: number }
+): Promise<AccountBalance> {
+  const minConf = opts?.minConf ?? 1;
+  const info = await client.getInfo();
+  const currentHeight = parseInt(info.blockHeight, 10);
 
-  let orchard = 0n;
-  let ironwood = 0n;
+  const { notes, spentNullifiers } = await detectIncoming(client, key, opts);
+
+  const confirmed: PoolBalances = {
+    orchard: 0n,
+    ironwood: 0n,
+    sapling: 0n,
+    transparent: 0n,
+    total: 0n,
+  };
+
+  const pending: PoolBalances = {
+    orchard: 0n,
+    ironwood: 0n,
+    sapling: 0n,
+    transparent: 0n,
+    total: 0n,
+  };
 
   for (const n of notes) {
     if (n.nullifier && spentNullifiers.has(n.nullifier)) {
       continue;
     }
+
+    const confs = currentHeight >= n.height ? currentHeight - n.height + 1 : 0;
+    const target = confs >= minConf ? confirmed : pending;
+
     if (n.pool === 'orchard') {
-      orchard += n.value;
+      target.orchard += n.value;
     } else if (n.pool === 'ironwood') {
-      ironwood += n.value;
+      target.ironwood += n.value;
     }
   }
 
-  let transparent = 0n;
+  let transparentConfirmed = 0n;
+  let transparentPending = 0n;
   const tAddr = typeof key !== 'string' && key.getTransparentAddress ? key.getTransparentAddress() : undefined;
   if (tAddr) {
     try {
       const utxos = await client.getAddressUtxos([tAddr]);
       for (const u of utxos) {
         if (u.valueZat) {
-          transparent += BigInt(u.valueZat);
+          const uHeight = u.height ? Number(u.height) : 0;
+          const confs = uHeight > 0 && currentHeight >= uHeight ? currentHeight - uHeight + 1 : 0;
+          if (confs >= minConf) {
+            transparentConfirmed += BigInt(u.valueZat);
+          } else {
+            transparentPending += BigInt(u.valueZat);
+          }
         }
       }
     } catch (e) {
@@ -150,12 +196,20 @@ export async function getBalance(
     }
   }
 
+  confirmed.transparent = transparentConfirmed;
+  pending.transparent = transparentPending;
+
+  confirmed.total = confirmed.orchard + confirmed.ironwood + confirmed.sapling + confirmed.transparent;
+  pending.total = pending.orchard + pending.ironwood + pending.sapling + pending.transparent;
+
   return {
-    orchard,
-    ironwood,
-    sapling: 0n,
-    transparent,
-    total: orchard + ironwood + transparent,
+    orchard: confirmed.orchard,
+    ironwood: confirmed.ironwood,
+    sapling: confirmed.sapling,
+    transparent: confirmed.transparent,
+    total: confirmed.total,
+    confirmed,
+    pending,
   };
 }
 

@@ -1,15 +1,10 @@
 import * as core from '@zcash-app/core';
 import { Account, Network, Ufvk, WatchOnlyAccount } from './types.js';
+import { KNOWN_TEST_MNEMONICS } from './constants.js';
 
 export function generateMnemonic(): string {
   return core.generateMnemonic();
 }
-
-const KNOWN_TEST_MNEMONICS = [
-  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
-  'zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong',
-  'legal winner thank year wave sausage worth useful legal winner thank yellow',
-];
 
 export function accountFromMnemonic(
   mnemonic: string,

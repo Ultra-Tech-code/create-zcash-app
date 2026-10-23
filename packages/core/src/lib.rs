@@ -152,6 +152,8 @@ pub struct DecryptedNoteInfo {
     pub recipient: String,
     pub action_index: u32,
     pub nullifier: String,
+    pub rho: String,
+    pub rseed: String,
 }
 
 pub fn internal_try_decrypt_action(
@@ -242,6 +244,8 @@ pub fn internal_try_decrypt_action(
 
         let nf = note.nullifier(orchard_fvk);
         let nf_hex = hex::encode(nf.to_bytes());
+        let rho_hex = hex::encode(note.rho().to_bytes());
+        let rseed_hex = hex::encode(note.rseed().as_bytes());
 
         return Ok(Some(DecryptedNoteInfo {
             pool: pool.to_string(),
@@ -249,6 +253,8 @@ pub fn internal_try_decrypt_action(
             recipient: ua,
             action_index,
             nullifier: nf_hex,
+            rho: rho_hex,
+            rseed: rseed_hex,
         }));
     }
 
@@ -280,6 +286,8 @@ mod napi_bindings {
         pub recipient: String,
         pub action_index: u32,
         pub nullifier: String,
+        pub rho: String,
+        pub rseed: String,
     }
 
     #[napi]
@@ -342,6 +350,8 @@ mod napi_bindings {
             recipient: n.recipient,
             action_index: n.action_index,
             nullifier: n.nullifier,
+            rho: n.rho,
+            rseed: n.rseed,
         }))
     }
 }
@@ -415,6 +425,8 @@ mod tests {
             recipient: "uregtest1...".to_string(),
             action_index: 0,
             nullifier: expected_nf_hex.clone(),
+            rho: "04".repeat(32),
+            rseed: "05".repeat(32),
         };
 
         assert_eq!(dummy_info.nullifier, expected_nf_hex);
@@ -487,3 +499,12 @@ mod tests {
         assert!(!info.nullifier.is_empty());
     }
 }
+
+pub mod send_spike;
+pub mod transaction;
+
+pub use transaction::{
+    build_and_prove_v6_ironwood_tx, choose_recommended_anchor_height, compute_zip317_fee,
+    BuiltTransaction, OutputSpec, OvkPolicy, SpendInput, TransactionBuildError,
+    TransactionBuilder, TransactionConfig, ZIP302_NO_MEMO,
+};

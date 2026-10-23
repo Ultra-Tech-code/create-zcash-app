@@ -11,13 +11,17 @@ export async function POST(request: Request) {
     }
 
     const client = createClient({ endpoint, network: 'regtest' });
-    const zatoshis = BigInt(Math.round(parseFloat(amount) * 100000000));
+    const amountStr = String(amount).trim();
+    const [wholeStr, fracStr = ''] = amountStr.split('.');
+    const paddedFrac = fracStr.padEnd(8, '0').slice(0, 8);
+    const zatoshis = BigInt(wholeStr) * BigInt(100000000) + BigInt(paddedFrac);
     const result = await dev.fund(client, address, zatoshis);
     await client.close();
 
     return NextResponse.json({
       success: true,
       txid: result.txid,
+      fee: result.fee ? result.fee.toString() : '10000',
       amount,
     });
   } catch (err: any) {

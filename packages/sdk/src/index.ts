@@ -4,3 +4,4 @@ export * from './keys.js';
 export * from './detection.js';
 export * from './payment.js';
 export * from './dev.js';
+export * from './constants.js';

@@ -1,0 +1,60 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running tests/transaction_test.rs (target/debug/deps/transaction_test-3021cfe584c95550)
+
+running 9 tests
+test test_a_pure_rust_multi_input_multi_output ... 
+=== TEST (A): PURE-RUST MULTI-INPUT / MULTI-OUTPUT ===
+>>> [OnceLock] Building shared OrchardCircuitVersion::PostNu6_3 ProvingKey...
+>>> [OnceLock] ProvingKey built in 20792 ms
+Proof generated and transaction built in 11508 ms
+Built TxID:          782b1c227c694e4ecab2b0aba8adca9d0378eb5739712f1705a355b9f50e3072
+Wire bytes length:   9166 bytes
+Action count:        2
+Net fee:             10000 zatoshis
+Expiry height:       140
+>>> [OnceLock] Building shared OrchardCircuitVersion::PostNu6_3 VerifyingKey...
+>>> [OnceLock] VerifyingKey built in 13122 ms
+TEST (A) RESULT: SUCCESS (Multi-input/multi-output transaction built, proved, and verified)
+ok
+test test_amendment1_zip317_fee_strictness ... 
+=== TEST AMENDMENT 1: ZIP 317 FEE STRICTNESS & LEFTOVER VALUE REJECTION ===
+Correctly rejected leftover value! FeeMismatch error:
+  Required fee:  10000 zatoshis
+  Actual fee:    20000 zatoshis
+  Total spends:  1200000 zatoshis
+  Total outputs: 1180000 zatoshis
+Explicit allow_custom_fee allowed custom fee: 20000 zatoshis
+AMENDMENT 1 RESULT: SUCCESS (FeeMismatch enforced, custom fee permitted only with explicit flag)
+ok
+test test_amendment2_zip302_default_memo ... 
+=== TEST AMENDMENT 2: ZIP 302 DEFAULT MEMO (0xF6 + 511 zeroes) ===
+AMENDMENT 2 RESULT: SUCCESS (ZIP302_NO_MEMO is exactly 0xF6 followed by 511 zeroes)
+ok
+test test_amendment3_ovk_policy ... 
+=== TEST AMENDMENT 3: OVK POLICY (Sender FVK default, explicit None opt-out) ===
+AMENDMENT 3 RESULT: SUCCESS (OvkPolicy defaults to SenderFvk; None is explicit opt-out)
+ok
+test test_amendment4_action_padding ... 
+=== TEST AMENDMENT 4: ORCHARD CRATE DEFAULT PADDING (MIN 2 ACTIONS) ===
+AMENDMENT 4 RESULT: SUCCESS (Actions padded to minimum 2 actions)
+ok
+test test_amendment5_anchor_and_expiry ... 
+=== TEST AMENDMENT 5: ANCHOR SELECTION & EXPIRY DEFAULTS ===
+AMENDMENT 5 RESULT: SUCCESS (Anchor chosen 5 blocks below tip, expiry tip + 40)
+ok
+test test_amendments_6_and_7_security_and_error_handling ... 
+=== TEST AMENDMENTS 6 & 7: KEY ISOLATION & ZERO-UNWRAP ERROR HANDLING ===
+AMENDMENTS 6 & 7 RESULT: SUCCESS (Clear errors returned, no panics, no key leakage)
+ok
+test test_b_round_trip_transaction_read_and_txid ... 
+=== TEST (B): ROUND-TRIP TRANSACTION::READ ON SERIALIZED BYTES ===
+Serialized wire length: 9166 bytes
+Original TxID:       19cc58f238b56ba0fce02ddb1978a9f02d94a97f08ab4086db1a9961d4aff277
+Read TxID:           19cc58f238b56ba0fce02ddb1978a9f02d94a97f08ab4086db1a9961d4aff277
+Transaction Version: V6
+TEST (B) RESULT: SUCCESS (Round-trip deserialization verified, txids match bit-for-bit)
+ok
+test test_c_live_regtest_broadcast_and_mine ... ignored
+
+test result: ok. 8 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 70.25s
+

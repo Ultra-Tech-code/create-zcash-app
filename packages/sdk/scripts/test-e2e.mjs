@@ -1,4 +1,4 @@
-import { createClient, accountFromMnemonic, dev, buildPaymentRequest, parsePaymentRequest } from './dist/index.js';
+import { createClient, accountFromMnemonic, dev, buildPaymentRequest, parsePaymentRequest } from '../dist/index.js';
 
 async function main() {
   console.log('--- Testing @zcash-app/sdk ---');

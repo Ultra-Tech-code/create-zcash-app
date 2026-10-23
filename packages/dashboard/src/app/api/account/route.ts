@@ -18,12 +18,14 @@ export async function GET(request: Request) {
     const ua = acct.getUnifiedAddress();
     const ufvk = acct.getUnifiedFullViewingKey();
 
-    let balances = {
+    let balances: any = {
       orchard: '0',
       ironwood: '0',
       sapling: '0',
       transparent: '0',
       total: '0',
+      confirmed: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
+      pending: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
     };
     let incomingNotes: any[] = [];
 
@@ -37,6 +39,20 @@ export async function GET(request: Request) {
         sapling: rawBalances.sapling.toString(),
         transparent: rawBalances.transparent.toString(),
         total: rawBalances.total.toString(),
+        confirmed: {
+          orchard: rawBalances.confirmed.orchard.toString(),
+          ironwood: rawBalances.confirmed.ironwood.toString(),
+          sapling: rawBalances.confirmed.sapling.toString(),
+          transparent: rawBalances.confirmed.transparent.toString(),
+          total: rawBalances.confirmed.total.toString(),
+        },
+        pending: {
+          orchard: rawBalances.pending.orchard.toString(),
+          ironwood: rawBalances.pending.ironwood.toString(),
+          sapling: rawBalances.pending.sapling.toString(),
+          transparent: rawBalances.pending.transparent.toString(),
+          total: rawBalances.pending.total.toString(),
+        },
       };
       const { notes } = await detectIncoming(client, acct);
       incomingNotes = notes.map((n) => ({
