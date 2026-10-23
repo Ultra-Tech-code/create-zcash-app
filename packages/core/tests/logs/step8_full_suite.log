@@ -1,41 +1,86 @@
 
-running 6 tests
+running 14 tests
 
 === TEST: ACTIVATION SCAN PREVENTS UNSEEDED COMMITMENT TREE GAPS ===
 
-=== TEST: KILL -9 & ABRUPT SHUTDOWN WAL INTEGRITY RECOVERY ===
-
-=== TEST: PERSISTED STATE EQUALS RESCAN BIT-FOR-BIT ===
-
 === TEST: ATOMICITY CRASH & ROLLBACK ON BATCH FAILURE ===
 
-=== TEST: SLIDING WINDOW PRUNES HEADERS WITHOUT TOUCHING NOTES ===
+=== TEST: ATOMICITY FAULT INJECTION BETWEEN NOTES & CHECKPOINT ===
+
+=== TEST: IRONWOOD ISOLATION IGNORES ORCHARD ACTIONS COMPLETELY ===
 
 === TEST: IRONWOOD CRYPTOGRAPHIC ISOLATION (REJECTS ORCHARD V2) ===
+
+=== TEST: DECODE REAL REGTEST COMPACTBLOCK & MISSING FIELD REJECTION ===
+
+=== TEST: ORDINARY REORG VERSUS CHAIN RESET ===
+
+=== TEST: PERIODIC ROOT CHECK MISMATCH AND RECOVERY ===
+
+=== TEST: PERSISTED VS RESCAN CLOSE/REOPEN PARITY ===
+
+=== TEST: PERSISTED STATE EQUALS RESCAN BIT-FOR-BIT ===
+  Decoded real CompactBlock from Zaino: height = 219
+  chainMetadata.ironwoodCommitmentTreeSize = 142
+  vtx count: 2, ironwood_actions count: 3, orchard actions count: 0
+
+=== TEST: REAL CHILD PROCESS SIGKILL MID-BATCH & CLEAN RESUME ===
+
+=== TEST: REORG ORPHANED NOTE WITH PENDING SPEND RE-MINED AT NEW HEIGHT ===
   IronwoodDomain strictly rejected Orchard V2 note: cryptographic isolation confirmed!
-  Attempting unseeded scan from height 10 without prior activation blocks...
+  Correctly rejected block with MissingIronwoodField: CompactBlock at height 219 missing required chainMetadata
+  Verified: Real regtest block decoding and strict missing metadata rejection verified!
+test test_decode_real_regtest_compact_block_and_missing_field_rejection ... ok
+
+=== TEST: RESTART FETCHES ZERO OLD BLOCKS ===
   Correctly rejected unseeded scan with TreeSizeGap: expected 1, actual 15, height 10
   Verified: Scanner strictly requires continuous scan from activation height to guarantee witness validity!
 test test_activation_scan_prevents_unseeded_tree_gap ... ok
+
+=== TEST: SLIDING WINDOW PRUNES HEADERS WITHOUT TOUCHING NOTES ===
   Ironwood V3 note successfully decrypted with IronwoodDomain
 test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
-  Simulating new process reopening DB after kill -9...
-  PRAGMA integrity_check passed: ok
-  Verified: kill -9 recovery preserves WAL integrity and frees orphaned reservations!
-test test_kill_9_and_abrupt_shutdown_wal_recovery ... ok
+  Enabling fault injection between received_notes write and checkpoint write...
+  Scan returned error as expected: Some(FaultInjected("Simulated crash between received_notes write and shard/checkpoint write"))
+  Ordinary reorg triggered NeedAncestorHashes: from_height 3, count 10
   Scanning batch with corrupted block 4 to test atomic rollback...
+  Reservation created for Note 1 (id 2) with nullifier 4bcc9ec306a69e40b9fb07e7dfa13bf0db6f826e3e471beb274f60fc557cdc05
+  Reorg occurs: resolving back to common ancestor height 2...
+  Re-mining note on Fork B at height 3...
+  Verified: Fault injection between notes write and checkpoint write rolled back both atomically!
+test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
+  Scanning block with 3 Orchard actions and 2 Ironwood actions...
   Batch scan failed as expected with error: Some(TreeSizeGap { expected: 3, actual: 999, height: 4 })
   Retrying with valid batch...
+  ChainReset correctly detected: expected aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, actual bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, height 2
+  Verified: Ordinary reorg and ChainReset distinguished correctly!
+test test_ordinary_reorg_versus_chain_reset ... ok
+  Verified: Reorg orphaned note was safely preserved and automatically re-linked to new row ID 3 by nullifier!
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
   Verified: Batch atomicity and rollback fully guaranteed under failure!
 test test_atomicity_crash_rollback_on_batch_failure ... ok
+  Sending real SIGKILL (-9) to child process PID 5388
+  Child process terminated abruptly by SIGKILL
+  Reopening database in parent process...
+  PRAGMA integrity_check: ok
   Scanning 10 blocks into DB 1...
+  Verified: Periodic root mismatch detection and checkpoint recovery path validated!
+test test_periodic_root_check_mismatch_and_recovery ... ok
+  Verified: Ironwood scanner completely isolates Ironwood pool (tree size, root, positions, notes) from Orchard actions!
+test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
   Rescanning identical 10 blocks into DB 2...
+  Verified: Restart started stream at height 16, fetching 0 old blocks (tip was 15)
+test test_restart_fetches_zero_old_blocks ... ok
+  Verified: Close/reopen scan and single-pass scan produce bit-for-bit identical notes, spent states, roots, and witnesses!
+test test_persisted_vs_rescan_close_reopen_parity ... ok
   Verified: Persisted state and rescan produce identical roots and notes!
 test test_persisted_equals_rescan_bit_for_bit ... ok
+  Verified: Real child process SIGKILL mid-batch recovered cleanly with PRAGMA integrity_check ok and bit-for-bit parity!
+test test_real_child_process_sigkill_mid_batch_and_clean_resume ... ok
   Scanning 150 blocks to exceed 100-block sliding window...
-  Scanned headers in sliding window: min height = 51, max height = 151, total = 101
+  Scanned headers in sliding window: min height = 52, max height = 151, total = 100
   Verified: Note from Block 2 preserved despite Block 2 header being pruned from sliding window
 test test_sliding_window_prunes_headers_without_deleting_notes ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.43s
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.68s
 

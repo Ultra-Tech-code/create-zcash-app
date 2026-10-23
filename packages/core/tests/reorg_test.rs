@@ -251,9 +251,14 @@ fn test_reorg_detection_and_resolution_walkback() {
     let note2_count: i64 = db.conn().query_row("SELECT COUNT(*) FROM received_notes WHERE height = 3", [], |r| r.get(0)).expect("count note 2");
     assert_eq!(note2_count, 0, "Note 2 mined on orphaned chain must be deleted");
 
-    // b) Note 2's pending_spends row was CASCADE deleted
-    let pending_note2_count: i64 = db.conn().query_row("SELECT COUNT(*) FROM pending_spends WHERE nullifier = ?1", rusqlite::params![&nf2[..]], |r| r.get(0)).expect("count pending 2");
-    assert_eq!(pending_note2_count, 0, "Pending spend for orphaned note 2 must be cascade deleted");
+    // b) Note 2's pending_spends row is PRESERVED (note_id set to NULL), never silently lost on reorg
+    let (pending_note2_count, note2_note_id): (i64, Option<i64>) = db.conn().query_row(
+        "SELECT COUNT(*), note_id FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![&nf2[..]],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    ).expect("count pending 2");
+    assert_eq!(pending_note2_count, 1, "Pending spend for orphaned note 2 must be preserved, never silently lost");
+    assert!(note2_note_id.is_none(), "note_id must be detached to NULL pending re-mining");
 
     // c) Note 1's spend was rolled back (spent_in_txid and spent_at_height are reset to NULL)
     let (note1_spent_after, note1_height_after): (Option<Vec<u8>>, Option<i64>) = db.conn().query_row(
