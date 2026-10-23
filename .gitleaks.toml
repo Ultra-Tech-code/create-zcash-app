@@ -1,0 +1,14 @@
+# Gitleaks configuration
+# Documented allowlist for mock test commitment roots, synthetic fixture hashes, and test logs
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ignore test fixtures, test log traces, and mock commitment roots in test suites"
+paths = [
+    '''packages/sdk/src/sync\.test\.ts''',
+    '''packages/sdk/dist/sync\.test\.js''',
+    '''packages/core/tests/fixtures/.*''',
+    '''packages/core/tests/logs/.*'''
+]

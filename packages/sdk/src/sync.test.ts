@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { syncWallet, WalletSyncResult } from './sync.js';
-import { WalletHandle } from '@zcash-app/core';
+import { WalletHandle, decodeIronwoodFrontierRoot } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -98,7 +98,7 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
 
     const authenticFrontierHex =
       '010d3f8b26dbf85bea4ee41e5f9346fbb333b3ca3d44047dce7370dfeebc31c50001d87e82e8fbe744caa5fbdf347ba48e79d3729b338d2efe380bc8348f64928d2e1f0000015e7b3bfc0feb82f5dd24cf8a06835efaca27cc804e1ee17a26255bc3a93217270001d522396c660822eecfa4d4180d333b07d094de9834d4db082c20068586418f3501eccfc7b98746433a335efa38e87a91b06f0b4fd19e507f10d945cc5079b3862200000000000000000000000000000000000000000000000000';
-    const authenticRootHex = 'b97d496047752711022273c8e7b2222cdeb3164247d5cf551ada66141642d212'; // gitleaks:allow
+    const authenticRootHex = decodeIronwoodFrontierRoot(authenticFrontierHex);
 
     // Mock wallet methods on prototype
     const rootSpy = vi.spyOn(WalletHandle.prototype, 'getTreeRoot').mockReturnValue(Buffer.from(authenticRootHex, 'hex'));
