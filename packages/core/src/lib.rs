@@ -507,6 +507,7 @@ pub mod pending_spends;
 pub mod scanner;
 pub mod schema;
 pub mod shard_store;
+pub mod spendable;
 pub mod transaction;
 pub mod wallet_db;
 
@@ -520,6 +521,9 @@ pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
 pub use shard_store::{
     IronwoodShardTree, ShardStoreError, SqliteShardStore, IRONWOOD_SHARD_HEIGHT,
     IRONWOOD_TREE_DEPTH,
+};
+pub use spendable::{
+    parse_recipient_address, query_spendable_notes, query_spendable_notes_with_tree, SpendableNote,
 };
 pub use transaction::{
     build_and_prove_v6_ironwood_tx, choose_recommended_anchor_height, compute_zip317_fee,

@@ -1,0 +1,20 @@
+
+running 2 tests
+
+=== TEST: BUILDER INTEGRATION WITH SPENDABLE NOTES & MERKLE PATHS ===
+
+=== TEST: SPENDABLE NOTES STRICT SQL, BOUNDARIES & ANCHOR FILTERING ===
+  Building, proving and signing v6 transaction with spendable note...
+  Querying spendable notes at anchor=4, min_confs=1...
+  Note 4 (height 5) correctly excluded because height > anchor
+  Querying spendable notes at anchor=4, min_confs=2...
+  Min_confs boundary (2) strictly enforced
+  Querying spendable notes at anchor=4, min_confs=3...
+  Placing in-flight reservation on Note 1...
+  Reserved note strictly excluded from spendable query
+test test_spendable_notes_confirmation_boundaries_and_anchor_filtering ... ok
+  Built v6 transaction successfully! TxID: 1421f54b5d4175a8dfc4859eb8344ab6605537d6a9f09c3a0ec06dbef0a43ea9
+test test_builder_integration_with_spendable_notes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 24.56s
+
