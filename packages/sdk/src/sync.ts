@@ -1,4 +1,4 @@
-import { WalletHandle, WalletSummary, JsScanResult, JsSpendableNote } from '@zcash-app/core';
+import { WalletHandle, WalletSummary, JsScanResult, JsSpendableNote, decodeIronwoodFrontierRoot } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 
 export interface SyncOptions {
@@ -35,12 +35,27 @@ export async function syncWallet(
   if (currentStart > tipHeight) {
     console.log(`[Sync] Wallet already synced at tip height ${initialSummary.lastScannedHeight}. Fetching 0 old blocks.`);
     const rootBuf = wallet.getTreeRoot(0);
+    const tipRootHex = rootBuf ? rootBuf.toString('hex') : null;
+    let treeStateMatched = true;
+
+    if (options.verifyRootAtTip !== false && tipHeight >= 2) {
+      try {
+        const treeState = await client.getTreeState(tipHeight);
+        if (treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
+          const derivedRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
+          treeStateMatched = (tipRootHex === derivedRootHex);
+        }
+      } catch (e: any) {
+        treeStateMatched = false;
+      }
+    }
+
     return {
       summary: initialSummary,
       blocksFetched: 0,
       tipHeight,
-      treeRootHex: rootBuf ? rootBuf.toString('hex') : null,
-      treeStateMatched: true,
+      treeRootHex: tipRootHex,
+      treeStateMatched,
     };
   }
 
@@ -98,12 +113,17 @@ export async function syncWallet(
       console.log(`[Sync] Verified against GetTreeState(${tipHeight}):`);
       console.log(`  Wallet Ironwood Root:  ${tipRootHex}`);
       console.log(`  Zaino ironwoodTree:    ${treeState.ironwoodTree}`);
-      // If Zaino has ironwoodTree commitments, ensure the serialized tree is present
       if (treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
-        treeStateMatched = true;
+        const derivedRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
+        console.log(`  Derived Zaino Root:    ${derivedRootHex}`);
+        treeStateMatched = (tipRootHex === derivedRootHex);
+        if (!treeStateMatched) {
+          console.warn(`[Sync] Mismatch! Wallet root ${tipRootHex} != Zaino frontier root ${derivedRootHex}`);
+        }
       }
     } catch (e: any) {
-      console.warn(`[Sync] Warning: GetTreeState verification returned: ${e.message}`);
+      console.warn(`[Sync] Warning: GetTreeState verification returned error: ${e.message}`);
+      treeStateMatched = false;
     }
   }
 

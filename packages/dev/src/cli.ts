@@ -428,6 +428,7 @@ regtestCmd
   .alias('reset')
   .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
   .option('--z3-path <path>', 'Path to z3 repository', '')
+  .option('-y, --yes', 'Confirm wiping regtest blockchain without interactive prompt')
   .action(async (options) => {
     let z3Dir = options.z3Path;
     if (!z3Dir) {
@@ -446,6 +447,46 @@ regtestCmd
 
     if (!z3Dir || !fs.existsSync(z3Dir)) {
       console.error('❌ Could not locate z3 directory. Please specify with --z3-path <path>');
+      process.exit(1);
+    }
+
+    // Safety check: Verify compose project is the regtest one
+    const envRegtestPath = path.join(z3Dir, '.env.regtest');
+    if (!fs.existsSync(envRegtestPath)) {
+      console.error(`❌ Refusing to wipe: ${envRegtestPath} not found. Must be executed against a valid regtest project.`);
+      process.exit(1);
+    }
+
+    const envContent = fs.readFileSync(envRegtestPath, 'utf8');
+    const projectNameMatch = envContent.match(/^COMPOSE_PROJECT_NAME\s*=\s*(.+)$/m);
+    const projectName = projectNameMatch ? projectNameMatch[1].trim() : '';
+    if (projectName !== 'z3-regtest') {
+      console.error(`❌ Refusing to wipe: Expected COMPOSE_PROJECT_NAME=z3-regtest, but found "${projectName}". Only regtest environments may be wiped.`);
+      process.exit(1);
+    }
+
+    // Print what will be deleted first
+    console.log('\n⚠️  WARNING: You are about to permanently destroy the regtest cluster data:');
+    console.log('   - Project Name:   z3-regtest');
+    console.log('   - Docker Volumes: Zebra blockchain data, Zaino indexer database, Zallet wallet state');
+    console.log('   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers');
+    console.log('   - Accounts:       All local test accounts and note balances will be wiped to genesis\n');
+
+    let confirmed = !!options.yes;
+    if (!confirmed) {
+      if (process.stdin.isTTY) {
+        const response = await prompts({
+          type: 'confirm',
+          name: 'confirmWipe',
+          message: 'Are you sure you want to permanently delete all regtest volumes and reset to block 1?',
+          initial: false,
+        });
+        confirmed = response.confirmWipe;
+      }
+    }
+
+    if (!confirmed) {
+      console.error('❌ Wipe aborted: explicit confirmation required (use --yes to run non-interactively).');
       process.exit(1);
     }
 
