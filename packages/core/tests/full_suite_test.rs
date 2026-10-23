@@ -992,6 +992,37 @@ fn test_decode_real_regtest_compact_block_and_missing_field_rejection() {
         other => panic!("Expected MissingIronwoodField error, got {:?}", other),
     }
 
+    // Verify protobuf wire field numbers for CompactTx and ChainMetadata:
+    // 1. In CompactTx: ironwood_actions has tag 9.
+    // Wire tag byte for field 9 (length-delimited wire type 2): (9 << 3) | 2 = 74 = 0x4A
+    let tx_with_iw = CompactTx {
+        index: 0,
+        txid: vec![],
+        fee: 0,
+        actions: vec![],
+        ironwood_actions: vec![CompactOrchardAction {
+            nullifier: vec![],
+            cmx: vec![],
+            ephemeral_key: vec![],
+            ciphertext: vec![],
+        }],
+    };
+    let mut tx_bytes = Vec::new();
+    prost::Message::encode(&tx_with_iw, &mut tx_bytes).expect("encode tx");
+    assert_eq!(tx_bytes[0], (9 << 3) | 2, "CompactTx.ironwood_actions must be wire field tag 9 (0x4A)");
+
+    // 2. In ChainMetadata: ironwood_commitment_tree_size has tag 3.
+    // Wire tag byte for field 3 (varint wire type 0): (3 << 3) | 0 = 24 = 0x18
+    let meta_with_iw = ChainMetadata {
+        sapling_commitment_tree_size: 0,
+        orchard_commitment_tree_size: 0,
+        ironwood_commitment_tree_size: 100,
+    };
+    let mut meta_bytes = Vec::new();
+    prost::Message::encode(&meta_with_iw, &mut meta_bytes).expect("encode meta");
+    assert_eq!(meta_bytes[0], (3 << 3) | 0, "ChainMetadata.ironwood_commitment_tree_size must be wire field tag 3 (0x18)");
+    println!("  Verified: Compiled proto contains exact field numbers (CompactTx.ironwood_actions = 9, ChainMetadata.ironwood_commitment_tree_size = 3)!");
+
     println!("  Verified: Real regtest block decoding and strict missing metadata rejection verified!");
 }
 

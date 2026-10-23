@@ -195,8 +195,8 @@ impl PendingSpendsManager {
         let buried_height = current_tip_height.saturating_sub(min_confirmations);
         let rows = conn.execute(
             "DELETE FROM pending_spends 
-             WHERE state = 'mined' AND note_id IN (
-                 SELECT id FROM received_notes 
+             WHERE state = 'mined' AND nullifier IN (
+                 SELECT nullifier FROM received_notes 
                  WHERE spent_at_height IS NOT NULL AND spent_at_height <= ?1
              )",
             params![buried_height as i64],

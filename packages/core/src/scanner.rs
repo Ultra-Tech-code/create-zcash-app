@@ -570,7 +570,7 @@ impl Scanner {
 
         // 5. Revert pending_spends from 'mined' to 'broadcast' for notes that still exist
         tx.execute(
-            "UPDATE pending_spends SET state = 'broadcast' WHERE state = 'mined' AND note_id IN (SELECT id FROM received_notes WHERE height <= ?1)",
+            "UPDATE pending_spends SET state = 'broadcast' WHERE state = 'mined' AND nullifier IN (SELECT nullifier FROM received_notes WHERE height <= ?1)",
             params![fork_h as i64],
         )?;
 

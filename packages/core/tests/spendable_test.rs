@@ -288,3 +288,138 @@ fn test_builder_integration_with_spendable_notes() {
     assert_eq!(built_tx.num_actions, 2);
     println!("  Built v6 transaction successfully! TxID: {}", hex::encode(built_tx.txid.as_ref()));
 }
+
+#[test]
+fn test_reorg_orphaned_reservation_blocks_spending_before_relink() {
+    println!("\n=== TEST: ORPHANED RESERVATION BLOCKS SPENDING BEFORE RELINK ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("orphaned_reservation.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_spend_orphaned", Some(2)).expect("db");
+
+    let sk = SpendingKey::from_bytes([91u8; 32]).expect("sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
+
+    // 1. Scan block 2 (empty) and block 3 (Fork A containing note A)
+    let b2 = CompactBlock {
+        height: 2,
+        hash: vec![0x02; 32],
+        prev_hash: vec![0x01; 32],
+        time: 1000,
+        header: vec![],
+        vtx: vec![],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: 0,
+        }),
+    };
+
+    let (act_a, _, nf_a) = create_encrypted_action(&fvk, Scope::External, 500_000, 1);
+    let b3_a = CompactBlock {
+        height: 3,
+        hash: vec![0x3A; 32],
+        prev_hash: vec![0x02; 32],
+        time: 2000,
+        header: vec![],
+        vtx: vec![CompactTx {
+            index: 0,
+            txid: vec![0xAA; 32],
+            fee: 10_000,
+            actions: vec![],
+            ironwood_actions: vec![act_a.clone()],
+        }],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: 1,
+        }),
+    };
+
+    Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[b2, b3_a]).expect("scan b2, b3a");
+
+    // Spendable notes at anchor 3 should return 1 note
+    let initial_spendable = query_spendable_notes(db.conn(), 3, 1).expect("query spendable");
+    assert_eq!(initial_spendable.len(), 1);
+    let note_id_1: i64 = db.conn().query_row("SELECT id FROM received_notes WHERE height = 3", [], |r| r.get(0)).expect("note 1 id");
+
+    // 2. Reserve note A: pending_spends row with note_id_1 and nf_a
+    db.conn().execute(
+        "INSERT INTO pending_spends (nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at)
+         VALUES (?1, ?2, ?3, 1000, 50, 'reserved', 1234, 1000)",
+        rusqlite::params![&nf_a[..], note_id_1, &[0x55u8; 32][..]],
+    ).expect("insert reservation");
+
+    // Spendable notes now excludes note A
+    let spendable_reserved = query_spendable_notes(db.conn(), 3, 1).expect("query spendable");
+    assert_eq!(spendable_reserved.len(), 0, "Reserved note must be excluded");
+
+    // 3. Reorg at fork height 2 (orphans block 3_a)
+    Scanner::resolve_reorg(db.conn_mut(), 2, &[[0x02; 32]]).expect("resolve reorg");
+
+    let orphaned_note_id: Option<i64> = db.conn().query_row(
+        "SELECT note_id FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![&nf_a[..]],
+        |r| r.get(0),
+    ).expect("query note_id");
+    assert_eq!(orphaned_note_id, None, "Reservation preserved with note_id = NULL");
+
+    // 4. Re-mine the note on Fork B at height 3
+    let b3_b = CompactBlock {
+        height: 3,
+        hash: vec![0x3B; 32],
+        prev_hash: vec![0x02; 32],
+        time: 2100,
+        header: vec![],
+        vtx: vec![CompactTx {
+            index: 0,
+            txid: vec![0xBB; 32],
+            fee: 10_000,
+            actions: vec![],
+            ironwood_actions: vec![act_a],
+        }],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: 1,
+        }),
+    };
+
+    Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[b3_b]).expect("scan b3b");
+    let note_id_2: i64 = db.conn().query_row("SELECT id FROM received_notes WHERE height = 3", [], |r| r.get(0)).expect("note 2 id");
+    assert_ne!(note_id_1, note_id_2, "Re-mined note has a new row id");
+
+    // Deliberately set note_id to NULL to represent state BEFORE relink runs!
+    db.conn().execute("UPDATE pending_spends SET note_id = NULL WHERE nullifier = ?1", rusqlite::params![&nf_a[..]]).expect("reset note_id to null");
+
+    let verify_null: Option<i64> = db.conn().query_row(
+        "SELECT note_id FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![&nf_a[..]],
+        |r| r.get(0),
+    ).expect("query note_id");
+    assert_eq!(verify_null, None, "Testing state strictly BEFORE relink runs (note_id IS NULL)");
+
+    // 5. Query spendable notes at anchor 3 with min_confs 1
+    // MUST STILL EXCLUDE NOTE A by nullifier, even though note_id is NULL!
+    let spendable_before_relink = query_spendable_notes(db.conn(), 3, 1).expect("query spendable");
+    assert_eq!(
+        spendable_before_relink.len(),
+        0,
+        "Orphaned reservation with note_id = NULL MUST STILL block spending of re-mined note by nullifier!"
+    );
+
+    // 6. Now verify relink re-links to note_id_2
+    let tx = db.conn_mut().transaction().expect("tx");
+    let relinked_count = zcash_core::PendingSpendsManager::relink_reservations(&tx).expect("relink");
+    tx.commit().expect("commit");
+    assert_eq!(relinked_count, 1);
+
+    let re_linked_id: Option<i64> = db.conn().query_row(
+        "SELECT note_id FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![&nf_a[..]],
+        |r| r.get(0),
+    ).expect("query note_id");
+    assert_eq!(re_linked_id, Some(note_id_2));
+
+    println!("  Verified: Orphaned reservation strictly blocks spending before relink runs by nullifier matching!");
+}
