@@ -423,4 +423,122 @@ regtestCmd
     console.log('\n🎉 Regtest setup completed successfully! Stack is ready for dev.fund and SDK testing.\n');
   });
 
+regtestCmd
+  .command('wipe')
+  .alias('reset')
+  .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
+  .option('--z3-path <path>', 'Path to z3 repository', '')
+  .action(async (options) => {
+    let z3Dir = options.z3Path;
+    if (!z3Dir) {
+      const candidates = [
+        path.resolve(process.cwd(), '../z3'),
+        path.resolve(process.cwd(), 'z3'),
+        '/Users/0xblackadam/Downloads/z3',
+      ];
+      for (const cand of candidates) {
+        if (fs.existsSync(cand) && fs.existsSync(path.join(cand, 'docker-compose.yml'))) {
+          z3Dir = cand;
+          break;
+        }
+      }
+    }
+
+    if (!z3Dir || !fs.existsSync(z3Dir)) {
+      console.error('❌ Could not locate z3 directory. Please specify with --z3-path <path>');
+      process.exit(1);
+    }
+
+    console.log(`\n=== 🧹 Wiping Regtest Blockchain in ${z3Dir} ===\n`);
+    execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest down -v`, { stdio: 'inherit' });
+    console.log('\n=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===\n');
+    execSync(`cd "${z3Dir}" && bash scripts/regtest-init.sh`, { stdio: 'inherit' });
+    execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino`, { stdio: 'inherit' });
+
+    const waitForRpc = async (payload: any, maxAttempts = 45): Promise<any> => {
+      for (let i = 0; i < maxAttempts; i++) {
+        try {
+          const res = await fetch('http://127.0.0.1:8181', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (json.result !== undefined || json.error !== undefined) {
+              return json;
+            }
+          }
+        } catch (e) {}
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      throw new Error(`RPC endpoint http://127.0.0.1:8181 failed to become ready for ${payload.method}`);
+    };
+
+    console.log('⏳ Waiting for RPC router at http://127.0.0.1:8181 ...');
+    await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
+
+    console.log('\nCreating new default Zallet account if needed...');
+    let listRes = await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
+    let accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
+    if (accounts.length === 0) {
+      await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'z_getnewaccount', params: ['default'] });
+      listRes = await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
+      accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
+    }
+    const accountUa = accounts[0]?.address;
+    console.log(`✅ Using Zallet Unified Address: ${accountUa}`);
+
+    if (accountUa) {
+      const zebraTomlPath = path.join(z3Dir, 'config/regtest/zebra.toml');
+      if (fs.existsSync(zebraTomlPath)) {
+        let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
+        if (!zebraConfig.includes('[mining]')) {
+          zebraConfig += `\n[mining]\nminer_address = "${accountUa}"\nminer_memo = "regtest"\n`;
+        } else {
+          zebraConfig = zebraConfig.replace(/miner_address\s*=\s*".*"/, `miner_address = "${accountUa}"`);
+          if (zebraConfig.includes('miner_memo')) {
+            zebraConfig = zebraConfig.replace(/miner_memo\s*=\s*".*"/, `miner_memo = "regtest"`);
+          } else {
+            zebraConfig = zebraConfig.replace('[mining]', `[mining]\nminer_memo = "regtest"`);
+          }
+        }
+        fs.writeFileSync(zebraTomlPath, zebraConfig);
+      }
+
+      const envRegtestPath = path.join(z3Dir, '.env.regtest');
+      if (fs.existsSync(envRegtestPath)) {
+        let envLines = fs.readFileSync(envRegtestPath, 'utf8').split('\n');
+        const setOrAddEnv = (key: string, value: string) => {
+          let found = false;
+          envLines = envLines.map((line) => {
+            if (line.startsWith(`${key}=`)) {
+              found = true;
+              return `${key}=${value}`;
+            }
+            return line;
+          });
+          if (!found) envLines.push(`${key}=${value}`);
+        };
+        setOrAddEnv('ZEBRA_MINING__MINER_ADDRESS', accountUa);
+        setOrAddEnv('ZEBRA_MINING__MINER_MEMO', '72656774657374');
+        fs.writeFileSync(envRegtestPath, envLines.join('\n'));
+      }
+
+      execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest up -d --force-recreate zebra`, { stdio: 'inherit' });
+    }
+
+    console.log('⏳ Waiting for Zebra RPC after restart...');
+    await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] });
+
+    console.log('Mining 105 blocks for fresh regtest chain...');
+    await fetch('http://127.0.0.1:8181', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [105] }),
+    });
+    execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest up -d zaino`, { stdio: 'inherit' });
+    console.log('✅ Fresh regtest chain created with tip height 105!\n');
+  });
+
 program.parse(process.argv);

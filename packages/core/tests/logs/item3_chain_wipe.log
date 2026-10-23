@@ -1,0 +1,88 @@
+================================================================
+ITEM 3: REAL CHAIN WIPE & RECOVERY INTEGRATION TEST
+================================================================
+
+Pre-wipe chain tip: height 107, upgrade: NU6.3
+Syncing wallet against pre-wipe chain...
+[Sync] Starting sync from height 2 to tip 107 (batch size: 50)...
+[Sync] Verified against GetTreeState(107):
+  Wallet Ironwood Root:  438bbc0505b89b6ad41a5a1f5b769c1d4f8495b4165e0b663e0434aac0fdce2a
+  Zaino ironwoodTree:    017611a286b9b5881e5ea990ae40b58735f04de5c2e572faa63b4a51751ec5fd0b0191008e14ad6d84874b24977fb2f672bb8aa82dc3db723608e03caa393222981b1f000001108cd27e812334d5d9a53197f7c01a72c88869b4baa30655a3c759eef770bc0300019e4c087ace700a8b2f27a384aeb2587e58d9033014660389904b7c6cc52ad03201a96257105f2960ff9fe86daa8f2dc5eb132fd6381642c5d87e945d43baab2a3200000000000000000000000000000000000000000000000000
+Pre-wipe wallet synced to height 107, tree size: 106
+
+--- 2. EXECUTING REAL zcash-dev regtest wipe ---
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/z3 ===
+
+
+=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===
+
+==> regtest/zaino.toml: present, leaving contents untouched.
+==> regtest/zallet.toml: present, leaving contents untouched.
+==> regtest/zebra.toml: present, leaving contents untouched.
+==> regtest/zaino.toml: ensured readable by service containers.
+==> regtest/zallet.toml: ensured readable by service containers.
+==> regtest/zebra.toml: ensured readable by service containers.
+
+Setup complete for regtest.
+Next: docker compose --env-file .env.regtest up -d zebra
+==> Ensured ./config/regtest/zallet.toml is readable by zallet uid 1000
+==> Zallet RPC pwhash already generated, skipping.
+==> Starting Zebra in regtest mode...
+==> Waiting for Zebra RPC to be ready...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 blocks (config/regtest activates NU5 through NU6.3 at height 2; Zebra and Zallet agree)...
+   Blocks mined.
+==> Preparing the Zallet data volume...
+==> Running generate-encryption-identity...
+==> Running init-wallet-encryption...
+==> Running generate-mnemonic...
+Seed fingerprint: zip32seedfp1r45nrs90gy0y45gekgty6jhxrqxumjnmzfqjr5p0q8m7kp3ktxnq0xamut
+==> Stopping Zebra (will be restarted by docker compose up -d)...
+
+Wallet initialized. Now run:
+   docker compose --env-file .env.regtest up -d
+   Router available at http://127.0.0.1:8181
+⏳ Waiting for RPC router at http://127.0.0.1:8181 ...
+
+Creating new default Zallet account if needed...
+✅ Using Zallet Unified Address: uregtest10hc6ulya7ekjhxaz0y9c729h7ll0wmlzugxsm23tfycg4wrhtx487a3kyppyp488zyxvcw9xflsj08jcaa0xkxptd4vhl7rt7u8668jtupzfyh3859ndck7rwswpuaa0t38lqx5yxkap3rnpy3kp8x7dv6q96y6vetwkzr6yvgnhvhjcr7nw7g2dhagny835fesezlxrtewtj2ady5x
+⏳ Waiting for Zebra RPC after restart...
+Mining 105 blocks for fresh regtest chain...
+✅ Fresh regtest chain created with tip height 105!
+
+
+--- 3. DETECTING CHAINRESET ON BRAND NEW CHAIN ---
+Brand new chain tip: height 107
+
+>>> RAW ChainReset ERROR RECEIVED FROM WALLET: <<<
+Chain reset detected at height 2: expected hash 33a65aecb403073a0800bc58a8677d0d378fa9854d697278bd023ea5a1bc98c3, actual fc2b4a964637769bf2ebfc996f287e6c6ccdd4496a2f06e11d80b00064c2a217
+>>> SUCCESS: Raw ChainReset error successfully caught! <<<
+
+--- 4. EXECUTING wallet.reset() TO RECOVER ---
+Wallet summary immediately after reset(): {
+  lastScannedHeight: 0,
+  treeSize: 0,
+  unspentNotesCount: 0,
+  totalBalanceZatoshis: 0,
+  spendableBalanceZatoshis: 0
+}
+>>> SUCCESS: wallet.reset() successfully reset wallet to clean slate! <<<
+
+--- 5. FULL RESYNC TO NEW CHAIN TIP ---
+[Sync] Starting sync from height 2 to tip 107 (batch size: 50)...
+  Resynced up to block 51/107
+  Resynced up to block 101/107
+  Resynced up to block 107/107
+[Sync] Verified against GetTreeState(107):
+  Wallet Ironwood Root:  b97d496047752711022273c8e7b2222cdeb3164247d5cf551ada66141642d212
+  Zaino ironwoodTree:    010d3f8b26dbf85bea4ee41e5f9346fbb333b3ca3d44047dce7370dfeebc31c50001d87e82e8fbe744caa5fbdf347ba48e79d3729b338d2efe380bc8348f64928d2e1f0000015e7b3bfc0feb82f5dd24cf8a06835efaca27cc804e1ee17a26255bc3a93217270001d522396c660822eecfa4d4180d333b07d094de9834d4db082c20068586418f3501eccfc7b98746433a335efa38e87a91b06f0b4fd19e507f10d945cc5079b3862200000000000000000000000000000000000000000000000000
+New sync completed: height 107/107, tree size: 106
+New Ironwood tree root: b97d496047752711022273c8e7b2222cdeb3164247d5cf551ada66141642d212
+TreeState matched: true
+
+================================================================
+ITEM 3 COMPLETE: REAL CHAIN WIPE & RECOVERY VERIFIED!
+================================================================
+
