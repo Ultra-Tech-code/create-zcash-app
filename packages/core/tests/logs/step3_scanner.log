@@ -1,0 +1,37 @@
+
+running 5 tests
+
+=== TEST: SCANNER DETECTS TREE SIZE GAP ===
+
+=== TEST: SCANNER REJECTS MALFORMED ACTION ===
+
+=== TEST: DUAL-SCOPE IVK, POSITIONS, AND SPEND DETECTION ===
+
+=== TEST: 5,000 SYNTHETIC BLOCKS BENCHMARK & ACTIVE-SYNC SEND CONCURRENCY ===
+
+=== TEST: SCANNER REJECTS MISSING CHAIN METADATA ===
+  Generating 5,000 synthetic blocks with realistic action counts & trial decryption...
+  Correctly detected tree size gap: expected 1, actual 5, height 2
+  Correctly rejected malformed action: Invalid nullifier length 31 in tx at height 2
+test test_scanner_rejects_malformed_action ... ok
+test test_scanner_detects_tree_size_gap ... ok
+  Correctly rejected block with missing metadata: CompactBlock at height 2 missing required chainMetadata
+test test_scanner_rejects_missing_metadata ... ok
+  Scanning Block 2 (3 actions)...
+  Dual-scope notes verified with correct tree positions (0 and 1)
+  Scanning Block 3 (spending external note)...
+  Note 0 confirmed spent in block 3 txid
+  pending_spends transitioned to 'mined' successfully
+test test_scanner_dual_scope_and_positions_and_spend_detection ... ok
+  Generated 5,000 blocks successfully.
+  [Batch size  25] Measured durations over 10 batches: p50 = 90 ms, p95 = 98 ms
+  [Batch size  50] Measured durations over 10 batches: p50 = 166 ms, p95 = 194 ms
+  [Batch size 100] Measured durations over 10 batches: p50 = 345 ms, p95 = 390 ms
+
+  Testing concurrent send() reservation during active continuous sync with busy_timeout=5000ms...
+  >>> [Concurrent send()] Note reservation completed successfully in 150 ms (NO busy-timeout!)
+  Concurrency test passed: Active sync and send reservation coexist without lock failures!
+test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.08s
+

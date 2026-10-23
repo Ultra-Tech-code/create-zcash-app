@@ -503,12 +503,17 @@ mod tests {
 }
 
 pub mod consensus;
+pub mod scanner;
 pub mod schema;
 pub mod shard_store;
 pub mod transaction;
 pub mod wallet_db;
 
 pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
+pub use scanner::{
+    ChainMetadata, CompactBlock, CompactOrchardAction, CompactTx, ScanResult, Scanner,
+    WalletError,
+};
 pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
 pub use shard_store::{
     IronwoodShardTree, ShardStoreError, SqliteShardStore, IRONWOOD_SHARD_HEIGHT,

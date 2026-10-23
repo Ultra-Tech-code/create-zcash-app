@@ -24,6 +24,7 @@ zcash_note_encryption = "=0.4.2"
 incrementalmerkletree = "0.8.2"
 shardtree = "0.7.1"
 rusqlite = { version = "0.32", features = ["bundled"] }
+prost = "0.14"
 
 [dev-dependencies]
 zcash_transparent = "0.10.0"
