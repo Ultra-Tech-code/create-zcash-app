@@ -503,6 +503,7 @@ mod tests {
 }
 
 pub mod consensus;
+pub mod pending_spends;
 pub mod scanner;
 pub mod schema;
 pub mod shard_store;
@@ -510,6 +511,7 @@ pub mod transaction;
 pub mod wallet_db;
 
 pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
+pub use pending_spends::PendingSpendsManager;
 pub use scanner::{
     ChainMetadata, CompactBlock, CompactOrchardAction, CompactTx, ScanResult, Scanner,
     WalletError,

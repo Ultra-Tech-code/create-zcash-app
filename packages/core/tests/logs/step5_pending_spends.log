@@ -1,0 +1,24 @@
+
+running 3 tests
+
+=== TEST: PENDING SPENDS STATE MACHINE & DUAL LOCKS ===
+
+=== TEST: SLOW PROVE HEARTBEAT REFRESH (AUTHORITY OVER PID) ===
+
+=== TEST: STALE RESERVATION & EXPIRED TX CLEANUP ===
+  Reserving note 1 for txid1...
+  Attempting duplicate reservation on note 1...
+  Prover periodically refreshing heartbeat during long proof...
+  Correctly rejected duplicate reservation: Note 1 is already reserved in pending_spends: UNIQUE constraint failed: pending_spends.nullifier
+  Verified: Slow prove (>120s simulated) with periodic heartbeat never loses its reservation!
+  Running cleanup at tip height 105 with 120s timeout...
+  Correctly rejected already-spent note: Note 2 is already confirmed spent on chain
+  Marking reservation as broadcast...
+  Stale reservation and expired broadcast transaction successfully cleaned up!
+  Cancelled reservation deleted; note returned to spendable pool
+test test_slow_proving_heartbeat_refresh_preserves_reservation ... ok
+test test_stale_reservation_and_expired_tx_cleanup ... ok
+test test_reserve_notes_and_state_transitions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
