@@ -368,7 +368,7 @@ fn test_synthetic_chain_benchmark_and_concurrent_send_safety() {
                     }
                 }
             }
-            std::thread::sleep(std::time::Duration::from_millis(1));
+            // No sleep between reservations: execute as fast as possible
         }
         println!("PROCESS_LATENCIES:{:?}", proc_latencies);
         println!("PROCESS_CONCURRENCY_DONE");
@@ -535,7 +535,7 @@ fn test_synthetic_chain_benchmark_and_concurrent_send_safety() {
                     }
                 }
             }
-            std::thread::sleep(std::time::Duration::from_millis(1));
+            // No sleep between reservations: execute as fast as possible
         }
     });
 
@@ -588,18 +588,18 @@ fn test_synthetic_chain_benchmark_and_concurrent_send_safety() {
 
     let p50_comb = combined_200[combined_200.len() / 2];
     let p95_comb = combined_200[((combined_200.len() as f64 * 0.95).ceil() as usize).min(combined_200.len() - 1)];
+    let p99_comb = combined_200[((combined_200.len() as f64 * 0.99).ceil() as usize).min(combined_200.len() - 1)];
     let max_comb = combined_200[combined_200.len() - 1];
 
     let total_pending_spends: i64 = db.conn().query_row("SELECT COUNT(*) FROM pending_spends", [], |r| r.get(0)).expect("count");
-    println!("  Concurrency results across live background sync:");
+    println!("  Concurrency results across live background sync (no sleeps, maximum throughput):");
     println!("    Total concurrent reservations committed: {} / 200 (100 thread + 100 child process)", total_pending_spends);
-    println!("    Thread (100) latency:  p50 = {} ms, p95 = {} ms, max = {} ms", all_thread_latencies[50], all_thread_latencies[95], all_thread_latencies[99]);
-    println!("    Process (100) latency: p50 = {} ms, p95 = {} ms, max = {} ms", proc_latencies[50], proc_latencies[95], proc_latencies[99]);
-    println!("    Combined (200) latency: p50 = {} ms, p95 = {} ms, max = {} ms", p50_comb, p95_comb, max_comb);
+    println!("    Thread (100) latency:  p50 = {} ms, p95 = {} ms, p99 = {} ms, max = {} ms", all_thread_latencies[50], all_thread_latencies[95], all_thread_latencies[99], all_thread_latencies[99]);
+    println!("    Process (100) latency: p50 = {} ms, p95 = {} ms, p99 = {} ms, max = {} ms", proc_latencies[50], proc_latencies[95], proc_latencies[99], proc_latencies[99]);
+    println!("    Combined (200) latency: p50 = {} ms, p95 = {} ms, p99 = {} ms, max = {} ms", p50_comb, p95_comb, p99_comb, max_comb);
     println!("    SQLITE_BUSY error count: {}", busy_count.load(Ordering::SeqCst));
     println!("    Note on timing: Transaction latency is measured strictly around Immediate transaction begin, execute, and commit.");
-    println!("    There is ZERO sleep inside the write transaction or measurement window.");
-    println!("    The 1ms sleep in the test loop occurs between independent transactions to allow CPU scheduling.");
+    println!("    There is ZERO sleep inside the write transaction, measurement window, or loop iterations.");
     assert_eq!(total_pending_spends, 200, "All 200 reservations must be committed");
     assert_eq!(busy_count.load(Ordering::SeqCst), 0, "Zero SQLITE_BUSY errors encountered with 5000ms timeout");
     println!("  Verified: 200 concurrent reservations across threads and processes executed seamlessly without lock timeouts!");

@@ -1,27 +1,19 @@
-=== TEST: 5,000 SYNTHETIC BLOCKS BENCHMARK & 200-RESERVATION CONCURRENCY ===
-Environment: cargo test --release --test scanner_test test_synthetic_chain_benchmark_and_concurrent_send_safety -- --nocapture
-PRAGMA synchronous = FULL (WAL journal mode, busy_timeout = 5000ms)
+=== TEST: 5000 SYNTHETIC BLOCKS BENCHMARK & 200-RESERVATION CONCURRENCY ===
+  Generating 5000 synthetic blocks with realistic action counts & dual-scope trial decryption...
+  Generated 5000 blocks with 313 owned notes (both External and Internal scopes) and 5313 total commitments.
+  [Batch size  25] 5000 blocks (200 batches): p50 =  15 ms, p95 =  20 ms, throughput = 1664.4 blocks/sec, total sync time = 3.00s
+  [Batch size  50] 5000 blocks (100 batches): p50 =  29 ms, p95 =  39 ms, throughput = 1677.3 blocks/sec, total sync time = 2.98s
+  [Batch size 100] 5000 blocks (50 batches):  p50 =  61 ms, p95 =  80 ms, throughput = 1664.4 blocks/sec, total sync time = 3.00s
+  Default batch size picked from 5000 block benchmark: 50 (highest throughput 1677.3 blocks/sec)
 
-  Generating 5,000 synthetic blocks with realistic action counts & dual-scope trial decryption...
-  Generated 5,000 blocks with 313 owned notes (both External and Internal scopes) and 5313 total commitments.
-  [Batch size  25] 5,000 blocks (200 batches): p50 =  21 ms, p95 =  28 ms, throughput = 1187.4 blocks/sec, total sync time = 4.21s
-  [Batch size  50] 5,000 blocks (100 batches): p50 =  42 ms, p95 =  55 ms, throughput = 1200.8 blocks/sec, total sync time = 4.16s
-  [Batch size 100] 5,000 blocks (50 batches): p50 =  83 ms, p95 = 108 ms, throughput = 1218.6 blocks/sec, total sync time = 4.10s
-  Default batch size picked from 5,000 block benchmark: 100 (highest throughput 1218.6 blocks/sec)
-
-  Debug comparison:
-  - In debug mode (unoptimized): throughput ~90-120 blocks/sec; total 5,000-block sync ~45-55s.
-  - In release mode (optimized): throughput 1,218.6 blocks/sec (~11x speedup); total 5,000-block sync 4.10s.
-
-  Testing 200 concurrent send reservations against active background sync (100 from separate thread + 100 from separate process)...
-  Concurrency results across live background sync:
+  Testing 200 concurrent send reservations against active sync (100 from separate thread + 100 from separate process)...
+  Concurrency results across live background sync (no sleeps, maximum throughput):
     Total concurrent reservations committed: 200 / 200 (100 thread + 100 child process)
-    Thread (100) latency:  p50 = 0 ms, p95 = 0 ms, max = 2151 ms
-    Process (100) latency: p50 = 0 ms, p95 = 0 ms, max = 2228 ms
-    Combined (200) latency: p50 = 0 ms, p95 = 0 ms, max = 2228 ms
+    Thread (100) latency:  p50 = 0 ms, p95 = 0 ms, p99 = 3 ms, max = 3 ms
+    Process (100) latency: p50 = 0 ms, p95 = 0 ms, p99 = 474 ms, max = 474 ms
+    Combined (200) latency: p50 = 0 ms, p95 = 0 ms, p99 = 3 ms, max = 474 ms
     SQLITE_BUSY error count: 0
     Note on timing: Transaction latency is measured strictly around Immediate transaction begin, execute, and commit.
-    There is ZERO sleep inside the write transaction or measurement window.
-    The 1ms sleep in the test loop occurs between independent transactions to allow CPU scheduling.
+    There is ZERO sleep inside the write transaction, measurement window, or loop iterations.
   Verified: 200 concurrent reservations across threads and processes executed seamlessly without lock timeouts!
 test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
