@@ -2291,6 +2291,7 @@ dependencies = [
  "bech32",
  "bls12_381",
  "bs58",
+ "byteorder",
  "document-features",
  "flume",
  "getset",

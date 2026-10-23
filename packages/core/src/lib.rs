@@ -504,11 +504,16 @@ mod tests {
 
 pub mod consensus;
 pub mod schema;
+pub mod shard_store;
 pub mod transaction;
 pub mod wallet_db;
 
 pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
 pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
+pub use shard_store::{
+    IronwoodShardTree, ShardStoreError, SqliteShardStore, IRONWOOD_SHARD_HEIGHT,
+    IRONWOOD_TREE_DEPTH,
+};
 pub use transaction::{
     build_and_prove_v6_ironwood_tx, choose_recommended_anchor_height, compute_zip317_fee,
     BuiltTransaction, OutputSpec, OvkPolicy, SpendInput, TransactionBuildError,

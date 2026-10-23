@@ -1,0 +1,18 @@
+
+running 1 test
+
+=== TEST: SQLITE SHARD STORE MATCHES MEMORY SHARD STORE BIT-FOR-BIT ===
+  Appending Block 2 (10 leaves, leaf 3 marked)...
+  Block 2 Root: 94a45ca383e893e9bf053d408607b326a3a689e3d33d2f02ab5eb9c721363f2a
+  Appending Block 3 (15 leaves, leaf 18 marked)...
+  Block 3 Root: 138ad0f4a8c1917dbd2454fc2b28efd5ffff5364ffcc8913c384dca0a045ef13
+  Witness for leaf 3 matches across memory and SQLite stores
+  Witness for leaf 18 matches across memory and SQLite stores
+  Testing disk persistence round-trip by reopening new ShardTree from DB file...
+  Persistence round-trip confirmed: disk reload produces identical roots and witnesses
+  Testing reorg rollback: truncate_to_checkpoint(BlockHeight(2))...
+  Reorg rollback verified: truncate_to_checkpoint rewinds tree state accurately
+test test_shard_store_matches_memory_shard_store_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
