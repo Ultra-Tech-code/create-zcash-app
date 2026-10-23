@@ -15,7 +15,7 @@ export async function GET() {
     success: true,
     config: {
       network: process.env.ZCASH_NETWORK || 'regtest',
-      endpoint: process.env.ZCASH_ENDPOINT || '127.0.0.1:8137',
+      endpoint: process.env.ZCASH_ENDPOINT || '127.0.0.1:28137',
       connectionMode: process.env.ZCASH_CONNECTION_MODE || 'local',
     },
   });

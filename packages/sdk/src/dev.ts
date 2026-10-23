@@ -174,7 +174,7 @@ export const testkit = {
     fn: (ctx: { client: ZcashClient; fund: typeof dev.fund }) => Promise<void>
   ): Promise<void> {
     const client = new ZcashClient({
-      endpoint: '127.0.0.1:8137',
+      endpoint: '127.0.0.1:28137',
       network: 'regtest',
     });
     try {

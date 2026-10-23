@@ -45,7 +45,7 @@ describe('Spend Tracking & Balance Calculation', () => {
     ];
 
     const mockClient = {
-      config: { network: 'regtest', endpoint: '127.0.0.1:8137' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
       getInfo: vi.fn().mockResolvedValue({ blockHeight: '15' }),
       getBlockRange: vi.fn().mockReturnValue({
         [Symbol.asyncIterator]: async function* () {

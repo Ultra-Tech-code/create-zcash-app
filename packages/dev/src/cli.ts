@@ -3,11 +3,11 @@ import { Command } from 'commander';
 import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { createClient, dev, accountFromMnemonic } from '@zcash-app/sdk';
 
 const REMOTE_ENDPOINTS: Record<string, string> = {
-  regtest: '127.0.0.1:8137',
+  regtest: '127.0.0.1:28137',
   testnet: 'testnet.zec.rocks:443',
   mainnet: 'zec.rocks:443',
 };
@@ -22,7 +22,7 @@ program
 program
   .command('info')
   .description('Get node & indexer status')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:8137')
+  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)', 'regtest')
   .action(async (options) => {
     const client = createClient({
@@ -50,7 +50,7 @@ program
   .command('mine')
   .description('Mine blocks on regtest')
   .argument('[blocks]', 'Number of blocks to mine', '1')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:8137')
+  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
   .action(async (blocksStr, options) => {
     const blocks = parseInt(blocksStr, 10);
     const client = createClient({
@@ -74,7 +74,7 @@ program
   .description('Fund a Unified Address on regtest')
   .argument('<address>', 'Recipient Unified Address')
   .argument('[amount]', 'Amount in ZEC', '1.0')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:8137')
+  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
   .action(async (address, amountStr, options) => {
     const zatoshis = BigInt(Math.round(parseFloat(amountStr) * 100000000));
     const client = createClient({
@@ -137,11 +137,11 @@ program
     }
 
     let connectionMode: 'local' | 'remote' = 'local';
-    let endpoint = '127.0.0.1:8137';
+    let endpoint = '127.0.0.1:28137';
 
     if (targetNetwork === 'regtest') {
       connectionMode = 'local';
-      endpoint = '127.0.0.1:8137';
+      endpoint = '127.0.0.1:28137';
     } else {
       if (options.remote) {
         connectionMode = 'remote';
@@ -234,6 +234,193 @@ program
     child.on('exit', (code) => {
       process.exit(code ?? 0);
     });
+  });
+
+const regtestCmd = program
+  .command('regtest')
+  .description('Regtest environment management commands');
+
+regtestCmd
+  .command('setup')
+  .description('Configure and initialize regtest stack (pins images, creates account, sets miner_address & miner_memo)')
+  .option('--z3-path <path>', 'Path to z3 repository', '')
+  .action(async (options) => {
+    let z3Dir = options.z3Path;
+    if (!z3Dir) {
+      const candidates = [
+        path.resolve(process.cwd(), '../z3'),
+        path.resolve(process.cwd(), 'z3'),
+        '/Users/0xblackadam/Downloads/z3',
+      ];
+      for (const cand of candidates) {
+        if (fs.existsSync(cand) && fs.existsSync(path.join(cand, 'docker-compose.yml'))) {
+          z3Dir = cand;
+          break;
+        }
+      }
+    }
+
+    if (!z3Dir || !fs.existsSync(z3Dir)) {
+      console.error('❌ Could not locate z3 directory. Please specify with --z3-path <path>');
+      process.exit(1);
+    }
+
+    console.log(`\n=== 🛠️  Setting up Regtest in ${z3Dir} ===\n`);
+
+    // 1. Pin images in .env.regtest
+    const envRegtestPath = path.join(z3Dir, '.env.regtest');
+    let envLines = fs.existsSync(envRegtestPath) ? fs.readFileSync(envRegtestPath, 'utf8').split('\n') : [];
+
+    const setOrAddEnv = (key: string, value: string) => {
+      let found = false;
+      envLines = envLines.map((line) => {
+        if (line.startsWith(`${key}=`)) {
+          found = true;
+          return `${key}=${value}`;
+        }
+        return line;
+      });
+      if (!found) {
+        envLines.push(`${key}=${value}`);
+      }
+    };
+
+    setOrAddEnv('Z3_ZEBRA_IMAGE', 'zfnd/zebra:6.4.2');
+    setOrAddEnv('Z3_ZAINO_IMAGE', 'zingodevops/zainod:0.10.0-no-tls');
+    fs.writeFileSync(envRegtestPath, envLines.join('\n'));
+    console.log('✅ Pinned images in .env.regtest:');
+    console.log('   - Z3_ZEBRA_IMAGE=zfnd/zebra:6.4.2');
+    console.log('   - Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls');
+
+    // 2. Ensure docker stack is up
+    console.log('\n🐳 Starting Z3 containers...');
+    execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest up -d`, { stdio: 'inherit' });
+
+    // 3. Wait for Zallet / RPC router at http://127.0.0.1:8181
+    console.log('\n⏳ Waiting for RPC router at http://127.0.0.1:8181 ...');
+    let ready = false;
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch('http://127.0.0.1:8181', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
+        });
+        if (res.ok) {
+          ready = true;
+          break;
+        }
+      } catch (e) {}
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    if (!ready) {
+      console.error('❌ RPC router did not become ready in time.');
+      process.exit(1);
+    }
+
+    // 4. Check for existing Zallet accounts or create one if missing
+    console.log('\n🔍 Checking Zallet accounts...');
+    let listRes = await (await fetch('http://127.0.0.1:8181', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
+    })).json();
+
+    let accountUa: string | undefined;
+    let accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
+    if (accounts.length === 0) {
+      console.log('No Zallet account found. Creating new default account...');
+      const createRes = await (await fetch('http://127.0.0.1:8181', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'z_getnewaccount', params: ['default'] }),
+      })).json();
+      console.log('✅ Created account:', createRes.result);
+
+      listRes = await (await fetch('http://127.0.0.1:8181', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
+      })).json();
+      accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
+    }
+
+    accountUa = accounts[0]?.address;
+    if (!accountUa) {
+      console.error('❌ Could not retrieve unified address from Zallet.');
+      process.exit(1);
+    }
+    console.log(`✅ Using Zallet Unified Address:\n   ${accountUa}`);
+
+    // 5. Configure zebra.toml with miner_address and miner_memo
+    const zebraTomlPath = path.join(z3Dir, 'config/regtest/zebra.toml');
+    if (fs.existsSync(zebraTomlPath)) {
+      let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
+      if (!zebraConfig.includes('[mining]')) {
+        zebraConfig += `\n[mining]\nminer_address = "${accountUa}"\nminer_memo = "regtest"\n`;
+      } else {
+        zebraConfig = zebraConfig.replace(/miner_address\s*=\s*".*"/, `miner_address = "${accountUa}"`);
+        if (zebraConfig.includes('miner_memo')) {
+          zebraConfig = zebraConfig.replace(/miner_memo\s*=\s*".*"/, `miner_memo = "regtest"`);
+        } else {
+          zebraConfig = zebraConfig.replace('[mining]', `[mining]\nminer_memo = "regtest"`);
+        }
+      }
+      fs.writeFileSync(zebraTomlPath, zebraConfig);
+      console.log('\n✅ Updated config/regtest/zebra.toml:');
+      console.log(`   - miner_address = "${accountUa}"`);
+      console.log(`   - miner_memo = "regtest"`);
+    }
+
+    // Update .env.regtest mining variables
+    setOrAddEnv('ZEBRA_MINING__MINER_ADDRESS', accountUa);
+    setOrAddEnv('ZEBRA_MINING__MINER_MEMO', '72656774657374');
+    fs.writeFileSync(envRegtestPath, envLines.join('\n'));
+
+    // 6. Restart Zebra to apply mining configuration
+    console.log('\n🔄 Restarting Zebra container with new mining config...');
+    execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest up -d --force-recreate zebra`, { stdio: 'inherit' });
+
+    // 7. Verify live config
+    const liveConfig = execSync(`docker exec z3-regtest-zebra-1 cat /home/zebra/.config/zebrad.toml`).toString();
+    console.log('\n--- Confirmed Live Zebrad Config ---');
+    const miningSection = liveConfig.match(/\[mining\][^\[]*/)?.[0] || 'N/A';
+    console.log(miningSection);
+
+    // 8. Wait for Zebra RPC to be ready after restart and check block height
+    console.log('⏳ Waiting for Zebra RPC to be ready after restart...');
+    let currentHeight = 0;
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch('http://127.0.0.1:8181', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] }),
+        });
+        if (res.ok) {
+          const json: any = await res.json();
+          if (json.result !== undefined) {
+            currentHeight = Number(json.result);
+            break;
+          }
+        }
+      } catch (e) {}
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+
+    console.log(`Current block height: ${currentHeight}`);
+    if (currentHeight < 101) {
+      const needed = 101 - currentHeight;
+      console.log(`Mining ${needed} initial blocks for coinbase maturity...`);
+      await fetch('http://127.0.0.1:8181', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [needed] }),
+      });
+      console.log('✅ Mined maturity blocks.');
+    }
+
+    console.log('\n🎉 Regtest setup completed successfully! Stack is ready for dev.fund and SDK testing.\n');
   });
 
 program.parse(process.argv);

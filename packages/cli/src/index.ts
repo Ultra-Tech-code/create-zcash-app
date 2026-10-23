@@ -80,7 +80,7 @@ program
 
     if (network === 'regtest') {
       connectionMode = 'local';
-      endpoint = '127.0.0.1:8137';
+      endpoint = '127.0.0.1:28137';
     } else {
       if (options.remote) {
         connectionMode = 'remote';
@@ -197,7 +197,7 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
     image: zingodevops/zainod:0.10.0-no-tls
     restart: unless-stopped
     ports:
-      - "8137:8137"
+      - "${network === 'regtest' ? '28137:28137' : '8137:8137'}"
     depends_on:
       - zebra
     environment:

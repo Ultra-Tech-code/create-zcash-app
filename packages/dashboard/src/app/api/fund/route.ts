@@ -4,7 +4,7 @@ import { createClient, dev } from '@zcash-app/sdk';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { address, amount = '1.0', endpoint = '127.0.0.1:8137' } = body;
+    const { address, amount = '1.0', endpoint = '127.0.0.1:28137' } = body;
 
     if (!address) {
       return NextResponse.json({ success: false, error: 'Address is required' }, { status: 400 });

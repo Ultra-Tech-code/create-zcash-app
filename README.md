@@ -85,7 +85,7 @@ npx create-zcash-app my-shielded-app
 1. **Network**: `regtest` (instant local chain & faucet), `testnet` (staging with TAZ), or `mainnet` (production).
 2. **Connection Mode** (for testnet/mainnet):
    - 🌐 **Remote Public RPC** (e.g. `zcash-testnet.zec.rocks:443`) — Zero-install, no node required.
-   - 🐳 **Local Z3 Node** (`127.0.0.1:8137`) — Self-hosted privacy stack (generates `docker-compose.yml`).
+   - 🐳 **Local Z3 Node** (Regtest: `127.0.0.1:28137`, Testnet: `127.0.0.1:8137`) — Self-hosted privacy stack (generates `docker-compose.yml`).
 
 ### 6. Network Switcher CLI (`zcash-dev switch`)
 Switch an existing project between networks at any time:
@@ -100,6 +100,17 @@ npx zcash-dev switch regtest
 ```
 Automatically updates `.env.local` and `zcash.config.json`. The developer dashboard instantly hot-reloads and reflects the new network!
 
+### 7. Automated Regtest Setup CLI (`zcash-dev regtest setup`)
+Automates the local Z3 regtest environment after a fresh clone or volume wipe:
+```bash
+npx zcash-dev regtest setup
+```
+- Sets `miner_address` in Zebra configuration to the Zallet wallet account's Unified Address (routing block coinbases directly into the Ironwood shielded pool).
+- Sets `miner_memo = "regtest"` in `[mining]` so Zallet v0.1.0-beta.1 UTF-8 memo validation succeeds on `z_listunspent`.
+- Pins `Z3_ZEBRA_IMAGE=zfnd/zebra:6.4.2` and `Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls` in `.env.regtest`.
+- Creates the default Zallet account if missing.
+- Mines initial blocks for coinbase maturity so funds are immediately spendable by `dev.fund`.
+
 ---
 
 ## Prerequisites
@@ -111,7 +122,7 @@ Automatically updates `.env.local` and `zcash.config.json`. The developer dashbo
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
    - **Local Regtest Mode (Z3 Stack)**:
      - **Zebra Node**: Pinned to official stable release `zfnd/zebra:6.4.2` on JSON-RPC `127.0.0.1:8181` (or `18232`).
-     - **Zaino Indexer**: Pinned to image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:8137`.
+     - **Zaino Indexer**: Pinned to image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:28137` (regtest) / `127.0.0.1:8137` (testnet).
 
 > [!IMPORTANT]
 > - **Zebra pin**: Must use `zfnd/zebra:6.4.2` (recalled versions 6.4.0/6.4.1 contain pre-NU6.3 branch ID re-serialization DoS GHSA-h5rr-8pqv-grp9). Do not move to pre-release `7.0.0-rc.0` for regtest/mainnet.
@@ -143,7 +154,7 @@ pnpm --filter dashboard run build
 
 ### 2. Run SDK Smoke Test
 
-With local Zaino running on `127.0.0.1:8137` (or against testnet/mainnet):
+With local regtest Zaino running on `127.0.0.1:28137`:
 ```bash
 node packages/sdk/test-e2e.mjs
 ```

@@ -173,7 +173,7 @@ export default function Dashboard() {
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Connection / Endpoint</div>
             <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
               {network === 'regtest'
-                ? '🐳 Local Z3 (127.0.0.1:8137)'
+                ? '🐳 Local Z3 (127.0.0.1:28137)'
                 : `🌐 External RPC (${network === 'testnet' ? 'testnet.zec.rocks:443' : 'zec.rocks:443'})`}
             </div>
           </div>
