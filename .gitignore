@@ -11,5 +11,6 @@ create-zcash-app-sdk-spec.md
 create-zcash-app-zcg-draft-4.md
 *.node
 packages/core/src/test_cmxs.json
+packages/core/tests/fixtures/test_cmxs.json
 packages/core/src/real_tx_v6.hex
 *.hex

@@ -620,8 +620,9 @@ fn test_c_live_regtest_broadcast_and_mine() {
     println!("Successfully reconstructed note with cmx: {}", cmx_hex);
 
     // Fetch compact blocks / tree to build witness
-    // In our test environment, we build the tree from the known commitments
-    let f = std::fs::File::open("src/test_cmxs.json").expect("Unable to open test_cmxs.json");
+    let f = std::fs::File::open("tests/fixtures/test_cmxs.json")
+        .or_else(|_| std::fs::File::open("packages/core/tests/fixtures/test_cmxs.json"))
+        .expect("Unable to open tests/fixtures/test_cmxs.json");
     #[derive(serde::Deserialize)]
     struct CmxItem {
         cmx: String,
