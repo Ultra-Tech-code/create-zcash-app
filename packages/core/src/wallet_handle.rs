@@ -377,4 +377,77 @@ impl WalletHandle {
 
         Ok(deleted as u32)
     }
+
+    /// Resets wallet state (wipes scanned blocks, notes, tree, and pending spends, clearing chain continuity metadata).
+    #[napi]
+    pub fn reset(&self) -> Result<()> {
+        let mut db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn_mut();
+        let tx = conn.transaction()
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM scanned_blocks", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM received_notes", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM pending_spends", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM ironwood_tree_shards", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM ironwood_tree_cap", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM ironwood_tree_checkpoint_marks_removed", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM ironwood_tree_checkpoints", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.execute("DELETE FROM wallet_metadata WHERE key = 'first_scanned_height' OR key = 'first_scanned_hash'", [])
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        tx.commit()
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        Ok(())
+    }
+
+    /// Returns the 32-byte Ironwood commitment tree root at the specified checkpoint depth (0 = tip).
+    #[napi]
+    pub fn get_tree_root(&self, depth: Option<u32>) -> Result<Option<Buffer>> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let store = crate::shard_store::SqliteShardStore::new(db_guard.conn(), "ironwood_tree");
+        let tree = crate::shard_store::IronwoodShardTree::new(store, 100);
+        let root = tree.root_at_checkpoint_depth(depth.map(|d| d as usize))
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Tree error: {:?}", e)))?;
+        Ok(root.map(|r| Buffer::from(r.to_bytes().to_vec())))
+    }
+
+    /// Looks up a received note by its 32-byte commitment hex (cmx).
+    #[napi]
+    pub fn get_note_by_cmx(&self, cmx_hex: String) -> Result<Option<JsSpendableNote>> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let cmx_bytes = hex::decode(&cmx_hex)
+            .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid cmx hex: {}", e)))?;
+
+        let row = db_guard.conn().query_row(
+            "SELECT id, recipient, value_zatoshis, nullifier, height, tree_position 
+             FROM received_notes WHERE cmx = ?1",
+            rusqlite::params![&cmx_bytes],
+            |r| {
+                let nullifier_bytes: Vec<u8> = r.get(3)?;
+                Ok(JsSpendableNote {
+                    id: r.get(0)?,
+                    recipient: r.get(1)?,
+                    value_zatoshis: r.get(2)?,
+                    nullifier: hex::encode(nullifier_bytes),
+                    height: r.get(4)?,
+                    tree_position: r.get(5)?,
+                })
+            },
+        );
+
+        match row {
+            Ok(note) => Ok(Some(note)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(Error::new(Status::GenericFailure, e.to_string())),
+        }
+    }
 }

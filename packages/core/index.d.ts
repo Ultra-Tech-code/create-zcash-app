@@ -9,6 +9,35 @@
  */
 export declare const __napiBindingTarget: 'native' | 'wasm32-wasi' | 'wasm32-wasip1'
 
+/** A handle to an open Zcash wallet database with thread-safe access and async background scanning. */
+export declare class WalletHandle {
+  /**
+   * Opens or initializes a wallet database file with strict 0700/0600 permissions,
+   * WAL mode, busy_timeout=5000ms, and starts background proving key warm-up.
+   */
+  static open(dbPath: string, networkStr: string, ufvkStr: string, accountId?: string | undefined | null): WalletHandle
+  /** Asynchronously scans a batch of raw CompactBlock protobuf buffers off the main Node.js event loop. */
+  scanBlocks(rawBlocks: Array<Buffer>): Promise<unknown>
+  /** Returns a comprehensive balance and sync status summary. */
+  getWalletSummary(): WalletSummary
+  /** Queries spendable notes confirmed at the given anchor height with min_confs. */
+  querySpendableNotes(anchorHeight: number, minConfs: number): Array<JsSpendableNote>
+  /** Resolves a detected reorganization by rolling back wallet state to a common ancestor. */
+  resolveReorg(fromHeight: number, ancestorHashes: Array<Buffer>): number
+  /** Reserves notes for an in-flight send transaction under BEGIN IMMEDIATE. */
+  reserveNotes(notes: Array<number>, txid: Buffer, expiryHeight: number): void
+  /** Marks an in-flight reservation as broadcast to the network. */
+  markBroadcast(txid: Buffer): number
+  /** Cancels an in-flight reservation if proving fails or transaction is aborted. */
+  cancelReservation(txid: Buffer): number
+  /** Resets wallet state (wipes scanned blocks, notes, tree, and pending spends, clearing chain continuity metadata). */
+  reset(): void
+  /** Returns the 32-byte Ironwood commitment tree root at the specified checkpoint depth (0 = tip). */
+  getTreeRoot(depth?: number | undefined | null): Buffer | null
+  /** Looks up a received note by its 32-byte commitment hex (cmx). */
+  getNoteByCmx(cmxHex: string): JsSpendableNote | null
+}
+
 export interface DecryptedNote {
   pool: string
   valueZatoshis: number
@@ -32,4 +61,29 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
+export interface JsScanResult {
+  status: string
+  lastScannedHeight: number
+  notesDetected: number
+  fromHeight?: number
+  count?: number
+}
+
+export interface JsSpendableNote {
+  id: number
+  recipient: string
+  valueZatoshis: number
+  nullifier: string
+  height: number
+  treePosition: number
+}
+
 export declare function tryDecryptAction(ufvkStr: string, networkStr: string, ephemeralKey: Buffer, cmx: Buffer, encCiphertext: Buffer, isIronwood: boolean, actionIndex: number, nullifier?: Buffer | undefined | null): DecryptedNote | null
+
+export interface WalletSummary {
+  lastScannedHeight: number
+  treeSize: number
+  unspentNotesCount: number
+  totalBalanceZatoshis: number
+  spendableBalanceZatoshis: number
+}

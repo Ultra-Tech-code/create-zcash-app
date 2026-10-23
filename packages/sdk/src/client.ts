@@ -14,6 +14,16 @@ export interface LightdInfo {
   upgradeName?: string;
 }
 
+export interface TreeState {
+  network: string;
+  height: string | number;
+  hash: string;
+  time: number;
+  saplingTree: string;
+  orchardTree: string;
+  ironwoodTree: string;
+}
+
 export interface CompactBlock {
   protoVersion: number;
   height: string | number;
@@ -106,6 +116,44 @@ export class ZcashClient {
           }
         }
       );
+    });
+  }
+
+  public getRawBlockRange(startHeight: number, endHeight: number): AsyncIterable<Buffer> {
+    const rawStream = this.client.makeServerStreamRequest(
+      '/cash.z.wallet.sdk.rpc.CompactTxStreamer/GetBlockRange',
+      (arg: any) => this.client.GetBlockRange.requestSerialize(arg),
+      (buffer: Buffer) => buffer,
+      { start: { height: startHeight }, end: { height: endHeight } }
+    );
+    return rawStream as unknown as AsyncIterable<Buffer>;
+  }
+
+  public getTreeState(height: number): Promise<TreeState> {
+    return new Promise((resolve, reject) => {
+      this.client.GetTreeState({ height }, (err: any, response: TreeState) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+
+  public getBlockHeader(height: number): Promise<{ hash: Buffer; prevHash: Buffer; height: number }> {
+    return new Promise((resolve, reject) => {
+      this.client.GetBlock({ height }, (err: any, response: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            hash: Buffer.from(response.hash),
+            prevHash: Buffer.from(response.prevHash),
+            height: Number(response.height),
+          });
+        }
+      });
     });
   }
 
