@@ -451,3 +451,15 @@ impl WalletHandle {
         }
     }
 }
+
+/// Deserializes a hex-encoded Ironwood commitment tree frontier from GetTreeState/z_gettreestate
+/// and returns its 32-byte Merkle root hex.
+#[napi]
+pub fn decode_ironwood_frontier_root(frontier_hex: String) -> Result<String> {
+    let bytes = hex::decode(&frontier_hex)
+        .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid frontier hex: {e}")))?;
+    let tree = zcash_primitives::merkle_tree::read_commitment_tree::<orchard::tree::MerkleHashOrchard, _, 32>(&bytes[..])
+        .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to parse commitment tree: {e}")))?;
+    let root: orchard::Anchor = tree.root().into();
+    Ok(hex::encode(root.to_bytes()))
+}

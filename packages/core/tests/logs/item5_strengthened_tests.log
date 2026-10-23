@@ -1,0 +1,39 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running tests/full_suite_test.rs (/Users/0xblackadam/Downloads/zcash_scafolder/target/debug/deps/full_suite_test-377454dbc9722816)
+
+running 6 tests
+
+=== TEST: CHAIN RESET DETECTED ON FIRST SCANNED HASH MISMATCH ===
+
+=== TEST: REORG DEPTH EXCEEDED BEYOND 100-BLOCK SLIDING WINDOW ===
+
+=== TEST: ORDINARY REORG RESOLVES COMMON ANCESTOR IN SLIDING WINDOW ===
+
+=== TEST: RESTART FETCHES ZERO OLD BLOCKS VIA MOCK BLOCK STREAMER ===
+
+=== TEST: PERIODIC ROOT CHECK MISMATCH AND RESCAN RECOVERY PARITY ===
+
+=== TEST: TIME-BOUNDED BATCHING COMMITS AT 500MS BUDGET TO PREVENT LOCK TIMEOUTS ===
+  Scanning 150 real blocks (heights 2..=151) into wallet...
+  ChainReset rejected correctly: expected aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa != actual bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb at height 2
+SUCCESS: ChainReset distinctly detected and prevented from corrupting wallet!
+test test_chain_reset_first_scanned_hash_mismatch ... ok
+  NeedAncestorHashes triggered correctly at from_height = 3
+SUCCESS: Ordinary reorg resolved to common ancestor height 2 in sliding window!
+test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
+  Concurrent write acquired lock and committed in 363 ms (well below 5000ms busy_timeout)
+SUCCESS: Time-bounded batching committed at 500ms boundary, preventing concurrent lock starvation!
+test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
+  Confirmed: 150 blocks scanned. Retained headers [52..=151] (count = 100).
+  ReorgTooDeep correctly returned: height = 151, max_depth = 100
+SUCCESS: Reorg depth exceeding 100 blocks rejected with ReorgTooDeep error!
+test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+  Scenario A: Confirmed ZERO stream requests made when wallet is already at tip 15
+  Scenario B: Confirmed stream request bounds strictly >= 16 (requested (16, 25))
+test test_restart_fetches_zero_old_blocks ... ok
+  Periodic root check detected mismatch at tip 8!
+  Executing recovery path: rollback to last verified checkpoint 5...
+SUCCESS: Checkpoint recovery produces state identical to a clean scan bit-for-bit!
+test test_periodic_root_check_mismatch_and_recovery ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 11 filtered out; finished in 1.67s

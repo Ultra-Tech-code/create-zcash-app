@@ -46,7 +46,7 @@ fn test_schema_initialization_and_permissions() {
     // Check metadata keys
     assert_eq!(
         db.get_metadata(metadata_keys::SCHEMA_VERSION).expect("meta"),
-        Some("1".to_string())
+        Some("2".to_string())
     );
     assert_eq!(
         db.get_metadata(metadata_keys::NETWORK).expect("meta"),
@@ -186,4 +186,165 @@ fn test_notes_unique_txid_action_constraint() {
 
     assert!(res2.is_err(), "Duplicate (txid, action_index) must be rejected");
     println!("  Successfully rejected duplicate (txid, action_index) via UNIQUE constraint");
+}
+
+#[test]
+fn test_schema_v1_to_v2_migration_in_place_preserves_reservations() {
+    println!("\n=== TEST: IN-PLACE SCHEMA MIGRATION V1 -> V2 PRESERVES RESERVATIONS ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("wallet_v1_to_v2.db");
+
+    // 1. Manually create v1 schema database with foreign keys ON
+    let mut conn = rusqlite::Connection::open(&db_path).expect("open raw sqlite");
+    conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;").expect("pragmas");
+
+    // Initialize v1 schema manually
+    let tx = conn.transaction().expect("tx");
+    tx.execute_batch(
+        "
+        CREATE TABLE schema_migrations (
+            version INTEGER PRIMARY KEY,
+            applied_at INTEGER NOT NULL
+        );
+        CREATE TABLE wallet_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+        CREATE TABLE scanned_blocks (
+            height INTEGER PRIMARY KEY,
+            block_hash BLOB NOT NULL,
+            prev_hash BLOB NOT NULL,
+            tree_size INTEGER NOT NULL,
+            scanned_at INTEGER NOT NULL
+        );
+        CREATE TABLE received_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id TEXT NOT NULL,
+            pool TEXT NOT NULL CHECK(pool = 'ironwood'),
+            txid BLOB NOT NULL,
+            action_index INTEGER NOT NULL,
+            height INTEGER NOT NULL,
+            recipient TEXT NOT NULL,
+            value_zatoshis INTEGER NOT NULL,
+            nullifier BLOB NOT NULL UNIQUE,
+            rho BLOB NOT NULL,
+            rseed BLOB NOT NULL,
+            cmx BLOB NOT NULL,
+            tree_position INTEGER NOT NULL,
+            scope TEXT NOT NULL CHECK(scope IN ('external', 'internal')),
+            memo BLOB,
+            spent_in_txid BLOB,
+            spent_at_height INTEGER,
+            CONSTRAINT uq_txid_action UNIQUE (txid, action_index)
+        );
+        -- v1 pending_spends had note_id NOT NULL without ON DELETE SET NULL
+        CREATE TABLE pending_spends (
+            nullifier BLOB PRIMARY KEY,
+            note_id INTEGER NOT NULL,
+            txid BLOB NOT NULL,
+            created_at INTEGER NOT NULL,
+            expiry_height INTEGER NOT NULL,
+            state TEXT NOT NULL CHECK(state IN ('reserved', 'broadcast', 'mined')),
+            owner_pid INTEGER NOT NULL,
+            heartbeat_at INTEGER NOT NULL,
+            FOREIGN KEY(note_id) REFERENCES received_notes(id)
+        );
+        CREATE TABLE ironwood_tree_shards (
+            shard_index INTEGER PRIMARY KEY,
+            subtree_end_height INTEGER,
+            root_hash BLOB,
+            shard_data BLOB,
+            contains_marked INTEGER,
+            CONSTRAINT ironwood_shard_root_unique UNIQUE (root_hash)
+        );
+        CREATE TABLE ironwood_tree_cap (
+            cap_id INTEGER PRIMARY KEY,
+            cap_data BLOB NOT NULL
+        );
+        CREATE TABLE ironwood_tree_checkpoints (
+            checkpoint_id INTEGER PRIMARY KEY,
+            position INTEGER
+        );
+        CREATE TABLE ironwood_tree_checkpoint_marks_removed (
+            checkpoint_id INTEGER NOT NULL,
+            mark_removed_position INTEGER NOT NULL,
+            PRIMARY KEY (checkpoint_id, mark_removed_position),
+            FOREIGN KEY (checkpoint_id) REFERENCES ironwood_tree_checkpoints(checkpoint_id) ON DELETE CASCADE
+        );
+        INSERT INTO schema_migrations (version, applied_at) VALUES (1, unixepoch());
+        INSERT INTO wallet_metadata (key, value) VALUES ('schema_version', '1');
+        ",
+    ).expect("v1 tables");
+    tx.commit().expect("commit v1");
+
+    // 2. Insert existing note and active reservation into v1 schema
+    let nullifier = vec![0x77u8; 32];
+    let txid = vec![0x88u8; 32];
+    let dummy = vec![0x11u8; 32];
+
+    conn.execute(
+        "INSERT INTO received_notes (
+            id, account_id, pool, txid, action_index, height, recipient, value_zatoshis,
+            nullifier, rho, rseed, cmx, tree_position, scope
+        ) VALUES (
+            1, 'acct0', 'ironwood', ?1, 0, 5, 'ua_test_v1', 750000,
+            ?2, ?3, ?3, ?3, 10, 'external'
+        )",
+        rusqlite::params![txid, nullifier, dummy],
+    ).expect("insert v1 note");
+
+    conn.execute(
+        "INSERT INTO pending_spends (
+            nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at
+        ) VALUES (
+            ?1, 1, ?2, 1000, 45, 'reserved', 9999, 1000
+        )",
+        rusqlite::params![nullifier, txid],
+    ).expect("insert v1 reservation");
+
+    println!("  Inserted v1 note (id=1) and active reservation (nullifier=0x77, note_id=1, state='reserved')");
+
+    // 3. Run initialize_schema to perform in-place upgrade from v1 to v2
+    println!("  Running initialize_schema(&mut conn) to trigger in-place v1 -> v2 migration...");
+    zcash_core::initialize_schema(&mut conn).expect("run migration to v2");
+
+    // 4. Assert schema_version is now bumped to 2
+    let version_in_meta: String = conn.query_row(
+        "SELECT value FROM wallet_metadata WHERE key = 'schema_version'",
+        [],
+        |r| r.get(0),
+    ).expect("query schema_version");
+    assert_eq!(version_in_meta, "2", "Schema metadata version must be bumped to 2");
+
+    let max_mig_version: u32 = conn.query_row(
+        "SELECT MAX(version) FROM schema_migrations",
+        [],
+        |r| r.get(0),
+    ).expect("query schema_migrations");
+    assert_eq!(max_mig_version, 2, "Latest applied schema migration must be 2");
+    println!("  Confirmed database upgraded to schema_version 2 in-place");
+
+    // 5. Assert reservation is preserved intact
+    let (res_state, res_note_id, res_expiry): (String, Option<i64>, u32) = conn.query_row(
+        "SELECT state, note_id, expiry_height FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![nullifier],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+    ).expect("query preserved reservation");
+    assert_eq!(res_state, "reserved");
+    assert_eq!(res_note_id, Some(1));
+    assert_eq!(res_expiry, 45);
+    println!("  Existing reservation preserved: state='reserved', note_id=Some(1), expiry=45");
+
+    // 6. Test ON DELETE SET NULL on nullable note_id (reorg note pruning)
+    println!("  Deleting referenced note (id=1) from received_notes to test ON DELETE SET NULL...");
+    conn.execute("DELETE FROM received_notes WHERE id = 1", []).expect("delete note");
+
+    let (res_state_after, res_note_id_after): (String, Option<i64>) = conn.query_row(
+        "SELECT state, note_id FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![nullifier],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    ).expect("query reservation after note delete");
+    assert_eq!(res_state_after, "reserved", "State must remain reserved");
+    assert_eq!(res_note_id_after, None, "note_id MUST be set to NULL via ON DELETE SET NULL");
+    println!("  SUCCESS: note_id was set to NULL on delete, reservation remains active with nullifier intact!");
 }

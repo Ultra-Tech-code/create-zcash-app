@@ -3,7 +3,7 @@
 use rusqlite::{Connection, OptionalExtension, Transaction};
 use thiserror::Error;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 
 pub mod metadata_keys {
     pub const NETWORK: &str = "network";
@@ -45,6 +45,9 @@ pub fn initialize_schema(conn: &mut Connection) -> Result<(), SchemaError> {
     let version = current_version.unwrap_or(0);
     if version < 1 {
         apply_migration_v1(&tx)?;
+    }
+    if version < 2 {
+        apply_migration_v2(&tx)?;
     }
 
     tx.commit()?;
@@ -96,17 +99,17 @@ fn apply_migration_v1(tx: &Transaction) -> Result<(), SchemaError> {
         CREATE INDEX IF NOT EXISTS idx_notes_unspent ON received_notes(spent_in_txid) WHERE spent_in_txid IS NULL;
         CREATE INDEX IF NOT EXISTS idx_notes_height ON received_notes(height);
 
-        -- 4. Pending Spends (In-flight reservation state machine: reserved -> broadcast -> mined)
+        -- 4. Pending Spends (v1: note_id NOT NULL)
         CREATE TABLE IF NOT EXISTS pending_spends (
             nullifier BLOB PRIMARY KEY,
-            note_id INTEGER,
+            note_id INTEGER NOT NULL,
             txid BLOB NOT NULL,
             created_at INTEGER NOT NULL,
             expiry_height INTEGER NOT NULL,
             state TEXT NOT NULL CHECK(state IN ('reserved', 'broadcast', 'mined')),
             owner_pid INTEGER NOT NULL,
             heartbeat_at INTEGER NOT NULL,
-            FOREIGN KEY(note_id) REFERENCES received_notes(id) ON DELETE SET NULL
+            FOREIGN KEY(note_id) REFERENCES received_notes(id)
         );
         CREATE INDEX IF NOT EXISTS idx_pending_spends_txid ON pending_spends(txid);
         CREATE INDEX IF NOT EXISTS idx_pending_spends_state ON pending_spends(state);
@@ -138,12 +141,47 @@ fn apply_migration_v1(tx: &Transaction) -> Result<(), SchemaError> {
             FOREIGN KEY (checkpoint_id) REFERENCES ironwood_tree_checkpoints(checkpoint_id) ON DELETE CASCADE
         );
 
-        -- Record migration completion
+        -- Record migration v1 completion
         INSERT INTO schema_migrations (version, applied_at)
         VALUES (1, unixepoch());
 
         INSERT OR REPLACE INTO wallet_metadata (key, value)
         VALUES ('schema_version', '1');
+        ",
+    )?;
+    Ok(())
+}
+
+fn apply_migration_v2(tx: &Transaction) -> Result<(), SchemaError> {
+    tx.execute_batch(
+        "
+        -- Migration v2: Make pending_spends.note_id nullable with ON DELETE SET NULL to preserve reservations across reorgs
+        CREATE TABLE IF NOT EXISTS pending_spends_v2 (
+            nullifier BLOB PRIMARY KEY,
+            note_id INTEGER,
+            txid BLOB NOT NULL,
+            created_at INTEGER NOT NULL,
+            expiry_height INTEGER NOT NULL,
+            state TEXT NOT NULL CHECK(state IN ('reserved', 'broadcast', 'mined')),
+            owner_pid INTEGER NOT NULL,
+            heartbeat_at INTEGER NOT NULL,
+            FOREIGN KEY(note_id) REFERENCES received_notes(id) ON DELETE SET NULL
+        );
+
+        INSERT OR IGNORE INTO pending_spends_v2 (nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at)
+        SELECT nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at FROM pending_spends;
+
+        DROP TABLE pending_spends;
+        ALTER TABLE pending_spends_v2 RENAME TO pending_spends;
+
+        CREATE INDEX IF NOT EXISTS idx_pending_spends_txid ON pending_spends(txid);
+        CREATE INDEX IF NOT EXISTS idx_pending_spends_state ON pending_spends(state);
+
+        INSERT INTO schema_migrations (version, applied_at)
+        VALUES (2, unixepoch());
+
+        INSERT OR REPLACE INTO wallet_metadata (key, value)
+        VALUES ('schema_version', '2');
         ",
     )?;
     Ok(())

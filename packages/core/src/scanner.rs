@@ -16,6 +16,12 @@ use zcash_protocol::consensus::BlockHeight;
 use crate::shard_store::{ShardStoreError, SqliteShardStore};
 use crate::DynamicNetwork;
 
+pub const MAX_BLOCKS_PER_TX: usize = 50;
+pub const TIME_BUDGET_MS: u128 = 500;
+
+#[doc(hidden)]
+pub static INJECT_BATCH_SLEEP_MS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChainMetadata {
     #[prost(uint32, tag = "1")]
@@ -176,108 +182,119 @@ impl Scanner {
         let prepared_external = PreparedIncomingViewingKey::new(&fvk.to_ivk(Scope::External));
         let prepared_internal = PreparedIncomingViewingKey::new(&fvk.to_ivk(Scope::Internal));
 
-        // Use BEGIN IMMEDIATE to acquire write lock upfront, preventing concurrent deadlocks
-        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let mut block_idx = 0;
+        let mut total_notes_detected = 0usize;
+        let mut last_scanned_height = 0u32;
 
-        let first_block = &blocks[0];
+        while block_idx < blocks.len() {
+            // Use BEGIN IMMEDIATE to acquire write lock upfront, preventing concurrent deadlocks
+            let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+            let tx_start = std::time::Instant::now();
+            let mut blocks_in_tx = 0;
 
-        // Upfront ChainReset verification: if block is at first_scanned_height, verify hash matches
-        let first_scanned_h_val: Option<String> = tx
-            .query_row(
-                "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_height'",
-                [],
-                |row| row.get(0),
-            )
-            .optional()?;
-        let first_scanned_hash_val: Option<String> = tx
-            .query_row(
-                "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_hash'",
-                [],
-                |row| row.get(0),
-            )
-            .optional()?;
+            let first_block = &blocks[block_idx];
 
-        if let (Some(expected_h), Some(exp_hash)) = (first_scanned_h_val.as_ref(), first_scanned_hash_val.as_ref()) {
-            let expected_h_num = expected_h.parse::<u64>().unwrap_or(first_block.height);
-            if first_block.height == expected_h_num {
-                let block_hash_hex = hex::encode(&first_block.hash);
-                if &block_hash_hex != exp_hash {
-                    return Err(WalletError::ChainReset {
-                        expected: exp_hash.clone(),
-                        actual: block_hash_hex,
-                        height: first_block.height as u32,
-                    });
+            // Upfront ChainReset verification: if block is at first_scanned_height, verify hash matches
+            let first_scanned_h_val: Option<String> = tx
+                .query_row(
+                    "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_height'",
+                    [],
+                    |row| row.get(0),
+                )
+                .optional()?;
+            let first_scanned_hash_val: Option<String> = tx
+                .query_row(
+                    "SELECT value FROM wallet_metadata WHERE key = 'first_scanned_hash'",
+                    [],
+                    |row| row.get(0),
+                )
+                .optional()?;
+
+            if let (Some(expected_h), Some(exp_hash)) = (first_scanned_h_val.as_ref(), first_scanned_hash_val.as_ref()) {
+                let expected_h_num = expected_h.parse::<u64>().unwrap_or(first_block.height);
+                if first_block.height == expected_h_num {
+                    let block_hash_hex = hex::encode(&first_block.hash);
+                    if &block_hash_hex != exp_hash {
+                        return Err(WalletError::ChainReset {
+                            expected: exp_hash.clone(),
+                            actual: block_hash_hex,
+                            height: first_block.height as u32,
+                        });
+                    }
                 }
             }
-        }
 
-        // Query tip of scanned_blocks
-        let tip: Option<(u32, Vec<u8>, u32)> = tx
-            .query_row(
-                "SELECT height, block_hash, tree_size FROM scanned_blocks ORDER BY height DESC LIMIT 1",
-                [],
-                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-            )
-            .optional()?;
+            // Query tip of scanned_blocks
+            let tip: Option<(u32, Vec<u8>, u32)> = tx
+                .query_row(
+                    "SELECT height, block_hash, tree_size FROM scanned_blocks ORDER BY height DESC LIMIT 1",
+                    [],
+                    |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+                )
+                .optional()?;
 
-        let mut current_tree_size = match tip {
-            Some((last_h, ref last_hash, tree_sz)) => {
-                if first_block.height != (last_h as u64) + 1 {
-                    // Check if block connects or if reorg ancestor hashes are needed
+            let mut current_tree_size = match tip {
+                Some((last_h, ref last_hash, tree_sz)) => {
+                    if first_block.height != (last_h as u64) + 1 {
+                        // Check if block connects or if reorg ancestor hashes are needed
+                        if first_block.prev_hash != *last_hash {
+                            return Ok(ScanResult::NeedAncestorHashes {
+                                from_height: last_h,
+                                count: 10,
+                            });
+                        }
+                    }
                     if first_block.prev_hash != *last_hash {
                         return Ok(ScanResult::NeedAncestorHashes {
                             from_height: last_h,
                             count: 10,
                         });
                     }
+                    tree_sz
                 }
-                if first_block.prev_hash != *last_hash {
-                    return Ok(ScanResult::NeedAncestorHashes {
-                        from_height: last_h,
-                        count: 10,
-                    });
+                None => {
+                    // First scan ever: record chain identity if not yet set
+                    if first_scanned_h_val.is_none() {
+                        tx.execute(
+                            "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_height', ?1)",
+                            params![first_block.height.to_string()],
+                        )?;
+                    }
+                    if first_scanned_hash_val.is_none() {
+                        tx.execute(
+                            "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_hash', ?1)",
+                            params![hex::encode(&first_block.hash)],
+                        )?;
+                    }
+
+                    // Initial tree size at start of activation
+                    0
                 }
-                tree_sz
-            }
-            None => {
-                // First scan ever: record chain identity if not yet set
-                if first_scanned_h_val.is_none() {
-                    tx.execute(
-                        "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_height', ?1)",
-                        params![first_block.height.to_string()],
-                    )?;
+            };
+
+            let mut expected_height = match tip {
+                Some((h, _, _)) => (h as u64) + 1,
+                None => first_block.height,
+            };
+            let mut expected_prev_hash: Option<Vec<u8>> = tip.map(|(_, h, _)| h);
+            last_scanned_height = expected_height as u32;
+
+            let now = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map_err(|e| WalletError::Crypto(e.to_string()))?
+                .as_secs() as i64;
+
+            // Open ShardTree on the connection inside transaction
+            let store = SqliteShardStore::new(&tx, "ironwood_tree");
+            let mut tree = crate::IronwoodShardTree::new(store, 100);
+
+            while block_idx < blocks.len() {
+                let block = &blocks[block_idx];
+
+                let sleep_ms = INJECT_BATCH_SLEEP_MS.load(std::sync::atomic::Ordering::SeqCst);
+                if sleep_ms > 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(sleep_ms));
                 }
-                if first_scanned_hash_val.is_none() {
-                    tx.execute(
-                        "INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('first_scanned_hash', ?1)",
-                        params![hex::encode(&first_block.hash)],
-                    )?;
-                }
-
-                // Initial tree size at start of activation
-                0
-            }
-        };
-
-        let mut expected_height = match tip {
-            Some((h, _, _)) => (h as u64) + 1,
-            None => blocks[0].height,
-        };
-        let mut expected_prev_hash: Option<Vec<u8>> = tip.map(|(_, h, _)| h);
-
-        let mut total_notes_detected = 0usize;
-        let mut last_scanned_height = expected_height as u32;
-
-        let now = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|e| WalletError::Crypto(e.to_string()))?
-            .as_secs() as i64;
-
-        // Open ShardTree on the connection inside transaction
-        let store = SqliteShardStore::new(&tx, "ironwood_tree");
-        let mut tree = crate::IronwoodShardTree::new(store, 100);
-
-        for block in blocks {
             let b_height = block.height;
             if b_height != expected_height {
                 return Err(WalletError::TreeSizeGap {
@@ -482,15 +499,23 @@ impl Scanner {
             expected_height = b_height + 1;
             expected_prev_hash = Some(block.hash.clone());
             last_scanned_height = b_height as u32;
+            block_idx += 1;
+            blocks_in_tx += 1;
+
+            let tx_elapsed = tx_start.elapsed().as_millis();
+            if (blocks_in_tx >= MAX_BLOCKS_PER_TX || tx_elapsed >= TIME_BUDGET_MS) && block_idx < blocks.len() {
+                break;
+            }
         }
 
-        // Commit SQLite transaction atomically
+        // Commit SQLite transaction atomically for this time-bounded batch
         tx.commit()?;
+    }
 
-        Ok(ScanResult::Synced {
-            last_scanned_height,
-            notes_detected: total_notes_detected,
-        })
+    Ok(ScanResult::Synced {
+        last_scanned_height,
+        notes_detected: total_notes_detected,
+    })
     }
 
     /// Resolves a detected reorg by walking back from `from_height` along `ancestor_hashes`.

@@ -528,8 +528,8 @@ pub use scanner::{
     WalletError,
 };
 #[doc(hidden)]
-pub use scanner::INJECT_FAULT_BEFORE_CHECKPOINT;
-pub use schema::{metadata_keys, CURRENT_SCHEMA_VERSION};
+pub use scanner::{INJECT_BATCH_SLEEP_MS, INJECT_FAULT_BEFORE_CHECKPOINT};
+pub use schema::{initialize_schema, metadata_keys, CURRENT_SCHEMA_VERSION};
 pub use shard_store::{
     IronwoodShardTree, ShardStoreError, SqliteShardStore, IRONWOOD_SHARD_HEIGHT,
     IRONWOOD_TREE_DEPTH,
@@ -543,4 +543,6 @@ pub use transaction::{
     TransactionBuilder, TransactionConfig, ZIP302_NO_MEMO,
 };
 pub use wallet_db::{WalletDb, WalletDbError};
-pub use wallet_handle::{JsScanResult, JsSpendableNote, WalletHandle, WalletSummary};
+pub use wallet_handle::{
+    decode_ironwood_frontier_root, JsScanResult, JsSpendableNote, WalletHandle, WalletSummary,
+};

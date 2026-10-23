@@ -38,6 +38,12 @@ export declare class WalletHandle {
   getNoteByCmx(cmxHex: string): JsSpendableNote | null
 }
 
+/**
+ * Deserializes a hex-encoded Ironwood commitment tree frontier from GetTreeState/z_gettreestate
+ * and returns its 32-byte Merkle root hex.
+ */
+export declare function decodeIronwoodFrontierRoot(frontierHex: string): string
+
 export interface DecryptedNote {
   pool: string
   valueZatoshis: number

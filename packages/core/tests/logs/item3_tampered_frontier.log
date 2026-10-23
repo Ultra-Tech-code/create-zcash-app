@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.23s
+     Running tests/shard_store_test.rs (/Users/0xblackadam/Downloads/zcash_scafolder/target/debug/deps/shard_store_test-aa4c893c7c7febcd)
+
+running 1 test
+
+=== NEGATIVE TEST: TAMPERED ZAINO FRONTIER REJECTION & ROOT MISMATCH ===
+  Tampered frontier decoded but yielded root: b4c790fc9ddd1e846eb39820a2d5ec9b55411b389048a556af807ec6bf9a0b1a
+SUCCESS: Tampered / corrupted frontier correctly yields mismatch or error!
+test test_decode_zaino_tampered_frontier_fails_or_mismatches ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.11s

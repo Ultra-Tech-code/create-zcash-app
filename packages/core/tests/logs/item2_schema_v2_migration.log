@@ -1,0 +1,16 @@
+   Compiling zcash-core v0.1.0 (/Users/0xblackadam/Downloads/zcash_scafolder/packages/core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.88s
+     Running tests/wallet_db_test.rs (/Users/0xblackadam/Downloads/zcash_scafolder/target/debug/deps/wallet_db_test-d2dc7d0d577b40ef)
+
+running 1 test
+
+=== TEST: IN-PLACE SCHEMA MIGRATION V1 -> V2 PRESERVES RESERVATIONS ===
+  Inserted v1 note (id=1) and active reservation (nullifier=0x77, note_id=1, state='reserved')
+  Running initialize_schema(&mut conn) to trigger in-place v1 -> v2 migration...
+  Confirmed database upgraded to schema_version 2 in-place
+  Existing reservation preserved: state='reserved', note_id=Some(1), expiry=45
+  Deleting referenced note (id=1) from received_notes to test ON DELETE SET NULL...
+  SUCCESS: note_id was set to NULL on delete, reservation remains active with nullifier intact!
+test test_schema_v1_to_v2_migration_in_place_preserves_reservations ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.01s

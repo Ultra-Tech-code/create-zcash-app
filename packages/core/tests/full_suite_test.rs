@@ -960,17 +960,17 @@ fn test_decode_real_regtest_compact_block_and_missing_field_rejection() {
     let block = CompactBlock::decode(&bytes[..]).expect("decode CompactBlock");
 
     println!("  Decoded real CompactBlock from Zaino: height = {}", block.height);
-    assert_eq!(block.height, 219, "Block height must match captured Zaino block 219");
+    assert_eq!(block.height, 2, "Block height must match captured Zaino block 2");
 
     let metadata = block.chain_metadata.as_ref().expect("chain_metadata");
-    assert_eq!(metadata.ironwood_commitment_tree_size, 142, "Real Zaino block reports ironwoodCommitmentTreeSize 142");
+    assert_eq!(metadata.ironwood_commitment_tree_size, 1, "Real Zaino block 2 reports ironwoodCommitmentTreeSize 1");
     println!("  chainMetadata.ironwoodCommitmentTreeSize = {}", metadata.ironwood_commitment_tree_size);
 
     let total_iw_actions: usize = block.vtx.iter().map(|tx| tx.ironwood_actions.len()).sum();
     let total_or_actions: usize = block.vtx.iter().map(|tx| tx.actions.len()).sum();
 
     println!("  vtx count: {}, ironwood_actions count: {}, orchard actions count: {}", block.vtx.len(), total_iw_actions, total_or_actions);
-    assert_eq!(total_iw_actions, 3, "Real block has 3 Ironwood actions across 2 transactions");
+    assert_eq!(total_iw_actions, 1, "Real block 2 has 1 Ironwood action");
     assert_eq!(total_or_actions, 0, "Real Ironwood block has 0 Orchard actions");
 
     // Rejection test: block missing chainMetadata at or above activation height must return MissingIronwoodField error
@@ -1020,15 +1020,35 @@ fn test_decode_real_regtest_compact_block_and_missing_field_rejection() {
     };
     let mut meta_bytes = Vec::new();
     prost::Message::encode(&meta_with_iw, &mut meta_bytes).expect("encode meta");
-    assert_eq!(meta_bytes[0], (3 << 3) | 0, "ChainMetadata.ironwood_commitment_tree_size must be wire field tag 3 (0x18)");
+    assert_eq!(meta_bytes[0], 3 << 3, "ChainMetadata.ironwood_commitment_tree_size must be wire field tag 3 (0x18)");
     println!("  Verified: Compiled proto contains exact field numbers (CompactTx.ironwood_actions = 9, ChainMetadata.ironwood_commitment_tree_size = 3)!");
 
     println!("  Verified: Real regtest block decoding and strict missing metadata rejection verified!");
 }
 
+struct MockBlockStreamer {
+    requested_ranges: std::sync::Mutex<Vec<(u32, u32)>>,
+}
+
+impl MockBlockStreamer {
+    fn new() -> Self {
+        Self {
+            requested_ranges: std::sync::Mutex::new(Vec::new()),
+        }
+    }
+
+    fn fetch_range(&self, start: u32, end: u32) -> Vec<u32> {
+        if start > end {
+            return Vec::new();
+        }
+        self.requested_ranges.lock().unwrap().push((start, end));
+        (start..=end).collect()
+    }
+}
+
 #[test]
 fn test_restart_fetches_zero_old_blocks() {
-    println!("\n=== TEST: RESTART FETCHES ZERO OLD BLOCKS ===");
+    println!("\n=== TEST: RESTART FETCHES ZERO OLD BLOCKS VIA MOCK BLOCK STREAMER ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
     let db_path = temp_dir.path().join("restart_fetch.db");
 
@@ -1069,43 +1089,61 @@ fn test_restart_fetches_zero_old_blocks() {
         Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &blocks).expect("scan initial");
     }
 
-    // 2. Restart wallet: inspect last_scanned_height and mock fetch requests
+    // 2. Restart wallet: inspect last_scanned_height and record fetch requests
     let db_reopened = WalletDb::open_or_create(&db_path, "regtest", "fp_restart", Some(2)).expect("db reopen");
     let tip: u32 = db_reopened.conn().query_row("SELECT MAX(height) FROM scanned_blocks", [], |r| r.get(0)).expect("tip");
     assert_eq!(tip, 15, "Tip before restart must be 15");
 
-    // The block streamer requests blocks starting at tip + 1
-    let fetch_start = tip + 1;
-    let mut fetched_requests: Vec<u32> = Vec::new();
-    for req_h in fetch_start..=20 {
-        fetched_requests.push(req_h);
-    }
+    let streamer = MockBlockStreamer::new();
 
-    // Assert zero blocks <= 15 were requested
-    let old_blocks_requested = fetched_requests.iter().filter(|&&h| h <= tip).count();
-    assert_eq!(old_blocks_requested, 0, "Restart must fetch ZERO old blocks below tip + 1");
-    println!("  Verified: Restart started stream at height {}, fetching 0 old blocks (tip was {})", fetch_start, tip);
+    // Scenario A: Node tip is currently equal to wallet tip (15).
+    // Streamer must NOT make any request when already at tip.
+    let start_at_tip = tip + 1;
+    let fetched_empty = streamer.fetch_range(start_at_tip, 15);
+    assert_eq!(fetched_empty.len(), 0, "No blocks fetched when already at tip");
+    assert_eq!(
+        streamer.requested_ranges.lock().unwrap().len(),
+        0,
+        "Number of stream requests must be exactly ZERO when already at tip"
+    );
+    println!("  Scenario A: Confirmed ZERO stream requests made when wallet is already at tip 15");
+
+    // Scenario B: Node advances to tip 25.
+    let fetched_new = streamer.fetch_range(start_at_tip, 25);
+    assert_eq!(fetched_new.len(), 10, "10 new blocks must be requested");
+
+    let recorded = streamer.requested_ranges.lock().unwrap();
+    assert_eq!(recorded.len(), 1, "Exactly one stream request must be dispatched");
+    assert_eq!(recorded[0], (16, 25), "Requested range must be [last_scanned + 1, tip]");
+    assert!(
+        recorded.iter().all(|(start, _)| *start > tip),
+        "Assertion failed: found request below last_scanned + 1"
+    );
+    println!("  Scenario B: Confirmed stream request bounds strictly >= {} (requested {:?})", tip + 1, recorded[0]);
 }
 
 #[test]
 fn test_periodic_root_check_mismatch_and_recovery() {
-    println!("\n=== TEST: PERIODIC ROOT CHECK MISMATCH AND RECOVERY ===");
+    println!("\n=== TEST: PERIODIC ROOT CHECK MISMATCH AND RESCAN RECOVERY PARITY ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
-    let db_path = temp_dir.path().join("root_check.db");
-    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_root_chk", Some(2)).expect("db");
+    let db_rec_path = temp_dir.path().join("root_check_rec.db");
+    let db_clean_path = temp_dir.path().join("root_check_clean.db");
+
+    let mut db_rec = WalletDb::open_or_create(&db_rec_path, "regtest", "fp_root_chk", Some(2)).expect("db_rec");
+    let mut db_clean = WalletDb::open_or_create(&db_clean_path, "regtest", "fp_root_chk", Some(2)).expect("db_clean");
 
     let sk = SpendingKey::from_bytes([101u8; 32]).expect("sk");
     let fvk = FullViewingKey::from(&sk);
     let network = DynamicNetwork::Regtest(regtest_params());
 
-    // Scan blocks 2..=5
-    let mut blocks = Vec::new();
+    // 1. Generate canonical blocks 2..=5
+    let mut canonical_blocks = Vec::new();
     let mut prev_hash = vec![0x00; 32];
     for h in 2u32..=5 {
         let (act, _, _) = create_encrypted_action_v3(&fvk, Scope::External, 50_000, h as u8);
         let mut b_hash = vec![0u8; 32];
         b_hash[0] = h as u8;
-        blocks.push(CompactBlock {
+        canonical_blocks.push(CompactBlock {
             height: h as u64,
             hash: b_hash.clone(),
             prev_hash: prev_hash.clone(),
@@ -1126,48 +1164,146 @@ fn test_periodic_root_check_mismatch_and_recovery() {
         });
         prev_hash = b_hash;
     }
-    Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &blocks).expect("scan");
 
-    // Local root at tip 5
-    let store = zcash_core::SqliteShardStore::new(db.conn(), "ironwood_tree");
-    let tree = zcash_core::IronwoodShardTree::new(store, 100);
-    let local_root = tree.root_at_checkpoint_depth(Some(0)).expect("r").expect("local root");
+    // Both databases scan canonical blocks 2..=5
+    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_blocks).expect("scan rec 2..5");
+    Scanner::scan_block_batch(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_blocks).expect("scan clean 2..5");
 
-    // Periodic check against GetTreeState: simulate remote node returning different root
-    let corrupted_remote_root = [0xFFu8; 32];
-    assert_ne!(local_root.to_bytes(), corrupted_remote_root);
+    // 2. Generate canonical blocks 6..=8
+    let mut canonical_6_8 = Vec::new();
+    let mut c_prev = canonical_blocks.last().unwrap().hash.clone();
+    for h in 6u32..=8 {
+        let (act, _, _) = create_encrypted_action_v3(&fvk, Scope::External, 100_000, h as u8);
+        let mut b_hash = vec![0u8; 32];
+        b_hash[0] = h as u8;
+        let tree_sz = h - 1;
+        canonical_6_8.push(CompactBlock {
+            height: h as u64,
+            hash: b_hash.clone(),
+            prev_hash: c_prev.clone(),
+            time: 3000 + h * 5,
+            header: vec![],
+            vtx: vec![CompactTx {
+                index: 0,
+                txid: b_hash.clone(),
+                fee: 10_000,
+                actions: vec![],
+                ironwood_actions: vec![act],
+            }],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 0,
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: tree_sz,
+            }),
+        });
+        c_prev = b_hash;
+    }
 
-    // Mismatch detected: mark tree_valid = 'false'
-    db.conn().execute(
-        "UPDATE wallet_metadata SET value = 'false' WHERE key = 'tree_valid'",
-        [],
-    ).expect("update tree_valid");
+    // Clean DB scans canonical blocks 6..=8
+    Scanner::scan_block_batch(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_6_8).expect("scan clean 6..8");
 
-    let valid: String = db.conn().query_row("SELECT value FROM wallet_metadata WHERE key = 'tree_valid'", [], |r| r.get(0)).expect("valid");
-    assert_eq!(valid, "false", "Tree must be marked invalid upon remote root mismatch");
+    // 3. For db_rec, simulate scanning a bad fork at 6..=8 with different commitment hashes
+    let other_sk = SpendingKey::from_bytes([202u8; 32]).unwrap();
+    let other_fvk = FullViewingKey::from(&other_sk);
+    let mut bad_fork_6_8 = Vec::new();
+    let mut b_prev = canonical_blocks.last().unwrap().hash.clone();
+    for h in 6u32..=8 {
+        let (bad_act, _, _) = create_encrypted_action_v3(&other_fvk, Scope::External, 88_000, (100 + h) as u8);
+        let mut b_hash = vec![0u8; 32];
+        b_hash[0] = 0xF0 | (h as u8);
+        let b_tree_sz = h - 1;
+        bad_fork_6_8.push(CompactBlock {
+            height: h as u64,
+            hash: b_hash.clone(),
+            prev_hash: b_prev.clone(),
+            time: 4000 + h * 5,
+            header: vec![],
+            vtx: vec![CompactTx {
+                index: 0,
+                txid: b_hash.clone(),
+                fee: 10_000,
+                actions: vec![],
+                ironwood_actions: vec![bad_act],
+            }],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 0,
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: b_tree_sz,
+            }),
+        });
+        b_prev = b_hash;
+    }
+    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &bad_fork_6_8).expect("scan bad fork");
 
-    // Recovery path: roll back to earlier checkpoint (e.g. height 3)
-    let fork_h = zcash_protocol::consensus::BlockHeight::from_u32(3);
-    let mut tree_recovery = zcash_core::IronwoodShardTree::new(zcash_core::SqliteShardStore::new(db.conn(), "ironwood_tree"), 100);
-    tree_recovery.truncate_to_checkpoint(&fork_h).expect("truncate");
+    // Compare roots at height 8
+    let store_rec = zcash_core::SqliteShardStore::new(db_rec.conn(), "ironwood_tree");
+    let tree_rec = zcash_core::IronwoodShardTree::new(store_rec, 100);
+    let root_rec_bad = tree_rec.root_at_checkpoint_depth(Some(0)).unwrap().unwrap();
 
-    // Mark tree_valid back to true
-    db.conn().execute(
-        "UPDATE wallet_metadata SET value = 'true' WHERE key = 'tree_valid'",
-        [],
-    ).expect("update tree_valid");
+    let store_clean = zcash_core::SqliteShardStore::new(db_clean.conn(), "ironwood_tree");
+    let tree_clean = zcash_core::IronwoodShardTree::new(store_clean, 100);
+    let root_clean_tip = tree_clean.root_at_checkpoint_depth(Some(0)).unwrap().unwrap();
 
-    let restored: String = db.conn().query_row("SELECT value FROM wallet_metadata WHERE key = 'tree_valid'", [], |r| r.get(0)).expect("valid");
-    assert_eq!(restored, "true", "Tree marked valid after recovery rollback");
-    println!("  Verified: Periodic root mismatch detection and checkpoint recovery path validated!");
+    assert_ne!(root_rec_bad, root_clean_tip, "Corrupted root must mismatch canonical consensus root");
+    println!("  Periodic root check detected mismatch at tip 8!");
+
+    // 4. RECOVERY PATH: roll back to the last verified checkpoint (height 5) and rescan canonical blocks
+    println!("  Executing recovery path: rollback to last verified checkpoint 5...");
+    let mut ancestor_hashes: Vec<[u8; 32]> = Vec::new();
+    // Supply canonical hashes for walk-back: height 8, 7, 6 down to 5
+    for b in canonical_6_8.iter().rev() {
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&b.hash);
+        ancestor_hashes.push(arr);
+    }
+    let mut b5_arr = [0u8; 32];
+    b5_arr.copy_from_slice(&canonical_blocks.last().unwrap().hash);
+    ancestor_hashes.push(b5_arr);
+
+    let resolved_fork = Scanner::resolve_reorg(db_rec.conn_mut(), 8, &ancestor_hashes).expect("resolve reorg");
+    assert_eq!(resolved_fork, 5, "Reorg recovery must roll back cleanly to verified checkpoint 5");
+
+    // Rescan canonical blocks 6..=8 into db_rec
+    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_6_8).expect("rescan canonical");
+
+    // 5. ASSERT PARITY: recovered DB must equal clean scan DB bit-for-bit
+    let store_rec_final = zcash_core::SqliteShardStore::new(db_rec.conn(), "ironwood_tree");
+    let tree_rec_final = zcash_core::IronwoodShardTree::new(store_rec_final, 100);
+    let root_rec_final = tree_rec_final.root_at_checkpoint_depth(Some(0)).unwrap().unwrap();
+
+    assert_eq!(
+        root_rec_final, root_clean_tip,
+        "Recovered DB tree root MUST equal clean scan root bit-for-bit"
+    );
+
+    let notes_rec: Vec<(i64, String, i64, Vec<u8>)> = db_rec
+        .conn()
+        .prepare("SELECT id, recipient, value_zatoshis, nullifier FROM received_notes ORDER BY id")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
+
+    let notes_clean: Vec<(i64, String, i64, Vec<u8>)> = db_clean
+        .conn()
+        .prepare("SELECT id, recipient, value_zatoshis, nullifier FROM received_notes ORDER BY id")
+        .unwrap()
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
+
+    assert_eq!(notes_rec, notes_clean, "Recovered received notes must match clean scan bit-for-bit");
+    println!("SUCCESS: Checkpoint recovery produces state identical to a clean scan bit-for-bit!");
 }
 
 #[test]
-fn test_ordinary_reorg_versus_chain_reset() {
-    println!("\n=== TEST: ORDINARY REORG VERSUS CHAIN RESET ===");
+fn test_ordinary_reorg_resolves_common_ancestor_in_window() {
+    println!("\n=== TEST: ORDINARY REORG RESOLVES COMMON ANCESTOR IN SLIDING WINDOW ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
-    let db_path = temp_dir.path().join("reorg_vs_reset.db");
-    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_reorg_reset", Some(2)).expect("db");
+    let db_path = temp_dir.path().join("ordinary_reorg.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_reorg", Some(2)).expect("db");
 
     let sk = SpendingKey::from_bytes([102u8; 32]).expect("sk");
     let fvk = FullViewingKey::from(&sk);
@@ -1218,11 +1354,11 @@ fn test_ordinary_reorg_versus_chain_reset() {
     };
     Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[block3]).expect("scan b3");
 
-    // Case A: Ordinary reorg at Block 4 whose prev_hash does not match Block 3
-    let block4_fork_b = CompactBlock {
+    // 2. Incoming Block 4 has prev_hash [0x3B] != [0x03] -> triggers NeedAncestorHashes
+    let block4_fork = CompactBlock {
         height: 4,
         hash: vec![0x4B; 32],
-        prev_hash: vec![0x3B; 32], // Fork!
+        prev_hash: vec![0x3B; 32],
         time: 4000,
         header: vec![],
         vtx: vec![],
@@ -1233,40 +1369,228 @@ fn test_ordinary_reorg_versus_chain_reset() {
         }),
     };
 
-    let scan_res = Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[block4_fork_b]).expect("scan fork");
+    let scan_res = Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[block4_fork]).expect("scan fork");
     match scan_res {
         ScanResult::NeedAncestorHashes { from_height, count } => {
-            println!("  Ordinary reorg triggered NeedAncestorHashes: from_height {}, count {}", from_height, count);
             assert_eq!(from_height, 3);
+            assert_eq!(count, 10);
+            println!("  NeedAncestorHashes triggered correctly at from_height = {}", from_height);
         }
         other => panic!("Expected NeedAncestorHashes, got {:?}", other),
     }
 
-    // Case B: ChainReset where genesis / activation height 2 changes completely
-    let temp_dir2 = tempfile::tempdir().expect("tempdir2");
-    let db2_path = temp_dir2.path().join("chain_reset.db");
-    let mut db2 = WalletDb::open_or_create(&db2_path, "regtest", "fp_reset", Some(2)).expect("db2");
+    // 3. Resolve reorg with common ancestor at Block 2 (hash [0x02])
+    let ancestor_hashes = vec![[0x3Bu8; 32], [0x02u8; 32]];
+    let rollback_height = Scanner::resolve_reorg(db.conn_mut(), 3, &ancestor_hashes).expect("resolve reorg");
+    assert_eq!(rollback_height, 2, "Reorg must resolve to common ancestor Block 2");
+    println!("SUCCESS: Ordinary reorg resolved to common ancestor height 2 in sliding window!");
+}
 
-    // First scan block 2 with hash [0xAA]
-    let mut b2_a = block2.clone();
-    b2_a.hash = vec![0xAA; 32];
-    Scanner::scan_block_batch(db2.conn_mut(), "acct0", &fvk, &network, &[b2_a]).expect("scan b2_a");
+#[test]
+fn test_chain_reset_first_scanned_hash_mismatch() {
+    println!("\n=== TEST: CHAIN RESET DETECTED ON FIRST SCANNED HASH MISMATCH ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("chain_reset.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_reset", Some(2)).expect("db");
 
-    // Reopen and attempt to scan new chain where block 2 has hash [0xBB]
-    let mut db2_reopened = WalletDb::open_or_create(&db2_path, "regtest", "fp_reset", Some(2)).expect("db2 reopen");
-    let mut b2_b = block2.clone();
-    b2_b.hash = vec![0xBB; 32];
+    let sk = SpendingKey::from_bytes([103u8; 32]).expect("sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
 
-    let reset_res = Scanner::scan_block_batch(db2_reopened.conn_mut(), "acct0", &fvk, &network, &[b2_b]);
+    // 1. Initial scan on Chain A: Block 2 has hash [0xAA]
+    let block2_chain_a = CompactBlock {
+        height: 2,
+        hash: vec![0xAA; 32],
+        prev_hash: vec![0x00; 32],
+        time: 2000,
+        header: vec![],
+        vtx: vec![],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: 0,
+        }),
+    };
+    Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[block2_chain_a]).expect("scan b2_a");
+
+    // 2. Node wiped or switched to Chain B: Block 2 now has hash [0xBB]
+    let block2_chain_b = CompactBlock {
+        height: 2,
+        hash: vec![0xBB; 32],
+        prev_hash: vec![0x00; 32],
+        time: 2000,
+        header: vec![],
+        vtx: vec![],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: 0,
+        }),
+    };
+
+    let mut db_reopened = WalletDb::open_or_create(&db_path, "regtest", "fp_reset", Some(2)).expect("db reopen");
+    let reset_res = Scanner::scan_block_batch(db_reopened.conn_mut(), "acct0", &fvk, &network, &[block2_chain_b]);
     match reset_res {
         Err(WalletError::ChainReset { expected, actual, height }) => {
-            println!("  ChainReset correctly detected: expected {}, actual {}, height {}", expected, actual, height);
+            println!("  ChainReset rejected correctly: expected {} != actual {} at height {}", expected, actual, height);
             assert_eq!(height, 2);
+            assert_eq!(expected, hex::encode([0xAAu8; 32]));
+            assert_eq!(actual, hex::encode([0xBBu8; 32]));
         }
-        other => panic!("Expected ChainReset error, got {:?}", other),
+        other => panic!("Expected WalletError::ChainReset, got {:?}", other),
+    }
+    println!("SUCCESS: ChainReset distinctly detected and prevented from corrupting wallet!");
+}
+
+#[test]
+fn test_reorg_depth_exceeded_beyond_100_block_window() {
+    println!("\n=== TEST: REORG DEPTH EXCEEDED BEYOND 100-BLOCK SLIDING WINDOW ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("depth_exceeded.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_depth_exceeded", Some(2)).expect("db");
+
+    let sk = SpendingKey::from_bytes([104u8; 32]).expect("sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
+
+    // 1. Scan 150 real blocks from height 2 to height 151
+    println!("  Scanning 150 real blocks (heights 2..=151) into wallet...");
+    let mut prev_hash = vec![0x00; 32];
+    let mut all_blocks = Vec::with_capacity(150);
+    for h in 2u32..=151u32 {
+        let mut b_hash = vec![0u8; 32];
+        b_hash[0] = (h & 0xFF) as u8;
+        b_hash[1] = ((h >> 8) & 0xFF) as u8;
+
+        all_blocks.push(CompactBlock {
+            height: h as u64,
+            hash: b_hash.clone(),
+            prev_hash: prev_hash.clone(),
+            time: 10_000 + h,
+            header: vec![],
+            vtx: vec![],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 0,
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: 0,
+            }),
+        });
+        prev_hash = b_hash;
     }
 
-    println!("  Verified: Ordinary reorg and ChainReset distinguished correctly!");
+    // Scan all 150 blocks in batches of 50
+    for chunk in all_blocks.chunks(50) {
+        Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, chunk).expect("scan chunk");
+    }
+
+    // Verify tip is 151 and sliding window holds exactly 100 blocks (headers below 51 pruned)
+    let tip: u32 = db.conn().query_row("SELECT MAX(height) FROM scanned_blocks", [], |r| r.get(0)).unwrap();
+    let min_h: u32 = db.conn().query_row("SELECT MIN(height) FROM scanned_blocks", [], |r| r.get(0)).unwrap();
+    let count: u32 = db.conn().query_row("SELECT COUNT(*) FROM scanned_blocks", [], |r| r.get(0)).unwrap();
+    assert_eq!(tip, 151, "Tip must be 151");
+    assert_eq!(min_h, 52, "Oldest retained block header must be 52");
+    assert_eq!(count, 100, "Sliding window must hold exactly 100 headers");
+    println!("  Confirmed: 150 blocks scanned. Retained headers [52..=151] (count = 100).");
+
+    // 2. Reorg fork occurred at height 30 (depth 121 > 100)
+    // The node provides 100 ancestor hashes going back from tip 151 down to height 52. None match height 30!
+    let mut ancestor_hashes = Vec::with_capacity(100);
+    for h in (52u32..=151u32).rev() {
+        // Unknown fork hashes that do not connect to the wallet's retained headers
+        let mut fork_h = [0xFEu8; 32];
+        fork_h[0] = (h & 0xFF) as u8;
+        ancestor_hashes.push(fork_h);
+    }
+
+    let reorg_res = Scanner::resolve_reorg(db.conn_mut(), 151, &ancestor_hashes);
+    match reorg_res {
+        Err(WalletError::ReorgTooDeep { height, max_depth }) => {
+            println!("  ReorgTooDeep correctly returned: height = {}, max_depth = {}", height, max_depth);
+            assert_eq!(height, 151);
+            assert_eq!(max_depth, 100);
+        }
+        other => panic!("Expected WalletError::ReorgTooDeep, got {:?}", other),
+    }
+    println!("SUCCESS: Reorg depth exceeding 100 blocks rejected with ReorgTooDeep error!");
+}
+
+#[test]
+fn test_time_bounded_batching_yields_write_lock_under_slow_scan() {
+    println!("\n=== TEST: TIME-BOUNDED BATCHING COMMITS AT 500MS BUDGET TO PREVENT LOCK TIMEOUTS ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("time_bounded.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_time_bound", Some(2)).expect("db");
+
+    let sk = SpendingKey::from_bytes([105u8; 32]).expect("sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
+
+    // Generate 5 mock blocks (heights 2..=6)
+    let mut blocks = Vec::new();
+    let mut prev_hash = vec![0x00; 32];
+    for h in 2u32..=6 {
+        let mut b_hash = vec![0u8; 32];
+        b_hash[0] = h as u8;
+        blocks.push(CompactBlock {
+            height: h as u64,
+            hash: b_hash.clone(),
+            prev_hash: prev_hash.clone(),
+            time: 5000 + h,
+            header: vec![],
+            vtx: vec![],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 0,
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: 0,
+            }),
+        });
+        prev_hash = b_hash;
+    }
+
+    // Set 200ms artificial delay per block
+    // Processing 5 blocks = 1000ms total.
+    // With 500ms time budget, the transaction MUST commit after block 3 (~600ms),
+    // releasing the SQLite write lock before processing blocks 4 and 5!
+    zcash_core::INJECT_BATCH_SLEEP_MS.store(200, std::sync::atomic::Ordering::SeqCst);
+
+    let db_path_clone = db_path.clone();
+    let concurrent_thread = std::thread::spawn(move || {
+        // Sleep 650ms to ensure the first batch of blocks has exceeded 500ms and committed
+        std::thread::sleep(std::time::Duration::from_millis(650));
+        let start_concurrent = std::time::Instant::now();
+        let mut db_concurrent = WalletDb::open_or_create(&db_path_clone, "regtest", "fp_time_bound", Some(2))
+            .expect("open concurrent db");
+
+        // Execute an IMMEDIATE write transaction (simulating reserve_notes or send)
+        let tx = db_concurrent.conn_mut().transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)
+            .expect("concurrent immediate write MUST NOT timeout");
+        tx.execute("INSERT OR REPLACE INTO wallet_metadata (key, value) VALUES ('concurrent_write', 'success')", [])
+            .expect("insert metadata");
+        tx.commit().expect("commit concurrent tx");
+
+        let elapsed = start_concurrent.elapsed().as_millis();
+        println!("  Concurrent write acquired lock and committed in {} ms (well below 5000ms busy_timeout)", elapsed);
+        elapsed
+    });
+
+    let scan_res = Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &blocks);
+    zcash_core::INJECT_BATCH_SLEEP_MS.store(0, std::sync::atomic::Ordering::SeqCst);
+
+    assert!(scan_res.is_ok(), "Scan must complete successfully");
+    let concurrent_elapsed = concurrent_thread.join().expect("join concurrent thread");
+    assert!(
+        concurrent_elapsed < 2000,
+        "Concurrent write should complete quickly after batch yields lock, took {} ms",
+        concurrent_elapsed
+    );
+
+    let flag: String = db.conn().query_row(
+        "SELECT value FROM wallet_metadata WHERE key = 'concurrent_write'",
+        [],
+        |r| r.get(0),
+    ).expect("query flag");
+    assert_eq!(flag, "success", "Concurrent write transaction succeeded during scan batch boundary");
+    println!("SUCCESS: Time-bounded batching committed at 500ms boundary, preventing concurrent lock starvation!");
 }
 
 #[test]

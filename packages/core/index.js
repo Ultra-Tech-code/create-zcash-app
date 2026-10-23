@@ -779,6 +779,7 @@ function __napiStampBindingTarget(exportsObject, target) {
 module.exports.__napiBindingTarget = __napiStampBindingTarget(nativeBinding, __napiLoadedBindingTarget)
 module.exports = nativeBinding
 module.exports.WalletHandle = nativeBinding.WalletHandle
+module.exports.decodeIronwoodFrontierRoot = nativeBinding.decodeIronwoodFrontierRoot
 module.exports.deriveAccountFromMnemonic = nativeBinding.deriveAccountFromMnemonic
 module.exports.generateMnemonic = nativeBinding.generateMnemonic
 module.exports.getAddressFromUfvk = nativeBinding.getAddressFromUfvk
