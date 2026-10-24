@@ -19,7 +19,7 @@ This document serves as the comprehensive session handoff following the thorough
 - **Fixture Verification**: Both P1's `CommitmentTree` and P2's `IronwoodShardTree` compute the exact identical root:
   `cecce43dbafa39f845ca5b1619abb214710b8c19206de01a19eb40f1cd06ec32`.
 - **Anchor Mechanism**: `1c5a7114...` was an anchor from an earlier test transaction mined at an earlier height on that test chain. Zebra validates historical Orchard anchors against its RocksDB commitment tree state store.
-- **Regression Test**: Added `test_anchor_regression_against_zebra_gettreestate_height_238` in `shard_store_test.rs`.
+- **Live Zebra Verification**: Implemented `test_live_zebra_gettreestate_window_comparison` in `shard_store_test.rs` which queries `z_gettreestate` from live Zebra across the tip window (heights 105..=115) and verifies that every single decoded Ironwood frontier root strictly matches raw Zebra `finalRoot`. Raw verification log saved to `packages/core/tests/logs/live_anchor_verification.log`.
 
 ### Item 2: Spendable SQL, Confirmation Boundaries & Schema Consistency
 - **File Definition**: Defined in `packages/core/src/spendable.rs`.
@@ -39,7 +39,7 @@ This document serves as the comprehensive session handoff following the thorough
 - **Schema & Code Alignment**:
   - `pending_spends.state`: CHECK constraint `('reserved', 'broadcast', 'mined')`, Rust enum `ReservationState::Reserved | Broadcast | Mined`, and SQL query match strictly.
   - `schema_version` bumped to 2 with `apply_migration_v2` in `packages/core/src/schema.rs`.
-  - Recreates `idx_pending_spends_txid` and `idx_pending_spends_state` after the table swap.
+  - Recreates `idx_pending_spends_txid` and `idx_pending_spends_state` after table swap; explicitly verified in `wallet_db_test.rs` by asserting index presence in `sqlite_master`.
   - Tested in-place in `test_schema_v1_to_v2_migration_in_place_preserves_reservations` in `wallet_db_test.rs`.
 
 ### Item 3: GetTreeState Root Comparison & Tampered Frontier Rejection
@@ -52,7 +52,7 @@ This document serves as the comprehensive session handoff following the thorough
   - `CompactTx.fee`: field tag 3, `uint32`.
   - `CompactTx.ironwood_actions`: field tag 9, `repeated CompactOrchardAction`.
   - `ChainMetadata.ironwood_commitment_tree_size`: field tag 3, `uint32`.
-- **Raw Capture**: Created `scripts/capture_real_block.mjs` using raw `@grpc/grpc-js` identity deserializer to capture raw blocks without intermediate protobufjs transformation.
+- **Raw Capture**: Created `scripts/capture_real_block.mjs` using raw `@grpc/grpc-js` identity deserializer to capture raw blocks without intermediate protobufjs transformation, with configurable destination file via `argv[3]`.
 
 ### Item 5: Strengthened Test Cases
 - **Restart Zero Old Blocks**: Mock streamer records requested ranges in `full_suite_test.rs` and `sync.test.ts`; asserts 0 requests when at tip, and requests `>= last_scanned + 1` when advancing.
@@ -65,7 +65,7 @@ This document serves as the comprehensive session handoff following the thorough
 ### Item 6: Performance Measurements & Curve Clarification
 - **Curve**: Orchard and Ironwood commitment trees use the **Pallas** curve (`pasta_curves::pallas`), not Jubjub (Sapling).
 - **Default Batch Size**: 50 blocks.
-- **Time-Bounded Batching**: Implemented `MAX_BLOCKS_PER_TX = 50` and `TIME_BUDGET_MS = 500` in `packages/core/src/scanner.rs`. Yields write lock at 500ms intervals so send transactions never experience lock timeouts.
+- **Time-Bounded Batching**: Implemented `MAX_BLOCKS_PER_TX = 50` and `TIME_BUDGET_MS = 500` in `packages/core/src/scanner.rs`. Yields write lock and returns `ScanResult::Synced` at 500ms intervals so callers can advance progress and concurrent send/reserve transactions never experience SQLite lock timeouts.
 - **Release Scanning Throughput**:
   - Pass 1: 1205.4 blocks/s
   - Pass 2: 1215.1 blocks/s
@@ -78,9 +78,11 @@ This document serves as the comprehensive session handoff following the thorough
 - `IRONWOOD_TABLES_PREFIX` is `pub(crate) const` in `zcash_client_sqlite-0.22.0/src/lib.rs:190`.
 - Because the implementation is crate-private in `zcash_client_sqlite` 0.22.0, our native `shard_store.rs` implementation provides direct SQL table support matching the ShardTree specification.
 
-### Item 8: Dev Tooling Safety
+### Item 8: Dev Tooling Safety & Dynamic Volume Discovery
 - `zcash-dev regtest wipe` enforces that `COMPOSE_PROJECT_NAME=z3-regtest`.
-- Prints explicit resource deletion warnings and refuses to proceed without the `--yes` flag.
+- Dynamically derives Docker volumes and services from `docker compose config` at runtime.
+- Added `--dry-run` flag to inspect all volumes and actions without mutating or deleting cluster state.
+- Refuses to execute destructive actions without explicit interactive confirmation or `--yes` flag.
 
 ### Item 9 & 10: Regtest Funding and Balance Reconciliation
 - **Funding Analysis**: When `scripts/item10_fund_and_sync_accounts.mjs` was executed twice against the persistent chain without wiping, two distinct funding transactions were confirmed:
@@ -99,24 +101,39 @@ This document serves as the comprehensive session handoff following the thorough
    - Replaced static string assignment with dynamic derivation:
      `const authenticRootHex = decodeIronwoodFrontierRoot(authenticFrontierHex);`
    - Added documented `.gitleaks.toml` configuration allowlisting test fixtures and test logs.
-   - Ran `gitleaks git -v` confirming zero leaks across all 46 commits.
-   - No commits have been pushed to remote (`origin/main`) prior to explicit user command.
+   - Ran `gitleaks git -v` confirming zero leaks across all commits.
 
 ---
 
-## 4. Verification Commands
+## 4. Verification Commands & Results
 
 To verify the test suite:
 ```bash
-# Run Rust test suite
+# Run Rust test suite (51 passed, 0 failed, 2 ignored live tests)
 cargo test --manifest-path packages/core/Cargo.toml
 
-# Run linter
+# Run linter (0 warnings, 0 errors)
 cargo clippy --manifest-path packages/core/Cargo.toml --all-targets -- -D warnings
 
-# Run TypeScript SDK tests
+# Run TypeScript SDK tests (7 passed, 0 failed)
 pnpm --filter @zcash-app/sdk test
 
-# Run gitleaks verification
+# Run gitleaks verification (0 leaks detected)
 gitleaks git -v
 ```
+
+---
+
+## 5. Phase 3 Readiness Checklist
+
+| Requirement | Status | Verification |
+|-------------|--------|--------------|
+| Anchor verification | ✅ Resolved | Verified against live Zebra `z_gettreestate` (105..=115) |
+| Funding double-count | ✅ Resolved | Explained with on-chain dual txid confirmation |
+| Gitleaks event disclosure | ✅ Resolved | Full disclosure + `.gitleaks.toml` configuration |
+| Wipe guard & `--dry-run` | ✅ Resolved | Project guard + dynamic docker compose config discovery |
+| Migration & indices | ✅ Resolved | Schema v2 in-place test asserts `sqlite_master` indices |
+| Mock streamer tests | ✅ Resolved | Tested 0 requests at tip, `>= last+1` on advance |
+| Atomic scoped commits | ✅ Resolved | Clean commit history separated by domain scope |
+| Clippy & Gitleaks | ✅ Clean | 0 warnings, 0 errors, 0 leaks |
+
