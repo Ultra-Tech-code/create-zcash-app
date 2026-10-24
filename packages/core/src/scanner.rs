@@ -504,11 +504,15 @@ impl Scanner {
 
             let tx_elapsed = tx_start.elapsed().as_millis();
             if (blocks_in_tx >= MAX_BLOCKS_PER_TX || tx_elapsed >= TIME_BUDGET_MS) && block_idx < blocks.len() {
-                break;
+                tx.commit()?;
+                return Ok(ScanResult::Synced {
+                    last_scanned_height,
+                    notes_detected: total_notes_detected,
+                });
             }
         }
 
-        // Commit SQLite transaction atomically for this time-bounded batch
+        // Commit SQLite transaction atomically for this batch
         tx.commit()?;
     }
 
