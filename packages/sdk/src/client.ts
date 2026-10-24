@@ -157,6 +157,21 @@ export class ZcashClient {
     });
   }
 
+  public sendTransaction(rawTx: Buffer): Promise<{ errorCode: number; errorMessage: string }> {
+    return new Promise((resolve, reject) => {
+      this.client.SendTransaction({ data: rawTx, height: 0 }, (err: any, response: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            errorCode: response?.errorCode ?? 0,
+            errorMessage: response?.errorMessage ?? '',
+          });
+        }
+      });
+    });
+  }
+
   public close(): Promise<void> {
     return new Promise((resolve) => {
       this.client.close();

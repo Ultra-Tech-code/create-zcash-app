@@ -14,6 +14,9 @@ use crate::scanner::{CompactBlock, ScanResult, Scanner};
 use crate::spendable::query_spendable_notes;
 use crate::wallet_db::WalletDb;
 use crate::DynamicNetwork;
+use zcash_primitives::transaction::fees::transparent::InputSize;
+use zcash_primitives::transaction::fees::zip317::FeeRule;
+use zcash_primitives::transaction::fees::FeeRule as _;
 
 static GLOBAL_PROVING_KEY: OnceLock<ProvingKey> = OnceLock::new();
 
@@ -103,6 +106,190 @@ impl Task for ScanTask {
                 count: Some(count),
             }),
         }
+    }
+}
+
+#[napi(object)]
+pub struct JsBuildTransactionRequest {
+    pub spend_handle: Option<u32>,
+    pub spending_key_bytes: Option<Buffer>,
+    pub recipient_address: String,
+    pub amount_zatoshis: i64,
+    pub memo: Option<String>,
+    pub anchor_bytes: Buffer,
+    pub anchor_height: u32,
+    pub expiry_height: u32,
+    pub spendable_note_ids: Vec<i64>,
+    pub reservation_id: Buffer,
+}
+
+#[napi(object)]
+pub struct JsBuiltTransaction {
+    pub txid: String,
+    pub raw_bytes: Buffer,
+    pub fee: i64,
+    pub num_actions: u32,
+    pub expiry_height: u32,
+}
+
+pub struct BuildTransactionTask {
+    pub db: Arc<Mutex<WalletDb>>,
+    pub network: DynamicNetwork,
+    pub req: JsBuildTransactionRequest,
+}
+
+impl Task for BuildTransactionTask {
+    type Output = (crate::transaction::BuiltTransaction, [u8; 32]);
+    type JsValue = JsBuiltTransaction;
+
+    fn compute(&mut self) -> Result<Self::Output> {
+        let sk = if let Some(handle) = self.req.spend_handle {
+            let usk = crate::get_spending_key(handle)
+                .ok_or_else(|| Error::new(Status::InvalidArg, format!("Spend handle {} not found", handle)))?;
+            *usk.orchard()
+        } else if let Some(ref sk_buf) = self.req.spending_key_bytes {
+            if sk_buf.len() != 32 {
+                return Err(Error::new(Status::InvalidArg, "Spending key bytes must be 32 bytes".to_string()));
+            }
+            let mut arr = [0u8; 32];
+            arr.copy_from_slice(sk_buf);
+            orchard::keys::SpendingKey::from_bytes(arr)
+                .into_option()
+                .ok_or_else(|| Error::new(Status::InvalidArg, "Invalid spending key bytes".to_string()))?
+        } else {
+            return Err(Error::new(Status::InvalidArg, "Either spend_handle or spending_key_bytes must be provided".to_string()));
+        };
+
+        if self.req.anchor_bytes.len() != 32 {
+            return Err(Error::new(Status::InvalidArg, "anchor_bytes must be 32 bytes".to_string()));
+        }
+        let mut anchor_arr = [0u8; 32];
+        anchor_arr.copy_from_slice(&self.req.anchor_bytes);
+        let anchor = orchard::Anchor::from_bytes(anchor_arr)
+            .into_option()
+            .ok_or_else(|| Error::new(Status::InvalidArg, "Invalid anchor bytes".to_string()))?;
+
+        if self.req.reservation_id.len() != 32 {
+            return Err(Error::new(Status::InvalidArg, "reservation_id must be 32 bytes".to_string()));
+        }
+        let mut res_id = [0u8; 32];
+        res_id.copy_from_slice(&self.req.reservation_id);
+
+        let recipient = crate::spendable::parse_recipient_address(&self.req.recipient_address)
+            .ok_or_else(|| Error::new(Status::InvalidArg, format!("Invalid recipient address: {}", self.req.recipient_address)))?;
+
+        // 1. Fetch spendable notes and compute Merkle paths under DB lock
+        let mut spends: Vec<crate::transaction::SpendInput> = Vec::new();
+        let mut total_spends: u64 = 0;
+        {
+            let db_guard = self.db.lock()
+                .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+
+            // Refresh heartbeat before starting
+            let pid = std::process::id();
+            let _ = crate::pending_spends::PendingSpendsManager::refresh_heartbeat(db_guard.conn(), &res_id, pid);
+
+            let all_spendable = crate::spendable::query_spendable_notes(db_guard.conn(), self.req.anchor_height, 1)
+                .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+            for note_id in &self.req.spendable_note_ids {
+                let note = all_spendable.iter().find(|n| n.id == *note_id)
+                    .ok_or_else(|| Error::new(Status::GenericFailure, format!("Note {} not spendable at anchor height {}", note_id, self.req.anchor_height)))?;
+                total_spends += note.value_zatoshis;
+                spends.push(crate::transaction::SpendInput::new(note.note, note.merkle_path.clone()));
+            }
+        }
+
+        if (total_spends as i64) < self.req.amount_zatoshis {
+            return Err(Error::new(Status::GenericFailure, format!("Insufficient funds: spends total {} zatoshis < send amount {}", total_spends, self.req.amount_zatoshis)));
+        }
+
+        let fvk = FullViewingKey::from(&sk);
+
+        // 2. Compute fee using standard ZIP 317 fee rule
+        let num_spends = spends.len();
+        let initial_actions = std::cmp::max(num_spends, 2);
+        let fee = FeeRule::standard()
+            .fee_required(
+                &zcash_protocol::consensus::MAIN_NETWORK,
+                zcash_protocol::consensus::BlockHeight::from_u32(1),
+                std::iter::empty::<InputSize>(),
+                std::iter::empty::<usize>(),
+                0,
+                0,
+                0,
+                initial_actions,
+            )
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Fee calculation error: {}", e)))?;
+        let fee_zatoshis = u64::from(fee) as i64;
+
+        let change_zatoshis = (total_spends as i64) - self.req.amount_zatoshis - fee_zatoshis;
+        if change_zatoshis < 0 {
+            return Err(Error::new(Status::GenericFailure, format!("Insufficient funds to cover amount ({}) + fee ({}) with spends ({})", self.req.amount_zatoshis, fee_zatoshis, total_spends)));
+        }
+
+        // 3. Assemble outputs
+        let mut outputs = Vec::new();
+        let memo_bytes = if let Some(ref m_str) = self.req.memo {
+            let mut arr = [0u8; 512];
+            let bytes = m_str.as_bytes();
+            let copy_len = std::cmp::min(bytes.len(), 512);
+            arr[..copy_len].copy_from_slice(&bytes[..copy_len]);
+            Some(arr)
+        } else {
+            None
+        };
+
+        let recipient_val = orchard::value::NoteValue::from_raw(self.req.amount_zatoshis as u64);
+        let mut recipient_spec = crate::transaction::OutputSpec::new(recipient, recipient_val);
+        if let Some(m) = memo_bytes {
+            recipient_spec = recipient_spec.with_memo_bytes(m);
+        }
+        outputs.push(recipient_spec);
+
+        if change_zatoshis > 0 {
+            let change_address = fvk.address_at(0u32, orchard::keys::Scope::Internal);
+            let change_val = orchard::value::NoteValue::from_raw(change_zatoshis as u64);
+            outputs.push(crate::transaction::OutputSpec::new(change_address, change_val));
+        }
+
+        let branch_id = zcash_protocol::consensus::BranchId::Nu6_3;
+        let mut config = crate::transaction::TransactionConfig::new(
+            branch_id,
+            anchor,
+            zcash_protocol::consensus::BlockHeight::from_u32(self.req.expiry_height),
+            None,
+        );
+        config = config.with_expiry_height(zcash_protocol::consensus::BlockHeight::from_u32(self.req.expiry_height));
+
+        let pk = get_or_init_proving_key();
+
+        let mut builder = crate::transaction::TransactionBuilder::new(&sk, config);
+        for s in spends {
+            builder.add_spend(s);
+        }
+        for o in outputs {
+            builder.add_output(o);
+        }
+
+        let built_tx = builder.build_and_prove(pk)
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Transaction build/prove failed: {}", e)))?;
+
+        Ok((built_tx, res_id))
+    }
+
+    fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
+        let (built, _res_id) = output;
+        let txid_bytes = built.txid.as_ref();
+        let txid_hex = hex::encode(txid_bytes);
+
+        Ok(JsBuiltTransaction {
+            txid: txid_hex,
+            raw_bytes: Buffer::from(built.raw_bytes),
+            fee: u64::from(built.fee) as i64,
+            num_actions: built.num_actions as u32,
+            expiry_height: u32::from(built.expiry_height),
+        })
     }
 }
 
@@ -342,22 +529,84 @@ impl WalletHandle {
         .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
     }
 
-    /// Marks an in-flight reservation as broadcast to the network.
-    #[napi]
-    pub fn mark_broadcast(&self, txid: Buffer) -> Result<u32> {
+    fn mark_broadcast_internal(&self, txid: &[u8], reservation_id: Option<&[u8]>) -> Result<u32> {
         if txid.len() != 32 {
             return Err(Error::new(Status::InvalidArg, "txid must be 32 bytes".to_string()));
         }
         let mut txid_arr = [0u8; 32];
-        txid_arr.copy_from_slice(&txid);
+        txid_arr.copy_from_slice(txid);
+
+        let mut res_arr = [0u8; 32];
+        let res_ref = if let Some(r) = reservation_id {
+            if r.len() != 32 {
+                return Err(Error::new(Status::InvalidArg, "reservation_id must be 32 bytes".to_string()));
+            }
+            res_arr.copy_from_slice(r);
+            Some(&res_arr)
+        } else {
+            None
+        };
 
         let db_guard = self.db.lock()
             .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
 
-        let updated = PendingSpendsManager::mark_broadcast(db_guard.conn(), &txid_arr)
+        let updated = PendingSpendsManager::mark_broadcast_with_reservation(db_guard.conn(), &txid_arr, res_ref)
             .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
 
         Ok(updated as u32)
+    }
+
+    /// Marks an in-flight reservation as broadcast to the network.
+    #[napi]
+    pub fn mark_broadcast(&self, txid: Buffer) -> Result<u32> {
+        self.mark_broadcast_internal(&txid, None)
+    }
+
+    /// Marks an in-flight reservation as broadcast to the network, re-keying from a reservation_id.
+    #[napi]
+    pub fn mark_broadcast_with_reservation(&self, txid: Buffer, reservation_id: Buffer) -> Result<u32> {
+        self.mark_broadcast_internal(&txid, Some(&reservation_id))
+    }
+
+    /// Refreshes the heartbeat timestamp of an active in-flight reservation to prevent stale timeout.
+    #[napi]
+    pub fn refresh_heartbeat(&self, reservation_id: Buffer) -> Result<u32> {
+        if reservation_id.len() != 32 {
+            return Err(Error::new(Status::InvalidArg, "reservation_id must be 32 bytes".to_string()));
+        }
+        let mut res_arr = [0u8; 32];
+        res_arr.copy_from_slice(&reservation_id);
+
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+
+        let updated = PendingSpendsManager::refresh_heartbeat(db_guard.conn(), &res_arr, std::process::id())
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+        Ok(updated as u32)
+    }
+
+    /// Asynchronously builds, proves, signs, and serializes a V6 Ironwood transaction in a background worker thread.
+    #[napi]
+    pub fn build_and_prove_transaction(&self, req: JsBuildTransactionRequest) -> AsyncTask<BuildTransactionTask> {
+        AsyncTask::new(BuildTransactionTask {
+            db: Arc::clone(&self.db),
+            network: self.network.clone(),
+            req,
+        })
+    }
+
+    /// Returns the 32-byte Ironwood commitment tree root at the specified block height.
+    #[napi]
+    pub fn get_tree_root_at_height(&self, height: u32) -> Result<Option<Buffer>> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let store = crate::shard_store::SqliteShardStore::new(db_guard.conn(), "ironwood_tree");
+        let tree = crate::shard_store::IronwoodShardTree::new(store, 100);
+        let cid = zcash_protocol::consensus::BlockHeight::from_u32(height);
+        let root = tree.root_at_checkpoint_id(&cid)
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Tree error: {:?}", e)))?;
+        Ok(root.map(|r| Buffer::from(r.to_bytes().to_vec())))
     }
 
     /// Cancels an in-flight reservation if proving fails or transaction is aborted.
@@ -463,3 +712,29 @@ pub fn decode_ironwood_frontier_root(frontier_hex: String) -> Result<String> {
     let root: orchard::Anchor = tree.root().into();
     Ok(hex::encode(root.to_bytes()))
 }
+
+/// Returns the conventional ZIP 317 fee for a transaction with the given number of actions.
+#[napi]
+pub fn quote_fee(num_actions: u32) -> Result<i64> {
+    let fee = FeeRule::standard()
+        .fee_required(
+            &zcash_protocol::consensus::MAIN_NETWORK,
+            zcash_protocol::consensus::BlockHeight::from_u32(1),
+            std::iter::empty::<InputSize>(),
+            std::iter::empty::<usize>(),
+            0,
+            0,
+            0,
+            num_actions as usize,
+        )
+        .map_err(|e| Error::new(Status::GenericFailure, format!("Fee rule error: {}", e)))?;
+    Ok(u64::from(fee) as i64)
+}
+
+/// Warms up the static circuit proving key in a background thread ahead of first send.
+#[napi]
+pub fn warmup_prover() -> Result<()> {
+    warm_up_proving_key();
+    Ok(())
+}
+

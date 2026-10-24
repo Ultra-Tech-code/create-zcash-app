@@ -166,11 +166,28 @@ impl PendingSpendsManager {
 
     /// Transitions an active reservation to 'broadcast' upon successful network submission.
     pub fn mark_broadcast(conn: &Connection, txid: &[u8; 32]) -> Result<usize, WalletError> {
-        let rows = conn.execute(
-            "UPDATE pending_spends SET state = 'broadcast' 
-             WHERE txid = ?1 AND state = 'reserved'",
-            params![&txid[..]],
-        )?;
+        Self::mark_broadcast_with_reservation(conn, txid, None)
+    }
+
+    /// Transitions an active reservation to 'broadcast', optionally updating the reservation_id to the final txid.
+    pub fn mark_broadcast_with_reservation(
+        conn: &Connection,
+        txid: &[u8; 32],
+        reservation_id: Option<&[u8; 32]>,
+    ) -> Result<usize, WalletError> {
+        let rows = if let Some(res_id) = reservation_id {
+            conn.execute(
+                "UPDATE pending_spends SET state = 'broadcast', txid = ?1 
+                 WHERE txid = ?2 AND state = 'reserved'",
+                params![&txid[..], &res_id[..]],
+            )?
+        } else {
+            conn.execute(
+                "UPDATE pending_spends SET state = 'broadcast' 
+                 WHERE txid = ?1 AND state = 'reserved'",
+                params![&txid[..]],
+            )?
+        };
 
         Ok(rows)
     }

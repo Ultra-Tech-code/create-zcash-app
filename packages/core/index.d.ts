@@ -28,6 +28,14 @@ export declare class WalletHandle {
   reserveNotes(notes: Array<number>, txid: Buffer, expiryHeight: number): void
   /** Marks an in-flight reservation as broadcast to the network. */
   markBroadcast(txid: Buffer): number
+  /** Marks an in-flight reservation as broadcast to the network, re-keying from a reservation_id. */
+  markBroadcastWithReservation(txid: Buffer, reservationId: Buffer): number
+  /** Refreshes the heartbeat timestamp of an active in-flight reservation to prevent stale timeout. */
+  refreshHeartbeat(reservationId: Buffer): number
+  /** Asynchronously builds, proves, signs, and serializes a V6 Ironwood transaction in a background worker thread. */
+  buildAndProveTransaction(req: JsBuildTransactionRequest): Promise<unknown>
+  /** Returns the 32-byte Ironwood commitment tree root at the specified block height. */
+  getTreeRootAtHeight(height: number): Buffer | null
   /** Cancels an in-flight reservation if proving fails or transaction is aborted. */
   cancelReservation(txid: Buffer): number
   /** Resets wallet state (wipes scanned blocks, notes, tree, and pending spends, clearing chain continuity metadata). */
@@ -67,6 +75,27 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
+export interface JsBuildTransactionRequest {
+  spendHandle?: number
+  spendingKeyBytes?: Buffer
+  recipientAddress: string
+  amountZatoshis: number
+  memo?: string
+  anchorBytes: Buffer
+  anchorHeight: number
+  expiryHeight: number
+  spendableNoteIds: Array<number>
+  reservationId: Buffer
+}
+
+export interface JsBuiltTransaction {
+  txid: string
+  rawBytes: Buffer
+  fee: number
+  numActions: number
+  expiryHeight: number
+}
+
 export interface JsScanResult {
   status: string
   lastScannedHeight: number
@@ -84,6 +113,9 @@ export interface JsSpendableNote {
   treePosition: number
 }
 
+/** Returns the conventional ZIP 317 fee for a transaction with the given number of actions. */
+export declare function quoteFee(numActions: number): number
+
 export declare function tryDecryptAction(ufvkStr: string, networkStr: string, ephemeralKey: Buffer, cmx: Buffer, encCiphertext: Buffer, isIronwood: boolean, actionIndex: number, nullifier?: Buffer | undefined | null): DecryptedNote | null
 
 export interface WalletSummary {
@@ -93,3 +125,6 @@ export interface WalletSummary {
   totalBalanceZatoshis: number
   spendableBalanceZatoshis: number
 }
+
+/** Warms up the static circuit proving key in a background thread ahead of first send. */
+export declare function warmupProver(): void

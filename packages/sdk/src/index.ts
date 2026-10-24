@@ -6,3 +6,4 @@ export * from './payment.js';
 export * from './dev.js';
 export * from './constants.js';
 export * from './sync.js';
+export * from './send.js';
