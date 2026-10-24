@@ -99,7 +99,9 @@ export async function syncWallet(
       options.onProgress(scanRes.lastScannedHeight, tipHeight, scanRes.notesDetected);
     }
 
-    currentStart = currentEnd + 1;
+    currentStart = (scanRes.lastScannedHeight != null && scanRes.lastScannedHeight > 0)
+      ? scanRes.lastScannedHeight + 1
+      : currentEnd + 1;
   }
 
   const finalSummary = wallet.getWalletSummary();

@@ -82,7 +82,8 @@ async function main() {
 
   const fixtureDir = path.resolve(__dirname, '../packages/core/tests/fixtures');
   fs.mkdirSync(fixtureDir, { recursive: true });
-  const outPath = path.join(fixtureDir, 'real_regtest_block.bin');
+  const outFileName = process.argv[3] || 'real_regtest_block.bin';
+  const outPath = path.join(fixtureDir, outFileName);
   fs.writeFileSync(outPath, rawBlock);
   console.log(`\n✅ Saved raw bytes to: ${outPath}\n`);
 }
