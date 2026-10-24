@@ -5,7 +5,7 @@ import path from 'path';
 import os from 'os';
 
 async function main() {
-  console.log('=== P3 PREREQUISITES: FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST ===\n');
+  console.log('=== FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST (IDEMPOTENT) ===\n');
 
   const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:28137';
   const client = createClient({ endpoint, network: 'regtest' });
@@ -29,26 +29,46 @@ async function main() {
   console.log(`  Address:  ${addr1}`);
   console.log(`  UFVK:     ${ufvk1}\n`);
 
-  // 2. Fund Account 0 with 5.0 ZEC (500,000,000 zatoshis)
-  console.log('Funding Account 0 with 5.0 ZEC...');
-  const tx0 = await dev.fund(client, addr0, 500_000_000n);
-  console.log(`  Txid 0: ${tx0.txid}`);
+  // Check current balances before funding to guarantee idempotency
+  const initBal0 = await getBalance(client, acct0);
+  const initBal1 = await getBalance(client, acct1);
+  console.log(`Initial Balances before funding:`);
+  console.log(`  Account 0 Total: ${initBal0.total} zatoshis`);
+  console.log(`  Account 1 Total: ${initBal1.total} zatoshis\n`);
 
-  // 3. Fund Account 1 with 3.0 ZEC (300,000,000 zatoshis)
-  console.log('Funding Account 1 with 3.0 ZEC...');
-  const tx1 = await dev.fund(client, addr1, 300_000_000n);
-  console.log(`  Txid 1: ${tx1.txid}`);
+  let fundedAny = false;
 
-  // 4. Mine 2 blocks to ensure confirmation and maturity
-  console.log('\nMining 2 blocks to confirm transactions...');
-  await dev.mine(client, 2);
+  // 2. Fund Account 0 with 5.0 ZEC (500,000,000 zatoshis) if not already funded
+  if (initBal0.total === 0n) {
+    console.log('Funding Account 0 with 5.0 ZEC (500,000,000 zatoshis)...');
+    const tx0 = await dev.fund(client, addr0, 500_000_000n);
+    console.log(`  Txid 0: ${tx0.txid}`);
+    fundedAny = true;
+  } else {
+    console.log(`Account 0 already has balance ${initBal0.total} zatoshis — skipping funding (idempotency guard).`);
+  }
+
+  // 3. Fund Account 1 with 3.0 ZEC (300,000,000 zatoshis) if not already funded
+  if (initBal1.total === 0n) {
+    console.log('Funding Account 1 with 3.0 ZEC (300,000,000 zatoshis)...');
+    const tx1 = await dev.fund(client, addr1, 300_000_000n);
+    console.log(`  Txid 1: ${tx1.txid}`);
+    fundedAny = true;
+  } else {
+    console.log(`Account 1 already has balance ${initBal1.total} zatoshis — skipping funding (idempotency guard).`);
+  }
+
+  // 4. Mine blocks to confirm transactions if new funds were dispatched
+  if (fundedAny) {
+    console.log('\nMining 2 blocks to confirm funding transactions...');
+    await dev.mine(client, 2);
+  }
 
   // Wait for Zaino indexer to index the newly mined blocks
   let info = await client.getInfo();
   for (let attempt = 0; attempt < 30; attempt++) {
     info = await client.getInfo();
     try {
-      // Test if tip is indexable
       const ts = await client.getTreeState(Number(info.blockHeight));
       if (ts) break;
     } catch (e) {
@@ -99,6 +119,20 @@ async function main() {
   console.log(`  Pending Ironwood:   ${bal1.pending.ironwood} zatoshis`);
   console.log(`  Total:              ${bal1.total} zatoshis\n`);
 
+  // Assert exact balances and single note per account
+  if (bal0.total !== 500_000_000n) {
+    throw new Error(`Account 0 balance mismatch: expected 500000000 zatoshis, got ${bal0.total}`);
+  }
+  if (bal1.total !== 300_000_000n) {
+    throw new Error(`Account 1 balance mismatch: expected 300000000 zatoshis, got ${bal1.total}`);
+  }
+  if (sync0.summary.unspentNotesCount !== 1) {
+    throw new Error(`Account 0 note count mismatch: expected 1 note, got ${sync0.summary.unspentNotesCount}`);
+  }
+  if (sync1.summary.unspentNotesCount !== 1) {
+    throw new Error(`Account 1 note count mismatch: expected 1 note, got ${sync1.summary.unspentNotesCount}`);
+  }
+
   // Clean up
   try {
     fs.rmSync(tmp0, { recursive: true, force: true });
@@ -106,7 +140,7 @@ async function main() {
   } catch (e) {}
 
   await client.close();
-  console.log('✅ Item 10 SUCCESS: Both Account 0 and Account 1 funded, synced, and note balances confirmed!');
+  console.log('✅ SUCCESS: Both Account 0 (5.0 ZEC in 1 note) and Account 1 (3.0 ZEC in 1 note) funded and verified!');
 }
 
 main().catch((err) => {
