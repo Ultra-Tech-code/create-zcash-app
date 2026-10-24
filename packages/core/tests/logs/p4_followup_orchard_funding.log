@@ -1,0 +1,84 @@
+=== P4 FOLLOW-UP (ITEM 7): CAN AN ORCHARD-POOL NOTE BE FUNDED ON THIS REGTEST? ===
+Date: 2026-10-24 (UTC)
+Regtest stack: z3-regtest (Zebra 6.4.2, Zaino 0.10.0, Zallet 0.1.0-beta.1, rpc-router 8181)
+Chain tip at time of investigation: 113 (blockhash 85a9833e0fb93d531b0d2d2ad233ce5739d2700d86fdc0667eab71ba439cb192)
+
+--- 1. Chain value pools (getblockchaininfo) ---
+{'transparent': 0, 'sprout': 0, 'sapling': 625000000, 'orchard': 0, 'lockbox': 0, 'ironwood': 70000000000}
+Orchard chain value pool balance is exactly 0 zatoshis.
+
+--- 2. Orchard note commitment tree is empty at every height >= NU6.3 activation ---
+z_gettreestate 2   -> orchard finalState 000000
+z_gettreestate 3   -> orchard finalState 000000
+z_gettreestate 113 -> orchard finalState 000000
+orchard finalRoot @113 = ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f (the empty-tree root)
+z_gettreestate 1   -> no orchard section at all (Orchard/NU5 activates at height 2)
+Ironwood tree @113 = d5a3eb9e...0cc6d817 (112 commitments, one per block 2..113)
+Sapling tree @1 and @113 = 2f855ae2...000e259a (unchanged; one Sapling coinbase note from block 1)
+
+Regtest activation schedule (config/regtest/zebra.toml):
+  Overwinter/Sapling/Blossom/Heartwood/Canopy = 1, NU5/NU6/NU6.1/NU6.2/NU6.3 = 2
+=> The only block mined before NU6.3 activation is block 1, and NU5 is not active at height 1,
+   so block 1's coinbase is Sapling-only. Every block from height 2 onward must have an
+   Orchard-empty coinbase (ZIP 258) and its shielded reward goes to Ironwood.
+
+--- 3. Attempt to fund an "Orchard-only" address with Zallet ---
+The Zallet account that owns the Zebra miner address is:
+  account_uuid 633f5c86-09e8-4784-a74a-3f67c065b51a (name "default")
+  UA           uregtest14j6pm0rw72uwmua60032wsscze79xp4vv022cfm6ha062ys7v20taecj3gq0ldcu9fvlda2ykdxzm45am0zngdveds9al29txfgeqg7tlv0g4m9sfvc4k4cjcpny84gvy624axvtxrmmhs0fvwwg59l744er8kukwgnl3wdmzp4427hnnqnr88rc3n6ssrgj7q4qf2nc96j0jx36xjw
+  balances     ironwood spendable = 68,575,020,000 zatoshi (685.7502 ZEC); no orchard balance
+
+z_listunifiedreceivers(<miner UA>) returns an Orchard-only receiver:
+  uregtest1f8208zfjylsksxsf8ea7yn6k4jv45temsp9qjkzjh9jqrcxzvxjkswk60szntp0kc85wkazhz8fnlz47xw5ljg9jkpvcrc3ysu4jwynw
+(This is a unified address carrying exactly one Orchard-protocol receiver.)
+
+z_sendmany from the miner UA to that Orchard-only address, 0.1 ZEC, minconf 1, fee null
+(Zallet computes the ZIP-317 fee itself):
+  -> opid-c540474f-3144-4403-be78-3cfaae7216c9, status "success"
+  -> txid e1850e719a5fa823c703e361899da40148c246165bfcd19eef4aa7796b001f62
+
+Decoded tx (Zebra getrawtransaction, verbosity 1), pools only:
+  orchard:  actions 0, valueBalanceZat 0
+  ironwood: actions 2, valueBalanceZat 10000, flags {enableOutputs:true, enableSpends:true},
+            anchor 17d8c66c20d6e0e94076d9155d121c4912e81ea0731a6fd33d607ca99eeba3d5
+  transparent: vin [] / vout []
+  version 6, expiryheight 154
+
+Result: the payment to the Orchard-only receiver produced ZERO Orchard-pool Actions. Both the
+payment note and the change note were created in the IRONWOOD pool (2 actions). Newly created
+shielded value is routed to Ironwood, exactly as ZIP 326 ("NU6.3 Consequences for Wallets")
+requires. No Orchard note was created; the Orchard tree is still size 0.
+The tx was left unmined in the mempool (chain tip unchanged at 113).
+
+--- 4. Why an Orchard note cannot be funded on this chain (ZIP 258) ---
+ZIP 258, "Consensus rules from NU6.3 activation" (https://zips.z.cash/zip-0258):
+  * "A coinbase transaction MUST NOT contain any Orchard-pool Actions; that is, its Orchard
+     component MUST be empty."
+  * "No new value may enter the Orchard pool: for every transaction,
+     vOrchardPoolBalance >= 0 (so the encoded valueBalanceOrchard is nonnegative).
+     Value may still leave the Orchard pool, including across the turnstile into the
+     Ironwood pool."
+The Ironwood Book, "Value Movement After NU6.3":
+  "After NU6.3 activation, no funds can flow into the Orchard pool. Transactions can still
+   spend Orchard-pool funds, and zero-balance Orchard-pool actions are still allowed, but the
+   Orchard pool's value balance must not be negative."
+
+Funding an Orchard-pool note with any positive value requires valueBalanceOrchard < 0, which
+Zebra rejects after NU6.3. Therefore, on a regtest where NU6.3 activates at height 2, the
+Orchard tree can never receive a commitment and no Orchard-pool note can ever exist.
+
+--- 5. Consequence for P4 ---
+The P4 follow-up asked for an Orchard-pool note spent into Ironwood with a real witness and a
+real Orchard anchor. There is no such note and no such anchor on this chain:
+  * The only Orchard anchor Zebra knows is the empty-tree root ae2935f1...5d82f.
+  * The P4 test's broadcast rejection remains the exact error:
+    {"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not
+     pass consensus validation: could not contextually validate transaction on best chain:
+     unknown Orchard anchor: Root(\"d9ed557565d281bc804b72339bbfcdd41d95167adc5bfd088d0f5da6440fb008\"),
+     None, index in block: None, transaction::Hash(...)"}
+
+The only way to exercise a real Orchard-pool note is a regtest whose NU6.3 activation height is
+ABOVE the funding height (so blocks mined before activation can pay an Orchard receiver and be
+spent after activation). That requires changing config/regtest/zebra.toml's activation schedule
+and wiping/re-initialising the chain, which would invalidate the funded state behind the P2/P3
+evidence. Not done here; reported as a limitation.

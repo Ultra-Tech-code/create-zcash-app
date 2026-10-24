@@ -93,11 +93,15 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
     cleanup();
   });
 
+  // Builds a legacy CommitmentTree serialization on the fly instead of embedding a long hex
+  // literal: [0x01 left present][32-byte left leaf][0x00 right absent][0x00 empty parents].
+  const frontierWithLeaf = (leafByte: number): string =>
+    '01' + Buffer.alloc(32, leafByte).toString('hex') + '00' + '00';
+
   it('negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false', async () => {
     const { wallet, cleanup } = createTempWallet();
 
-    const authenticFrontierHex =
-      '010d3f8b26dbf85bea4ee41e5f9346fbb333b3ca3d44047dce7370dfeebc31c50001d87e82e8fbe744caa5fbdf347ba48e79d3729b338d2efe380bc8348f64928d2e1f0000015e7b3bfc0feb82f5dd24cf8a06835efaca27cc804e1ee17a26255bc3a93217270001d522396c660822eecfa4d4180d333b07d094de9834d4db082c20068586418f3501eccfc7b98746433a335efa38e87a91b06f0b4fd19e507f10d945cc5079b3862200000000000000000000000000000000000000000000000000';
+    const authenticFrontierHex = frontierWithLeaf(0x00);
     const authenticRootHex = decodeIronwoodFrontierRoot(authenticFrontierHex);
 
     // Mock wallet methods on prototype
@@ -132,8 +136,9 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
     const resPositive = await syncWallet(mockClientMatching, wallet, { verifyRootAtTip: true });
     expect(resPositive.treeStateMatched).toBe(true);
 
-    // 2. Negative case: tampered frontier bytes
-    const tamperedFrontier = authenticFrontierHex.slice(0, 20) + 'ffff' + authenticFrontierHex.slice(24);
+    // 2. Negative case: a different (still validly encoded) leaf commits to a different root
+    const tamperedFrontier = frontierWithLeaf(0x01);
+    expect(decodeIronwoodFrontierRoot(tamperedFrontier)).not.toBe(authenticRootHex);
     const mockClientTampered = {
       config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
       getInfo: vi.fn().mockResolvedValue({ blockHeight: '10' }),

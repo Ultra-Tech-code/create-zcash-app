@@ -7,6 +7,7 @@ import {
   WalletHandle,
   JsSpendableNote,
   JsBuiltTransaction,
+  decodeIronwoodFrontierRoot,
 } from '@zcash-app/core';
 import { send, SendOptions, quoteFee, warmupProver } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
@@ -304,6 +305,57 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     const spendableAfterExpiry = wallet.querySpendableNotes(5, 1);
     expect(spendableAfterExpiry.length).toBe(1);
     expect(spendableAfterExpiry[0].id).toBe(4);
+  });
+
+  it('Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root', async () => {
+    insertMockNote(5, 500_000_000, 2, 'ee'.repeat(32));
+
+    const mockClient = createMockClient();
+
+    // Local wallet checkpoint root at the anchor height (tip 10 -> anchor 5).
+    const localRoot = Buffer.alloc(32, 0x12);
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(localRoot);
+
+    // Node reports a different, but perfectly decodable, Ironwood frontier root.
+    const nodeFrontier = '01' + Buffer.alloc(32, 0x00).toString('hex') + '00' + '00';
+    const nodeRootHex = decodeIronwoodFrontierRoot(nodeFrontier);
+    expect(nodeRootHex).not.toBe(localRoot.toString('hex'));
+    vi.spyOn(mockClient, 'getTreeState').mockResolvedValue({
+      network: 'regtest',
+      height: '5',
+      hash: '00'.repeat(32),
+      time: 1000,
+      saplingTree: '00',
+      orchardTree: '00',
+      ironwoodTree: nodeFrontier,
+    } as TreeState);
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 5,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'ee'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction');
+
+    await expect(
+      send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      })
+    ).rejects.toThrow(/Tree root mismatch at anchor height 5/);
+
+    // Aborted before proving, and no note reservation was left behind.
+    expect(buildSpy).not.toHaveBeenCalled();
+    expect(runSql('SELECT count(*) FROM pending_spends;')).toBe('0');
   });
 
   it('verifies quoteFee and warmupProver exports against FeeRule::standard()', () => {
