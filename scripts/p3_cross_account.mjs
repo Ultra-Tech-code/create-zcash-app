@@ -85,8 +85,11 @@ async function main() {
   });
   const durationMs = Date.now() - startTime;
 
+  const displayTxid = Buffer.from(sendResult.txid, 'hex').reverse().toString('hex');
+
   console.log('Transaction built, proven, and broadcast successfully!');
-  console.log(`  Internal TxID: ${sendResult.txid}`);
+  console.log(`  Broadcast TxID (node display order): ${displayTxid}`);
+  console.log(`  Internal TxID (raw byte order):      ${sendResult.txid}`);
   console.log(`  Fee:           ${sendResult.fee} zatoshis`);
   console.log(`  Num Actions:   ${sendResult.numActions}`);
   console.log(`  Expiry Height: ${sendResult.expiryHeight}`);
@@ -137,8 +140,7 @@ async function main() {
 
   // 7. Query Transaction Details from Zebra Node via JSON-RPC
   console.log('\n--- Step 6: Querying Mined Transaction via JSON-RPC getrawtransaction ---');
-  const displayTxid = Buffer.from(sendResult.txid, 'hex').reverse().toString('hex');
-  console.log(`Querying display txid (reverse-endian): ${displayTxid}`);
+  console.log(`Querying broadcast txid: ${displayTxid}`);
 
   let rpcData;
   for (let i = 0; i < 10; i++) {
@@ -162,6 +164,7 @@ async function main() {
 
   if (rpcData && !rpcData.error && rpcData.result) {
     const txInfo = rpcData.result;
+    console.log(`  Mined TxID (node):   ${txInfo.txid || displayTxid}`);
     console.log(`  Zebra confirmations: ${txInfo.confirmations}`);
     console.log(`  Zebra blockhash:     ${txInfo.blockhash}`);
     console.log(`  Zebra blockheight:   ${txInfo.height || targetTip}`);

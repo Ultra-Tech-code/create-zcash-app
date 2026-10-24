@@ -9,6 +9,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "test": "node --test test/*.test.mjs",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
