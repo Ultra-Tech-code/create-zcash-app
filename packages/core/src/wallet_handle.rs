@@ -189,7 +189,7 @@ impl Task for BuildTransactionTask {
             let pid = std::process::id();
             let _ = crate::pending_spends::PendingSpendsManager::refresh_heartbeat(db_guard.conn(), &res_id, pid);
 
-            let all_spendable = crate::spendable::query_spendable_notes(db_guard.conn(), self.req.anchor_height, 1)
+            let all_spendable = crate::spendable::query_notes_for_builder(db_guard.conn(), self.req.anchor_height, &self.req.spendable_note_ids)
                 .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
 
             for note_id in &self.req.spendable_note_ids {

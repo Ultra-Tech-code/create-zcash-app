@@ -93,10 +93,21 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     await syncWallet(client, wallet);
   }
 
-  // 2. Determine anchor height (default tip - 5, minimum 2)
+  // 2. Determine anchor height
   let anchorHeight = opts.anchorHeight;
   if (!anchorHeight) {
-    anchorHeight = Math.max(2, tipHeight - 5);
+    const tipNotes = wallet.querySpendableNotes(tipHeight, minConfs);
+    if (tipNotes.length === 0) {
+      throw new Error(
+        `Insufficient funds: spendable notes total 0 zatoshis < amount ${amount}`
+      );
+    }
+    const maxNoteHeight = Math.max(...tipNotes.map((n) => n.height));
+    if (tipHeight >= 7 && maxNoteHeight <= tipHeight - 5) {
+      anchorHeight = tipHeight - 5;
+    } else {
+      anchorHeight = tipHeight;
+    }
   }
 
   // Verify local root against remote tree state

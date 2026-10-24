@@ -5,7 +5,7 @@ use orchard::note::{Note, NoteVersion, RandomSeed, Rho};
 use orchard::tree::MerklePath;
 use orchard::value::NoteValue;
 use orchard::Address;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use zcash_address::unified::{Container, Encoding};
 use zcash_protocol::consensus::BlockHeight;
 
@@ -169,3 +169,107 @@ pub fn query_spendable_notes_with_tree(
 
     Ok(spendable)
 }
+
+/// Queries specific notes by ID for transaction building at `anchor_height`.
+/// Unlike query_spendable_notes, this permits notes that have already been reserved
+/// by this transaction's reservation_id.
+pub fn query_notes_for_builder(
+    conn: &Connection,
+    anchor_height: u32,
+    note_ids: &[i64],
+) -> Result<Vec<SpendableNote>, WalletError> {
+    let store = SqliteShardStore::new(conn, "ironwood_tree");
+    let tree = crate::IronwoodShardTree::new(store, 100);
+    query_notes_for_builder_with_tree(conn, &tree, anchor_height, note_ids)
+}
+
+pub fn query_notes_for_builder_with_tree(
+    conn: &Connection,
+    tree: &IronwoodShardTree<SqliteShardStore>,
+    anchor_height: u32,
+    note_ids: &[i64],
+) -> Result<Vec<SpendableNote>, WalletError> {
+    let mut spendable = Vec::new();
+    let anchor_checkpoint = BlockHeight::from_u32(anchor_height);
+
+    for &note_id in note_ids {
+        let mut stmt = conn.prepare_cached(
+            "SELECT id, recipient, value_zatoshis, nullifier, rho, rseed, tree_position, height
+             FROM received_notes
+             WHERE id = ?1
+               AND spent_in_txid IS NULL
+               AND height <= ?2",
+        )?;
+
+        let row_opt = stmt.query_row(
+            params![note_id, anchor_height as i64],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, i64>(2)?,
+                    row.get::<_, Vec<u8>>(3)?,
+                    row.get::<_, Vec<u8>>(4)?,
+                    row.get::<_, Vec<u8>>(5)?,
+                    row.get::<_, i64>(6)?,
+                    row.get::<_, i64>(7)?,
+                ))
+            },
+        ).optional()?;
+
+        let (id, recipient_str, value_zat, nf_bytes, rho_bytes, rseed_bytes, tree_pos, height) = match row_opt {
+            Some(r) => r,
+            None => continue,
+        };
+
+        if nf_bytes.len() != 32 || rho_bytes.len() != 32 || rseed_bytes.len() != 32 {
+            continue;
+        }
+
+        let mut nf_arr = [0u8; 32];
+        nf_arr.copy_from_slice(&nf_bytes);
+
+        let mut rho_arr = [0u8; 32];
+        rho_arr.copy_from_slice(&rho_bytes);
+        let rho = match Rho::from_bytes(&rho_arr).into_option() {
+            Some(r) => r,
+            None => continue,
+        };
+
+        let mut rseed_arr = [0u8; 32];
+        rseed_arr.copy_from_slice(&rseed_bytes);
+        let rseed = match RandomSeed::from_bytes(rseed_arr, &rho).into_option() {
+            Some(s) => s,
+            None => continue,
+        };
+
+        let recipient = match parse_recipient_address(&recipient_str) {
+            Some(a) => a,
+            None => continue,
+        };
+
+        let note_value = NoteValue::from_raw(value_zat as u64);
+        let note = match Note::from_parts(recipient, note_value, rho, rseed, NoteVersion::V3).into_option() {
+            Some(n) => n,
+            None => continue,
+        };
+
+        let position = Position::from(tree_pos as u64);
+        let witness_opt = tree.witness_at_checkpoint_id(position, &anchor_checkpoint)?;
+
+        if let Some(merkle_path) = witness_opt {
+            spendable.push(SpendableNote {
+                id,
+                note,
+                merkle_path: merkle_path.into(),
+                nullifier: nf_arr,
+                height: height as u32,
+                tree_position: tree_pos as u64,
+                value_zatoshis: value_zat as u64,
+            });
+        }
+    }
+
+    Ok(spendable)
+}
+
