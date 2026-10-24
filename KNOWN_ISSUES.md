@@ -1,7 +1,6 @@
 # Known Issues
 
-- anchor 1c5a7114... from P1's old chain is unexplained and unreproducible
-- the upstream proto diff output and the benchmark runs (1203-1215 blocks/s) have no committed raw logs
-- no committed fixture yet of a block containing Ironwood actions from a funding tx
-- the wipe refusal-without---yes test is not committed
-- regtest chain activates NU6.3 at height 2 with empty Orchard commitment tree (0 notes, finalState 000000); live Orchard note spend rejected by Zebra consensus due to unknown Orchard anchor
+- **Orchard-to-Ironwood spend is untested against a real Orchard note.** This regtest cannot hold Orchard notes because NU6.3 activates at height 2 (`config/regtest/zebra.toml`), before any block could pay an Orchard receiver. Verified: the Orchard pool chain value is 0 and the Orchard tree `finalState` is `000000` at heights 2, 3 and 113 (`packages/core/tests/logs/p4_followup_orchard_funding.log`). Cited rule, ZIP 258 "Consensus rules from NU6.3 activation" (https://zips.z.cash/zip-0258): "No new value may enter the Orchard pool: for every transaction, vOrchardPoolBalance >= 0 (so the encoded valueBalanceOrchard is nonnegative)" and "A coinbase transaction MUST NOT contain any Orchard-pool Actions; that is, its Orchard component MUST be empty." A funding attempt to an Orchard-only receiver produced 0 Orchard actions and 2 Ironwood actions (`z_sendmany` txid `e1850e719a5fa823c703e361899da40148c246165bfcd19eef4aa7796b001f62`).
+- **A real Orchard-note test needs a regtest config where NU6.3 activates after the funding height**, so blocks mined before activation can pay an Orchard receiver and be spent across the turnstile afterwards. That requires a different activation schedule plus a chain wipe, which invalidates the funded state behind the P2/P3 logs. Not attempted.
+- **anchor `1c5a7114...` from P1's old chain remains unexplained** and unreproducible; carried over from the P1 review. No committed evidence explains where it came from.
+- **The P5 send tests mock proving.** `packages/sdk/src/send.test.ts` Scenarios 1-8 (including the anchor-abort tests 5-7) stub `buildAndProveTransaction`, so they assert reservation, anchor and fee logic but do not run Halo 2 proving. Real proving is exercised only by the Rust builder tests and the live P3 run.

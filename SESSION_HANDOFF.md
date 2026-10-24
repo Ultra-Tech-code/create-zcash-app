@@ -48,7 +48,7 @@ This document serves as the comprehensive session handoff following the thorough
 - **Negative Test**: Added `test_decode_zaino_tampered_frontier_fails_or_mismatches` in `shard_store_test.rs` and vitest in `packages/sdk/src/sync.test.ts`.
 
 ### Item 4: Protobuf Consensus Alignment & Block Capture
-- **Upstream Proto**: Diffed `packages/sdk/proto/compact_formats.proto` against `https://raw.githubusercontent.com/zcash/lightwallet-protocol/main/walletrpc/compact_formats.proto`: bit-for-bit identical.
+- **Upstream Proto**: Diffed `packages/sdk/proto/compact_formats.proto` against `https://raw.githubusercontent.com/zcash/lightwallet-protocol/main/walletrpc/compact_formats.proto`: bit-for-bit identical. Raw diff committed at `packages/core/tests/logs/proto_diff.log` (both protos, sha256 hashes included). Note: upstream `service.proto` has since added `GetStandardFee`/`StandardFee`, which this SDK does not call.
   - `CompactTx.fee`: field tag 3, `uint32`.
   - `CompactTx.ironwood_actions`: field tag 9, `repeated CompactOrchardAction`.
   - `ChainMetadata.ironwood_commitment_tree_size`: field tag 3, `uint32`.
@@ -66,11 +66,7 @@ This document serves as the comprehensive session handoff following the thorough
 - **Curve**: Orchard and Ironwood commitment trees use the **Pallas** curve (`pasta_curves::pallas`), not Jubjub (Sapling).
 - **Default Batch Size**: 50 blocks.
 - **Time-Bounded Batching**: Implemented `MAX_BLOCKS_PER_TX = 50` and `TIME_BUDGET_MS = 500` in `packages/core/src/scanner.rs`. Yields write lock and returns `ScanResult::Synced` at 500ms intervals so callers can advance progress and concurrent send/reserve transactions never experience SQLite lock timeouts.
-- **Release Scanning Throughput**:
-  - Pass 1: 1205.4 blocks/s
-  - Pass 2: 1215.1 blocks/s
-  - Pass 3: 1203.1 blocks/s
-  - Range: 1203.1 – 1215.1 blocks/s under standard daemon and container operation.
+- **Scanning Throughput**: the earlier "three release runs" figures (1203–1215 blocks/s) have no committed raw logs and were not reproduced during cleanup; treat them as **unverified**. The committed measurement is `packages/core/tests/logs/benchmark_and_concurrency.log` (debug profile, 5000 synthetic blocks): batch size 25 = 1664.4, batch size 50 = 1677.3, batch size 100 = 1664.4 blocks/sec.
 
 ### Item 7: ShardStore Crate Audit
 - `SqliteShardStore` is defined at `zcash_client_sqlite-0.22.0/src/commitment_tree.rs:112`.

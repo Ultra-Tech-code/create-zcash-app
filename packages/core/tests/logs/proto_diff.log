@@ -1,0 +1,53 @@
+=== PROTO DIFF: upstream zcash/lightwallet-protocol (main) vs packages/sdk/proto ===
+Fetched: Sat Oct 24 16:48:25 UTC 2026
+URLs:
+  https://raw.githubusercontent.com/zcash/lightwallet-protocol/main/walletrpc/compact_formats.proto
+  https://raw.githubusercontent.com/zcash/lightwallet-protocol/main/walletrpc/service.proto
+
+--- sha256 ---
+d8d0c8aaa5ceec7d5dcc188ef25b04011df2ec0254901620fce982fc13aeb32d  /tmp/proto-check/compact_formats.upstream.proto
+d8d0c8aaa5ceec7d5dcc188ef25b04011df2ec0254901620fce982fc13aeb32d  packages/sdk/proto/compact_formats.proto
+9352e90977cfd55ead3a0b97048c40d673ad0024d33882ae89e15727fad19138  /tmp/proto-check/service.upstream.proto
+6fbfa974081fb02366a3118a25764af289bdbb86688978f5ff2bae661dfa346a  packages/sdk/proto/service.proto
+
+--- diff -u upstream compact_formats.proto  packages/sdk/proto/compact_formats.proto ---
+(no differences: files are byte-identical)
+
+--- diff -u upstream service.proto  packages/sdk/proto/service.proto ---
+--- /tmp/proto-check/service.upstream.proto	2026-10-24 17:47:37
++++ packages/sdk/proto/service.proto	2026-10-14 11:09:40
+@@ -143,15 +143,6 @@
+ message PingResponse {
+     int64 entry = 1;
+     int64 exit = 2;
+-}
+-
+-// StandardFee is the reply to the GetStandardFee rpc: the ZIP 317
+-// marginal fee, in zatoshis per logical action, that wallets should
+-// pay for a transaction to be mined in the next block, as reported by
+-// the backend's `getstandardfee` RPC.
+-message StandardFee {
+-    uint64 feeZat = 1;           // standard fee in zatoshis per logical action
+-    uint32 estimatorVersion = 2; // backend fee-estimator version, 0 = static ZIP 317 marginal fee
+ }
+ 
+ message Address {
+@@ -335,13 +326,6 @@
+     // Return information about this lightwalletd instance and the blockchain
+     rpc GetLightdInfo(Empty) returns (LightdInfo) {}
+ 
+-    // Return the standard fee (the ZIP 317 marginal fee, in zatoshis per
+-    // logical action) that the backend recommends wallets pay for a
+-    // transaction to be mined in the next block. Requires a backend that
+-    // implements the `getstandardfee` RPC. Backends that lack it return
+-    // Unimplemented.
+-    rpc GetStandardFee(Empty) returns (StandardFee) {}
+-
+     // Testing-only, requires lightwalletd --ping-very-insecure (do not enable in production)
+     rpc Ping(Duration) returns (PingResponse) {}
+ }
+
+Result: compact_formats.proto is byte-identical to upstream. service.proto drifts only by the
+upstream GetStandardFee/StandardFee additions, which this SDK does not call (it uses the
+CompactTxStreamer methods only). The CompactTx/ChainMetadata field numbers relied on by the
+core tests (fee=3, ironwood_actions=9, ironwood_commitment_tree_size=3) are unchanged upstream.
