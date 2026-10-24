@@ -347,4 +347,20 @@ fn test_schema_v1_to_v2_migration_in_place_preserves_reservations() {
     assert_eq!(res_state_after, "reserved", "State must remain reserved");
     assert_eq!(res_note_id_after, None, "note_id MUST be set to NULL via ON DELETE SET NULL");
     println!("  SUCCESS: note_id was set to NULL on delete, reservation remains active with nullifier intact!");
+
+    // 7. Assert via sqlite_master that idx_pending_spends_txid and idx_pending_spends_state exist after migration
+    let txid_idx_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = 'idx_pending_spends_txid'",
+        [],
+        |r| r.get(0),
+    ).expect("query idx_pending_spends_txid");
+    assert_eq!(txid_idx_count, 1, "idx_pending_spends_txid must exist after v2 migration");
+
+    let state_idx_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = 'idx_pending_spends_state'",
+        [],
+        |r| r.get(0),
+    ).expect("query idx_pending_spends_state");
+    assert_eq!(state_idx_count, 1, "idx_pending_spends_state must exist after v2 migration");
+    println!("  SUCCESS: Verified idx_pending_spends_txid and idx_pending_spends_state exist in sqlite_master after v2 migration!");
 }

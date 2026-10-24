@@ -1,0 +1,21 @@
+
+running 1 test
+
+=== LIVE TEST: COMPARE WALLET SHARDTREE ROOT TO RAW ZEBRA GETTREESTATE ===
+  Live Zebra tip height: 115
+  Height 105: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 106: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 107: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 108: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 109: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 110: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 111: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 112: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 113: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 114: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+  Height 115: finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f strictly matches decoded finalState!
+SUCCESS: Verified 11 live heights against raw Zebra z_gettreestate!
+test test_live_zebra_gettreestate_window_comparison ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 1.51s
+

@@ -9,6 +9,36 @@ use zcash_core::{
 };
 use zcash_note_encryption::{try_compact_note_decryption, Domain};
 
+/// Drive `scan_block_batch` to completion over `blocks`, re-submitting from
+/// the last scanned height on each time-budget early-return.  This mirrors
+/// what the real sync loop does and lets tests pass the full slice without
+/// caring about internal batch boundaries.
+fn scan_all(
+    conn: &mut rusqlite::Connection,
+    account_id: &str,
+    fvk: &FullViewingKey,
+    network: &DynamicNetwork,
+    blocks: &[CompactBlock],
+) {
+    let mut remaining = blocks;
+    while !remaining.is_empty() {
+        match Scanner::scan_block_batch(conn, account_id, fvk, network, remaining)
+            .expect("scan_all: scan_block_batch failed")
+        {
+            ScanResult::Synced { last_scanned_height, .. } => {
+                // Advance past already-scanned blocks
+                let consumed = remaining
+                    .iter()
+                    .position(|b| b.height > last_scanned_height as u64)
+                    .unwrap_or(remaining.len());
+                remaining = &remaining[consumed..];
+            }
+            ScanResult::NeedAncestorHashes { .. } => break,
+        }
+    }
+}
+
+
 fn create_encrypted_action_v3(
     fvk: &FullViewingKey,
     scope: Scope,
@@ -198,13 +228,13 @@ fn test_persisted_equals_rescan_bit_for_bit() {
         blocks.push(block);
     }
 
-    // Scan all blocks into DB 1
+    // Scan all blocks into DB 1 (loops to handle time-budget early-returns)
     println!("  Scanning 10 blocks into DB 1...");
-    Scanner::scan_block_batch(db1.conn_mut(), "acct0", &fvk, &network, &blocks).expect("scan db1");
+    scan_all(db1.conn_mut(), "acct0", &fvk, &network, &blocks);
 
     // Scan all blocks into fresh DB 2 (rescan simulation)
     println!("  Rescanning identical 10 blocks into DB 2...");
-    Scanner::scan_block_batch(db2.conn_mut(), "acct0", &fvk, &network, &blocks).expect("scan db2");
+    scan_all(db2.conn_mut(), "acct0", &fvk, &network, &blocks);
 
     // Assert that received_notes match bit-for-bit across both databases
     let notes1: Vec<(i64, i64, Vec<u8>)> = db1.conn().prepare("SELECT value_zatoshis, tree_position, nullifier FROM received_notes ORDER BY tree_position ASC")
@@ -288,9 +318,8 @@ fn test_sliding_window_prunes_headers_without_deleting_notes() {
     }
 
     println!("  Scanning 150 blocks to exceed 100-block sliding window...");
-    for chunk in blocks.chunks(50) {
-        Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, chunk).expect("chunk scan");
-    }
+    scan_all(db.conn_mut(), "acct0", &fvk, &network, &blocks);
+
 
     // Check scanned_blocks: oldest block retained must be >= 51
     let min_height: u32 = db.conn().query_row("SELECT MIN(height) FROM scanned_blocks", [], |r| r.get(0)).expect("min");
@@ -590,7 +619,7 @@ fn test_real_child_process_sigkill_mid_batch_and_clean_resume() {
         });
         prev_hash = b_hash;
     }
-    Scanner::scan_block_batch(recovered_db.conn_mut(), "acct0", &fvk, &network, &resume_blocks).expect("resume scan");
+    scan_all(recovered_db.conn_mut(), "acct0", &fvk, &network, &resume_blocks);
 
     // Scan full range 2..=10 in clean control database
     let mut control_db = WalletDb::open_or_create(&control_db_path, "regtest", "fp_sigkill", Some(2)).expect("control db");
@@ -621,7 +650,7 @@ fn test_real_child_process_sigkill_mid_batch_and_clean_resume() {
         });
         prev_hash = b_hash;
     }
-    Scanner::scan_block_batch(control_db.conn_mut(), "acct0", &fvk, &network, &full_blocks).expect("control scan");
+    scan_all(control_db.conn_mut(), "acct0", &fvk, &network, &full_blocks);
 
     // Compare recovered DB against control DB: notes, positions, tree root
     let notes_rec: Vec<(i64, i64, Vec<u8>)> = recovered_db.conn().prepare("SELECT value_zatoshis, tree_position, nullifier FROM received_notes ORDER BY tree_position ASC")
@@ -784,19 +813,19 @@ fn test_persisted_vs_rescan_close_reopen_parity() {
     // 1. DB 1: scan N=4 blocks (2..=5)
     {
         let mut db1 = WalletDb::open_or_create(&db1_path, "regtest", "fp_parity", Some(2)).expect("db1 open");
-        Scanner::scan_block_batch(db1.conn_mut(), "acct0", &fvk, &network, &all_blocks[0..4]).expect("scan N blocks");
+        scan_all(db1.conn_mut(), "acct0", &fvk, &network, &all_blocks[0..4]);
         // Close DB 1
     }
 
     // 2. DB 1: reopen and scan M=4 blocks (6..=9)
     {
         let mut db1 = WalletDb::open_or_create(&db1_path, "regtest", "fp_parity", Some(2)).expect("db1 reopen");
-        Scanner::scan_block_batch(db1.conn_mut(), "acct0", &fvk, &network, &all_blocks[4..8]).expect("scan M blocks");
+        scan_all(db1.conn_mut(), "acct0", &fvk, &network, &all_blocks[4..8]);
     }
 
     // 3. DB 2: fresh DB scanning all N+M blocks (2..=9) in one pass
     let mut db2 = WalletDb::open_or_create(&db2_path, "regtest", "fp_parity", Some(2)).expect("db2 open");
-    Scanner::scan_block_batch(db2.conn_mut(), "acct0", &fvk, &network, &all_blocks).expect("scan N+M blocks");
+    scan_all(db2.conn_mut(), "acct0", &fvk, &network, &all_blocks);
 
     // 4. Compare DB 1 vs DB 2: notes, positions, nullifiers, spent state, tree roots, and witnesses
     let db1 = WalletDb::open_or_create(&db1_path, "regtest", "fp_parity", Some(2)).expect("db1 open for read");
@@ -1026,6 +1055,48 @@ fn test_decode_real_regtest_compact_block_and_missing_field_rejection() {
     println!("  Verified: Real regtest block decoding and strict missing metadata rejection verified!");
 }
 
+#[test]
+fn test_decode_real_regtest_funding_block_with_ironwood_actions() {
+    println!("\n=== TEST: DECODE REAL REGTEST FUNDING BLOCK (HEIGHT 108) WITH IRONWOOD ACTIONS ===");
+    let fixture_path = std::path::Path::new("tests/fixtures/real_funding_block.bin");
+    assert!(fixture_path.exists(), "real_funding_block.bin fixture must exist");
+
+    let bytes = std::fs::read(fixture_path).expect("read real_funding_block.bin");
+    let block = CompactBlock::decode(&bytes[..]).expect("decode real funding CompactBlock");
+
+    println!("  Decoded real funding block from Zaino: height = {}", block.height);
+    assert_eq!(block.height, 108, "Captured block height must be 108");
+
+    let metadata = block.chain_metadata.as_ref().expect("chain_metadata must be present");
+    println!("  chainMetadata.ironwoodCommitmentTreeSize = {}", metadata.ironwood_commitment_tree_size);
+    assert_eq!(metadata.ironwood_commitment_tree_size, 109, "Tree size at block 108 must be 109 commitments");
+
+    println!("  vtx count: {}", block.vtx.len());
+    assert_eq!(block.vtx.len(), 2, "Block 108 must contain exactly 2 transactions (coinbase + funding tx)");
+
+    // Tx 0: Coinbase transaction
+    let coinbase_tx = &block.vtx[0];
+    println!("  Tx 0 (coinbase): ironwood_actions = {}, orchard_actions = {}", coinbase_tx.ironwood_actions.len(), coinbase_tx.actions.len());
+    assert_eq!(coinbase_tx.ironwood_actions.len(), 1, "Coinbase tx must have 1 Ironwood action");
+    assert_eq!(coinbase_tx.actions.len(), 0, "Coinbase tx must have 0 Orchard actions");
+
+    // Tx 1: Funding transaction
+    let funding_tx = &block.vtx[1];
+    println!("  Tx 1 (funding):  ironwood_actions = {}, orchard_actions = {}, fee = {}", funding_tx.ironwood_actions.len(), funding_tx.actions.len(), funding_tx.fee);
+    assert_eq!(funding_tx.ironwood_actions.len(), 2, "Funding tx must contain exactly 2 Ironwood actions (spend/output/change)");
+    assert_eq!(funding_tx.actions.len(), 0, "Funding tx must have 0 Orchard actions");
+
+    // Assert actions have valid 32-byte nullifiers, cmx, and ephemeral keys
+    for (idx, act) in funding_tx.ironwood_actions.iter().enumerate() {
+        assert_eq!(act.nullifier.len(), 32, "Action {} nullifier must be 32 bytes", idx);
+        assert_eq!(act.cmx.len(), 32, "Action {} cmx must be 32 bytes", idx);
+        assert_eq!(act.ephemeral_key.len(), 32, "Action {} ephemeral_key must be 32 bytes", idx);
+        assert!(!act.ciphertext.is_empty(), "Action {} ciphertext must not be empty", idx);
+    }
+
+    println!("SUCCESS: Real captured regtest funding block decoded with verified non-empty Ironwood actions, fee, and tree size!");
+}
+
 struct MockBlockStreamer {
     requested_ranges: std::sync::Mutex<Vec<(u32, u32)>>,
 }
@@ -1086,7 +1157,8 @@ fn test_restart_fetches_zero_old_blocks() {
             });
             prev_hash = b_hash;
         }
-        Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &blocks).expect("scan initial");
+        scan_all(db.conn_mut(), "acct0", &fvk, &network, &blocks);
+
     }
 
     // 2. Restart wallet: inspect last_scanned_height and record fetch requests
@@ -1166,8 +1238,8 @@ fn test_periodic_root_check_mismatch_and_recovery() {
     }
 
     // Both databases scan canonical blocks 2..=5
-    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_blocks).expect("scan rec 2..5");
-    Scanner::scan_block_batch(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_blocks).expect("scan clean 2..5");
+    scan_all(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_blocks);
+    scan_all(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_blocks);
 
     // 2. Generate canonical blocks 6..=8
     let mut canonical_6_8 = Vec::new();
@@ -1200,7 +1272,7 @@ fn test_periodic_root_check_mismatch_and_recovery() {
     }
 
     // Clean DB scans canonical blocks 6..=8
-    Scanner::scan_block_batch(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_6_8).expect("scan clean 6..8");
+    scan_all(db_clean.conn_mut(), "acct0", &fvk, &network, &canonical_6_8);
 
     // 3. For db_rec, simulate scanning a bad fork at 6..=8 with different commitment hashes
     let other_sk = SpendingKey::from_bytes([202u8; 32]).unwrap();
@@ -1233,7 +1305,7 @@ fn test_periodic_root_check_mismatch_and_recovery() {
         });
         b_prev = b_hash;
     }
-    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &bad_fork_6_8).expect("scan bad fork");
+    scan_all(db_rec.conn_mut(), "acct0", &fvk, &network, &bad_fork_6_8);
 
     // Compare roots at height 8
     let store_rec = zcash_core::SqliteShardStore::new(db_rec.conn(), "ironwood_tree");
@@ -1264,7 +1336,7 @@ fn test_periodic_root_check_mismatch_and_recovery() {
     assert_eq!(resolved_fork, 5, "Reorg recovery must roll back cleanly to verified checkpoint 5");
 
     // Rescan canonical blocks 6..=8 into db_rec
-    Scanner::scan_block_batch(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_6_8).expect("rescan canonical");
+    scan_all(db_rec.conn_mut(), "acct0", &fvk, &network, &canonical_6_8);
 
     // 5. ASSERT PARITY: recovered DB must equal clean scan DB bit-for-bit
     let store_rec_final = zcash_core::SqliteShardStore::new(db_rec.conn(), "ironwood_tree");
@@ -1514,8 +1586,11 @@ fn test_reorg_depth_exceeded_beyond_100_block_window() {
     println!("SUCCESS: Reorg depth exceeding 100 blocks rejected with ReorgTooDeep error!");
 }
 
+static TIME_BUDGET_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 #[test]
 fn test_time_bounded_batching_yields_write_lock_under_slow_scan() {
+    let _lock = TIME_BUDGET_TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     println!("\n=== TEST: TIME-BOUNDED BATCHING COMMITS AT 500MS BUDGET TO PREVENT LOCK TIMEOUTS ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
     let db_path = temp_dir.path().join("time_bounded.db");
@@ -1771,3 +1846,144 @@ fn test_activation_scan_prevents_unseeded_tree_gap() {
 
     println!("  Verified: Scanner strictly requires continuous scan from activation height to guarantee witness validity!");
 }
+
+#[test]
+fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
+    let _lock = TIME_BUDGET_TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    println!("\n=== TEST: TIME-BOUNDED BATCH INTERRUPTION & RESUME PARITY ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let interrupted_db_path = temp_dir.path().join("wallet_interrupted.db");
+    let control_db_path = temp_dir.path().join("wallet_control.db");
+
+    let mut interrupted_db = WalletDb::open_or_create(&interrupted_db_path, "regtest", "fp_time_bound", Some(2)).expect("db1");
+    let mut control_db = WalletDb::open_or_create(&control_db_path, "regtest", "fp_time_bound", Some(2)).expect("db2");
+
+    let sk = SpendingKey::from_bytes([98u8; 32]).expect("sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
+
+    // Generate 10 blocks (height 2..=11) with owned notes at blocks 3, 6, 9
+    let mut all_blocks = Vec::new();
+    let mut prev_hash = vec![0x00; 32];
+
+    for (tree_idx, h) in (2u64..=11).enumerate() {
+        let tree_sz = (tree_idx as u32) + 1;
+        let (act, _, _) = if h % 3 == 0 {
+            create_encrypted_action_v3(&fvk, Scope::External, 100_000 * h, h as u8)
+        } else {
+            create_encrypted_action_v3(&fvk, Scope::Internal, 50_000 * h, h as u8)
+        };
+
+        let mut b_hash = vec![0u8; 32];
+        b_hash[0] = h as u8;
+        all_blocks.push(CompactBlock {
+            height: h,
+            hash: b_hash.clone(),
+            prev_hash: prev_hash.clone(),
+            time: 2000 + (h as u32) * 10,
+            header: vec![],
+            vtx: vec![CompactTx {
+                index: 0,
+                txid: b_hash.clone(),
+                fee: 10_000,
+                actions: vec![],
+                ironwood_actions: vec![act],
+            }],
+            chain_metadata: Some(ChainMetadata {
+                sapling_commitment_tree_size: 0,
+                orchard_commitment_tree_size: 0,
+                ironwood_commitment_tree_size: tree_sz,
+            }),
+        });
+        prev_hash = b_hash;
+    }
+
+    // 1. Scan interrupted_db with simulated slow scan (110ms per block sleep)
+    // 500ms budget will be exceeded after ~5 blocks, yielding early!
+    println!("  Simulating slow scan with 110ms per-block delay (TIME_BUDGET_MS = 500ms)...");
+    zcash_core::INJECT_BATCH_SLEEP_MS.store(110, std::sync::atomic::Ordering::SeqCst);
+
+    let res1 = Scanner::scan_block_batch(interrupted_db.conn_mut(), "acct0", &fvk, &network, &all_blocks)
+        .expect("interrupted scan");
+
+    zcash_core::INJECT_BATCH_SLEEP_MS.store(0, std::sync::atomic::Ordering::SeqCst);
+
+    let stopped_at_height = match res1 {
+        ScanResult::Synced { last_scanned_height, notes_detected } => {
+            println!("  Time budget reached! Batch yielded early at height {} (detected {} notes)", last_scanned_height, notes_detected);
+            assert!(last_scanned_height < 11, "Batch must have yielded before end height 11 due to 500ms budget!");
+            assert!(last_scanned_height >= 4, "Batch must have scanned at least 4 blocks before 500ms expired");
+            last_scanned_height
+        }
+        other => panic!("Expected Synced result, got {:?}", other),
+    };
+
+    // Resume from stopped_at_height + 1 to 11
+    let resume_slice = &all_blocks[(stopped_at_height as usize - 1)..];
+    println!("  Resuming sync from height {} to tip 11...", stopped_at_height + 1);
+    let res2 = Scanner::scan_block_batch(interrupted_db.conn_mut(), "acct0", &fvk, &network, resume_slice)
+        .expect("resume scan");
+
+    match res2 {
+        ScanResult::Synced { last_scanned_height, notes_detected } => {
+            assert_eq!(last_scanned_height, 11, "Resumed sync must reach tip height 11");
+            println!("  Resumed sync reached tip 11 (+{} notes detected)", notes_detected);
+        }
+        other => panic!("Expected Synced result on resume, got {:?}", other),
+    }
+
+    // 2. Control scan: scan all 10 blocks in one uninterrupted pass
+    println!("  Scanning uninterrupted control DB in single pass...");
+    let res_ctrl = Scanner::scan_block_batch(control_db.conn_mut(), "acct0", &fvk, &network, &all_blocks)
+        .expect("control scan");
+    match res_ctrl {
+        ScanResult::Synced { last_scanned_height, .. } => assert_eq!(last_scanned_height, 11),
+        other => panic!("Expected Synced, got {:?}", other),
+    }
+
+    // 3. Verify exact parity between interrupted/resumed DB and control DB
+    // a. Notes parity
+    let notes_interrupted: Vec<(i64, i64, Vec<u8>)> = interrupted_db.conn()
+        .prepare("SELECT value_zatoshis, tree_position, nullifier FROM received_notes ORDER BY tree_position ASC")
+        .expect("prep")
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))
+        .expect("q")
+        .map(|r| r.expect("r"))
+        .collect();
+
+    let notes_control: Vec<(i64, i64, Vec<u8>)> = control_db.conn()
+        .prepare("SELECT value_zatoshis, tree_position, nullifier FROM received_notes ORDER BY tree_position ASC")
+        .expect("prep")
+        .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))
+        .expect("q")
+        .map(|r| r.expect("r"))
+        .collect();
+
+    assert_eq!(notes_interrupted, notes_control, "Notes, positions, and values must match bit-for-bit");
+    assert_eq!(notes_interrupted.len(), 10, "All 10 blocks produced notes");
+
+    // b. Tree Root parity
+    let store1 = zcash_core::SqliteShardStore::new(interrupted_db.conn(), "ironwood_tree");
+    let tree1 = zcash_core::IronwoodShardTree::new(store1, 100);
+    let root1 = tree1.root_at_checkpoint_depth(Some(0)).expect("r1").expect("root1");
+
+    let store2 = zcash_core::SqliteShardStore::new(control_db.conn(), "ironwood_tree");
+    let tree2 = zcash_core::IronwoodShardTree::new(store2, 100);
+    let root2 = tree2.root_at_checkpoint_depth(Some(0)).expect("r2").expect("root2");
+
+    assert_eq!(root1, root2, "ShardTree root of resumed sync must match control root exactly");
+
+    // c. Merkle Witnesses parity for all owned notes
+    for pos in 0u64..10 {
+        let cp_height = zcash_protocol::consensus::BlockHeight::from_u32(11);
+        let wit1 = tree1.witness_at_checkpoint_id(incrementalmerkletree::Position::from(pos), &cp_height)
+            .expect("wit1").expect("wit1 exists");
+        let wit2 = tree2.witness_at_checkpoint_id(incrementalmerkletree::Position::from(pos), &cp_height)
+            .expect("wit2").expect("wit2 exists");
+
+        assert_eq!(wit1, wit2, "Witness MerklePath at position {} must match control witness bit-for-bit", pos);
+    }
+
+    println!("SUCCESS: Interrupted time-budgeted sync and resumed scan produced bit-for-bit identical state (notes, positions, tree root, witnesses)!");
+}
+
