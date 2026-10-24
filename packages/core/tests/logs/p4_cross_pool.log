@@ -1,0 +1,102 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.70s
+     Running unittests src/lib.rs (target/debug/deps/zcash_core-973e5a422135597e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/full_suite_test.rs (target/debug/deps/full_suite_test-377454dbc9722816)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
+
+     Running tests/pending_spends_test.rs (target/debug/deps/pending_spends_test-1a8b520f3048f966)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/reorg_test.rs (target/debug/deps/reorg_test-44681fde3c8c20a3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/scanner_test.rs (target/debug/deps/scanner_test-699fc057f9c7de40)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/shard_store_test.rs (target/debug/deps/shard_store_test-aa4c893c7c7febcd)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/spendable_test.rs (target/debug/deps/spendable_test-89f4c2edb881f3b6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/transaction_test.rs (target/debug/deps/transaction_test-a89e50a442b4cd6c)
+
+running 1 test
+
+=== P4 ANALYSIS: ORCHARD NOTE SPENT INTO IRONWOOD (TWO BUNDLES) ===
+--- 1. Crate Architecture Support ---
+- orchard crate: BundleVersion::orchard_v3() (Orchard pool) and BundleVersion::ironwood_v3() (Ironwood pool)
+- orchard::builder::Builder builds ONE bundle at a time for a single pool version.
+- Two distinct bundles require two separate Builder instances.
+- zcash_primitives::transaction::TransactionData::from_parts_v6 explicitly supports BOTH:
+    orchard_bundle: Option<orchard::Bundle<A::OrchardAuth, ZatBalance>>
+    ironwood_bundle: Option<orchard::Bundle<A::OrchardAuth, ZatBalance>>
+- V6 sighash (v6_signature_hash) commits to both orchard_digest and ironwood_digest.
+- Wire serialization (write_v6) writes orchard_bundle followed by ironwood_bundle.
+
+--- 2. Building Orchard Spend Bundle ---
+orchard_builder.add_spend(): Ok(())
+Orchard unproven bundle actions: 2
+Orchard unproven bundle value balance: 100000
+
+--- 3. Building Ironwood Output Bundle ---
+ironwood_builder.add_output(): Ok(())
+Ironwood unproven bundle actions: 2
+Ironwood unproven bundle value balance: -90000
+Net transaction fee: 10000 zatoshis
+
+--- 4. Assembling V6 Transaction with Both Bundles ---
+Canonical V6 sighash computed: 43c724d30cf7044e91221cf4a8345c163c9dad988d5fc78500c16359a2ba4cec
+
+--- 5. Generating Halo 2 Proofs for Both Bundles ---
+>>> [OnceLock] Building shared OrchardCircuitVersion::PostNu6_3 ProvingKey...
+>>> [OnceLock] ProvingKey built in 20716 ms
+Orchard bundle proof generated successfully!
+Ironwood bundle proof generated successfully!
+
+--- 6. Applying Signatures & Freezing Transaction ---
+Two-bundle V6 transaction built and frozen! TxID: ec4cbaa25963c10085c75f8d98ad9d3c165c34a8f41c22914e04f70cd324c743
+Serialized wire length: 18306 bytes
+Deserialization confirmed: both orchard_bundle and ironwood_bundle parsed successfully!
+
+--- 7. Attempting Broadcast to Live Regtest Zebra Node ---
+Raw Zebra JSON-RPC Broadcast Response:
+{"jsonrpc":"2.0","id":"p4-cross-pool","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: could not contextually validate transaction on best chain: unknown Orchard anchor: Root(\"d9ed557565d281bc804b72339bbfcdd41d95167adc5bfd088d0f5da6440fb008\"),\nNone, index in block: None, transaction::Hash(\"ec4cbaa25963c10085c75f8d98ad9d3c165c34a8f41c22914e04f70cd324c743\")"}}
+test test_p4_analyze_crate_support_and_two_bundles ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 43.65s
+
+     Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-d2dc7d0d577b40ef)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/wallet_handle_test.rs (target/debug/deps/wallet_handle_test-4111be13983bfa13)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+

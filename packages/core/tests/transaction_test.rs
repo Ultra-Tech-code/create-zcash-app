@@ -751,3 +751,195 @@ fn test_c_live_regtest_broadcast_and_mine() {
 
     println!("TEST (C) RESULT: SUCCESS (Live transaction broadcasted, mined into regtest block, and confirmed)");
 }
+
+#[test]
+fn test_p4_analyze_crate_support_and_two_bundles() {
+    println!("\n=== P4 ANALYSIS: ORCHARD NOTE SPENT INTO IRONWOOD (TWO BUNDLES) ===");
+    use orchard::bundle::BundleVersion;
+    use orchard::keys::SpendAuthorizingKey;
+    use zcash_primitives::transaction::sighash::SignableInput;
+    use zcash_primitives::transaction::sighash_v6::v6_signature_hash;
+    use zcash_primitives::transaction::txid::TxIdDigester;
+    use zcash_primitives::transaction::{TransactionData, Unauthorized};
+
+    // 1. Analyze Crate Support
+    println!("--- 1. Crate Architecture Support ---");
+    println!("- orchard crate: BundleVersion::orchard_v3() (Orchard pool) and BundleVersion::ironwood_v3() (Ironwood pool)");
+    println!("- orchard::builder::Builder builds ONE bundle at a time for a single pool version.");
+    println!("- Two distinct bundles require two separate Builder instances.");
+    println!("- zcash_primitives::transaction::TransactionData::from_parts_v6 explicitly supports BOTH:");
+    println!("    orchard_bundle: Option<orchard::Bundle<A::OrchardAuth, ZatBalance>>");
+    println!("    ironwood_bundle: Option<orchard::Bundle<A::OrchardAuth, ZatBalance>>");
+    println!("- V6 sighash (v6_signature_hash) commits to both orchard_digest and ironwood_digest.");
+    println!("- Wire serialization (write_v6) writes orchard_bundle followed by ironwood_bundle.");
+
+    // 2. Synthesize test keys and dummy anchor for Orchard spend
+    let sk = SpendingKey::from_bytes([99u8; 32]).expect("valid sk");
+    let fvk = FullViewingKey::from(&sk);
+    let addr = fvk.address_at(0u32, Scope::External);
+    let rho = Rho::from_bytes(&[1u8; 32]).unwrap();
+    let rseed = RandomSeed::from_bytes([2u8; 32], &rho).unwrap();
+    
+    // Create an Orchard V2 note (classic Orchard pool) with 100,000 zatoshis
+    let orchard_v2_note = Note::from_parts(addr, NoteValue::from_raw(100_000), rho, rseed, NoteVersion::V2).unwrap();
+    assert_eq!(orchard_v2_note.version(), NoteVersion::V2);
+
+    let mut tree = CommitmentTree::<MerkleHashOrchard, 32>::empty();
+    let cmx: orchard::note::ExtractedNoteCommitment = orchard_v2_note.commitment().into();
+    let leaf = MerkleHashOrchard::from_bytes(&cmx.to_bytes()).unwrap();
+    tree.append(leaf).unwrap();
+    let wit = IncrementalWitness::from_tree(tree.clone()).unwrap();
+    let path = MerklePath::from(wit.path().unwrap());
+    let anchor: orchard::Anchor = tree.root().into();
+
+    let mut rng = rand::rngs::OsRng;
+
+    // 3. Build Orchard Spend Bundle (ValueBalance = +100,000 zatoshis exiting Orchard pool)
+    println!("\n--- 2. Building Orchard Spend Bundle ---");
+    let mut orchard_builder = orchard::builder::Builder::new(
+        orchard::builder::BundleType::DEFAULT,
+        BundleVersion::orchard_v3(),
+        BundleVersion::orchard_v3().default_flags(),
+        anchor,
+    ).unwrap();
+    let add_spend_res = orchard_builder.add_spend(fvk.clone(), orchard_v2_note, path);
+    println!("orchard_builder.add_spend(): {:?}", add_spend_res);
+    assert!(add_spend_res.is_ok());
+
+    let (orchard_unproven, _) = orchard_builder.build::<i64>(&mut rng).unwrap().unwrap();
+    println!("Orchard unproven bundle actions: {}", orchard_unproven.actions().len());
+    println!("Orchard unproven bundle value balance: {}", orchard_unproven.value_balance());
+    assert_eq!(*orchard_unproven.value_balance(), 100_000);
+
+    // 4. Build Ironwood Output Bundle (ValueBalance = -90,000 zatoshis entering Ironwood pool)
+    println!("\n--- 3. Building Ironwood Output Bundle ---");
+    let mut ironwood_builder = orchard::builder::Builder::new(
+        orchard::builder::BundleType::DEFAULT,
+        BundleVersion::ironwood_v3(),
+        BundleVersion::ironwood_v3().default_flags(),
+        anchor,
+    ).unwrap();
+    let add_out_res = ironwood_builder.add_output(None, addr, NoteValue::from_raw(90_000), ZIP302_NO_MEMO);
+    println!("ironwood_builder.add_output(): {:?}", add_out_res);
+    assert!(add_out_res.is_ok());
+
+    let (ironwood_unproven, _) = ironwood_builder.build::<i64>(&mut rng).unwrap().unwrap();
+    println!("Ironwood unproven bundle actions: {}", ironwood_unproven.actions().len());
+    println!("Ironwood unproven bundle value balance: {}", ironwood_unproven.value_balance());
+    assert_eq!(*ironwood_unproven.value_balance(), -90_000);
+
+
+    // Net value balance across bundles: 100,000 + (-90,000) = 10,000 fee
+    let net_balance = *orchard_unproven.value_balance() + *ironwood_unproven.value_balance();
+    println!("Net transaction fee: {} zatoshis", net_balance);
+    assert_eq!(net_balance, 10_000);
+
+    // 5. Assemble V6 TransactionData<Unauthorized> with BOTH bundles and compute V6 Sighash
+    println!("\n--- 4. Assembling V6 Transaction with Both Bundles ---");
+    let orchard_unproven_zat = orchard_unproven
+        .clone()
+        .try_map_value_balance(ZatBalance::from_i64)
+        .expect("valid orchard ZatBalance");
+    let ironwood_unproven_zat = ironwood_unproven
+        .clone()
+        .try_map_value_balance(ZatBalance::from_i64)
+        .expect("valid ironwood ZatBalance");
+
+    let tx_for_sighash: TransactionData<Unauthorized> = TransactionData::from_parts_v6(
+        BranchId::Nu6_3,
+        0, // lock_time
+        BlockHeight::from_u32(150),
+        None, // transparent_bundle
+        None, // sapling_bundle
+        Some(orchard_unproven_zat),  // orchard_bundle
+        Some(ironwood_unproven_zat), // ironwood_bundle
+    );
+
+    let txid_parts = tx_for_sighash.digest(TxIdDigester);
+    let sighash = v6_signature_hash(&tx_for_sighash, &SignableInput::Shielded, &txid_parts);
+    let sighash_bytes: [u8; 32] = sighash.as_bytes().try_into().expect("32 bytes");
+    println!("Canonical V6 sighash computed: {}", hex::encode(sighash_bytes));
+
+    // 6. Generate Halo 2 ZK proofs for both bundles
+    println!("\n--- 5. Generating Halo 2 Proofs for Both Bundles ---");
+    let pk = get_shared_proving_key();
+    let orchard_proven = orchard_unproven
+        .create_proof(pk, &mut rng)
+        .expect("orchard bundle proof creation");
+    println!("Orchard bundle proof generated successfully!");
+
+    let ironwood_proven = ironwood_unproven
+        .create_proof(pk, &mut rng)
+        .expect("ironwood bundle proof creation");
+    println!("Ironwood bundle proof generated successfully!");
+
+    // 7. Apply RedPallas spend authorization signatures
+    println!("\n--- 6. Applying Signatures & Freezing Transaction ---");
+    let ask = SpendAuthorizingKey::from(&sk);
+    let orchard_authorized = orchard_proven
+        .apply_signatures(rng, sighash_bytes, &[ask])
+        .expect("orchard signing");
+    let ironwood_authorized = ironwood_proven
+        .apply_signatures(rng, sighash_bytes, &[])
+        .expect("ironwood signing");
+
+    let orchard_auth_zat = orchard_authorized
+        .try_map_value_balance(ZatBalance::from_i64)
+        .unwrap();
+    let ironwood_auth_zat = ironwood_authorized
+        .try_map_value_balance(ZatBalance::from_i64)
+        .unwrap();
+
+    let final_tx_data: TransactionData<zcash_primitives::transaction::Authorized> = TransactionData::from_parts_v6(
+        BranchId::Nu6_3,
+        0,
+        BlockHeight::from_u32(150),
+        None,
+        None,
+        Some(orchard_auth_zat),
+        Some(ironwood_auth_zat),
+    );
+
+    let tx = final_tx_data.freeze().expect("freeze two-bundle transaction");
+    let txid = tx.txid();
+    println!("Two-bundle V6 transaction built and frozen! TxID: {}", txid);
+
+    let mut raw_bytes = Vec::new();
+    tx.write(&mut raw_bytes).expect("serialize two-bundle transaction");
+    println!("Serialized wire length: {} bytes", raw_bytes.len());
+
+    // 8. Canonical deserialization check
+    let mut reader = &raw_bytes[..];
+    let read_tx = Transaction::read(&mut reader, BranchId::Nu6_3)
+        .expect("Transaction::read on two-bundle transaction");
+    assert!(read_tx.orchard_bundle().is_some(), "orchard_bundle must be present");
+    assert!(read_tx.ironwood_bundle().is_some(), "ironwood_bundle must be present");
+    println!("Deserialization confirmed: both orchard_bundle and ironwood_bundle parsed successfully!");
+
+    // 9. Live Regtest Broadcast Attempt
+    println!("\n--- 7. Attempting Broadcast to Live Regtest Zebra Node ---");
+    let raw_tx_hex = hex::encode(&raw_bytes);
+    let broadcast_payload = format!(
+        r#"{{"jsonrpc":"2.0","id":"p4-cross-pool","method":"sendrawtransaction","params":["{}"]}}"#,
+        raw_tx_hex
+    );
+
+    let curl_output = std::process::Command::new("curl")
+        .args([
+            "-s",
+            "-X", "POST",
+            "http://127.0.0.1:8181",
+            "-H", "Content-Type: application/json",
+            "-d", &broadcast_payload,
+        ])
+        .output();
+
+    if let Ok(output) = curl_output {
+        let resp_str = String::from_utf8_lossy(&output.stdout);
+        println!("Raw Zebra JSON-RPC Broadcast Response:\n{}", resp_str.trim());
+    } else {
+        println!("Curl command could not be executed");
+    }
+}
+
+
