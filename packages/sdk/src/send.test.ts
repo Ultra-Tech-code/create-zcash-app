@@ -358,6 +358,128 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     expect(runSql('SELECT count(*) FROM pending_spends;')).toBe('0');
   });
 
+  it('Scenario 6: an undecodable node frontier aborts before build and leaves no reservation', async () => {
+    insertMockNote(6, 500_000_000, 2, 'f1'.repeat(32));
+
+    const mockClient = createMockClient();
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
+    vi.spyOn(mockClient, 'getTreeState').mockResolvedValue({
+      network: 'regtest',
+      height: '5',
+      hash: '00'.repeat(32),
+      time: 1000,
+      saplingTree: '00',
+      orchardTree: '00',
+      // Non-canonical Pallas encoding: well-formed-length but undecodable.
+      ironwoodTree: '01' + 'ff'.repeat(32) + '00' + '00',
+    } as TreeState);
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 6,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f1'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction');
+
+    await expect(
+      send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      })
+    ).rejects.toThrow(/Cannot verify anchor against node at height 5: undecodable Ironwood frontier/);
+
+    expect(buildSpy).not.toHaveBeenCalled();
+    expect(runSql('SELECT count(*) FROM pending_spends;')).toBe('0');
+  });
+
+  it('Scenario 7: an unreachable node aborts before build and leaves no reservation', async () => {
+    insertMockNote(7, 500_000_000, 2, 'f2'.repeat(32));
+
+    const mockClient = createMockClient();
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
+    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137'));
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 7,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f2'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction');
+
+    await expect(
+      send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      })
+    ).rejects.toThrow(/Cannot verify anchor against node at height 5: getTreeState failed/);
+
+    expect(buildSpy).not.toHaveBeenCalled();
+    expect(runSql('SELECT count(*) FROM pending_spends;')).toBe('0');
+  });
+
+  it('Scenario 8: an unreachable node with allowUnverifiedAnchor=true proceeds with the local root', async () => {
+    insertMockNote(8, 500_000_000, 2, 'f3'.repeat(32));
+
+    const mockClient = createMockClient();
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
+    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137'));
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 8,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f3'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+      txid: 'aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899',
+      rawBytes: Buffer.alloc(64, 0x02),
+      fee: 10000,
+      numActions: 2,
+      expiryHeight: 50,
+    } as JsBuiltTransaction);
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const result = await send({
+      client: mockClient,
+      wallet,
+      from: 0,
+      to: 'uregtest1recipient...',
+      amount: 100_000_000n,
+      allowUnverifiedAnchor: true,
+    });
+
+    expect(result.txid).toBe('aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899');
+    expect(buildSpy).toHaveBeenCalledTimes(1);
+    expect(runSql('SELECT state FROM pending_spends WHERE note_id = 8;')).toBe('broadcast');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('NOT verified against the node'));
+
+    warnSpy.mockRestore();
+  });
+
   it('verifies quoteFee and warmupProver exports against FeeRule::standard()', () => {
     expect(typeof warmupProver).toBe('function');
     expect(() => warmupProver()).not.toThrow();

@@ -1,0 +1,230 @@
+=== [1/4] Running Cargo Tests ===
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+     Running unittests src/lib.rs (target/debug/deps/zcash_core-973e5a422135597e)
+
+running 3 tests
+test tests::test_decrypt_action_computes_nullifier ... ok
+test tests::test_internal_ironwood_change_note_decryption ... ok
+test tests::test_derive_account_regtest ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.29s
+
+     Running tests/full_suite_test.rs (target/debug/deps/full_suite_test-377454dbc9722816)
+
+running 19 tests
+test test_decode_real_regtest_funding_block_with_ironwood_actions ... ok
+test test_decode_real_regtest_compact_block_and_missing_field_rejection ... ok
+test test_chain_reset_first_scanned_hash_mismatch ... ok
+test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+test test_activation_scan_prevents_unseeded_tree_gap ... ok
+test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
+test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
+test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
+test test_atomicity_crash_rollback_on_batch_failure ... ok
+test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
+test test_periodic_root_check_mismatch_and_recovery ... ok
+test test_restart_fetches_zero_old_blocks ... ok
+test test_persisted_vs_rescan_close_reopen_parity ... ok
+test test_persisted_equals_rescan_bit_for_bit ... ok
+test test_real_child_process_sigkill_mid_batch_and_clean_resume ... ok
+test test_time_bounded_batch_interruption_and_clean_resume_parity ... ok
+test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
+test test_sliding_window_prunes_headers_without_deleting_notes ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.93s
+
+     Running tests/pending_spends_test.rs (target/debug/deps/pending_spends_test-1a8b520f3048f966)
+
+running 3 tests
+test test_slow_proving_heartbeat_refresh_preserves_reservation ... ok
+test test_stale_reservation_and_expired_tx_cleanup ... ok
+test test_reserve_notes_and_state_transitions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/reorg_test.rs (target/debug/deps/reorg_test-44681fde3c8c20a3)
+
+running 3 tests
+test test_chain_identity_reset_error ... ok
+test test_reorg_preserves_in_flight_reservation_on_valid_note ... ok
+test test_reorg_detection_and_resolution_walkback ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/scanner_test.rs (target/debug/deps/scanner_test-699fc057f9c7de40)
+
+running 5 tests
+test test_scanner_rejects_missing_metadata ... ok
+test test_scanner_rejects_malformed_action ... ok
+test test_scanner_detects_tree_size_gap ... ok
+test test_scanner_dual_scope_and_positions_and_spend_detection ... ok
+test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 10.59s
+
+     Running tests/shard_store_test.rs (target/debug/deps/shard_store_test-aa4c893c7c7febcd)
+
+running 5 tests
+test test_live_zebra_gettreestate_window_comparison ... ignored
+test test_decode_zaino_frontier_hex ... ok
+test test_decode_zaino_tampered_frontier_fails_or_mismatches ... ok
+test test_shard_store_matches_memory_shard_store_roundtrip ... ok
+test test_p1_vs_p2_anchor_comparison ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 10.76s
+
+     Running tests/spendable_test.rs (target/debug/deps/spendable_test-89f4c2edb881f3b6)
+
+running 4 tests
+test test_reorg_orphaned_reservation_blocks_spending_before_relink ... ok
+test test_builder_note_query_rejects_spent_above_anchor_and_unwitnessed_notes ... ok
+test test_spendable_notes_confirmation_boundaries_and_anchor_filtering ... ok
+test test_builder_integration_with_spendable_notes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 33.18s
+
+     Running tests/transaction_test.rs (target/debug/deps/transaction_test-a89e50a442b4cd6c)
+
+running 11 tests
+test test_c_live_regtest_broadcast_and_mine ... ignored
+test test_p6_zip317_fee_parity_with_crate_feerule ... ok
+test test_amendment2_zip302_default_memo ... ok
+test test_amendment4_action_padding ... ok
+test test_a_pure_rust_multi_input_multi_output has been running for over 60 seconds
+test test_amendment1_zip317_fee_strictness has been running for over 60 seconds
+test test_amendment3_ovk_policy has been running for over 60 seconds
+test test_amendment5_anchor_and_expiry has been running for over 60 seconds
+test test_amendments_6_and_7_security_and_error_handling has been running for over 60 seconds
+test test_b_round_trip_transaction_read_and_txid has been running for over 60 seconds
+test test_p4_analyze_crate_support_and_two_bundles has been running for over 60 seconds
+test test_amendment5_anchor_and_expiry ... ok
+test test_amendment3_ovk_policy ... ok
+test test_amendment1_zip317_fee_strictness ... ok
+test test_amendments_6_and_7_security_and_error_handling ... ok
+test test_b_round_trip_transaction_read_and_txid ... ok
+test test_a_pure_rust_multi_input_multi_output ... ok
+test test_p4_analyze_crate_support_and_two_bundles ... ok
+
+test result: ok. 10 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 102.42s
+
+     Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-d2dc7d0d577b40ef)
+
+running 5 tests
+test test_nu6_3_activation_heights_from_consensus ... ok
+test test_schema_v1_to_v2_migration_in_place_preserves_reservations ... ok
+test test_notes_unique_txid_action_constraint ... ok
+test test_schema_initialization_and_permissions ... ok
+test test_metadata_binding_and_mismatch ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/wallet_handle_test.rs (target/debug/deps/wallet_handle_test-4111be13983bfa13)
+
+running 1 test
+test test_wallet_handle_lifecycle_and_async_scan ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.36s
+
+   Doc-tests zcash_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+=== [2/4] Running Cargo Clippy ===
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.48s
+=== [3/4] Running SDK Tests ===
+$ vitest run
+
+ RUN  v2.1.9 /Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk
+
+ ✓ src/spend-tracking.test.ts (2 tests) 4ms
+ ✓ src/mainnet-guard.test.ts (3 tests) 4ms
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    000000
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    000000
+
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > makes zero block requests when already at tip, and requests only >= last_scanned+1 on advance
+[Sync] Wallet already synced at tip height 0. Fetching 0 old blocks.
+[Sync] Wallet already synced at tip height 15. Fetching 0 old blocks.
+[Sync] Starting sync from height 16 to tip 25 (batch size: 10)...
+
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false
+[Sync] Wallet already synced at tip height 10. Fetching 0 old blocks.
+[Sync] Wallet already synced at tip height 10. Fetching 0 old blocks.
+
+ ✓ src/sync.test.ts (2 tests) 949ms
+   ✓ SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false 897ms
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    000000
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 3: Send during a running sync (verifies non-blocking write lock yield)
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    000000
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 4: Pending note stays excluded until mined or expires
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    000000
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Zaino Root:    b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] Mismatch! Wallet root null != Zaino frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+[Sync] Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Zaino ironwoodTree:    01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] Warning: GetTreeState verification returned error: Failed to parse commitment tree: Non-canonical encoding of Pallas base field value.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] Warning: GetTreeState verification returned error: 14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 8: an unreachable node with allowUnverifiedAnchor=true proceeds with the local root
+[Sync] Starting sync from height 2 to tip 10 (batch size: 50)...
+
+ ✓ src/send.test.ts (9 tests) 1236ms
+   ✓ P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root 620ms
+
+ Test Files  4 passed (4)
+      Tests  16 passed (16)
+   Start at  17:46:26
+   Duration  1.97s (transform 323ms, setup 0ms, collect 1.03s, tests 2.19s, environment 1ms, prepare 305ms)
+
+=== [4/4] Running Gitleaks Scan ===
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m5:46PM[0m [32mINF[0m [1m60 commits scanned.[0m
+[90m5:46PM[0m [32mINF[0m [1mscanned ~1352405 bytes (1.35 MB) in 338ms[0m
+[90m5:46PM[0m [32mINF[0m [1mno leaks found[0m
+=== VERIFY SUCCESS: All 4 checks passed cleanly! ===

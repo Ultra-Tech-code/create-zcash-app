@@ -8,7 +8,7 @@ import {
   warmupProver as coreWarmupProver,
   decodeIronwoodFrontierRoot,
 } from '@zcash-app/core';
-import { ZcashClient } from './client.js';
+import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
 import { Account } from './types.js';
 
@@ -26,6 +26,20 @@ export interface SendOptions {
   memo?: string;
   minConfs?: number;
   anchorHeight?: number;
+  /**
+   * Dev/offline escape hatch. When the node's Ironwood frontier cannot be fetched or decoded,
+   * a send is refused by default because the anchor cannot be verified against consensus.
+   * Set this to true to send with only the local anchor root (a warning is logged).
+   */
+  allowUnverifiedAnchor?: boolean;
+}
+
+/** Thrown when the anchor cannot be checked against the node and no explicit override was given. */
+export class AnchorVerificationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AnchorVerificationError';
+  }
 }
 
 export interface SendResult {
@@ -110,27 +124,51 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     }
   }
 
-  // Verify local root against remote tree state
+  // Verify local root against the node's Ironwood frontier. Fails closed: a send is refused
+  // unless the anchor was actually checked, or the caller explicitly opted out for dev.
   const localRootBuf = wallet.getTreeRootAtHeight(anchorHeight);
   if (!localRootBuf) {
     throw new Error(`No commitment tree checkpoint found at anchor height ${anchorHeight}`);
   }
+  const localRootHex = localRootBuf.toString('hex');
+  const allowUnverifiedAnchor = opts.allowUnverifiedAnchor === true;
 
+  let treeState: TreeState | undefined;
   try {
-    const treeState = await client.getTreeState(anchorHeight);
-    if (treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
-      const remoteRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
-      if (localRootBuf.toString('hex') !== remoteRootHex) {
-        throw new Error(
-          `Tree root mismatch at anchor height ${anchorHeight}: local ${localRootBuf.toString('hex')} != remote ${remoteRootHex}`
+    treeState = await client.getTreeState(anchorHeight);
+  } catch (err: any) {
+    const reason = err?.message ?? String(err);
+    if (!allowUnverifiedAnchor) {
+      throw new AnchorVerificationError(
+        `Cannot verify anchor against node at height ${anchorHeight}: getTreeState failed (${reason})`
+      );
+    }
+    console.warn(
+      `[send] WARNING: anchor ${anchorHeight} was NOT verified against the node (getTreeState failed: ${reason}); proceeding because allowUnverifiedAnchor=true`
+    );
+  }
+
+  if (treeState && treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
+    let remoteRootHex: string | null = null;
+    try {
+      remoteRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
+    } catch (err: any) {
+      const reason = err?.message ?? String(err);
+      if (!allowUnverifiedAnchor) {
+        throw new AnchorVerificationError(
+          `Cannot verify anchor against node at height ${anchorHeight}: undecodable Ironwood frontier (${reason})`
         );
       }
+      console.warn(
+        `[send] WARNING: anchor ${anchorHeight} was NOT verified against the node (undecodable Ironwood frontier: ${reason}); proceeding because allowUnverifiedAnchor=true`
+      );
     }
-  } catch (err: any) {
-    if (err.message && err.message.includes('Tree root mismatch')) {
-      throw err;
+
+    if (remoteRootHex !== null && localRootHex !== remoteRootHex) {
+      throw new AnchorVerificationError(
+        `Tree root mismatch at anchor height ${anchorHeight}: local ${localRootHex} != remote ${remoteRootHex}`
+      );
     }
-    // If remote getTreeState is unavailable (e.g. mock test streamer without getTreeState), proceed with local root
   }
 
   // 3. Query spendable notes and compute ZIP-317 fee

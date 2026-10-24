@@ -290,6 +290,121 @@ fn test_builder_integration_with_spendable_notes() {
 }
 
 #[test]
+fn test_builder_note_query_rejects_spent_above_anchor_and_unwitnessed_notes() {
+    println!("\n=== TEST: BUILDER NOTE QUERY (BY ID) REJECTION CASES ===");
+    use orchard::note::ExtractedNoteCommitment;
+    use zcash_core::spendable::query_notes_for_builder;
+
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("wallet_builder_query.db");
+    let mut db = WalletDb::open_or_create(&db_path, "regtest", "fp_builder_query", Some(2)).expect("db open");
+
+    let sk = SpendingKey::from_bytes([77u8; 32]).expect("valid sk");
+    let fvk = FullViewingKey::from(&sk);
+    let network = DynamicNetwork::Regtest(regtest_params());
+
+    // Two owned notes: A in block 2, B in block 3. Checkpoints exist at heights 2 and 3.
+    let (act_a, _, _nf_a) = create_encrypted_action(&fvk, Scope::External, 600_000, 21);
+    let (act_b, _, nf_b) = create_encrypted_action(&fvk, Scope::External, 700_000, 22);
+
+    let make_block = |height: u32, action: CompactOrchardAction, size: u32| CompactBlock {
+        height: height as u64,
+        hash: vec![height as u8; 32],
+        prev_hash: vec![(height - 1) as u8; 32],
+        time: height.saturating_mul(1000),
+        header: vec![],
+        vtx: vec![CompactTx {
+            index: 0,
+            txid: vec![height as u8 + 0x20; 32],
+            fee: 10_000,
+            actions: vec![],
+            ironwood_actions: vec![action],
+        }],
+        chain_metadata: Some(ChainMetadata {
+            sapling_commitment_tree_size: 0,
+            orchard_commitment_tree_size: 0,
+            ironwood_commitment_tree_size: size,
+        }),
+    };
+
+    let b2 = make_block(2, act_a, 1);
+    let b3 = make_block(3, act_b, 2);
+    Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, &[b2, b3]).expect("scan b2,b3");
+
+    let id_a: i64 = db.conn().query_row("SELECT id FROM received_notes WHERE height = 2", [], |r| r.get(0)).expect("id_a");
+    let id_b: i64 = db.conn().query_row("SELECT id FROM received_notes WHERE height = 3", [], |r| r.get(0)).expect("id_b");
+    println!("  Seeded note A (id {}, height 2, 600k) and note B (id {}, height 3, 700k)", id_a, id_b);
+
+    // --- Positive control: by-ID query returns the note with a witness for the requested checkpoint ---
+    let at_anchor_3 = query_notes_for_builder(db.conn(), 3, &[id_b]).expect("query builder anchor 3");
+    assert_eq!(at_anchor_3.len(), 1, "Note B must be returned at anchor 3");
+    assert_eq!(at_anchor_3[0].value_zatoshis, 700_000);
+
+    let store = zcash_core::SqliteShardStore::new(db.conn(), "ironwood_tree");
+    let tree = zcash_core::IronwoodShardTree::new(store, 100);
+    let checkpoint_root = tree
+        .root_at_checkpoint_id(&zcash_protocol::consensus::BlockHeight::from_u32(3))
+        .expect("checkpoint root")
+        .expect("checkpoint 3 must exist");
+    let cmx = ExtractedNoteCommitment::from(at_anchor_3[0].note.commitment());
+    let witness_root = at_anchor_3[0].merkle_path.root(cmx);
+    assert_eq!(witness_root, checkpoint_root.into(), "Witness must be anchored at checkpoint 3");
+    println!("  Positive control: note B returned with a witness whose root matches checkpoint 3");
+
+    // --- A note that is already reserved is still visible to the builder (the P3 fix) ---
+    db.conn().execute(
+        "INSERT INTO pending_spends (nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at)
+         VALUES (?1, ?2, ?3, 3000, 100, 'reserved', 1234, 3000)",
+        rusqlite::params![&nf_b[..], id_b, &[0x77u8; 32][..]],
+    ).expect("reserve note B");
+
+    let spendable_after_reserve = query_spendable_notes(db.conn(), 3, 1).expect("query spendable");
+    let heights_after_reserve: Vec<u32> = spendable_after_reserve.iter().map(|n| n.height).collect();
+    assert_eq!(heights_after_reserve, vec![2], "Reserved note B must stay excluded from query_spendable_notes");
+
+    let builder_after_reserve = query_notes_for_builder(db.conn(), 3, &[id_b]).expect("query builder reserved");
+    assert_eq!(builder_after_reserve.len(), 1, "Builder query must still see the tx's own reserved note B");
+    println!("  Reserved note B: excluded from query_spendable_notes, still returned by query_notes_for_builder");
+
+    // --- Rejection 1: note already spent ---
+    db.conn().execute(
+        "UPDATE received_notes SET spent_in_txid = ?1 WHERE id = ?2",
+        rusqlite::params![&[0x88u8; 32][..], id_b],
+    ).expect("mark note B spent");
+    let after_spent = query_notes_for_builder(db.conn(), 3, &[id_b]).expect("query builder spent");
+    println!("  Rejection 1 (spent_in_txid set): returned {} note(s)", after_spent.len());
+    assert_eq!(after_spent.len(), 0, "A note with spent_in_txid set must not be returned");
+
+    // --- Rejection 2: note mined above the anchor height ---
+    db.conn().execute(
+        "UPDATE received_notes SET spent_in_txid = NULL WHERE id = ?1",
+        rusqlite::params![id_b],
+    ).expect("clear spent flag");
+    let above_anchor = query_notes_for_builder(db.conn(), 2, &[id_b]).expect("query builder above anchor");
+    println!("  Rejection 2 (note height 3 > anchor 2): returned {} note(s)", above_anchor.len());
+    assert_eq!(above_anchor.len(), 0, "A note mined above the anchor must not be returned");
+
+    // --- Rejection 3: no commitment-tree checkpoint at the requested anchor ---
+    let no_checkpoint = query_notes_for_builder(db.conn(), 9, &[id_a]);
+    match &no_checkpoint {
+        Ok(notes) => {
+            println!("  Rejection 3 (no checkpoint at anchor 9): returned {} note(s) with no error", notes.len());
+            assert_eq!(notes.len(), 0, "No witness at anchor 9 means no spendable note");
+        }
+        Err(e) => {
+            println!("  Rejection 3 (no checkpoint at anchor 9): clear error: {}", e);
+        }
+    }
+
+    // --- Unknown note id is also rejected ---
+    let unknown = query_notes_for_builder(db.conn(), 3, &[99_999]).expect("query builder unknown id");
+    println!("  Unknown note id 99999: returned {} note(s)", unknown.len());
+    assert_eq!(unknown.len(), 0, "Unknown note ids must not be returned");
+
+    println!("  Verified: spent / above-anchor / unwitnessed notes are all rejected while reserved notes remain buildable");
+}
+
+#[test]
 fn test_reorg_orphaned_reservation_blocks_spending_before_relink() {
     println!("\n=== TEST: ORPHANED RESERVATION BLOCKS SPENDING BEFORE RELINK ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
