@@ -429,6 +429,7 @@ regtestCmd
   .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
   .option('--z3-path <path>', 'Path to z3 repository', '')
   .option('-y, --yes', 'Confirm wiping regtest blockchain without interactive prompt')
+  .option('--dry-run', 'Derive and print exact volumes/containers to be wiped without executing')
   .action(async (options) => {
     let z3Dir = options.z3Path;
     if (!z3Dir) {
@@ -465,12 +466,39 @@ regtestCmd
       process.exit(1);
     }
 
-    // Print what will be deleted first
+    // Dynamically derive volumes and services from docker compose config at runtime
+    let dynamicVolumes: string[] = [];
+    let dynamicServices: string[] = [];
+    try {
+      const vOutput = execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest config --volumes`, { encoding: 'utf8' });
+      dynamicVolumes = vOutput.split('\n').map((v: string) => v.trim()).filter(Boolean).map((v: string) => `${projectName}_${v}`);
+    } catch (e: any) {
+      dynamicVolumes = [`${projectName}_chain`, `${projectName}_zallet`, `${projectName}_cookie`, `${projectName}_zallet_ca_certificates`];
+    }
+
+    try {
+      const sOutput = execSync(`cd "${z3Dir}" && docker compose --env-file .env.regtest config --services`, { encoding: 'utf8' });
+      dynamicServices = sOutput.split('\n').map((s: string) => s.trim()).filter(Boolean);
+    } catch (e: any) {
+      dynamicServices = ['zebra', 'cookie-permissions', 'zallet', 'rpc-router'];
+    }
+
+    // Print dynamically derived resource deletion warning
     console.log('\n⚠️  WARNING: You are about to permanently destroy the regtest cluster data:');
-    console.log('   - Project Name:   z3-regtest');
-    console.log('   - Docker Volumes: Zebra blockchain data, Zaino indexer database, Zallet wallet state');
+    console.log(`   - Project Name:   ${projectName}`);
+    console.log(`   - Docker Volumes: ${dynamicVolumes.join(', ')}`);
+    console.log(`   - Services:       ${dynamicServices.join(', ')}`);
     console.log('   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers');
     console.log('   - Accounts:       All local test accounts and note balances will be wiped to genesis\n');
+
+    if (options.dryRun) {
+      console.log('🔍 [Dry Run] Would execute:');
+      console.log(`   1. docker compose --env-file .env.regtest down -v (purges volumes: ${dynamicVolumes.join(', ')}`);
+      console.log('   2. bash scripts/regtest-init.sh (re-initializes genesis credentials and parameters)');
+      console.log(`   3. docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino`);
+      console.log('\n✅ [Dry Run complete: zero destructive actions executed.]');
+      return;
+    }
 
     let confirmed = !!options.yes;
     if (!confirmed) {
