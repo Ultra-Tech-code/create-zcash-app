@@ -46,12 +46,14 @@ async function main() {
 
   console.log(`Account 0 Baseline:`);
   console.log(`  Total Balance:     ${beforeSummary0.totalBalanceZatoshis} zatoshis (${beforeSummary0.totalBalanceZatoshis / 1e8} ZEC)`);
-  console.log(`  Spendable Balance: ${beforeSummary0.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Confirmed Balance: ${beforeSummary0.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Pending Balance:   ${beforeSummary0.totalBalanceZatoshis - beforeSummary0.spendableBalanceZatoshis} zatoshis`);
   console.log(`  Unspent Notes:     ${beforeSummary0.unspentNotesCount}`);
 
   console.log(`Account 1 Baseline:`);
   console.log(`  Total Balance:     ${beforeSummary1.totalBalanceZatoshis} zatoshis (${beforeSummary1.totalBalanceZatoshis / 1e8} ZEC)`);
-  console.log(`  Spendable Balance: ${beforeSummary1.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Confirmed Balance: ${beforeSummary1.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Pending Balance:   ${beforeSummary1.totalBalanceZatoshis - beforeSummary1.spendableBalanceZatoshis} zatoshis`);
   console.log(`  Unspent Notes:     ${beforeSummary1.unspentNotesCount}\n`);
 
   const transferAmount = 150_000_000n; // 1.5 ZEC
@@ -164,6 +166,10 @@ async function main() {
     console.log(`  Zebra blockhash:     ${txInfo.blockhash}`);
     console.log(`  Zebra blockheight:   ${txInfo.height || targetTip}`);
     console.log(`  Zebra tx version:    ${txInfo.version}`);
+    console.log(`  Zebra Ironwood actions count: ${txInfo.ironwood?.actions?.length}`);
+    console.log(`  Zebra Ironwood valueBalanceZat: ${txInfo.ironwood?.valueBalanceZat} zatoshis`);
+    console.log(`  Zebra Ironwood flags: ${JSON.stringify(txInfo.ironwood?.flags)}`);
+    console.log(`  Zebra Ironwood anchor: ${txInfo.ironwood?.anchor}`);
   } else {
     console.warn(`RPC result: ${JSON.stringify(rpcData)}`);
   }
@@ -178,12 +184,14 @@ async function main() {
 
   console.log(`Account 0 Post-Payment:`);
   console.log(`  Total Balance:     ${afterSummary0.totalBalanceZatoshis} zatoshis (${afterSummary0.totalBalanceZatoshis / 1e8} ZEC)`);
-  console.log(`  Spendable Balance: ${afterSummary0.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Confirmed Balance: ${afterSummary0.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Pending Balance:   ${afterSummary0.totalBalanceZatoshis - afterSummary0.spendableBalanceZatoshis} zatoshis`);
   console.log(`  Unspent Notes:     ${afterSummary0.unspentNotesCount}`);
 
   console.log(`Account 1 Post-Payment:`);
   console.log(`  Total Balance:     ${afterSummary1.totalBalanceZatoshis} zatoshis (${afterSummary1.totalBalanceZatoshis / 1e8} ZEC)`);
-  console.log(`  Spendable Balance: ${afterSummary1.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Confirmed Balance: ${afterSummary1.spendableBalanceZatoshis} zatoshis`);
+  console.log(`  Pending Balance:   ${afterSummary1.totalBalanceZatoshis - afterSummary1.spendableBalanceZatoshis} zatoshis`);
   console.log(`  Unspent Notes:     ${afterSummary1.unspentNotesCount}\n`);
 
   // 9. Exact Balance and Conservation Verification
@@ -193,6 +201,9 @@ async function main() {
   const totalBefore = beforeSummary0.totalBalanceZatoshis + beforeSummary1.totalBalanceZatoshis;
   const totalAfter = afterSummary0.totalBalanceZatoshis + afterSummary1.totalBalanceZatoshis;
 
+  console.log(`  Arithmetic Verification:`);
+  console.log(`    A0_before - amount - fee == A0_after: ${beforeSummary0.totalBalanceZatoshis} - ${transferAmount} - ${expectedFee} = ${expectedAcct0After} (Actual: ${afterSummary0.totalBalanceZatoshis}) -> ${afterSummary0.totalBalanceZatoshis === expectedAcct0After ? 'VALID ✅' : 'INVALID ❌'}`);
+  console.log(`    A1_before + amount       == A1_after: ${beforeSummary1.totalBalanceZatoshis} + ${transferAmount} = ${expectedAcct1After} (Actual: ${afterSummary1.totalBalanceZatoshis}) -> ${afterSummary1.totalBalanceZatoshis === expectedAcct1After ? 'VALID ✅' : 'INVALID ❌'}`);
   console.log(`  Account 0 Expected: ${expectedAcct0After} | Actual: ${afterSummary0.totalBalanceZatoshis} -> ${afterSummary0.totalBalanceZatoshis === expectedAcct0After ? 'MATCH ✅' : 'MISMATCH ❌'}`);
   console.log(`  Account 1 Expected: ${expectedAcct1After} | Actual: ${afterSummary1.totalBalanceZatoshis} -> ${afterSummary1.totalBalanceZatoshis === expectedAcct1After ? 'MATCH ✅' : 'MISMATCH ❌'}`);
   console.log(`  Fee Paid:           ${sendResult.fee} zatoshis`);

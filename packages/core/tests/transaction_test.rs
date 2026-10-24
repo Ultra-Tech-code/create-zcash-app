@@ -752,9 +752,43 @@ fn test_c_live_regtest_broadcast_and_mine() {
     println!("TEST (C) RESULT: SUCCESS (Live transaction broadcasted, mined into regtest block, and confirmed)");
 }
 
+/// Probes the Z3 regtest JSON-RPC router so live-chain tests can skip cleanly when it is absent.
+fn zebra_regtest_rpc_reachable() -> bool {
+    let output = std::process::Command::new("curl")
+        .args([
+            "-s",
+            "-m",
+            "3",
+            "-X",
+            "POST",
+            "http://127.0.0.1:8181",
+            "-H",
+            "Content-Type: application/json",
+            "-d",
+            r#"{"jsonrpc":"2.0","id":"p4-probe","method":"getblockchaininfo","params":[]}"#,
+        ])
+        .output();
+
+    match output {
+        Ok(out) if out.status.success() => {
+            String::from_utf8_lossy(&out.stdout).contains("\"result\"")
+        }
+        _ => false,
+    }
+}
+
 #[test]
 fn test_p4_analyze_crate_support_and_two_bundles() {
     println!("\n=== P4 ANALYSIS: ORCHARD NOTE SPENT INTO IRONWOOD (TWO BUNDLES) ===");
+
+    // This test ends in a live broadcast to Zebra, so it must not depend on a running chain.
+    if !zebra_regtest_rpc_reachable() {
+        println!(
+            "SKIP: no Zebra regtest node answered getblockchaininfo at http://127.0.0.1:8181; \
+             skipping the P4 two-bundle build and live broadcast. Start the Z3 regtest stack to exercise this test."
+        );
+        return;
+    }
     use orchard::bundle::BundleVersion;
     use orchard::keys::SpendAuthorizingKey;
     use zcash_primitives::transaction::sighash::SignableInput;

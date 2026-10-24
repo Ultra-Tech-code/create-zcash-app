@@ -10,24 +10,26 @@ Recipient (Account 1):
   Address: uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
 
 --- Step 1: Baseline Sync & Balances ---
-[Sync] Starting sync from height 2 to tip 111 (batch size: 50)...
-[Sync] Verified against GetTreeState(111):
-  Wallet Ironwood Root:  70aa46c5e46963613b2b55c8d3e06ba75a50f3d0a6786ca2feb255a0d4443f34
-  Zaino ironwoodTree:    01a5ab6207f4668aa84e16e36c4779782d25f3fc6ee54eadc197618ffc79c2500e010bc2f9bdb3f11a321794351f2a6f2ffa8db4dd18d61d3ae89272503f858e0b1d1f000000017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
-  Derived Zaino Root:    70aa46c5e46963613b2b55c8d3e06ba75a50f3d0a6786ca2feb255a0d4443f34
-[Sync] Starting sync from height 2 to tip 111 (batch size: 50)...
-[Sync] Verified against GetTreeState(111):
-  Wallet Ironwood Root:  70aa46c5e46963613b2b55c8d3e06ba75a50f3d0a6786ca2feb255a0d4443f34
-  Zaino ironwoodTree:    01a5ab6207f4668aa84e16e36c4779782d25f3fc6ee54eadc197618ffc79c2500e010bc2f9bdb3f11a321794351f2a6f2ffa8db4dd18d61d3ae89272503f858e0b1d1f000000017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
-  Derived Zaino Root:    70aa46c5e46963613b2b55c8d3e06ba75a50f3d0a6786ca2feb255a0d4443f34
+[Sync] Starting sync from height 2 to tip 112 (batch size: 50)...
+[Sync] Verified against GetTreeState(112):
+  Wallet Ironwood Root:  0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
+  Zaino ironwoodTree:    01bbd7f489bb0b5c8c221286cbdf428c7b1f6327357ba7cfae5bb5d880f92d3704001f0001b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
+  Derived Zaino Root:    0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
+[Sync] Starting sync from height 2 to tip 112 (batch size: 50)...
+[Sync] Verified against GetTreeState(112):
+  Wallet Ironwood Root:  0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
+  Zaino ironwoodTree:    01bbd7f489bb0b5c8c221286cbdf428c7b1f6327357ba7cfae5bb5d880f92d3704001f0001b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
+  Derived Zaino Root:    0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
 Account 0 Baseline:
-  Total Balance:     500000000 zatoshis (5 ZEC)
-  Spendable Balance: 500000000 zatoshis
+  Total Balance:     349990000 zatoshis (3.4999 ZEC)
+  Confirmed Balance: 349990000 zatoshis
+  Pending Balance:   0 zatoshis
   Unspent Notes:     1
 Account 1 Baseline:
-  Total Balance:     300000000 zatoshis (3 ZEC)
-  Spendable Balance: 300000000 zatoshis
-  Unspent Notes:     1
+  Total Balance:     450000000 zatoshis (4.5 ZEC)
+  Confirmed Balance: 450000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     2
 
 --- Step 2: Transaction Parameters ---
   Transfer Amount: 150000000 zatoshis (1.5 ZEC)
@@ -37,54 +39,63 @@ Account 1 Baseline:
 
 --- Step 3: Executing SDK send() ---
 Transaction built, proven, and broadcast successfully!
-  Internal TxID: c05beb30c5d687a9f32a752576dcf7d6546713d7a81ba44386cdd7f6819c4bc8
+  Internal TxID: 3802e9d2ef6d5e794b941d3dfab2a6cdbea1db294bcf7e62a894a1e3b2a12fcb
   Fee:           10000 zatoshis
   Num Actions:   2
-  Expiry Height: 151
+  Expiry Height: 152
   Raw Tx Size:   9166 bytes
-  Proving & Send Duration: 22590ms
+  Proving & Send Duration: 30019ms
 
 --- Step 4: Verify In-Flight Balance & Reservation Exclusion ---
 Account 0 In-Flight Spendable Balance: 0 zatoshis (strictly excluded while in flight)
 
 --- Step 5: Mining 1 Block to Confirm Transaction ---
-Current chain tip before mining: height 111
-Mining command sent. Target tip height: 112
+Current chain tip before mining: height 112
+Mining command sent. Target tip height: 113
 Waiting for Zaino indexer to index mined block...
-Zaino indexer synchronized at height 112!
+Zaino indexer synchronized at height 113!
 
 --- Step 6: Querying Mined Transaction via JSON-RPC getrawtransaction ---
-Querying display txid (reverse-endian): c84b9c81f6d7cd8643a41ba8d7136754d6f7dc7625752af3a987d6c530eb5bc0
+Querying display txid (reverse-endian): cb2fa1b2e3a194a8627ecf4b29dba1becda6b2fa3d1d944b795e6defd2e90238
   Zebra confirmations: 1
-  Zebra blockhash:     261f326a0d1ba35c258252633cf8d954ccd71c9dc8bc121084c5c58ed6fca4c5
-  Zebra blockheight:   112
+  Zebra blockhash:     85a9833e0fb93d531b0d2d2ad233ce5739d2700d86fdc0667eab71ba439cb192
+  Zebra blockheight:   113
   Zebra tx version:    6
+  Zebra Ironwood actions count: 2
+  Zebra Ironwood valueBalanceZat: 10000 zatoshis
+  Zebra Ironwood flags: {"enableOutputs":true,"enableSpends":true}
+  Zebra Ironwood anchor: 1fb6a2da47194ddbaef5340a974a10965c88c29ea91e702b2059619bfdbf9306
 
 --- Step 7: Resyncing Both Accounts Post-Mining ---
-[Sync] Starting sync from height 112 to tip 112 (batch size: 50)...
-[Sync] Verified against GetTreeState(112):
-  Wallet Ironwood Root:  0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
-  Zaino ironwoodTree:    01bbd7f489bb0b5c8c221286cbdf428c7b1f6327357ba7cfae5bb5d880f92d3704001f0001b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
-  Derived Zaino Root:    0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
-[Sync] Starting sync from height 112 to tip 112 (batch size: 50)...
-[Sync] Verified against GetTreeState(112):
-  Wallet Ironwood Root:  0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
-  Zaino ironwoodTree:    01bbd7f489bb0b5c8c221286cbdf428c7b1f6327357ba7cfae5bb5d880f92d3704001f0001b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
-  Derived Zaino Root:    0693bffd9b6159202b701ea99ec2885c96104a970a34f5aedb4d1947daa2b61f
+[Sync] Starting sync from height 113 to tip 113 (batch size: 50)...
+[Sync] Verified against GetTreeState(113):
+  Wallet Ironwood Root:  d5a3eb9ea97c603dd36f1a73a01ee812491c125d15d97640e9e0d6206cc6d817
+  Zaino ironwoodTree:    01dd3e3e39fe80f9a09b7934ec570412f9f6e89dbed717d6327afd711e7bfb8803018104a8cca18e506002c30ebf123eac8450a605d72eb8e98459eefebb933331101f01380253fe17ef175c23154f7f63b7cea5dcfda38abf4fec29955ae8af12754b0e01b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
+  Derived Zaino Root:    d5a3eb9ea97c603dd36f1a73a01ee812491c125d15d97640e9e0d6206cc6d817
+[Sync] Starting sync from height 113 to tip 113 (batch size: 50)...
+[Sync] Verified against GetTreeState(113):
+  Wallet Ironwood Root:  d5a3eb9ea97c603dd36f1a73a01ee812491c125d15d97640e9e0d6206cc6d817
+  Zaino ironwoodTree:    01dd3e3e39fe80f9a09b7934ec570412f9f6e89dbed717d6327afd711e7bfb8803018104a8cca18e506002c30ebf123eac8450a605d72eb8e98459eefebb933331101f01380253fe17ef175c23154f7f63b7cea5dcfda38abf4fec29955ae8af12754b0e01b2447c6c1dfb56f0543ce14a9d862b58667d35526d7dc59e081e9bc9771a862600017184bd78fa0936c64bc4b11e7ca04fdb05460e995fd923265a65ff803b55f93401e8e37d68974f012c9bc349ce3f8dc1f604c0cd7811570cedca0d471b46ebaf3b01c907508d497a23c80aeff358413c9fb74cb5d46d8343217113a91009dda0160800000000000000000000000000000000000000000000000000
+  Derived Zaino Root:    d5a3eb9ea97c603dd36f1a73a01ee812491c125d15d97640e9e0d6206cc6d817
 Account 0 Post-Payment:
-  Total Balance:     349990000 zatoshis (3.4999 ZEC)
-  Spendable Balance: 349990000 zatoshis
+  Total Balance:     199980000 zatoshis (1.9998 ZEC)
+  Confirmed Balance: 199980000 zatoshis
+  Pending Balance:   0 zatoshis
   Unspent Notes:     1
 Account 1 Post-Payment:
-  Total Balance:     450000000 zatoshis (4.5 ZEC)
-  Spendable Balance: 450000000 zatoshis
-  Unspent Notes:     2
+  Total Balance:     600000000 zatoshis (6 ZEC)
+  Confirmed Balance: 600000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     3
 
 --- Step 8: Mathematical Verification & Balance Invariants ---
-  Account 0 Expected: 349990000 | Actual: 349990000 -> MATCH ✅
-  Account 1 Expected: 450000000 | Actual: 450000000 -> MATCH ✅
+  Arithmetic Verification:
+    A0_before - amount - fee == A0_after: 349990000 - 150000000 - 10000 = 199980000 (Actual: 199980000) -> VALID ✅
+    A1_before + amount       == A1_after: 450000000 + 150000000 = 600000000 (Actual: 600000000) -> VALID ✅
+  Account 0 Expected: 199980000 | Actual: 199980000 -> MATCH ✅
+  Account 1 Expected: 600000000 | Actual: 600000000 -> MATCH ✅
   Fee Paid:           10000 zatoshis
-  Conservation:       349990000 + 450000000 + 10000 = 800000000 zatoshis (Initial: 800000000 zatoshis) -> CONSERVED ✅
+  Conservation:       199980000 + 600000000 + 10000 = 799990000 zatoshis (Initial: 799990000 zatoshis) -> CONSERVED ✅
 
 ===============================================================
 === PHASE 3 (P3) VERIFICATION COMPLETE: ALL CHECKS PASSED!  ===
