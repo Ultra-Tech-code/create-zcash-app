@@ -306,15 +306,20 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     expect(spendableAfterExpiry[0].id).toBe(4);
   });
 
-  it('verifies quoteFee and warmupProver exports', () => {
+  it('verifies quoteFee and warmupProver exports against FeeRule::standard()', () => {
     expect(typeof warmupProver).toBe('function');
     expect(() => warmupProver()).not.toThrow();
 
-    // ZIP-317 fee rule standard
-    const fee2 = quoteFee(2);
-    expect(fee2).toBe(10000n);
-
-    const fee3 = quoteFee(3);
-    expect(fee3).toBe(15000n);
+    // Standard ZIP-317 fee rule:
+    // Marginal fee: 5,000 zatoshis per action
+    // Grace actions: 2 actions
+    // Minimum fee: max(actions, 2) * 5,000 zatoshis
+    const testCounts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 50, 100];
+    for (const n of testCounts) {
+      const fee = quoteFee(n);
+      const expectedActions = Math.max(n, 2);
+      const expectedFee = BigInt(expectedActions) * 5000n;
+      expect(fee).toBe(expectedFee);
+    }
   });
 });

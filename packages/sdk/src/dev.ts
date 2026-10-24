@@ -2,6 +2,7 @@ import { Account, TxResult } from './types.js';
 import { ZcashClient } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
+import { quoteFee } from './send.js';
 
 export namespace dev {
   export const fixtures = {
@@ -145,7 +146,7 @@ export namespace dev {
     }
 
     // 4. Query z_viewtransaction for the real fee reported by Zallet
-    let fee = 10000n;
+    let fee = quoteFee(2);
     try {
       const viewRes = await fetch('http://127.0.0.1:8181', {
         method: 'POST',

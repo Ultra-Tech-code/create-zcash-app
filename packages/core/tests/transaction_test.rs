@@ -942,4 +942,61 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     }
 }
 
+#[test]
+fn test_p6_zip317_fee_parity_with_crate_feerule() {
+    println!("\n=== P6 ZIP-317 FEE PARITY TEST AGAINST FeeRule::standard() ===");
+    use zcash_core::compute_zip317_fee;
+    use zcash_core::wallet_handle::quote_fee;
+    use zcash_primitives::transaction::fees::transparent::InputSize;
+    use zcash_primitives::transaction::fees::zip317::FeeRule;
+    use zcash_primitives::transaction::fees::FeeRule as _;
+    use zcash_protocol::consensus::{BlockHeight, MAIN_NETWORK};
+
+    // Test a wide range of action counts
+    let test_action_counts = [0usize, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 50, 100];
+
+    for &n in &test_action_counts {
+        // 1. Calculate conventional fee directly from crate's FeeRule::standard()
+        // Standard rule: 2 grace actions, 5000 zatoshis per marginal action, min fee 10000 zatoshis
+        let standard_fee = FeeRule::standard()
+            .fee_required(
+                &MAIN_NETWORK,
+                BlockHeight::from_u32(1),
+                std::iter::empty::<InputSize>(),
+                std::iter::empty::<usize>(),
+                0,
+                0,
+                0,
+                n,
+            )
+            .expect("standard fee calculation");
+        let expected_u64 = u64::from(standard_fee);
+        let expected_i64 = expected_u64 as i64;
+
+        // 2. Compare against quote_fee(n)
+        let quoted = quote_fee(n as u32).expect("quote_fee");
+        assert_eq!(
+            quoted, expected_i64,
+            "quote_fee({}) = {}, expected FeeRule::standard() = {}",
+            n, quoted, expected_i64
+        );
+
+        // 3. Compare against compute_zip317_fee for single-spend/single-output equivalent
+        // In compute_zip317_fee(s, o), effective actions is max(max(s, o), 2)
+        if n >= 2 {
+            let comp_fee = compute_zip317_fee(n, 0).expect("compute_zip317_fee");
+            assert_eq!(
+                u64::from(comp_fee), expected_u64,
+                "compute_zip317_fee({}, 0) = {}, expected = {}",
+                n, u64::from(comp_fee), expected_u64
+            );
+        }
+
+        println!("  Actions: {:3} -> Fee: {:7} zatoshis (matches FeeRule::standard())", n, quoted);
+    }
+
+    println!("All {} action counts verified strictly identical to FeeRule::standard()!", test_action_counts.len());
+}
+
+
 
