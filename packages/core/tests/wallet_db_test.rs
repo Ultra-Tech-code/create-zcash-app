@@ -46,6 +46,49 @@ fn test_consensus_branch_id_derivation() {
     assert_eq!(mainnet_branch, 0x37a5_165b);
 }
 
+#[test]
+fn test_address_equivalence_in_code() {
+    use zcash_address::unified::{Address, Container, Encoding, Receiver};
+
+    // Account A's full Unified Address (multi-receiver: Sapling + Orchard/Ironwood)
+    let account_a_ua = "utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk";
+    // Note's decrypted Unified Address (single-receiver: Orchard/Ironwood)
+    let note_ua = "utest1l4hez2arqx8xdvpl5nt334ak9ehu5k3yej9qprax9raak2ek50h3vg54f02mkl3le62gj2t4qsthqp583w2esx7zhc47hz7zsq0tfsx6";
+
+    let (_net1, parsed_acct_a) = Address::decode(account_a_ua).expect("valid account A UA");
+    let (_net2, parsed_note) = Address::decode(note_ua).expect("valid note UA");
+
+    let mut acct_a_orchard_receiver: Option<[u8; 43]> = None;
+    for r in parsed_acct_a.items() {
+        if let Receiver::Orchard(bytes) = r {
+            acct_a_orchard_receiver = Some(bytes);
+        }
+    }
+
+    let mut note_orchard_receiver: Option<[u8; 43]> = None;
+    for r in parsed_note.items() {
+        if let Receiver::Orchard(bytes) = r {
+            note_orchard_receiver = Some(bytes);
+        }
+    }
+
+    assert!(acct_a_orchard_receiver.is_some(), "Account A must have an Orchard/Ironwood receiver");
+    assert!(note_orchard_receiver.is_some(), "Note UA must have an Orchard/Ironwood receiver");
+
+    let acct_bytes = acct_a_orchard_receiver.unwrap();
+    let note_bytes = note_orchard_receiver.unwrap();
+
+    println!("\n=== TEST: ADDRESS EQUIVALENCE IN CODE ===");
+    println!("Account A Orchard Receiver: {}", hex::encode(acct_bytes));
+    println!("Note UA Orchard Receiver:   {}", hex::encode(note_bytes));
+
+    assert_eq!(
+        acct_bytes,
+        note_bytes,
+        "Account A Orchard/Ironwood receiver bytes must exactly match note Orchard/Ironwood receiver bytes"
+    );
+}
+
 
 
 #[test]

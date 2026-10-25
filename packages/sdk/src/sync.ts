@@ -25,6 +25,7 @@ export interface SyncOptions {
   startHeight?: number;
   birthday?: number;
   endHeight?: number;
+  targetHeight?: number;
   onProgress?: (lastScannedHeight: number, tipHeight: number, notesDetected: number) => void;
   verifyRootAtTip?: boolean;
   throttleMs?: number;
@@ -68,7 +69,11 @@ export async function syncWallet(
       ? (options.birthday ?? 2)
       : initialSummary.lastScannedHeight + 1
   );
-  const targetEnd = options.endHeight ? Math.min(options.endHeight, tipHeight) : tipHeight;
+  const targetEnd = options.endHeight
+    ? Math.min(options.endHeight, tipHeight)
+    : options.targetHeight
+      ? Math.min(options.targetHeight, tipHeight)
+      : tipHeight;
 
   let totalRequests = 1; // 1 for getInfo
   const startTime = Date.now();
@@ -199,7 +204,7 @@ export async function syncWallet(
     const rollingBps = (totalBlocksFetched / (elapsedTotal / 1000)).toFixed(1);
     const pct = (((currentEnd - options.startHeight! + 1) / (targetEnd - options.startHeight! + 1)) * 100).toFixed(1);
 
-    if (currentEnd % 5000 === 0 || currentEnd >= targetEnd || rawBlocks.length < batchSize) {
+    if (totalBlocksFetched % 5000 === 0 || currentEnd >= targetEnd || rawBlocks.length < batchSize) {
       console.log(
         `[Sync] ${endpointLabel} Height: ${currentEnd}/${targetEnd} (${pct}%) | Req: ${totalRequests} | Speed: ${rollingBps} blocks/s`
       );

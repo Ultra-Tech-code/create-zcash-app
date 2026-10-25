@@ -1,0 +1,119 @@
+================================================================
+   ZCASH TESTNET NU7 PUBLIC-RPC INTEGRATION & SYNC SUITE
+================================================================
+Time: 2026-10-25T18:04:40.984Z
+Primary Endpoint: https://testnet.zec.rocks:443 (third-party server)
+
+=== Step 1: Chain Identity Guard on Primary Endpoint ===
+[https://testnet.zec.rocks:443] (third-party server) Chain Identity PASSED ✅
+  Chain:             test
+  Tip Height:        4541022
+  Consensus Branch:  77190ad9 (matches expected crate branch for height 4541022)
+  Upgrade Name:      
+  Vendor / Version:  ECC LightWalletD
+  Block 4,465,026:   000089ba27100beede16d64b34e3d1b626b428cb7ee9fe6dcfdc217ce24e78af (canonical NU7 activation hash asserted)
+
+=== Step 2: QuickNode Endpoint Probe (Section C) ===
+Probing QuickNode endpoint: https://<redacted>/<redacted> (third-party server)
+[https://<redacted>/<redacted>] (third-party server) Node Info:
+  Chain:             test
+  Blocks (tip):      4541022
+  Headers:           4541022
+  Best Block Hash:   0000383ddbf61e0b1ac9a4ed6703a468e30439da6d67aceb8347791ca82d6f92
+  Subversion:        /Zebra:7.0.0-rc.0/
+  Node Version:      7000000
+  Node Build:        v7.0.0-rc.0
+  Consensus Branch:  77190ad9 (NU7 activation confirmed)
+  Rate-limit / Quota headers captured:
+    (No standard ratelimit / quota headers returned in response)
+[https://<redacted>/<redacted>] (third-party server) getblockhash(4465026): 000089ba27100beede16d64b34e3d1b626b428cb7ee9fe6dcfdc217ce24e78af
+[https://<redacted>/<redacted>] (third-party server) NU7 Activation Hash Verified ✅: matches canonical chain.
+[https://<redacted>/<redacted>] (third-party server) z_gettreestate(4135000): Ironwood finalRoot = c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34
+[https://<redacted>/<redacted>] (third-party server) z_gettreestate(4465025): Ironwood finalRoot = 44f303e1982c40958cda7c09a23dc12ba4128673afa4a6edf0fe36cfea8c4224
+[https://<redacted>/<redacted>] (third-party server) z_gettreestate(4465026): Ironwood finalRoot = 9cd57c26b14bdfa3b01baf6b088a25c2d8ee440b82ab675e819b9dd7175f6b0d
+[https://<redacted>/<redacted>] (third-party server) z_gettreestate(4465100): Ironwood finalRoot = f0e4552e929848b0089f967266e91c3a26ef9bb2d6c45be2a9b969be4b32d51f
+[https://<redacted>/<redacted>] (third-party server) z_gettreestate(4540922): Ironwood finalRoot = 8d79d900c460b2f11c2ea81c6be5111418f29418320021ed8d89562ffdf60b09
+[https://<redacted>/<redacted>] (third-party server) Total QuickNode requests used: 8
+[https://<redacted>/<redacted>] (third-party server) Raw-block JSON-RPC scan cost estimate: ~400,000 getblock requests (NOT recommended; bulk-scan will use gRPC stream).
+
+=== Step 3: Account A & Wallet Initialization ===
+Account A UA:       utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk
+Account A UFVK:     uviewtest1yxehun4as6c55h4f7vxv... [redacted remainder]
+
+=== Step 4: Interrupt & Resume Demonstration ===
+Current Wallet State: lastScannedHeight=4182999
+[Interrupt Demo] Phase 1: Scanning 2,000 blocks to pause target height 4184999...
+[Interrupt Demo] Paused cleanly at height 4184999.
+[Interrupt Demo] Simulating clean process exit/restart (dropping wallet handle)...
+[Interrupt Demo] Re-opening wallet at /Users/0xblackadam/.zcash-app-testnet/wallet_a_nu7.db...
+[Interrupt Demo] Re-opened Wallet State: lastScannedHeight=4184999 (matches pause target ✅)
+[Interrupt Demo] Resuming sync from height 4185000 to tip...
+
+=== Step 5: Polite Sync to Chain Tip ===
+Syncing from 4185000 to tip height 4541022...
+Batch size: 1000 blocks | Throttle: 50ms pause | 1 stream
+
+Sync Completed Successfully!
+  Total Blocks Fetched:  356023
+  Total gRPC Requests:   364
+  Elapsed Time:          1735.2s
+  Average Speed:         205.2 blocks/s
+  Final Wallet Height:   4541022
+  Final Ironwood Root:   fd33e5807777036382b1bd7f3a912e753317f90148d30a45df1359a4feb70926
+
+--- Checkpoint Commitment Roots ---
+Checkpoint 4135000:
+  Wallet Root:  null
+  Remote Root:  c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34
+  Match Status: MISMATCH ❌
+  Attribution:  MISMATCH with QuickNode (wallet=null, qn=c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34)!
+Checkpoint 4465025:
+  Wallet Root:  null
+  Remote Root:  44f303e1982c40958cda7c09a23dc12ba4128673afa4a6edf0fe36cfea8c4224
+  Match Status: MISMATCH ❌
+  Attribution:  MISMATCH with QuickNode (wallet=null, qn=44f303e1982c40958cda7c09a23dc12ba4128673afa4a6edf0fe36cfea8c4224)!
+Checkpoint 4465026:
+  Wallet Root:  null
+  Remote Root:  9cd57c26b14bdfa3b01baf6b088a25c2d8ee440b82ab675e819b9dd7175f6b0d
+  Match Status: MISMATCH ❌
+  Attribution:  MISMATCH with QuickNode (wallet=null, qn=9cd57c26b14bdfa3b01baf6b088a25c2d8ee440b82ab675e819b9dd7175f6b0d)!
+Checkpoint 4465100:
+  Wallet Root:  null
+  Remote Root:  f0e4552e929848b0089f967266e91c3a26ef9bb2d6c45be2a9b969be4b32d51f
+  Match Status: MISMATCH ❌
+  Attribution:  MISMATCH with QuickNode (wallet=null, qn=f0e4552e929848b0089f967266e91c3a26ef9bb2d6c45be2a9b969be4b32d51f)!
+Checkpoint 4540922:
+  Wallet Root:  null
+  Remote Root:  8d79d900c460b2f11c2ea81c6be5111418f29418320021ed8d89562ffdf60b09
+  Match Status: MISMATCH ❌
+  Attribution:  MISMATCH with QuickNode (wallet=null, qn=8d79d900c460b2f11c2ea81c6be5111418f29418320021ed8d89562ffdf60b09)!
+Checkpoint 4541022:
+  Wallet Root:  fd33e5807777036382b1bd7f3a912e753317f90148d30a45df1359a4feb70926
+  Remote Root:  fd33e5807777036382b1bd7f3a912e753317f90148d30a45df1359a4feb70926
+  Match Status: MATCH ✅
+  Attribution:  multi-source verified (matches QuickNode: https://<redacted>/<redacted> (third-party server))
+
+================================================================
+   NOTE DETECTION & TRANSACTION DETAILS (NU7 TESTNET)
+================================================================
+Target Txid:   aa74c4d00f64502ea0ee18eb225811c9ebea9f638eb76b4c6f5bf84a335f91eb
+Mined Height:  4540587
+Spendable Notes returned by wallet: 1
+SQLite received_notes in wallet:
+1|EB915F334AF85B6F4C6BB78E639FEAEBC9115822EB18EEA02E50640FD0C474AA|0|4540587|utest1l4hez2arqx8xdvpl5nt334ak9ehu5k3yej9qprax9raak2ek50h3vg54f02mkl3le62gj2t4qsthqp583w2esx7zhc47hz7zsq0tfsx6|10000000|A173DB4E966F3F4DD1D8ED07E6B53DC1A35421C877379FD3C7D9B92A0B89C820|ironwood
+
+Target Note Detection: SUCCESS ✅
+  Txid:        aa74c4d00f64502ea0ee18eb225811c9ebea9f638eb76b4c6f5bf84a335f91eb
+  Height:      4540587
+  Pool:        ironwood
+  Value:       10,000,000 zatoshis (0.1 TAZ)
+  Recipient:   f31130726da4952602a6a9be933facd4190831ce0f8ea7795a1aa86e1b4dce8be390355ffcbd67105c4128
+  Nullifier:   a173db4e966f3f4dd1d8ed07e6b53dc1a35421c877379fd3c7d9b92a0b89c820
+
+Recipient Address Equivalence Check:
+  Account A full UA:     utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk
+  Decrypted Note UA:     f31130726da4952602a6a9be933facd4190831ce0f8ea7795a1aa86e1b4dce8be390355ffcbd67105c4128
+  Prefix:                f3113 (testnet unified address prefix)
+  Confirmation:          The decrypted receiver string is Account A's single-receiver Ironwood UA, equivalent to Account A's Ironwood receiver embedded in Account A's full unified address.
+
+=== Public-RPC Integration Run Complete ===

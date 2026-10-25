@@ -69,7 +69,7 @@ export class JsonRpcVerifier {
   public static redactUrl(urlStr: string): string {
     try {
       const u = new URL(urlStr);
-      return `${u.protocol}//${u.host}/<redacted>`;
+      return `${u.protocol}//<redacted>/<redacted>`;
     } catch {
       return '<redacted>';
     }

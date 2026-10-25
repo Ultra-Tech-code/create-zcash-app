@@ -117,6 +117,9 @@ export class ZcashClient {
     expectedBranchId: string;
     blockHeight: number;
     activationBlockHash?: string;
+    chainName?: string;
+    upgradeName?: string;
+    vendor?: string;
   }> {
     const info = await this.getInfo();
     const height = Number(info.blockHeight);
@@ -153,6 +156,9 @@ export class ZcashClient {
       expectedBranchId,
       blockHeight: height,
       activationBlockHash,
+      chainName: info.chainName,
+      upgradeName: info.upgradeName,
+      vendor: info.vendor,
     };
   }
 
