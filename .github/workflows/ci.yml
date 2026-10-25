@@ -34,7 +34,7 @@ jobs:
             target: x86_64-pc-windows-msvc
             build: pnpm --filter @zcash-app/core run build --target x86_64-pc-windows-msvc
 
-    name: stable - ${{ matrix.settings.target }} - node@20
+    name: stable - ${{ matrix.settings.target }} - node@22
     runs-on: ${{ matrix.settings.host }}
 
     steps:
@@ -78,3 +78,49 @@ jobs:
           name: bindings-${{ matrix.settings.target }}
           path: packages/core/*.node
           if-no-files-found: error
+
+  verify:
+    # Mirrors the non-native checks in scripts/verify.sh so CI fails on the same things a
+    # local run fails on. One Linux runner is enough; the matrix above covers the platforms.
+    name: verify - scripts/verify.sh parity (linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Rust core addon (host target)
+        run: pnpm --filter @zcash-app/core run build --target x86_64-unknown-linux-gnu
+
+      - name: Cargo clippy
+        run: cargo clippy --manifest-path packages/core/Cargo.toml --all-targets -- -D warnings
+
+      - name: Install sqlite3 CLI (the SDK tests shell out to /usr/bin/sqlite3)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sqlite3
+
+      - name: SDK tests (vitest)
+        run: pnpm --filter @zcash-app/sdk test
+
+      - name: zcash-dev tests
+        run: |
+          pnpm --filter zcash-dev build
+          pnpm --filter zcash-dev test
+

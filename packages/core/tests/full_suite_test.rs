@@ -563,14 +563,12 @@ fn test_real_child_process_sigkill_mid_batch_and_clean_resume() {
     }
     assert!(batch_1_seen, "Child must report BATCH_1_COMMITTED");
 
-    // Wait 30ms to guarantee child has started batch 2, then issue real SIGKILL (kill -9)
+    // Wait 30ms to guarantee child has started batch 2, then issue real SIGKILL. Child::kill is
+    // SIGKILL on Unix and TerminateProcess on Windows, so the matrix can run this on every host
+    // without depending on an external `kill` binary being on PATH.
     std::thread::sleep(std::time::Duration::from_millis(30));
     println!("  Sending real SIGKILL (-9) to child process PID {}", child.id());
-    let kill_res = std::process::Command::new("kill")
-        .args(["-9", &child.id().to_string()])
-        .status()
-        .expect("send kill -9");
-    assert!(kill_res.success(), "kill -9 command must succeed");
+    child.kill().expect("send SIGKILL to child");
 
     let _ = child.wait();
     println!("  Child process terminated abruptly by SIGKILL");
