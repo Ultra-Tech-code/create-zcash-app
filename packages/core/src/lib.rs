@@ -48,6 +48,7 @@ pub fn regtest_params() -> LocalNetwork {
         nu6_1: Some(BlockHeight::from_u32(2)),
         nu6_2: Some(BlockHeight::from_u32(2)),
         nu6_3: Some(BlockHeight::from_u32(2)),
+        nu7: Some(BlockHeight::from_u32(2)),
     }
 }
 
@@ -115,7 +116,7 @@ pub fn internal_derive_account_from_mnemonic(
         .map_err(|e| format!("Failed to derive spending key: {:?}", e))?;
 
     let ufvk = usk.to_unified_full_viewing_key();
-    let ufvk_encoded = ufvk.encode(&params);
+    let ufvk_encoded = ufvk.encode(&params).map_err(|e| format!("Failed to encode UFVK: {:?}", e))?;
 
     let (ua, _) = ufvk
         .default_address(UnifiedAddressRequest::AllAvailableKeys)
@@ -251,7 +252,7 @@ pub fn internal_try_decrypt_action(
 
     if let Some((note, recipient)) = decrypted {
         let pool = if is_ironwood { "ironwood" } else { "orchard" };
-        let ua = UnifiedAddress::from_receivers(Some(recipient), None, None)
+        let ua = UnifiedAddress::from_receivers(Some(recipient), None, None, None, None)
             .map(|u| u.encode(&params))
             .unwrap_or_default();
 
@@ -395,7 +396,7 @@ mod tests {
         use zcash_keys::address::Address;
         use zcash_transparent::keys::{IncomingViewingKey, NonHardenedChildIndex};
 
-        let t_fvk = ufvk.transparent().unwrap();
+        let t_fvk = ufvk.p2pkh().unwrap();
         let ivk = t_fvk.derive_external_ivk().unwrap();
         let t_addr = ivk.derive_address(NonHardenedChildIndex::ZERO).unwrap();
         let addr = Address::from(t_addr);
@@ -457,7 +458,6 @@ mod tests {
         use orchard::keys::Scope;
         use orchard::value::NoteValue;
         use orchard::Anchor;
-        use rand::rngs::OsRng;
         use zcash_protocol::consensus::Network;
 
         let testnet_params = DynamicNetwork::Test(Network::TestNetwork);
@@ -466,7 +466,7 @@ mod tests {
         let seed = mnemonic.to_seed("");
         let usk = UnifiedSpendingKey::from_seed(&testnet_params, &seed, 0.try_into().unwrap()).unwrap();
         let ufvk = usk.to_unified_full_viewing_key();
-        let ufvk_str = ufvk.encode(&testnet_params);
+        let ufvk_str = ufvk.encode(&testnet_params).unwrap();
         let orchard_fvk = ufvk.orchard().unwrap();
 
         // Target an internal-scope change address
@@ -489,13 +489,13 @@ mod tests {
             )
             .unwrap();
 
-        let mut rng = OsRng;
+        let mut rng = rand::rng();
         let (pczt_bundle, _) = builder.build_for_pczt(&mut rng).unwrap();
         let action = &pczt_bundle.actions()[0];
 
         let epk_bytes = action.output().encrypted_note().epk_bytes;
         let cmx_bytes = action.output().cmx().to_bytes();
-        let enc_ciphertext = &action.output().encrypted_note().enc_ciphertext;
+        let enc_ciphertext = action.output().encrypted_note().enc_ciphertext.as_ref();
         let nf_bytes = action.spend().nullifier().to_bytes();
 
         let res = internal_try_decrypt_action(

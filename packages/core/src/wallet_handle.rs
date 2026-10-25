@@ -146,7 +146,7 @@ impl Task for BuildTransactionTask {
         let sk = if let Some(handle) = self.req.spend_handle {
             let usk = crate::get_spending_key(handle)
                 .ok_or_else(|| Error::new(Status::InvalidArg, format!("Spend handle {} not found", handle)))?;
-            *usk.orchard()
+            usk.orchard().clone()
         } else if let Some(ref sk_buf) = self.req.spending_key_bytes {
             if sk_buf.len() != 32 {
                 return Err(Error::new(Status::InvalidArg, "Spending key bytes must be 32 bytes".to_string()));
@@ -253,11 +253,12 @@ impl Task for BuildTransactionTask {
             outputs.push(crate::transaction::OutputSpec::new(change_address, change_val));
         }
 
-        let branch_id = zcash_protocol::consensus::BranchId::Nu6_3;
+        let target_height = zcash_protocol::consensus::BlockHeight::from_u32(self.req.anchor_height);
+        let branch_id = zcash_protocol::consensus::BranchId::for_height(&self.network, target_height);
         let mut config = crate::transaction::TransactionConfig::new(
             branch_id,
             anchor,
-            zcash_protocol::consensus::BlockHeight::from_u32(self.req.expiry_height),
+            target_height,
             None,
         );
         config = config.with_expiry_height(zcash_protocol::consensus::BlockHeight::from_u32(self.req.expiry_height));

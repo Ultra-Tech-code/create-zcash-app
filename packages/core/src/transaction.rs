@@ -11,14 +11,10 @@ use orchard::note::Note;
 use orchard::tree::MerklePath;
 use orchard::value::NoteValue;
 use orchard::Address;
-use rand::rngs::OsRng;
-
 use zcash_primitives::transaction::fees::transparent::InputSize;
 use zcash_primitives::transaction::fees::zip317::FeeRule;
 use zcash_primitives::transaction::fees::FeeRule as _;
-use zcash_primitives::transaction::sighash::SignableInput;
-use zcash_primitives::transaction::sighash_v6::v6_signature_hash;
-use zcash_primitives::transaction::txid::TxIdDigester;
+use zcash_primitives::transaction::sighash::{PrecomputedSighashData, SignableInput};
 use zcash_primitives::transaction::{Transaction, TransactionData, TxId, Unauthorized};
 use zcash_protocol::consensus::{BlockHeight, BranchId};
 use zcash_protocol::value::{ZatBalance, Zatoshis};
@@ -273,6 +269,18 @@ impl TransactionConfig {
         }
     }
 
+    /// Creates a transaction configuration deriving BranchId purely from `BranchId::for_height`
+    /// on the specified consensus parameters at `target_height`.
+    pub fn for_target_height<P: zcash_protocol::consensus::Parameters>(
+        params: &P,
+        anchor: orchard::Anchor,
+        target_height: BlockHeight,
+        anchor_offset: Option<u32>,
+    ) -> Self {
+        let branch_id = BranchId::for_height(params, target_height);
+        Self::new(branch_id, anchor, target_height, anchor_offset)
+    }
+
     /// Sets the expiry height explicitly.
     pub fn with_expiry_height(mut self, expiry_height: BlockHeight) -> Self {
         self.expiry_height = expiry_height;
@@ -470,7 +478,7 @@ impl<'a> TransactionBuilder<'a> {
         }
 
         // 7. Synthesize unproven bundle
-        let mut rng = OsRng;
+        let mut rng = rand::rng();
         let (unproven_bundle, _meta) = builder
             .build::<i64>(&mut rng)
             .map_err(|e| TransactionBuildError::BuilderError(format!("Build error: {:?}", e)))?
@@ -530,16 +538,9 @@ impl<'a> TransactionBuilder<'a> {
             Some(unproven_bundle_zat),
         );
 
-        let txid_parts = tx_for_sighash.digest(TxIdDigester);
-        let sighash = v6_signature_hash(&tx_for_sighash, &SignableInput::Shielded, &txid_parts);
-        let sighash_bytes: [u8; 32] = match sighash.as_bytes().try_into() {
-            Ok(b) => b,
-            Err(_) => {
-                return Err(TransactionBuildError::SigningError(
-                    "Invalid sighash byte length".to_string(),
-                ));
-            }
-        };
+        let precomputed = PrecomputedSighashData::new(tx_for_sighash);
+        let sighash = precomputed.signature_hash(&SignableInput::Shielded);
+        let sighash_bytes: [u8; 32] = *sighash.as_ref();
 
         // 10. Generate Halo 2 zero-knowledge proof
         let proven_bundle = unproven_bundle
@@ -557,7 +558,7 @@ impl<'a> TransactionBuilder<'a> {
             .collect();
 
         let authorized_bundle = proven_bundle
-            .apply_signatures(rng, sighash_bytes, &asks)
+            .apply_signatures(rand::rng(), sighash_bytes, &asks)
             .map_err(|e| TransactionBuildError::SigningError(format!("{:?}", e)))?;
 
         // 12. Freeze into final authorized Transaction

@@ -52,7 +52,7 @@ fn create_encrypted_ironwood_action(
         nullifier: nf_bytes.to_vec(),
         cmx: cmx.to_vec(),
         ephemeral_key: epk_bytes.to_vec(),
-        ciphertext: enc_ciphertext[..52].to_vec(),
+        ciphertext: enc_ciphertext.as_ref()[..52].to_vec(),
     };
 
     (action, cmx, nullifier)

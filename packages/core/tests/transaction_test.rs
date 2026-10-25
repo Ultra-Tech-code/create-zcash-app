@@ -791,9 +791,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     }
     use orchard::bundle::BundleVersion;
     use orchard::keys::SpendAuthorizingKey;
-    use zcash_primitives::transaction::sighash::SignableInput;
-    use zcash_primitives::transaction::sighash_v6::v6_signature_hash;
-    use zcash_primitives::transaction::txid::TxIdDigester;
+    use zcash_primitives::transaction::sighash::{PrecomputedSighashData, SignableInput};
     use zcash_primitives::transaction::{TransactionData, Unauthorized};
 
     // 1. Analyze Crate Support
@@ -826,7 +824,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     let path = MerklePath::from(wit.path().unwrap());
     let anchor: orchard::Anchor = tree.root().into();
 
-    let mut rng = rand::rngs::OsRng;
+    let mut rng = rand::rng();
 
     // 3. Build Orchard Spend Bundle (ValueBalance = +100,000 zatoshis exiting Orchard pool)
     println!("\n--- 2. Building Orchard Spend Bundle ---");
@@ -889,9 +887,9 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
         Some(ironwood_unproven_zat), // ironwood_bundle
     );
 
-    let txid_parts = tx_for_sighash.digest(TxIdDigester);
-    let sighash = v6_signature_hash(&tx_for_sighash, &SignableInput::Shielded, &txid_parts);
-    let sighash_bytes: [u8; 32] = sighash.as_bytes().try_into().expect("32 bytes");
+    let precomputed = PrecomputedSighashData::new(tx_for_sighash);
+    let sighash = precomputed.signature_hash(&SignableInput::Shielded);
+    let sighash_bytes: [u8; 32] = *sighash.as_ref();
     println!("Canonical V6 sighash computed: {}", hex::encode(sighash_bytes));
 
     // 6. Generate Halo 2 ZK proofs for both bundles
@@ -911,10 +909,10 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     println!("\n--- 6. Applying Signatures & Freezing Transaction ---");
     let ask = SpendAuthorizingKey::from(&sk);
     let orchard_authorized = orchard_proven
-        .apply_signatures(rng, sighash_bytes, &[ask])
+        .apply_signatures(rand::rng(), sighash_bytes, &[ask])
         .expect("orchard signing");
     let ironwood_authorized = ironwood_proven
-        .apply_signatures(rng, sighash_bytes, &[])
+        .apply_signatures(rand::rng(), sighash_bytes, &[])
         .expect("ironwood signing");
 
     let orchard_auth_zat = orchard_authorized
@@ -1032,5 +1030,57 @@ fn test_p6_zip317_fee_parity_with_crate_feerule() {
     println!("All {} action counts verified strictly identical to FeeRule::standard()!", test_action_counts.len());
 }
 
+#[test]
+fn test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id() {
+    println!("\n=== TEST: BUILD TESTNET TX AT HEIGHT >= 4,465,026 HAS NU7 BRANCH ID (0x77190ad9) ===");
+    use zcash_protocol::consensus::TEST_NETWORK;
 
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
 
+    let recipient_sk = SpendingKey::from_bytes([99u8; 32]).unwrap();
+    let recipient_fvk = FullViewingKey::from(&recipient_sk);
+    let recipient_addr = recipient_fvk.address_at(0u32, Scope::External);
+    let out1 = OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000));
+
+    let change_addr = fvk.address_at(0u32, Scope::Internal);
+    let out2 = OutputSpec::new(change_addr, NoteValue::from_raw(90_000));
+
+    // Target testnet height >= 4,465,026 (NU7 activation height)
+    let target_height = BlockHeight::from_u32(4_465_026);
+
+    // Derive config using the exact same derivation as the builder: BranchId::for_height
+    let config = TransactionConfig::for_target_height(&TEST_NETWORK, anchor, target_height, Some(5));
+
+    assert_eq!(config.branch_id, BranchId::Nu7);
+    assert_eq!(u32::from(config.branch_id), 0x7719_0ad9);
+
+    let pk = get_shared_proving_key();
+    let built = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1],
+        vec![out1, out2],
+        &config,
+        pk,
+    )
+    .expect("build_and_prove_v6_ironwood_tx failed at NU7 height");
+
+    // Assert consensus branch ID on built transaction
+    let built_branch_u32 = u32::from(built.transaction.consensus_branch_id());
+    assert_eq!(
+        built_branch_u32, 0x7719_0ad9,
+        "Built transaction consensus branch ID must be 0x77190ad9 (NU7)"
+    );
+
+    // Assert round-trip deserialization with Transaction::read
+    let mut reader = &built.raw_bytes[..];
+    let read_tx = Transaction::read(&mut reader, config.branch_id)
+        .expect("Transaction::read failed on NU7 transaction bytes");
+    let read_branch_u32 = u32::from(read_tx.consensus_branch_id());
+    assert_eq!(
+        read_branch_u32, 0x7719_0ad9,
+        "Deserialized transaction consensus branch ID must be 0x77190ad9 (NU7)"
+    );
+
+    println!("Verified: testnet tx built at height {} has consensus branch id 0x{:08x}", target_height, built_branch_u32);
+}

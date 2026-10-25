@@ -27,23 +27,32 @@ fn test_nu6_3_activation_heights_from_consensus() {
 
 #[test]
 fn test_consensus_branch_id_derivation() {
+    use zcash_core::consensus::BranchId;
     use zcash_core::get_consensus_branch_id_for_height;
+
+    // Verify crate BranchId enum variants
+    assert_eq!(u32::from(BranchId::Nu6_3), 0x37a5_165b, "NU6.3 branch ID must equal 0x37a5165b");
+    assert_eq!(u32::from(BranchId::Nu7), 0x7719_0ad9, "NU7 branch ID must equal 0x77190ad9");
 
     // Testnet pre-NU7 (NU6.3): height 4,465,025 -> 0x37a5165b
     let testnet_pre_nu7 = get_consensus_branch_id_for_height("testnet", 4_465_025).expect("branch");
-    assert_eq!(testnet_pre_nu7, 0x37a5_165b);
+    assert_eq!(testnet_pre_nu7, 0x37a5_165b, "Testnet 4,465,025 must derive Nu6_3 (0x37a5165b)");
 
     // Testnet post-NU7: height 4,465,026 -> 0x77190ad9
     let testnet_nu7 = get_consensus_branch_id_for_height("testnet", 4_465_026).expect("branch");
-    assert_eq!(testnet_nu7, 0x7719_0ad9);
+    assert_eq!(testnet_nu7, 0x7719_0ad9, "Testnet 4,465,026 must derive Nu7 (0x77190ad9)");
 
-    // Regtest at height 2 -> 0x37a5165b (NU6.3)
+    // Mainnet pre-NU7 (NU6.3): height 3,428,143 -> 0x37a5165b
+    let mainnet_nu6_3 = get_consensus_branch_id_for_height("mainnet", 3_428_143).expect("branch");
+    assert_eq!(mainnet_nu6_3, 0x37a5_165b, "Mainnet 3,428,143 must derive Nu6_3 (0x37a5165b)");
+
+    // Mainnet post-NU7: height 3,543,405 -> 0x77190ad9
+    let mainnet_nu7 = get_consensus_branch_id_for_height("mainnet", 3_543_405).expect("branch");
+    assert_eq!(mainnet_nu7, 0x7719_0ad9, "Mainnet 3,543,405 must derive Nu7 (0x77190ad9)");
+
+    // Regtest at height 2 -> 0x37a5165b (NU6.3 / NU7 parameters)
     let regtest_branch = get_consensus_branch_id_for_height("regtest", 2).expect("branch");
-    assert_eq!(regtest_branch, 0x37a5_165b);
-
-    // Mainnet at height 3,428,143 -> 0x37a5165b (NU6.3)
-    let mainnet_branch = get_consensus_branch_id_for_height("mainnet", 3_428_143).expect("branch");
-    assert_eq!(mainnet_branch, 0x37a5_165b);
+    assert_eq!(regtest_branch, 0x7719_0ad9, "Regtest at height 2 with NU7 activated must derive 0x77190ad9");
 }
 
 #[test]
@@ -55,8 +64,8 @@ fn test_address_equivalence_in_code() {
     // Note's decrypted Unified Address (single-receiver: Orchard/Ironwood)
     let note_ua = "utest1l4hez2arqx8xdvpl5nt334ak9ehu5k3yej9qprax9raak2ek50h3vg54f02mkl3le62gj2t4qsthqp583w2esx7zhc47hz7zsq0tfsx6";
 
-    let (_net1, parsed_acct_a) = Address::decode(account_a_ua).expect("valid account A UA");
-    let (_net2, parsed_note) = Address::decode(note_ua).expect("valid note UA");
+    let (_net1, _rev1, parsed_acct_a) = Address::decode(account_a_ua).expect("valid account A UA");
+    let (_net2, _rev2, parsed_note) = Address::decode(note_ua).expect("valid note UA");
 
     let mut acct_a_orchard_receiver: Option<[u8; 43]> = None;
     for r in parsed_acct_a.items() {

@@ -78,7 +78,7 @@ fn create_encrypted_action_v3(
         nullifier: nf_bytes.to_vec(),
         cmx: cmx.to_vec(),
         ephemeral_key: epk_bytes.to_vec(),
-        ciphertext: enc_ciphertext[..52].to_vec(),
+        ciphertext: enc_ciphertext.as_ref()[..52].to_vec(),
     };
 
     (action, cmx, nullifier)
@@ -121,7 +121,7 @@ fn create_encrypted_action_v2_orchard(
         nullifier: nf_bytes.to_vec(),
         cmx: cmx.to_vec(),
         ephemeral_key: epk_bytes.to_vec(),
-        ciphertext: enc_ciphertext[..52].to_vec(),
+        ciphertext: enc_ciphertext.as_ref()[..52].to_vec(),
     }
 }
 

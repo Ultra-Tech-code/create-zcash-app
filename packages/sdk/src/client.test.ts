@@ -150,13 +150,13 @@ describe('Chain Identity Guard', () => {
       taddrSupport: true,
       chainName: 'regtest',
       saplingActivationHeight: '1',
-      consensusBranchId: '37a5165b',
+      consensusBranchId: '77190ad9',
       blockHeight: '10',
     });
 
     const result = await client.assertChainIdentity();
-    expect(result.consensusBranchId).toBe('37a5165b');
-    expect(result.expectedBranchId).toBe('37a5165b');
+    expect(result.consensusBranchId).toBe('77190ad9');
+    expect(result.expectedBranchId).toBe('77190ad9');
 
     await client.close();
   });

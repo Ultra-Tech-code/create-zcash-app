@@ -11,23 +11,23 @@ napi = { version = "3", default-features = false, features = ["napi4", "dyn-symb
 napi-derive = "3"
 bip0039 = { version = "0.12", features = ["all-languages"] }
 subtle = "2.4"
-rand = "0.8"
-orchard = "0.15.0"
-zcash_address = "0.13.0"
-zcash_keys = { version = "0.16.1", features = ["orchard", "sapling", "transparent-inputs"] }
-zcash_protocol = { version = "0.10.4", features = ["local-consensus"] }
-zcash_primitives = "0.30.0"
+rand = "0.10"
+orchard = "0.16.0"
+zcash_address = "0.14.0"
+zcash_keys = { version = "0.17.0", features = ["orchard", "sapling", "transparent-inputs"] }
+zcash_protocol = { version = "0.11.0", features = ["local-consensus"] }
+zcash_primitives = "0.31.0"
 hex = "0.4"
 thiserror = "2"
-zcash_client_backend = { version = "0.24.0", features = ["orchard", "unstable-serialization"] }
-zcash_note_encryption = "=0.4.2"
-incrementalmerkletree = "0.8.2"
-shardtree = "0.7.1"
+zcash_client_backend = { version = "0.25.0", features = ["orchard", "unstable-serialization"] }
+zcash_note_encryption = "0.5"
+incrementalmerkletree = "0.9"
+shardtree = "0.8"
 rusqlite = { version = "0.32", features = ["bundled"] }
 prost = "0.14"
 
 [dev-dependencies]
-zcash_transparent = "0.10.0"
+zcash_transparent = "0.11.0"
 serde_json = "1"
 serde = { version = "1", features = ["derive"] }
 tempfile = "3"
