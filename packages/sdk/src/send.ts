@@ -7,6 +7,7 @@ import {
   quoteFee as coreQuoteFee,
   warmupProver as coreWarmupProver,
   decodeIronwoodFrontierRoot,
+  ironwoodEmptyTreeRoot,
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
@@ -148,23 +149,32 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     );
   }
 
-  if (treeState && treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
+  if (treeState) {
+    const nodeTreeHex = (treeState.ironwoodTree ?? '').toLowerCase();
     let remoteRootHex: string | null = null;
-    try {
-      remoteRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
-    } catch (err: any) {
-      const reason = err?.message ?? String(err);
-      if (!allowUnverifiedAnchor) {
-        throw new AnchorVerificationError(
-          `Cannot verify anchor against node at height ${anchorHeight}: undecodable Ironwood frontier (${reason})`
+
+    if (/^0*$/.test(nodeTreeHex)) {
+      // Empty-tree marker: the node has no Ironwood commitments at this height, so the anchor it
+      // reports is the empty Ironwood root. Compare against it instead of skipping the check —
+      // a wallet that does have commitments here must not pass against an empty node tree.
+      remoteRootHex = ironwoodEmptyTreeRoot().toLowerCase();
+    } else {
+      try {
+        remoteRootHex = decodeIronwoodFrontierRoot(treeState.ironwoodTree);
+      } catch (err: any) {
+        const reason = err?.message ?? String(err);
+        if (!allowUnverifiedAnchor) {
+          throw new AnchorVerificationError(
+            `Cannot verify anchor against node at height ${anchorHeight}: undecodable Ironwood frontier (${reason})`
+          );
+        }
+        console.warn(
+          `[send] WARNING: anchor ${anchorHeight} was NOT verified against the node (undecodable Ironwood frontier: ${reason}); proceeding because allowUnverifiedAnchor=true`
         );
       }
-      console.warn(
-        `[send] WARNING: anchor ${anchorHeight} was NOT verified against the node (undecodable Ironwood frontier: ${reason}); proceeding because allowUnverifiedAnchor=true`
-      );
     }
 
-    if (remoteRootHex !== null && localRootHex !== remoteRootHex) {
+    if (remoteRootHex !== null && localRootHex !== remoteRootHex.toLowerCase()) {
       throw new AnchorVerificationError(
         `Tree root mismatch at anchor height ${anchorHeight}: local ${localRootHex} != remote ${remoteRootHex}`
       );

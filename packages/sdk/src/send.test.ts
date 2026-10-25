@@ -8,8 +8,9 @@ import {
   JsSpendableNote,
   JsBuiltTransaction,
   decodeIronwoodFrontierRoot,
+  ironwoodEmptyTreeRoot,
 } from '@zcash-app/core';
-import { send, SendOptions, quoteFee, warmupProver } from './send.js';
+import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -17,6 +18,12 @@ import { KNOWN_TEST_MNEMONICS } from './constants.js';
 describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
   const acct = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest');
   const validUfvk = acct.getUnifiedFullViewingKey();
+
+  // A decodable Ironwood frontier plus the root it decodes to. The general-flow scenarios mock the
+  // node with this frontier and the wallet checkpoint with its root, so the anchor check runs and
+  // passes for real instead of being skipped by an empty-tree marker.
+  const mockFrontier = '01' + Buffer.alloc(32, 0x00).toString('hex') + '00' + '00';
+  const mockFrontierRoot = decodeIronwoodFrontierRoot(mockFrontier);
   let tmpDir: string;
   let dbPath: string;
   let wallet: WalletHandle;
@@ -75,7 +82,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
         time: 1000,
         saplingTree: '00',
         orchardTree: '00',
-        ironwoodTree: '000000',
+        ironwoodTree: mockFrontier,
       } as TreeState),
       sendTransaction: vi.fn().mockResolvedValue({ errorCode: 0, errorMessage: '' }),
       getBlockRange: vi.fn(),
@@ -93,8 +100,8 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
     const mockClient = createMockClient();
 
-    // Mock tree root at anchor height 5
-    const dummyRoot = Buffer.alloc(32, 0x12);
+    // Mock tree root at anchor height 5 (must match the mocked node frontier root)
+    const dummyRoot = Buffer.from(mockFrontierRoot, 'hex');
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(dummyRoot);
 
     // Mock buildAndProveTransaction with delay to simulate proving work
@@ -159,7 +166,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     insertMockNote(2, 500_000_000, 2, 'bb'.repeat(32));
 
     const mockClient = createMockClient();
-    const dummyRoot = Buffer.alloc(32, 0x12);
+    const dummyRoot = Buffer.from(mockFrontierRoot, 'hex');
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(dummyRoot);
 
     // Mock buildAndProveTransaction to simulate failure
@@ -211,7 +218,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     insertMockNote(3, 500_000_000, 2, 'cc'.repeat(32));
 
     const mockClient = createMockClient();
-    const dummyRoot = Buffer.alloc(32, 0x12);
+    const dummyRoot = Buffer.from(mockFrontierRoot, 'hex');
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(dummyRoot);
 
     vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
@@ -254,7 +261,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     insertMockNote(4, 500_000_000, 2, 'dd'.repeat(32));
 
     const mockClient = createMockClient();
-    const dummyRoot = Buffer.alloc(32, 0x12);
+    const dummyRoot = Buffer.from(mockFrontierRoot, 'hex');
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(dummyRoot);
 
     vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
@@ -478,6 +485,102 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('NOT verified against the node'));
 
     warnSpy.mockRestore();
+  });
+
+  it('Scenario 9: a node reporting an EMPTY Ironwood tree aborts when the wallet has commitments', async () => {
+    insertMockNote(9, 500_000_000, 2, 'f4'.repeat(32));
+
+    const mockClient = createMockClient();
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
+    vi.spyOn(mockClient, 'getTreeState').mockResolvedValue({
+      network: 'regtest',
+      height: '5',
+      hash: '00'.repeat(32),
+      time: 1000,
+      saplingTree: '00',
+      orchardTree: '00',
+      // Zaino's marker for "no Ironwood commitments at this height".
+      ironwoodTree: '000000',
+    } as TreeState);
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 9,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f4'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction');
+    const emptyRootHex = ironwoodEmptyTreeRoot();
+
+    const err: any = await send({
+      client: mockClient,
+      wallet,
+      from: 0,
+      to: 'uregtest1recipient...',
+      amount: 100_000_000n,
+    }).then(
+      () => null,
+      (e) => e
+    );
+
+    expect(err).toBeInstanceOf(AnchorVerificationError);
+    expect(err.message).toMatch(/Tree root mismatch at anchor height 5/);
+    expect(err.message).toContain(emptyRootHex);
+    expect(buildSpy).not.toHaveBeenCalled();
+    expect(runSql('SELECT count(*) FROM pending_spends;')).toBe('0');
+  });
+
+  it('Scenario 10: an empty local checkpoint matches the node empty-tree marker (check passes)', async () => {
+    insertMockNote(10, 500_000_000, 2, 'f5'.repeat(32));
+
+    const mockClient = createMockClient();
+    const emptyRootHex = ironwoodEmptyTreeRoot();
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(emptyRootHex, 'hex'));
+    vi.spyOn(mockClient, 'getTreeState').mockResolvedValue({
+      network: 'regtest',
+      height: '5',
+      hash: '00'.repeat(32),
+      time: 1000,
+      saplingTree: '00',
+      orchardTree: '00',
+      ironwoodTree: '000000',
+    } as TreeState);
+
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 10,
+        recipient: 'uregtest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f5'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+      txid: 'c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00',
+      rawBytes: Buffer.alloc(64, 0x03),
+      fee: 10000,
+      numActions: 2,
+      expiryHeight: 50,
+    } as JsBuiltTransaction);
+
+    const result = await send({
+      client: mockClient,
+      wallet,
+      from: 0,
+      to: 'uregtest1recipient...',
+      amount: 100_000_000n,
+    });
+
+    expect(result.txid).toBe('c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00');
+    expect(buildSpy).toHaveBeenCalledTimes(1);
+    expect(runSql('SELECT state FROM pending_spends WHERE note_id = 10;')).toBe('broadcast');
   });
 
   it('verifies quoteFee and warmupProver exports against FeeRule::standard()', () => {

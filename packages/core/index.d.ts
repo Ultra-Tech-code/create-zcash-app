@@ -75,6 +75,15 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
+/**
+ * Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
+ *
+ * GetTreeState / z_gettreestate report an empty Ironwood frontier as zero bytes (Zaino sends
+ * `000000`) when the pool has no commitments at that height. The anchor of that tree is this
+ * value, so the anchor check can compare against it instead of skipping verification.
+ */
+export declare function ironwoodEmptyTreeRoot(): string
+
 export interface JsBuildTransactionRequest {
   spendHandle?: number
   spendingKeyBytes?: Buffer

@@ -544,5 +544,6 @@ pub use transaction::{
 };
 pub use wallet_db::{WalletDb, WalletDbError};
 pub use wallet_handle::{
-    decode_ironwood_frontier_root, JsScanResult, JsSpendableNote, WalletHandle, WalletSummary,
+    decode_ironwood_frontier_root, ironwood_empty_tree_root, JsScanResult, JsSpendableNote,
+    WalletHandle, WalletSummary,
 };

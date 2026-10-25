@@ -713,6 +713,16 @@ pub fn decode_ironwood_frontier_root(frontier_hex: String) -> Result<String> {
     Ok(hex::encode(root.to_bytes()))
 }
 
+/// Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
+///
+/// GetTreeState / z_gettreestate report an empty Ironwood frontier as zero bytes (Zaino sends
+/// `000000`) when the pool has no commitments at that height. The anchor of that tree is this
+/// value, so the anchor check can compare against it instead of skipping verification.
+#[napi]
+pub fn ironwood_empty_tree_root() -> Result<String> {
+    Ok(hex::encode(orchard::Anchor::empty_tree().to_bytes()))
+}
+
 /// Returns the conventional ZIP 317 fee for a transaction with the given number of actions.
 #[napi]
 pub fn quote_fee(num_actions: u32) -> Result<i64> {
