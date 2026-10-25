@@ -1,0 +1,97 @@
+===============================================================
+=== ZCASH SDK TESTNET INTEGRATION VERIFICATION (READ-ONLY)  ===
+===============================================================
+
+Endpoint: 127.0.0.1:8137 (default testnet port 8137)
+Network:  testnet
+
+--- Step 1: Connecting to Node & Checking Consensus Branch ---
+Node Vendor:       ZingoLabs ZainoD (0.10.0)
+Node Chain:        test
+Tip Block Height:  4492711
+Consensus Branch:  0x37a5165b
+Upgrade Name:      NU6.3
+Upgrade Height:    4134000
+Consensus branch check: PASSED (verified NU6.3 consensusBranchId 0x37a5165b at height 4,134,000) ✅
+
+--- Step 2: Secure Account Handling ---
+Found existing accounts file: /Users/0xblackadam/.zcash-app-testnet/accounts.json
+Reusing existing Account A and Account B (refusing to overwrite) ✅
+
+===============================================================
+=== TESTNET ACCOUNTS ===
+===============================================================
+Account A:
+  Address: utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk
+  Prefix:  utest1lt (verified testnet prefix "utest1")
+  Label:   *** SEND TAZ HERE ***
+
+Account B:
+  Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+  Prefix:  utest1lg (verified testnet prefix "utest1")
+
+Persistent Wallet DB Path: /Users/0xblackadam/.zcash-app-testnet/wallet_a.db
+Wallet Initial State:
+  Last Scanned Height: 4492708
+  Tree Size:           481479
+  Unspent Notes:       0
+  Total Balance:       0 zatoshis
+
+--- Step 3: 5,000-Block Slice Benchmark ---
+Benchmarking 5,000-block slice from height 4134000 to 4138999...
+[Sync] Starting sync from height 4134000 to target 4138999 (tip: 4492711, batch size: 500)...
+
+Benchmark Results:
+  Blocks Scanned:  5000 blocks
+  Wall Time:       1.02s (1017ms)
+  Measured Rate:   4916.4 blocks/s
+  Remaining Range: 358711 blocks (from activation 4134000 to tip 4492711)
+  Estimated Time:  73.0s (~1.2 minutes)
+
+--- Step 4: Syncing to Activation + 1000 Checkpoint (4,135,000) ---
+[Sync] Starting sync from height 4134000 to target 4135000 (tip: 4492711, batch size: 500)...
+Checkpoint 4,135,000 root resolved: c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34
+
+--- Step 5: Full Chain Sync to Tip in Resumable Batches ---
+[Sync] Starting sync from height 4492709 to target 4492711 (tip: 4492711, batch size: 500)...
+  [Progress] Scanned to height 4492711/4492711 (100.0%) | Rate: 600 blk/s | ETA: 0s | Notes: 0
+Sync completed in 0.01s!
+Final Summary: {
+  lastScannedHeight: 4492711,
+  treeSize: 481479,
+  unspentNotesCount: 0,
+  totalBalanceZatoshis: 0,
+  spendableBalanceZatoshis: 0
+}
+
+--- Step 6: Verifying Commitment Tree Roots against Node GetTreeState ---
+Height 4134000 (Activation):
+  Node Frontier: 000000... (len 6)
+  Node Root:     (empty tree)
+  Wallet Root:   (empty tree)
+  Match:         VALID (both empty) ✅
+Height 4135000 (Activation + 1000):
+  Node Frontier: 01d96886a60491bf3a63eb3ce28f46f6... (len 132)
+  Node Root:     c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34
+  Wallet Root:   c81755d77a269e373715a78a3cc18e2f04f4df82c7d005e64e7b3cf123680e34
+  Match:         VALID (exact match) ✅
+Height 4492611 (Tip - 100):
+  Node Frontier: 014ef62ac0c58d5131d55781defd3cb1... (len 772)
+  Node Root:     15bdaacf8c903ffa1cd0b2d1f735b0e033af88dff9dc524d5bbe1c6b7676cc20
+  Wallet Root:   15bdaacf8c903ffa1cd0b2d1f735b0e033af88dff9dc524d5bbe1c6b7676cc20
+  Match:         VALID (exact match) ✅
+Height 4492711 (Tip):
+  Node Frontier: 014ef62ac0c58d5131d55781defd3cb1... (len 772)
+  Node Root:     15bdaacf8c903ffa1cd0b2d1f735b0e033af88dff9dc524d5bbe1c6b7676cc20
+  Wallet Root:   15bdaacf8c903ffa1cd0b2d1f735b0e033af88dff9dc524d5bbe1c6b7676cc20
+  Match:         VALID (exact match) ✅
+
+All 4 checkpoint heights matched the Zebra node GetTreeState roots with 100% cryptographic parity! ✅
+
+===============================================================
+=== READ-ONLY PHASE COMPLETE: WALLET SYNCHRONIZED AND READY ===
+===============================================================
+Send TAZ to Account A address:
+utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk
+
+Once TAZ is sent and confirmed on-chain, reply to proceed with detection phase.

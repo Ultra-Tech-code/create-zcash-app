@@ -1,8 +1,13 @@
 import { WalletHandle, WalletSummary, JsScanResult, JsSpendableNote, decodeIronwoodFrontierRoot } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 
+export { decodeIronwoodFrontierRoot };
+
 export interface SyncOptions {
   batchSize?: number;
+  startHeight?: number;
+  birthday?: number;
+  endHeight?: number;
   onProgress?: (lastScannedHeight: number, tipHeight: number, notesDetected: number) => void;
   verifyRootAtTip?: boolean;
 }
@@ -29,16 +34,21 @@ export async function syncWallet(
   const info = await client.getInfo();
   const tipHeight = Number(info.blockHeight);
 
-  // Scan starts from pool activation height (2 on regtest) or lastScannedHeight + 1
-  let currentStart = initialSummary.lastScannedHeight === 0 ? 2 : initialSummary.lastScannedHeight + 1;
+  // Scan starts from startHeight, or if lastScannedHeight === 0, birthday or 2, else lastScannedHeight + 1
+  let currentStart = options.startHeight ?? (
+    initialSummary.lastScannedHeight === 0
+      ? (options.birthday ?? 2)
+      : initialSummary.lastScannedHeight + 1
+  );
+  const targetEnd = options.endHeight ? Math.min(options.endHeight, tipHeight) : tipHeight;
 
-  if (currentStart > tipHeight) {
-    console.log(`[Sync] Wallet already synced at tip height ${initialSummary.lastScannedHeight}. Fetching 0 old blocks.`);
+  if (currentStart > targetEnd) {
+    console.log(`[Sync] Wallet already synced at height ${initialSummary.lastScannedHeight} (target end: ${targetEnd}). Fetching 0 blocks.`);
     const rootBuf = wallet.getTreeRoot(0);
     const tipRootHex = rootBuf ? rootBuf.toString('hex') : null;
     let treeStateMatched = true;
 
-    if (options.verifyRootAtTip !== false && tipHeight >= 2) {
+    if (options.verifyRootAtTip !== false && targetEnd === tipHeight && tipHeight >= 2) {
       try {
         const treeState = await client.getTreeState(tipHeight);
         if (treeState.ironwoodTree && treeState.ironwoodTree !== '000000') {
@@ -59,11 +69,11 @@ export async function syncWallet(
     };
   }
 
-  console.log(`[Sync] Starting sync from height ${currentStart} to tip ${tipHeight} (batch size: ${batchSize})...`);
+  console.log(`[Sync] Starting sync from height ${currentStart} to target ${targetEnd} (tip: ${tipHeight}, batch size: ${batchSize})...`);
   let totalBlocksFetched = 0;
 
-  while (currentStart <= tipHeight) {
-    const currentEnd = Math.min(currentStart + batchSize - 1, tipHeight);
+  while (currentStart <= targetEnd) {
+    const currentEnd = Math.min(currentStart + batchSize - 1, targetEnd);
     const rawBlocks: Buffer[] = [];
 
     // Stream raw compact blocks for the batch
@@ -96,7 +106,7 @@ export async function syncWallet(
     }
 
     if (options.onProgress) {
-      options.onProgress(scanRes.lastScannedHeight, tipHeight, scanRes.notesDetected);
+      options.onProgress(scanRes.lastScannedHeight, targetEnd, scanRes.notesDetected);
     }
 
     currentStart = (scanRes.lastScannedHeight != null && scanRes.lastScannedHeight > 0)
@@ -109,7 +119,7 @@ export async function syncWallet(
   const tipRootHex = tipRootBuf ? tipRootBuf.toString('hex') : null;
 
   let treeStateMatched = true;
-  if (options.verifyRootAtTip !== false && tipHeight >= 2) {
+  if (options.verifyRootAtTip !== false && targetEnd === tipHeight && tipHeight >= 2) {
     try {
       const treeState = await client.getTreeState(tipHeight);
       console.log(`[Sync] Verified against GetTreeState(${tipHeight}):`);
