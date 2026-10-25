@@ -75,6 +75,8 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
+export declare function getExpectedBranchId(networkStr: string, height: number): string
+
 /**
  * Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
  *

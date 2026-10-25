@@ -364,6 +364,13 @@ mod napi_bindings {
             rseed: n.rseed,
         }))
     }
+
+    #[napi]
+    pub fn get_expected_branch_id(network_str: String, height: u32) -> Result<String> {
+        let branch = crate::consensus::get_consensus_branch_id_for_height(&network_str, height)
+            .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))?;
+        Ok(format!("{:08x}", branch))
+    }
 }
 
 #[cfg(test)]
@@ -521,7 +528,10 @@ pub mod transaction;
 pub mod wallet_db;
 pub mod wallet_handle;
 
-pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
+pub use consensus::{
+    get_consensus_branch_id_for_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
+    ConsensusError,
+};
 pub use pending_spends::PendingSpendsManager;
 pub use scanner::{
     ChainMetadata, CompactBlock, CompactOrchardAction, CompactTx, ScanResult, Scanner,

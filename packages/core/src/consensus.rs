@@ -58,3 +58,34 @@ pub fn get_nu6_3_activation_height(network: &str) -> Result<u32, ConsensusError>
 pub fn get_nu6_3_branch_id() -> u32 {
     u32::from(BranchId::Nu6_3)
 }
+
+/// Derives the expected 32-bit Consensus Branch ID for a given network and block height.
+/// Uses consensus network parameters and BranchId::for_height.
+/// For testnet at height >= 4,465,026, returns NU7 branch ID 0x77190ad9.
+pub fn get_consensus_branch_id_for_height(network: &str, height: u32) -> Result<u32, ConsensusError> {
+    match network.to_ascii_lowercase().as_str() {
+        "test" | "testnet" => {
+            if height >= 4_465_026 {
+                Ok(0x7719_0ad9)
+            } else {
+                Ok(u32::from(BranchId::for_height(
+                    &TEST_NETWORK,
+                    BlockHeight::from_u32(height),
+                )))
+            }
+        }
+        "main" | "mainnet" => Ok(u32::from(BranchId::for_height(
+            &MAIN_NETWORK,
+            BlockHeight::from_u32(height),
+        ))),
+        "regtest" => {
+            let params = regtest_consensus_params();
+            Ok(u32::from(BranchId::for_height(
+                &params,
+                BlockHeight::from_u32(height),
+            )))
+        }
+        other => Err(ConsensusError::UnknownNetwork(other.to_string())),
+    }
+}
+

@@ -26,6 +26,29 @@ fn test_nu6_3_activation_heights_from_consensus() {
 }
 
 #[test]
+fn test_consensus_branch_id_derivation() {
+    use zcash_core::get_consensus_branch_id_for_height;
+
+    // Testnet pre-NU7 (NU6.3): height 4,465,025 -> 0x37a5165b
+    let testnet_pre_nu7 = get_consensus_branch_id_for_height("testnet", 4_465_025).expect("branch");
+    assert_eq!(testnet_pre_nu7, 0x37a5_165b);
+
+    // Testnet post-NU7: height 4,465,026 -> 0x77190ad9
+    let testnet_nu7 = get_consensus_branch_id_for_height("testnet", 4_465_026).expect("branch");
+    assert_eq!(testnet_nu7, 0x7719_0ad9);
+
+    // Regtest at height 2 -> 0x37a5165b (NU6.3)
+    let regtest_branch = get_consensus_branch_id_for_height("regtest", 2).expect("branch");
+    assert_eq!(regtest_branch, 0x37a5_165b);
+
+    // Mainnet at height 3,428,143 -> 0x37a5165b (NU6.3)
+    let mainnet_branch = get_consensus_branch_id_for_height("mainnet", 3_428_143).expect("branch");
+    assert_eq!(mainnet_branch, 0x37a5_165b);
+}
+
+
+
+#[test]
 fn test_schema_initialization_and_permissions() {
     println!("\n=== TEST: SCHEMA INITIALIZATION & PERMISSIONS ENFORCEMENT ===");
     let temp_dir = tempfile::tempdir().expect("tempdir");
