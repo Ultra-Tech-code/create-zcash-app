@@ -1,0 +1,55 @@
+==========================================================================
+=== CHECK: does ironwood_empty_tree_root() equal the node's empty Ironwood root?
+==========================================================================
+Date:    2026-10-25
+Chain:   local Z3 regtest (zfnd/zebra:6.4.2, zingodevops/zainod:0.10.0-no-tls)
+Method:  Zebra JSON-RPC http://127.0.0.1:8181 (basic auth zebra:zebra),
+         method z_gettreestate, params ["<height>"], heights 0, 1, 2, 3, 4, 112.
+         Helper value read from the built napi module:
+           node -e "console.log(require('./packages/core/index.js').ironwoodEmptyTreeRoot())"
+
+--------------------------------------------------------------------------
+RAW OUTPUT
+--------------------------------------------------------------------------
+helper ironwood_empty_tree_root() = ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f
+
+chain tip = 112
+
+height | ironwood section | ironwood finalState | ironwood finalRoot
+-------|------------------|---------------------|--------------------
+     0 | ABSENT           | -                   | -
+     1 | ABSENT           | -                   | -
+     2 | present          | 01231d487ce1194c8b2 | 73d0fc4cd8b1808df423819c9996057140d5c7572041a26835b3ad654f60d512
+     3 | present          | 01231d487ce1194c8b2 | b380b71a22bafe2f587accb000ddc74f3b2e9cdfebb1233c2a974c951ddde806
+     4 | present          | 01d33cbb11698bf4edb | 7b4ac0b4d204d83d2c1f5bb93d050765b33208a59c67cf8f2248b5bf7c865b1f
+   112 | present          | 0127493603401bf51c4 | e3240f1baf4a47c550d3dafc5024456531bf2fb35bdb7aca7fe4971c79c8da3a
+
+RESULT: no queried height reports an EMPTY Ironwood tree, so the node never printed an
+        empty Ironwood finalRoot to compare against. The claim that the helper equals the
+        node's empty Ironwood root is therefore UNVERIFIED by direct observation.
+
+control: Zebra orchard tree at height 2 is empty -> finalState 000000, finalRoot ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f
+        helper output                                     = ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f
+        identical: true
+
+--------------------------------------------------------------------------
+INTERPRETATION
+--------------------------------------------------------------------------
+* Heights 0 and 1 are pre-NU6.3: z_gettreestate returns only `hash`, `height`,
+  `time`, `sapling` and `orchard` keys — there is NO `ironwood` section at all.
+* From height 2 (NU6.3 activation) the Ironwood tree is already non-empty at the
+  first height that reports a section, because that block's coinbase carries an
+  Ironwood action. Every later height grows the tree. A chain whose first
+  post-activation block puts its shielded coinbase in Ironwood therefore never
+  reports an empty Ironwood tree, so Zebra never prints an empty Ironwood
+  finalRoot on this chain.
+* The anchor check compares against the empty root only when the node reports the
+  empty-tree marker (`000000`). That branch is exercised by the mocked tests
+  (send.test.ts Scenarios 9 and 10); it has NOT been exercised against Zebra.
+* Indirect control only: Zebra's encoding of an empty tree is visible for Orchard
+  at height 2 (`finalState 000000`, `finalRoot ae2935f1...`), byte-identical to
+  the helper. Both trees are MerkleHashOrchard trees of depth 32, which is why
+  the values agree, but this is an argument, not a measurement of the Ironwood
+  tree itself.
+
+STATUS: unverified by direct observation; recorded in KNOWN_ISSUES.md.
