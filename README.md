@@ -156,7 +156,7 @@ pnpm --filter dashboard run build
 
 With local regtest Zaino running on `127.0.0.1:28137`:
 ```bash
-node packages/sdk/test-e2e.mjs
+node packages/sdk/scripts/test-e2e.mjs
 ```
 
 ### 3. Launch the Developer Dashboard
