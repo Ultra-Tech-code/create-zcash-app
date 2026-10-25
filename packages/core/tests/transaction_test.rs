@@ -1084,3 +1084,56 @@ fn test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id() {
 
     println!("Verified: testnet tx built at height {} has consensus branch id 0x{:08x}", target_height, built_branch_u32);
 }
+
+#[test]
+fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
+    println!("\n=== TEST: DEFAULT TX EXPIRY DELTA FOR NU6_3 AND NU7 ===");
+    use zcash_primitives::transaction::builder::{
+        default_tx_expiry_delta, BLOSSOM_DEFAULT_TX_EXPIRY_DELTA, NU7_DEFAULT_TX_EXPIRY_DELTA,
+    };
+
+    // Nu6_3 expiry delta assertion citing crate constant BLOSSOM_DEFAULT_TX_EXPIRY_DELTA
+    let nu6_3_delta = default_tx_expiry_delta(BranchId::Nu6_3);
+    assert_eq!(
+        nu6_3_delta, 40,
+        "Nu6_3 default transaction expiry delta must be 40 blocks"
+    );
+    assert_eq!(
+        nu6_3_delta, BLOSSOM_DEFAULT_TX_EXPIRY_DELTA,
+        "Nu6_3 delta must match crate constant zcash_primitives::transaction::builder::BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (40)"
+    );
+
+    // Nu7 expiry delta assertion citing crate constant NU7_DEFAULT_TX_EXPIRY_DELTA
+    let nu7_delta = default_tx_expiry_delta(BranchId::Nu7);
+    assert_eq!(
+        nu7_delta, 120,
+        "Nu7 default transaction expiry delta must be 120 blocks"
+    );
+    assert_eq!(
+        nu7_delta, NU7_DEFAULT_TX_EXPIRY_DELTA,
+        "Nu7 delta must match crate constant zcash_primitives::transaction::builder::NU7_DEFAULT_TX_EXPIRY_DELTA (120)"
+    );
+
+    // Assert TransactionConfig automatically applies the correct branch expiry delta
+    let dummy_anchor = orchard::Anchor::from_bytes([0u8; 32]).unwrap();
+    let tip = BlockHeight::from_u32(1_000);
+
+    let config_nu6_3 = TransactionConfig::new(BranchId::Nu6_3, dummy_anchor, tip, None);
+    assert_eq!(
+        config_nu6_3.expiry_height,
+        BlockHeight::from_u32(1_000 + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu6_3 must expire at tip + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (1040)"
+    );
+
+    let config_nu7 = TransactionConfig::new(BranchId::Nu7, dummy_anchor, tip, None);
+    assert_eq!(
+        config_nu7.expiry_height,
+        BlockHeight::from_u32(1_000 + NU7_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu7 must expire at tip + NU7_DEFAULT_TX_EXPIRY_DELTA (1120)"
+    );
+
+    println!(
+        "Verified: Nu6_3 delta = {} (BLOSSOM_DEFAULT_TX_EXPIRY_DELTA), Nu7 delta = {} (NU7_DEFAULT_TX_EXPIRY_DELTA)",
+        nu6_3_delta, nu7_delta
+    );
+}

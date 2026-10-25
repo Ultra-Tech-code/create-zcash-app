@@ -11,6 +11,7 @@ use orchard::note::Note;
 use orchard::tree::MerklePath;
 use orchard::value::NoteValue;
 use orchard::Address;
+use zcash_primitives::transaction::builder::default_tx_expiry_delta;
 use zcash_primitives::transaction::fees::transparent::InputSize;
 use zcash_primitives::transaction::fees::zip317::FeeRule;
 use zcash_primitives::transaction::fees::FeeRule as _;
@@ -259,7 +260,8 @@ impl TransactionConfig {
     ) -> Self {
         let offset = anchor_offset.unwrap_or(DEFAULT_ANCHOR_OFFSET);
         let anchor_height = BlockHeight::from_u32(u32::from(tip_height).saturating_sub(offset));
-        let expiry_height = BlockHeight::from_u32(u32::from(tip_height) + DEFAULT_EXPIRY_DELTA);
+        let expiry_delta = default_tx_expiry_delta(branch_id);
+        let expiry_height = BlockHeight::from_u32(u32::from(tip_height) + expiry_delta);
         Self {
             branch_id,
             anchor,
