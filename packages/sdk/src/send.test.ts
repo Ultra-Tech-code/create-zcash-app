@@ -583,6 +583,37 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     expect(runSql('SELECT state FROM pending_spends WHERE note_id = 10;')).toBe('broadcast');
   });
 
+  it('forbids allowUnverifiedAnchor on testnet with AnchorVerificationError', async () => {
+    insertMockNote(11, 500_000_000, 2, 'f5'.repeat(32));
+
+    const mockClient = createMockClient();
+    (mockClient.config as any).network = 'testnet';
+    vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
+    vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+      {
+        id: 11,
+        recipient: 'utest1...',
+        valueZatoshis: 500_000_000,
+        nullifier: 'f5'.repeat(32),
+        height: 2,
+        treePosition: 0,
+      },
+    ]);
+
+    await expect(
+      send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'utest1recipient...',
+        amount: 100_000_000n,
+        allowUnverifiedAnchor: true,
+      })
+    ).rejects.toThrow(
+      /allowUnverifiedAnchor is strictly forbidden on testnet/
+    );
+  });
+
   it('verifies quoteFee and warmupProver exports against FeeRule::standard()', () => {
     expect(typeof warmupProver).toBe('function');
     expect(() => warmupProver()).not.toThrow();

@@ -11,7 +11,8 @@ import {
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
-import { Account } from './types.js';
+import { Account, VerificationEndpoint } from './types.js';
+import { JsonRpcVerifier } from './jsonrpc.js';
 
 export interface SendFromOptions {
   spendHandle?: number;
@@ -133,6 +134,11 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   }
   const localRootHex = localRootBuf.toString('hex');
   const allowUnverifiedAnchor = opts.allowUnverifiedAnchor === true;
+  if (allowUnverifiedAnchor && client.config.network !== 'regtest') {
+    throw new AnchorVerificationError(
+      `allowUnverifiedAnchor is strictly forbidden on ${client.config.network}. Anchors must be verified against consensus.`
+    );
+  }
 
   let treeState: TreeState | undefined;
   try {
@@ -177,6 +183,54 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     if (remoteRootHex !== null && localRootHex !== remoteRootHex.toLowerCase()) {
       throw new AnchorVerificationError(
         `Tree root mismatch at anchor height ${anchorHeight}: local ${localRootHex} != remote ${remoteRootHex}`
+      );
+    }
+  }
+
+  // Cross-check anchor against secondary verification endpoints if configured
+  const verifyEndpoints = client.config.verifyEndpoints ?? [];
+  const endpointLabel = client.safeEndpoint ?? client.config.endpoint;
+  if (verifyEndpoints.length === 0) {
+    console.log(
+      `[send] (${endpointLabel}) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.`
+    );
+  } else {
+    for (const ep of verifyEndpoints) {
+      let secondaryRootHex: string | null = null;
+      let epLabel = '';
+      if (typeof ep === 'string' || ep.kind === 'grpc') {
+        const epUrl = typeof ep === 'string' ? ep : ep.url;
+        epLabel = `[${epUrl}] (third-party server)`;
+        const secClient = new ZcashClient({ endpoint: epUrl, network: client.config.network });
+        try {
+          const secTreeState = await secClient.getTreeState(anchorHeight);
+          if (secTreeState.ironwoodTree && !/^0*$/.test(secTreeState.ironwoodTree)) {
+            secondaryRootHex = decodeIronwoodFrontierRoot(secTreeState.ironwoodTree);
+          } else {
+            secondaryRootHex = ironwoodEmptyTreeRoot().toLowerCase();
+          }
+        } finally {
+          await secClient.close();
+        }
+      } else if (ep.kind === 'jsonrpc') {
+        const jsonVerifier = new JsonRpcVerifier(ep.url);
+        epLabel = `[${jsonVerifier.safeUrl}] (third-party server)`;
+        const secTreeState = await jsonVerifier.getTreeState(anchorHeight);
+        const finalRoot = secTreeState.ironwood?.commitments?.finalRoot;
+        if (finalRoot) {
+          secondaryRootHex = finalRoot.toLowerCase();
+        } else {
+          secondaryRootHex = ironwoodEmptyTreeRoot().toLowerCase();
+        }
+      }
+
+      if (secondaryRootHex && secondaryRootHex.toLowerCase() !== localRootHex.toLowerCase()) {
+        throw new AnchorVerificationError(
+          `Secondary endpoint cross-check mismatch at anchor height ${anchorHeight}: primary/local ${localRootHex} != secondary ${epLabel} ${secondaryRootHex}`
+        );
+      }
+      console.log(
+        `[send] Cross-verified anchor root ${localRootHex} against secondary endpoint ${epLabel} at height ${anchorHeight} ✅`
       );
     }
   }

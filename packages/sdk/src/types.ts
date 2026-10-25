@@ -1,9 +1,15 @@
 export type Network = 'regtest' | 'testnet' | 'mainnet';
 
+export type VerificationEndpoint =
+  | { kind: 'grpc'; url: string }
+  | { kind: 'jsonrpc'; url: string };
+
 export interface ClientConfig {
   endpoint: string;
   network: Network;
   transport?: 'grpc' | 'grpc-web';
+  tls?: boolean;
+  verifyEndpoints?: (string | VerificationEndpoint)[];
 }
 
 export type Ufvk = string;
