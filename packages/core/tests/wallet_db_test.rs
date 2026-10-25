@@ -1,3 +1,5 @@
+// POSIX permission bits only exist on Unix; the mode assertions below are gated the same way.
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use zcash_core::{
     get_nu6_3_activation_height, get_nu6_3_branch_id, metadata_keys, WalletDb, WalletDbError,
@@ -32,16 +34,20 @@ fn test_schema_initialization_and_permissions() {
     let db = WalletDb::open_or_create(&db_path, "regtest", "ufvk_fp_12345", Some(2))
         .expect("open_or_create");
 
-    // Check parent directory permissions (0700)
-    let parent = db_path.parent().expect("parent dir");
-    let parent_mode = std::fs::metadata(parent).expect("metadata").permissions().mode() & 0o777;
-    println!("  Parent directory mode: 0o{:o} (expected 0o700)", parent_mode);
-    assert_eq!(parent_mode, 0o700, "Directory permissions must be 0700");
+    // Check parent directory permissions (0700) and database file permissions (0600).
+    // Windows has no POSIX mode bits, so these two assertions are Unix-only by construction;
+    // the schema and metadata assertions below run on every platform.
+    #[cfg(unix)]
+    {
+        let parent = db_path.parent().expect("parent dir");
+        let parent_mode = std::fs::metadata(parent).expect("metadata").permissions().mode() & 0o777;
+        println!("  Parent directory mode: 0o{:o} (expected 0o700)", parent_mode);
+        assert_eq!(parent_mode, 0o700, "Directory permissions must be 0700");
 
-    // Check database file permissions (0600)
-    let file_mode = std::fs::metadata(&db_path).expect("metadata").permissions().mode() & 0o777;
-    println!("  Database file mode:    0o{:o} (expected 0o600)", file_mode);
-    assert_eq!(file_mode, 0o600, "Database file permissions must be 0600");
+        let file_mode = std::fs::metadata(&db_path).expect("metadata").permissions().mode() & 0o777;
+        println!("  Database file mode:    0o{:o} (expected 0o600)", file_mode);
+        assert_eq!(file_mode, 0o600, "Database file permissions must be 0600");
+    }
 
     // Check metadata keys
     assert_eq!(

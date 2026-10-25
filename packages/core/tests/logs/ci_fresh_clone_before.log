@@ -1,0 +1,136 @@
+===============================================================
+=== FRESH CLONE CI REPRODUCTION: 2026-10-25T00:46:31Z
+=== source: ebde463 on origin/main
+=== machine: Darwin arm64, node v22.22.2, pnpm 11.5.3, rustc 1.95.0 (59807616e 2026-04-14)
+===============================================================
+
+--- git clone https://github.com/Ultra-Tech-code/create-zcash-app.git /tmp/cza-ci-before ---
+clone exit=0
+HEAD=ebde463
+
+--- step 1: pnpm install ---
+   │                                               │
+   │      Update available! 11.5.3 → 12.15.0.      │
+   │     Changelog: https://pnpm.io/v/12.15.0      │
+   │   To update, run: corepack use pnpm@12.15.0   │
+   │                                               │
+   ╰───────────────────────────────────────────────╯
+
+Progress: resolved 469, reused 469, downloaded 0, added 467
+Progress: resolved 469, reused 469, downloaded 0, added 469, done
+.../node_modules/protobufjs postinstall$ node scripts/postinstall
+.../node_modules/unrs-resolver postinstall$ node postinstall.js
+.../esbuild@0.21.5/node_modules/esbuild postinstall$ node install.js
+.../node_modules/protobufjs postinstall: Done
+.../node_modules/unrs-resolver postinstall: Done
+.../esbuild@0.21.5/node_modules/esbuild postinstall: Done
+
+devDependencies:
++ typescript 5.9.3
+
+Done in 3.9s using pnpm v11.5.3
+pnpm install exit=0
+
+--- step 2: pnpm --filter @zcash-app/core run build (napi) ---
+   Compiling hashlink v0.9.1
+   Compiling futures v0.3.34
+   Compiling flume v0.11.1
+   Compiling pbkdf2 v0.12.2
+   Compiling zcash-core v0.1.0 (/private/tmp/cza-ci-before/packages/core)
+   Compiling shardtree v0.7.1
+   Compiling hmac v0.12.1
+   Compiling fallible-iterator v0.3.0
+   Compiling ctor v1.0.13
+   Compiling smallvec v1.16.4
+   Compiling rustc-hash v2.1.3
+   Compiling fallible-streaming-iterator v0.1.9
+   Compiling nohash-hasher v0.2.0
+   Compiling bip0039 v0.12.0
+   Compiling napi-derive v3.6.12
+   Compiling orchard v0.15.5
+   Compiling zcash_keys v0.16.1
+   Compiling zcash_primitives v0.30.1
+   Compiling rusqlite v0.32.1
+    Finished `release` profile [optimized] target(s) in 42.78s
+napi build exit=0
+
+--- step 3: cargo test (packages/core) ---
+   Compiling zcash_keys v0.16.1
+   Compiling zcash_primitives v0.30.1
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.79s
+     Running unittests src/lib.rs (/private/tmp/cza-ci-before/target/debug/deps/zcash_core-973e5a422135597e)
+
+running 3 tests
+test tests::test_decrypt_action_computes_nullifier ... ok
+test tests::test_internal_ironwood_change_note_decryption ... ok
+test tests::test_derive_account_regtest ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/full_suite_test.rs (/private/tmp/cza-ci-before/target/debug/deps/full_suite_test-377454dbc9722816)
+
+running 19 tests
+test test_decode_real_regtest_compact_block_and_missing_field_rejection ... FAILED
+test test_decode_real_regtest_funding_block_with_ironwood_actions ... FAILED
+test test_chain_reset_first_scanned_hash_mismatch ... ok
+test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+test test_activation_scan_prevents_unseeded_tree_gap ... ok
+test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
+test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
+test test_atomicity_crash_rollback_on_batch_failure ... ok
+test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
+test test_restart_fetches_zero_old_blocks ... ok
+test test_persisted_vs_rescan_close_reopen_parity ... ok
+test test_periodic_root_check_mismatch_and_recovery ... ok
+test test_persisted_equals_rescan_bit_for_bit ... ok
+test test_real_child_process_sigkill_mid_batch_and_clean_resume ... ok
+test test_time_bounded_batch_interruption_and_clean_resume_parity ... ok
+test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
+test test_sliding_window_prunes_headers_without_deleting_notes ... ok
+
+failures:
+
+---- test_decode_real_regtest_compact_block_and_missing_field_rejection stdout ----
+
+=== TEST: DECODE REAL REGTEST COMPACTBLOCK & MISSING FIELD REJECTION ===
+
+thread 'test_decode_real_regtest_compact_block_and_missing_field_rejection' (5029699) panicked at packages/core/tests/full_suite_test.rs:986:5:
+real_regtest_block.bin fixture must exist
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- test_decode_real_regtest_funding_block_with_ironwood_actions stdout ----
+
+=== TEST: DECODE REAL REGTEST FUNDING BLOCK (HEIGHT 108) WITH IRONWOOD ACTIONS ===
+
+thread 'test_decode_real_regtest_funding_block_with_ironwood_actions' (5029700) panicked at packages/core/tests/full_suite_test.rs:1062:5:
+real_funding_block.bin fixture must exist
+
+
+failures:
+    test_decode_real_regtest_compact_block_and_missing_field_rejection
+    test_decode_real_regtest_funding_block_with_ironwood_actions
+
+test result: FAILED. 17 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.63s
+
+error: test failed, to rerun pass `--test full_suite_test`
+cargo test exit=101
+STEP FAILED: cargo test
+
+--- step 4: TS builds (sdk, zcash-dev, create-zcash-app) ---
+$ tsc
+sdk build exit=0
+$ tsc
+zcash-dev build exit=0
+$ tsc
+create-zcash-app build exit=0
+
+--- fixtures present? ---
+total 8
+drwxr-xr-x@  3 0xblackadam  wheel    96 Oct 25 01:46 .
+drwxr-xr-x@ 13 0xblackadam  wheel   416 Oct 25 01:46 ..
+-rw-r--r--@  1 0xblackadam  wheel  2169 Oct 25 01:46 README.md
+
+=== REPRO SUMMARY ===
+pnpm install=0, see exits above (recorded per step)
