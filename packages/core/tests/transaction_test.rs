@@ -1137,3 +1137,132 @@ fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
         nu6_3_delta, nu7_delta
     );
 }
+
+#[test]
+fn test_fee_acceptance_on_regtest_node() {
+    println!("\n=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===");
+
+    // Check if regtest node is reachable
+    let check = Command::new("curl")
+        .args([
+            "-s", "-X", "POST", "http://127.0.0.1:29232",
+            "-H", "Content-Type: application/json",
+            "-d", r#"{"jsonrpc":"2.0","id":"1","method":"getstandardfee","params":[]}"#,
+        ])
+        .output();
+
+    let output = match check {
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).to_string(),
+        _ => {
+            println!("SKIPPING: Zebra regtest node not reachable on port 29232");
+            return;
+        }
+    };
+    println!("Node getstandardfee response: {}", output.trim());
+
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
+
+    let recipient_sk = SpendingKey::from_bytes([99u8; 32]).unwrap();
+    let recipient_fvk = FullViewingKey::from(&recipient_sk);
+    let recipient_addr = recipient_fvk.address_at(0u32, Scope::External);
+    let change_addr = fvk.address_at(0u32, Scope::Internal);
+
+    let pk = get_shared_proving_key();
+    let tip = BlockHeight::from_u32(107);
+    let config = TransactionConfig::new(BranchId::Nu7, anchor, tip, None);
+    let mut config_custom = config.clone();
+    config_custom.allow_custom_fee = true;
+
+    // Case 1: Crate fee = 10,000 zatoshis (2 actions * 5,000 zatoshis)
+    // Spend: 500,000. Out1: 400,000. Out2: 90,000. Fee: 10,000.
+    let tx_crate_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(90_000)),
+        ],
+        &config,
+        pk,
+    ).expect("build crate fee tx");
+
+    // Case 2a: Node getstandardfee (1,000 zatoshis)
+    // Spend: 500,000. Out1: 400,000. Out2: 99,000. Fee: 1,000.
+    let tx_standard_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(99_000)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build standard fee tx");
+
+    // Case 2b: 2 * getstandardfee for 2 actions = 2,000 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 98,000. Fee: 2,000.
+    let tx_2x_standard_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(98_000)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build 2x standard fee tx");
+
+    // Case 2c: 1 zat below 2 * getstandardfee = 1,999 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 98,001. Fee: 1,999.
+    let tx_below_2x_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(98_001)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build below 2x standard fee tx");
+
+    // Case 3: 1 zat below getstandardfee = 999 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 99,001. Fee: 999.
+    let tx_below_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(99_001)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build below fee tx");
+
+    // Submit each to Zebra
+    for (label, tx, fee) in [
+        ("Case 1: Crate Fee (10,000 zat)", tx_crate_fee, 10_000),
+        ("Case 2a: Raw node getstandardfee (1,000 zat)", tx_standard_fee, 1_000),
+        ("Case 2b: 2 * getstandardfee for 2 actions (2,000 zat)", tx_2x_standard_fee, 2_000),
+        ("Case 2c: 1 zat below 2 * getstandardfee (1,999 zat)", tx_below_2x_fee, 1_999),
+        ("Case 3: 1 zat below raw getstandardfee (999 zat)", tx_below_fee, 999),
+    ] {
+
+        let payload = format!(
+            r#"{{"jsonrpc":"2.0","id":"test","method":"sendrawtransaction","params":["{}"]}}"#,
+            hex::encode(&tx.raw_bytes)
+        );
+        let res = Command::new("curl")
+            .args([
+                "-s", "-X", "POST", "http://127.0.0.1:29232",
+                "-H", "Content-Type: application/json",
+                "-d", &payload,
+            ])
+            .output()
+            .expect("curl sendrawtransaction");
+        let res_str = String::from_utf8_lossy(&res.stdout);
+        println!("\n=== {} (fee: {} zatoshis) ===", label, fee);
+        println!("Response: {}", res_str.trim());
+    }
+}
+

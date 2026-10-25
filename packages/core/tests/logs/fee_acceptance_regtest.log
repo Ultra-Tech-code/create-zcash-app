@@ -1,0 +1,27 @@
+
+running 1 test
+
+=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===
+Node getstandardfee response: {"jsonrpc":"2.0","id":"1","result":{"standard_fee":1000,"version":0}}
+>>> [OnceLock] Building shared OrchardCircuitVersion::PostNu6_3 ProvingKey...
+>>> [OnceLock] ProvingKey built in 20061 ms
+test test_fee_acceptance_on_regtest_node has been running for over 60 seconds
+
+=== Case 1: Crate Fee (10,000 zat) (fee: 10000 zatoshis) ===
+Response: {"jsonrpc":"2.0","id":"test","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: could not contextually validate transaction on best chain: unknown Ironwood anchor: Root(\"8bed1fc16065a013aff5cc03d1c313b52f159016fb0519cd02f2d84d4ca07533\"),\nNone, index in block: None, transaction::Hash(\"ac7604a82cdd17d1de914383fedb10a1d09c6a7ccf57197d2290d7ebfa00d299\")"}}
+
+=== Case 2a: Raw node getstandardfee (1,000 zat) (fee: 1000 zatoshis) ===
+Response: {"jsonrpc":"2.0","id":"test","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: failed to verify ZIP-317 transaction rules, transaction was not inserted to mempool: Unpaid actions is higher than the limit"}}
+
+=== Case 2b: 2 * getstandardfee for 2 actions (2,000 zat) (fee: 2000 zatoshis) ===
+Response: {"jsonrpc":"2.0","id":"test","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: could not contextually validate transaction on best chain: unknown Ironwood anchor: Root(\"8bed1fc16065a013aff5cc03d1c313b52f159016fb0519cd02f2d84d4ca07533\"),\nNone, index in block: None, transaction::Hash(\"b3f83cd182042d42dce007d310f098193ccec1a9d77f0692afe9bfce73953a08\")"}}
+
+=== Case 2c: 1 zat below 2 * getstandardfee (1,999 zat) (fee: 1999 zatoshis) ===
+Response: {"jsonrpc":"2.0","id":"test","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: failed to verify ZIP-317 transaction rules, transaction was not inserted to mempool: Unpaid actions is higher than the limit"}}
+
+=== Case 3: 1 zat below raw getstandardfee (999 zat) (fee: 999 zatoshis) ===
+Response: {"jsonrpc":"2.0","id":"test","error":{"code":-25,"message":"failed to validate tx: WtxId(\"private\"), error: transaction did not pass consensus validation: failed to verify ZIP-317 transaction rules, transaction was not inserted to mempool: Unpaid actions is higher than the limit"}}
+test test_fee_acceptance_on_regtest_node ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 13 filtered out; finished in 74.24s
+
