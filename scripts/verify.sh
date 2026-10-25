@@ -14,6 +14,9 @@ echo "=== [3/5] Running SDK Tests ==="
 pnpm --filter @zcash-app/sdk test
 
 echo "=== [4/5] Running zcash-dev CLI Tests ==="
+# zcash-dev imports @zcash-app/sdk, whose types live in dist/ (gitignored). Building the SDK
+# first is what makes this step work from a clean checkout, not just from a used one.
+pnpm --filter @zcash-app/sdk build
 pnpm --filter zcash-dev build
 pnpm --filter zcash-dev test
 

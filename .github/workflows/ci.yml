@@ -121,6 +121,7 @@ jobs:
 
       - name: zcash-dev tests
         run: |
+          pnpm --filter @zcash-app/sdk build
           pnpm --filter zcash-dev build
           pnpm --filter zcash-dev test
 
