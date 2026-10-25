@@ -1,0 +1,8 @@
+[toolchain]
+# Pinned so `scripts/verify.sh` and the GitHub Actions matrix lint with the same compiler.
+# CI previously moved to 1.99.1 while local runs were still on 1.95.0, and a new lint
+# (unused_doc_comments on a #[doc(hidden)] macro invocation) only showed up in CI.
+# Bump this deliberately, then run scripts/verify.sh before pushing.
+channel = "1.99.1"
+components = ["clippy"]
+profile = "minimal"

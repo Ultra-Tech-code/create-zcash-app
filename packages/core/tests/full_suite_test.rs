@@ -1860,11 +1860,11 @@ fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
     let fvk = FullViewingKey::from(&sk);
     let network = DynamicNetwork::Regtest(regtest_params());
 
-    // Generate 10 blocks (height 2..=11) with owned notes at blocks 3, 6, 9
+    // Generate 40 blocks (height 2..=41) with owned notes at every third block
     let mut all_blocks = Vec::new();
     let mut prev_hash = vec![0x00; 32];
 
-    for (tree_idx, h) in (2u64..=11).enumerate() {
+    for (tree_idx, h) in (2u64..=41).enumerate() {
         let tree_sz = (tree_idx as u32) + 1;
         let (act, _, _) = if h % 3 == 0 {
             create_encrypted_action_v3(&fvk, Scope::External, 100_000 * h, h as u8)
@@ -1896,10 +1896,12 @@ fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
         prev_hash = b_hash;
     }
 
-    // 1. Scan interrupted_db with simulated slow scan (110ms per block sleep)
-    // 500ms budget will be exceeded after ~5 blocks, yielding early!
-    println!("  Simulating slow scan with 110ms per-block delay (TIME_BUDGET_MS = 500ms)...");
-    zcash_core::INJECT_BATCH_SLEEP_MS.store(110, std::sync::atomic::Ordering::SeqCst);
+    // 1. Scan interrupted_db with simulated slow scan (20ms per block sleep).
+    // A 40-block batch cannot fit in the 500ms budget, so the scan yields early. The delay is
+    // kept small relative to the budget so that a loaded CI runner still gets several blocks in
+    // before the deadline; an earlier 110ms delay made the minimum-block assertion timing-flaky.
+    println!("  Simulating slow scan with 20ms per-block delay (TIME_BUDGET_MS = 500ms)...");
+    zcash_core::INJECT_BATCH_SLEEP_MS.store(20, std::sync::atomic::Ordering::SeqCst);
 
     let res1 = Scanner::scan_block_batch(interrupted_db.conn_mut(), "acct0", &fvk, &network, &all_blocks)
         .expect("interrupted scan");
@@ -1909,35 +1911,60 @@ fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
     let stopped_at_height = match res1 {
         ScanResult::Synced { last_scanned_height, notes_detected } => {
             println!("  Time budget reached! Batch yielded early at height {} (detected {} notes)", last_scanned_height, notes_detected);
-            assert!(last_scanned_height < 11, "Batch must have yielded before end height 11 due to 500ms budget!");
-            assert!(last_scanned_height >= 4, "Batch must have scanned at least 4 blocks before 500ms expired");
+            assert!(last_scanned_height < 41, "Batch must have yielded before end height 41 due to 500ms budget!");
+            assert!(last_scanned_height >= 4, "Batch must have scanned at least 3 blocks before 500ms expired");
             last_scanned_height
         }
         other => panic!("Expected Synced result, got {:?}", other),
     };
 
-    // Resume from stopped_at_height + 1 to 11
-    let resume_slice = &all_blocks[(stopped_at_height as usize - 1)..];
-    println!("  Resuming sync from height {} to tip 11...", stopped_at_height + 1);
-    let res2 = Scanner::scan_block_batch(interrupted_db.conn_mut(), "acct0", &fvk, &network, resume_slice)
-        .expect("resume scan");
-
-    match res2 {
-        ScanResult::Synced { last_scanned_height, notes_detected } => {
-            assert_eq!(last_scanned_height, 11, "Resumed sync must reach tip height 11");
-            println!("  Resumed sync reached tip 11 (+{} notes detected)", notes_detected);
+    // Resume from stopped_at_height + 1 to 41. A 500ms budget can cover only part of the
+    // remaining 29 blocks on a loaded machine, so the resume runs in a loop the way the SDK sync
+    // loop does, instead of assuming one call reaches the tip.
+    let mut resumed_at = stopped_at_height;
+    let mut resume_calls = 0;
+    while resumed_at < 41 {
+        let resume_slice = &all_blocks[(resumed_at as usize - 1)..];
+        if resume_calls == 0 {
+            println!("  Resuming sync from height {} to tip 41...", resumed_at + 1);
         }
-        other => panic!("Expected Synced result on resume, got {:?}", other),
+        resumed_at = match Scanner::scan_block_batch(interrupted_db.conn_mut(), "acct0", &fvk, &network, resume_slice)
+            .expect("resume scan")
+        {
+            ScanResult::Synced { last_scanned_height, .. } => last_scanned_height,
+            other => panic!("Expected Synced result on resume, got {:?}", other),
+        };
+        resume_calls += 1;
+        assert!(resume_calls <= 40, "Resume loop must terminate");
     }
+    assert_eq!(resumed_at, 41, "Resumed sync must reach tip height 41");
+    println!("  Resumed sync reached tip 41 in {} batch call(s)", resume_calls);
 
-    // 2. Control scan: scan all 10 blocks in one uninterrupted pass
-    println!("  Scanning uninterrupted control DB in single pass...");
-    let res_ctrl = Scanner::scan_block_batch(control_db.conn_mut(), "acct0", &fvk, &network, &all_blocks)
-        .expect("control scan");
-    match res_ctrl {
-        ScanResult::Synced { last_scanned_height, .. } => assert_eq!(last_scanned_height, 11),
-        other => panic!("Expected Synced, got {:?}", other),
+    // 2. Control scan: scan all 40 blocks without interruption. The production time budget can
+    // still split this into several batches, so the control loops too and only cares about the
+    // final state, which is what the parity checks below compare against.
+    println!("  Scanning control DB without interruption...");
+    let mut control_next_index = 0usize;
+    let mut control_calls = 0;
+    while control_next_index < all_blocks.len() {
+        control_next_index = match Scanner::scan_block_batch(
+            control_db.conn_mut(),
+            "acct0",
+            &fvk,
+            &network,
+            &all_blocks[control_next_index..],
+        )
+        .expect("control scan")
+        {
+            // Height h lives at index h - 2, so the next unscanned index is h - 1.
+            ScanResult::Synced { last_scanned_height, .. } => (last_scanned_height as usize) - 1,
+            other => panic!("Expected Synced, got {:?}", other),
+        };
+        control_calls += 1;
+        assert!(control_calls <= 40, "Control loop must terminate");
     }
+    assert_eq!(control_next_index, all_blocks.len(), "Control scan must reach tip height 41");
+    println!("  Control scan reached tip 41 in {} batch call(s)", control_calls);
 
     // 3. Verify exact parity between interrupted/resumed DB and control DB
     // a. Notes parity
@@ -1958,7 +1985,7 @@ fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
         .collect();
 
     assert_eq!(notes_interrupted, notes_control, "Notes, positions, and values must match bit-for-bit");
-    assert_eq!(notes_interrupted.len(), 10, "All 10 blocks produced notes");
+    assert_eq!(notes_interrupted.len(), 40, "All 40 blocks produced notes");
 
     // b. Tree Root parity
     let store1 = zcash_core::SqliteShardStore::new(interrupted_db.conn(), "ironwood_tree");
@@ -1972,8 +1999,8 @@ fn test_time_bounded_batch_interruption_and_clean_resume_parity() {
     assert_eq!(root1, root2, "ShardTree root of resumed sync must match control root exactly");
 
     // c. Merkle Witnesses parity for all owned notes
-    for pos in 0u64..10 {
-        let cp_height = zcash_protocol::consensus::BlockHeight::from_u32(11);
+    for pos in 0u64..40 {
+        let cp_height = zcash_protocol::consensus::BlockHeight::from_u32(41);
         let wit1 = tree1.witness_at_checkpoint_id(incrementalmerkletree::Position::from(pos), &cp_height)
             .expect("wit1").expect("wit1 exists");
         let wit2 = tree2.witness_at_checkpoint_id(incrementalmerkletree::Position::from(pos), &cp_height)

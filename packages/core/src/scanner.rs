@@ -141,8 +141,9 @@ pub enum WalletError {
     FaultInjected(String),
 }
 
-#[doc(hidden)]
 thread_local! {
+    /// Test hook: forces a fault before the next checkpoint commit.
+    #[doc(hidden)]
     pub static INJECT_FAULT_BEFORE_CHECKPOINT: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
 }
 
