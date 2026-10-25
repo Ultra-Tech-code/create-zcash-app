@@ -107,7 +107,7 @@ npx zcash-dev regtest setup
 ```
 - Sets `miner_address` in Zebra configuration to the Zallet wallet account's Unified Address (routing block coinbases directly into the Ironwood shielded pool).
 - Sets `miner_memo = "regtest"` in `[mining]` so Zallet v0.1.0-beta.1 UTF-8 memo validation succeeds on `z_listunspent`.
-- Pins `Z3_ZEBRA_IMAGE=zfnd/zebra:6.4.2` and `Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls` in `.env.regtest`.
+- Pins `Z3_ZEBRA_IMAGE=zfnd/zebra:7.0.0` and `Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls` in `.env.regtest`.
 - Creates the default Zallet account if missing.
 - Mines initial blocks for coinbase maturity so funds are immediately spendable by `dev.fund`.
 
@@ -121,11 +121,11 @@ npx zcash-dev regtest setup
 4. **Node & Indexer (Optional for Remote Mode)**:
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
    - **Local Regtest Mode (Z3 Stack)**:
-     - **Zebra Node**: Pinned to official stable release `zfnd/zebra:6.4.2` on JSON-RPC `127.0.0.1:8181` (or `18232`).
+     - **Zebra Node**: Pinned to official stable release `zfnd/zebra:7.0.0` on JSON-RPC `127.0.0.1:8181` (or `18232`).
      - **Zaino Indexer**: Pinned to image `zingodevops/zainod:0.10.0-no-tls` on gRPC port `127.0.0.1:28137` (regtest) / `127.0.0.1:8137` (testnet).
 
 > [!IMPORTANT]
-> - **Zebra pin**: Must use `zfnd/zebra:6.4.2` (recalled versions 6.4.0/6.4.1 contain pre-NU6.3 branch ID re-serialization DoS GHSA-h5rr-8pqv-grp9). Do not move to pre-release `7.0.0-rc.0` for regtest/mainnet.
+> - **Zebra pin**: Pinned to official release `zfnd/zebra:7.0.0` (supports NU7 network upgrade on Mainnet, Testnet, and Regtest).
 > - **Zaino pin**: Must use `zingodevops/zainod:0.10.0-no-tls` (≥ 0.10.0). Earlier versions like Z3's default (`0.6.0`) reject Ironwood `GetSubtreeRoots` queries.
 
 ---

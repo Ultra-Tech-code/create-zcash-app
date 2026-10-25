@@ -285,11 +285,11 @@ regtestCmd
       }
     };
 
-    setOrAddEnv('Z3_ZEBRA_IMAGE', 'zfnd/zebra:6.4.2');
+    setOrAddEnv('Z3_ZEBRA_IMAGE', 'zfnd/zebra:7.0.0');
     setOrAddEnv('Z3_ZAINO_IMAGE', 'zingodevops/zainod:0.10.0-no-tls');
     fs.writeFileSync(envRegtestPath, envLines.join('\n'));
     console.log('✅ Pinned images in .env.regtest:');
-    console.log('   - Z3_ZEBRA_IMAGE=zfnd/zebra:6.4.2');
+    console.log('   - Z3_ZEBRA_IMAGE=zfnd/zebra:7.0.0');
     console.log('   - Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls');
 
     // 2. Ensure docker stack is up
