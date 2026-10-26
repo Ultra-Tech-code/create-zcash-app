@@ -1,5 +1,4 @@
-import { createClient, accountFromMnemonic, KNOWN_TEST_MNEMONICS, dev, syncWallet, send, quoteFee } from '../packages/sdk/dist/index.js';
-import { WalletHandle } from '../packages/core/index.js';
+import { createClient, accountFromMnemonic, KNOWN_TEST_MNEMONICS, dev, syncWallet, send, quoteFee, WalletHandle } from '../packages/sdk/dist/index.js';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';

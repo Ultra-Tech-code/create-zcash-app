@@ -1,0 +1,23 @@
+# Zebra regtest configuration.
+# Activates every supported upgrade through NU6.3 at height 2.
+# NO NU7 (Zaino 0.10.x and Zallet beta.x cannot run NU7).
+
+[network]
+network = "Regtest"
+
+[network.testnet_parameters.activation_heights]
+BeforeOverwinter = 1
+Overwinter = 1
+Sapling = 1
+Blossom = 1
+Heartwood = 1
+Canopy = 1
+NU5 = 2
+NU6 = 2
+"NU6.1" = 2
+"NU6.2" = 2
+"NU6.3" = 2
+
+[mining]
+miner_address = "uregtest1fp38qk7a93030gnzgltvcrxpake6xeardzn4rea0vezlgh9gawgmje62ppwad32jwrs00qw8076s667vu7ycf8x8x90tfykpl84vyuj6e8rc9q2lfkn6ghxxtsms0wywfqj003zns6qet4dn5emtqmggp8p6c62danj9eak8f3vnzmvwtd8n7cgga85q79ftfky5za4wp48j2pj704m"
+miner_memo = "regtest"

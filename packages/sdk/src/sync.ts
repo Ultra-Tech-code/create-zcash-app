@@ -69,6 +69,7 @@ export async function syncWallet(
       ? (options.birthday ?? 2)
       : initialSummary.lastScannedHeight + 1
   );
+  const syncStartHeight = currentStart;
   const targetEnd = options.endHeight
     ? Math.min(options.endHeight, tipHeight)
     : options.targetHeight
@@ -134,6 +135,9 @@ export async function syncWallet(
         const isRetryable =
           errMsg.includes('14 UNAVAILABLE') ||
           errMsg.includes('8 RESOURCE_EXHAUSTED') ||
+          errMsg.includes('13 INTERNAL') ||
+          errMsg.includes('INTERNAL') ||
+          errMsg.includes('unexpected EOF') ||
           errMsg.includes('DEADLINE_EXCEEDED') ||
           errMsg.includes('ECONNRESET') ||
           errMsg.includes('ETIMEDOUT');
@@ -202,7 +206,9 @@ export async function syncWallet(
 
     const elapsedTotal = Math.max(1, Date.now() - startTime);
     const rollingBps = (totalBlocksFetched / (elapsedTotal / 1000)).toFixed(1);
-    const pct = (((currentEnd - options.startHeight! + 1) / (targetEnd - options.startHeight! + 1)) * 100).toFixed(1);
+    const totalToScan = targetEnd - syncStartHeight + 1;
+    const scannedSoFar = currentEnd - syncStartHeight + 1;
+    const pct = totalToScan > 0 ? Math.min(100, Math.max(0, (scannedSoFar / totalToScan) * 100)).toFixed(1) : '100.0';
 
     if (totalBlocksFetched % 5000 === 0 || currentEnd >= targetEnd || rawBlocks.length < batchSize) {
       console.log(

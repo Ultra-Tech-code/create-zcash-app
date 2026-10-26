@@ -1,0 +1,109 @@
+===============================================================
+=== PHASE 3 (P3): CROSS-ACCOUNT PAYMENT VIA SDK send() ONLY ===
+===============================================================
+
+Sender (Account 0):
+  Address: uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  Spend Handle: 1
+
+Recipient (Account 1):
+  Address: uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+
+--- Step 1: Baseline Sync & Balances ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (100.0%) | Req: 2 | Speed: 1947.4 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  b01aa56c97c8b6c89860fef9a78e1166e0d5d54542071210360b79fb3b75b714
+  Remote ironwoodTree:   013511fc9cf67c143edcb3f1466a4939ad187462eef380741a76910cd928f84c09001f00018953ee78498d699d02aad988980f62395e7dd3fa8c2b22bb7f7ca50af7ab4d1c0001cd4cf83d099ebd02e6dcdbdf85cf5661fc165f46258e2480150d1a94a2ab8319018c51a84433748737818fa958323d6bedb46e139d42c7bf0d938860fe4735af3801ecb9eb95f982aa9d4bce119d5d1218521bda442485c201df908a0054399e9a3c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b01aa56c97c8b6c89860fef9a78e1166e0d5d54542071210360b79fb3b75b714
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (100.0%) | Req: 2 | Speed: 3363.6 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  b01aa56c97c8b6c89860fef9a78e1166e0d5d54542071210360b79fb3b75b714
+  Remote ironwoodTree:   013511fc9cf67c143edcb3f1466a4939ad187462eef380741a76910cd928f84c09001f00018953ee78498d699d02aad988980f62395e7dd3fa8c2b22bb7f7ca50af7ab4d1c0001cd4cf83d099ebd02e6dcdbdf85cf5661fc165f46258e2480150d1a94a2ab8319018c51a84433748737818fa958323d6bedb46e139d42c7bf0d938860fe4735af3801ecb9eb95f982aa9d4bce119d5d1218521bda442485c201df908a0054399e9a3c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b01aa56c97c8b6c89860fef9a78e1166e0d5d54542071210360b79fb3b75b714
+Account 0 Baseline:
+  Total Balance:     349990000 zatoshis (3.4999 ZEC)
+  Confirmed Balance: 349990000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Baseline:
+  Total Balance:     450000000 zatoshis (4.5 ZEC)
+  Confirmed Balance: 450000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     2
+
+--- Step 2: Transaction Parameters ---
+  Transfer Amount: 150000000 zatoshis (1.5 ZEC)
+  Recipient:       uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  Memo:            "P3 Cross-Account Payment: Account 0 -> Account 1 (1.5 ZEC)"
+  Quoted Fee:      10000 zatoshis (0.0001 ZEC, ZIP 317 standard)
+
+--- Step 3: Executing SDK send() ---
+[send] (http://127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+Transaction built, proven, and broadcast successfully!
+  Broadcast TxID (node display order): 251caabae3d1ef82483767b0b48262b919e20105dbda6f58db60f3a2bde4f007
+  Internal TxID (raw byte order):      07f0e4bda2f360db586fdadb0501e219b96282b4b067374882efd1e3baaa1c25
+  Fee:           10000 zatoshis
+  Num Actions:   2
+  Expiry Height: 152
+  Raw Tx Size:   9166 bytes
+  Proving & Send Duration: 2004ms
+
+--- Step 4: Verify In-Flight Balance & Reservation Exclusion ---
+Account 0 In-Flight Spendable Balance: 0 zatoshis (strictly excluded while in flight)
+
+--- Step 5: Mining 1 Block to Confirm Transaction ---
+Current chain tip before mining: height 112
+Mining command sent. Target tip height: 113
+Waiting for Zaino indexer to index mined block...
+Zaino indexer synchronized at height 113!
+
+--- Step 6: Querying Mined Transaction via JSON-RPC getrawtransaction ---
+Querying broadcast txid: 251caabae3d1ef82483767b0b48262b919e20105dbda6f58db60f3a2bde4f007
+  Mined TxID (node):   251caabae3d1ef82483767b0b48262b919e20105dbda6f58db60f3a2bde4f007
+  Zebra confirmations: 1
+  Zebra blockhash:     d520dd1c4f589237da3c2808e2196902c3d3af62103bfb6a16e95a294ddeda11
+  Zebra blockheight:   113
+  Zebra tx version:    6
+  Zebra Ironwood actions count: 2
+  Zebra Ironwood valueBalanceZat: 10000 zatoshis
+  Zebra Ironwood flags: {"enableOutputs":true,"enableSpends":true}
+  Zebra Ironwood anchor: 14b7753bfb790b361012074245d5d5e066118ea7f9fe6098c8b6c8976ca51ab0
+
+--- Step 7: Resyncing Both Accounts Post-Mining ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 113 to target 113 (tip: 113, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 113/113 (100.0%) | Req: 2 | Speed: 166.7 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(113):
+  Wallet Ironwood Root:  3e168e749d45e1cb483a9ae7bc55c64cd3726c16f0a6b049128ba95da2b9ba29
+  Remote ironwoodTree:   01a3d8d24a6ccacab284233c40f167556fe240f985cde2c14ac954860081846e1a017a3e7426ae8a9bcac32f4158970b7989724ac9af20ebbdb607a168dfee386c0c1f01aeb80fcbcd0f269e03ebeceabcf88fa800029b14d854aa9e08757adad1678f1e018953ee78498d699d02aad988980f62395e7dd3fa8c2b22bb7f7ca50af7ab4d1c0001cd4cf83d099ebd02e6dcdbdf85cf5661fc165f46258e2480150d1a94a2ab8319018c51a84433748737818fa958323d6bedb46e139d42c7bf0d938860fe4735af3801ecb9eb95f982aa9d4bce119d5d1218521bda442485c201df908a0054399e9a3c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   3e168e749d45e1cb483a9ae7bc55c64cd3726c16f0a6b049128ba95da2b9ba29
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 113 to target 113 (tip: 113, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 113/113 (100.0%) | Req: 2 | Speed: 200.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(113):
+  Wallet Ironwood Root:  3e168e749d45e1cb483a9ae7bc55c64cd3726c16f0a6b049128ba95da2b9ba29
+  Remote ironwoodTree:   01a3d8d24a6ccacab284233c40f167556fe240f985cde2c14ac954860081846e1a017a3e7426ae8a9bcac32f4158970b7989724ac9af20ebbdb607a168dfee386c0c1f01aeb80fcbcd0f269e03ebeceabcf88fa800029b14d854aa9e08757adad1678f1e018953ee78498d699d02aad988980f62395e7dd3fa8c2b22bb7f7ca50af7ab4d1c0001cd4cf83d099ebd02e6dcdbdf85cf5661fc165f46258e2480150d1a94a2ab8319018c51a84433748737818fa958323d6bedb46e139d42c7bf0d938860fe4735af3801ecb9eb95f982aa9d4bce119d5d1218521bda442485c201df908a0054399e9a3c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   3e168e749d45e1cb483a9ae7bc55c64cd3726c16f0a6b049128ba95da2b9ba29
+Account 0 Post-Payment:
+  Total Balance:     199980000 zatoshis (1.9998 ZEC)
+  Confirmed Balance: 199980000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Post-Payment:
+  Total Balance:     600000000 zatoshis (6 ZEC)
+  Confirmed Balance: 600000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     3
+
+--- Step 8: Mathematical Verification & Balance Invariants ---
+  Arithmetic Verification:
+    A0_before - amount - fee == A0_after: 349990000 - 150000000 - 10000 = 199980000 (Actual: 199980000) -> VALID ✅
+    A1_before + amount       == A1_after: 450000000 + 150000000 = 600000000 (Actual: 600000000) -> VALID ✅
+  Account 0 Expected: 199980000 | Actual: 199980000 -> MATCH ✅
+  Account 1 Expected: 600000000 | Actual: 600000000 -> MATCH ✅
+  Fee Paid:           10000 zatoshis
+  Conservation:       199980000 + 600000000 + 10000 = 799990000 zatoshis (Initial: 799990000 zatoshis) -> CONSERVED ✅
+
+===============================================================
+=== PHASE 3 (P3) VERIFICATION COMPLETE: ALL CHECKS PASSED!  ===
+===============================================================
