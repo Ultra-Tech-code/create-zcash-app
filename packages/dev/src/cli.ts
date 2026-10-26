@@ -274,41 +274,13 @@ regtestCmd
 
     console.log(`\n=== 🛠️  Setting up Regtest in ${regtestDir} ===\n`);
 
-    // 1. Pin images in .env.regtest if present
-    const envRegtestPath = path.join(regtestDir, '.env.regtest');
-    let envLines = fs.existsSync(envRegtestPath) ? fs.readFileSync(envRegtestPath, 'utf8').split('\n') : [];
-
-    const setOrAddEnv = (key: string, value: string) => {
-      let found = false;
-      envLines = envLines.map((line) => {
-        if (line.startsWith(`${key}=`)) {
-          found = true;
-          return `${key}=${value}`;
-        }
-        return line;
-      });
-      if (!found) {
-        envLines.push(`${key}=${value}`);
-      }
-    };
-
-    setOrAddEnv('Z3_ZEBRA_IMAGE', 'zfnd/zebra:7.0.0');
-    setOrAddEnv('Z3_ZAINO_IMAGE', 'zingodevops/zainod:0.10.0-no-tls');
-    fs.writeFileSync(envRegtestPath, envLines.join('\n'));
-    console.log('✅ Pinned images in .env.regtest:');
-    console.log('   - Z3_ZEBRA_IMAGE=zfnd/zebra:7.0.0');
-    console.log('   - Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls');
-
-    // 2. Ensure docker stack is up
+    // Ensure docker stack is up
     console.log('\n🐳 Starting Regtest containers...');
     const initScript = path.join(regtestDir, 'regtest-init.sh');
     if (fs.existsSync(initScript)) {
       execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
     } else {
-      const composeCmd = fs.existsSync(envRegtestPath)
-        ? `docker compose --env-file .env.regtest up -d`
-        : `docker compose up -d`;
-      execSync(`cd "${regtestDir}" && ${composeCmd}`, { stdio: 'inherit' });
+      execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
     }
 
     // 3. Wait for Zallet / RPC router at http://127.0.0.1:8181
@@ -389,19 +361,9 @@ regtestCmd
       console.log(`   - miner_memo = "regtest"`);
     }
 
-    // Update .env.regtest mining variables if file exists
-    if (fs.existsSync(envRegtestPath)) {
-      setOrAddEnv('ZEBRA_MINING__MINER_ADDRESS', accountUa);
-      setOrAddEnv('ZEBRA_MINING__MINER_MEMO', '72656774657374');
-      fs.writeFileSync(envRegtestPath, envLines.join('\n'));
-    }
-
     // 6. Restart Zebra to apply mining configuration
     console.log('\n🔄 Restarting Zebra container with new mining config...');
-    const composeRecreate = fs.existsSync(envRegtestPath)
-      ? `docker compose --env-file .env.regtest up -d --force-recreate zebra`
-      : `docker compose up -d --force-recreate zebra`;
-    execSync(`cd "${regtestDir}" && ${composeRecreate}`, { stdio: 'inherit' });
+    execSync(`cd "${regtestDir}" && docker compose up -d --force-recreate zebra`, { stdio: 'inherit' });
 
     // 7. Verify live config
     const liveConfig = execSync(`docker exec z3-regtest-zebra-1 cat /home/zebra/.config/zebrad.toml`).toString();
@@ -460,18 +422,18 @@ regtestCmd
       process.exit(1);
     }
 
-    // Safety check: Verify compose project is the regtest one
-    const envRegtestPath = path.join(regtestDir, '.env.regtest');
-    if (!fs.existsSync(envRegtestPath)) {
-      console.error(`❌ Refusing to wipe: ${envRegtestPath} not found. Must be executed against a valid regtest project.`);
+    // Safety check: Verify docker-compose.yml exists in regtest directory
+    const composePath = path.join(regtestDir, 'docker-compose.yml');
+    if (!fs.existsSync(composePath)) {
+      console.error(`❌ Refusing to wipe: ${composePath} not found. Must be executed against a valid regtest project.`);
       process.exit(1);
     }
 
-    const envContent = fs.readFileSync(envRegtestPath, 'utf8');
-    const projectNameMatch = envContent.match(/^COMPOSE_PROJECT_NAME\s*=\s*(.+)$/m);
+    const composeContent = fs.readFileSync(composePath, 'utf8');
+    const projectNameMatch = composeContent.match(/^name:\s*(.+)$/m);
     const projectName = projectNameMatch ? projectNameMatch[1].trim() : 'z3-regtest';
     if (projectName !== 'z3-regtest') {
-      console.error(`❌ Refusing to wipe: Expected COMPOSE_PROJECT_NAME=z3-regtest, but found "${projectName}". Only regtest environments may be wiped.`);
+      console.error(`❌ Refusing to wipe: Expected name: z3-regtest, but found "${projectName}". Only regtest environments may be wiped.`);
       process.exit(1);
     }
 
@@ -479,14 +441,14 @@ regtestCmd
     let dynamicVolumes: string[] = [];
     let dynamicServices: string[] = [];
     try {
-      const vOutput = execSync(`cd "${regtestDir}" && docker compose --env-file .env.regtest config --volumes`, { encoding: 'utf8' });
+      const vOutput = execSync(`cd "${regtestDir}" && docker compose config --volumes`, { encoding: 'utf8' });
       dynamicVolumes = vOutput.split('\n').map((v: string) => v.trim()).filter(Boolean).map((v: string) => `${projectName}_${v}`);
     } catch (e: any) {
       dynamicVolumes = [`${projectName}_chain`, `${projectName}_zallet`, `${projectName}_cookie`, `${projectName}_zallet_ca_certificates`];
     }
 
     try {
-      const sOutput = execSync(`cd "${regtestDir}" && docker compose --env-file .env.regtest config --services`, { encoding: 'utf8' });
+      const sOutput = execSync(`cd "${regtestDir}" && docker compose config --services`, { encoding: 'utf8' });
       dynamicServices = sOutput.split('\n').map((s: string) => s.trim()).filter(Boolean);
     } catch (e: any) {
       dynamicServices = ['zebra', 'cookie-permissions', 'zallet', 'rpc-router'];
@@ -502,9 +464,9 @@ regtestCmd
 
     if (options.dryRun) {
       console.log('🔍 [Dry Run] Would execute:');
-      console.log(`   1. docker compose --env-file .env.regtest down -v (purges volumes: ${dynamicVolumes.join(', ')}`);
+      console.log(`   1. docker compose down -v (purges volumes: ${dynamicVolumes.join(', ')})`);
       console.log('   2. bash regtest-init.sh (re-initializes genesis credentials and parameters)');
-      console.log(`   3. docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino`);
+      console.log(`   3. docker compose up -d && docker compose up -d zaino`);
       console.log('\n✅ [Dry Run complete: zero destructive actions executed.]');
       return;
     }
@@ -528,7 +490,7 @@ regtestCmd
     }
 
     console.log(`\n=== 🧹 Wiping Regtest Blockchain in ${regtestDir} ===\n`);
-    execSync(`cd "${regtestDir}" && docker compose --env-file .env.regtest down -v`, { stdio: 'inherit' });
+    execSync(`cd "${regtestDir}" && docker compose down -v`, { stdio: 'inherit' });
     console.log('\n=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===\n');
     const initScript = path.join(regtestDir, 'regtest-init.sh');
     const legacyInitScript = path.join(regtestDir, 'scripts/regtest-init.sh');
@@ -537,7 +499,7 @@ regtestCmd
     } else if (fs.existsSync(legacyInitScript)) {
       execSync(`cd "${regtestDir}" && bash "${legacyInitScript}"`, { stdio: 'inherit' });
     }
-    execSync(`cd "${regtestDir}" && docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino`, { stdio: 'inherit' });
+    execSync(`cd "${regtestDir}" && docker compose up -d && docker compose up -d zaino`, { stdio: 'inherit' });
 
     const waitForRpc = async (payload: any, maxAttempts = 45): Promise<any> => {
       for (let i = 0; i < maxAttempts; i++) {
@@ -592,29 +554,7 @@ regtestCmd
         fs.writeFileSync(zebraTomlPath, zebraConfig);
       }
 
-      const envRegtestPath = path.join(regtestDir, '.env.regtest');
-      if (fs.existsSync(envRegtestPath)) {
-        let envLines = fs.readFileSync(envRegtestPath, 'utf8').split('\n');
-        const setOrAddEnv = (key: string, value: string) => {
-          let found = false;
-          envLines = envLines.map((line) => {
-            if (line.startsWith(`${key}=`)) {
-              found = true;
-              return `${key}=${value}`;
-            }
-            return line;
-          });
-          if (!found) envLines.push(`${key}=${value}`);
-        };
-        setOrAddEnv('ZEBRA_MINING__MINER_ADDRESS', accountUa);
-        setOrAddEnv('ZEBRA_MINING__MINER_MEMO', '72656774657374');
-        fs.writeFileSync(envRegtestPath, envLines.join('\n'));
-      }
-
-      const composeRecreate = fs.existsSync(envRegtestPath)
-        ? `docker compose --env-file .env.regtest up -d --force-recreate zebra`
-        : `docker compose up -d --force-recreate zebra`;
-      execSync(`cd "${regtestDir}" && ${composeRecreate}`, { stdio: 'inherit' });
+      execSync(`cd "${regtestDir}" && docker compose up -d --force-recreate zebra`, { stdio: 'inherit' });
     }
 
     console.log('⏳ Waiting for Zebra RPC after restart...');
@@ -626,10 +566,7 @@ regtestCmd
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [105] }),
     });
-    const composeZaino = fs.existsSync(envRegtestPath)
-      ? `docker compose --env-file .env.regtest up -d zaino`
-      : `docker compose up -d zaino`;
-    execSync(`cd "${regtestDir}" && ${composeZaino}`, { stdio: 'inherit' });
+    execSync(`cd "${regtestDir}" && docker compose up -d zaino`, { stdio: 'inherit' });
     console.log('✅ Fresh regtest chain created with tip height 105!\n');
   });
 

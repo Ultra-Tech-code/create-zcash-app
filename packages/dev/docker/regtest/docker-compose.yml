@@ -1,6 +1,8 @@
+name: z3-regtest
+
 services:
   zebra:
-    image: zfnd/zebra:7.0.0
+    image: ${Z3_ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
     ports:
       - "29232:18232"
       - "28080:8080"
@@ -100,7 +102,7 @@ services:
       - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
   zaino:
-    image: zingodevops/zainod:0.10.0-no-tls
+    image: ${Z3_ZAINO_IMAGE:-zingodevops/zainod:0.10.0-no-tls}
     depends_on:
       zebra:
         condition: service_healthy

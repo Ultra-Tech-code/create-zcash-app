@@ -5,7 +5,7 @@ cd "$DIR"
 
 chmod 644 zallet.toml zebra.toml zaino.toml
 
-COMPOSE="docker compose --env-file .env.regtest"
+COMPOSE="docker compose"
 
 $COMPOSE down -v --remove-orphans 2>/dev/null || true
 
