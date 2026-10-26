@@ -157,13 +157,10 @@ jobs:
         with:
           path: packages/core/artifacts
 
-      - name: Move artifacts to packages/core root
-        run: |
-          find packages/core/artifacts -name "*.node" -exec cp {} packages/core/ \;
-          ls -la packages/core/*.node
-
       - name: Copy native artifacts into npm per-platform dirs
-        run: pnpm --filter @zcash-app/core exec napi artifacts --output-dir .
+        run: |
+          pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
+          ls -la packages/core/*.node packages/core/npm/*/*.node
 
       - name: Dry-run NAPI pre-publish
         run: pnpm --filter @zcash-app/core run prepublish
