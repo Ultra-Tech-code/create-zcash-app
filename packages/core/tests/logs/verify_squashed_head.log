@@ -1,0 +1,329 @@
+=== [1/5] Running Cargo Tests ===
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.51s
+     Running unittests src/lib.rs (target/debug/deps/zcash_core-3c18686fca1ea628)
+
+running 3 tests
+test tests::test_decrypt_action_computes_nullifier ... ok
+test tests::test_internal_ironwood_change_note_decryption ... ok
+test tests::test_derive_account_regtest ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/full_suite_test.rs (target/debug/deps/full_suite_test-5a2a0a7b0e476b94)
+
+running 19 tests
+test test_decode_real_regtest_funding_block_with_ironwood_actions ... ok
+test test_decode_real_regtest_compact_block_and_missing_field_rejection ... ok
+test test_chain_reset_first_scanned_hash_mismatch ... ok
+test test_activation_scan_prevents_unseeded_tree_gap ... ok
+test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
+test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
+test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
+test test_atomicity_crash_rollback_on_batch_failure ... ok
+test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
+test test_persisted_vs_rescan_close_reopen_parity ... ok
+test test_restart_fetches_zero_old_blocks ... ok
+test test_periodic_root_check_mismatch_and_recovery ... ok
+test test_persisted_equals_rescan_bit_for_bit ... ok
+test test_real_child_process_sigkill_mid_batch_and_clean_resume ... ok
+test test_time_bounded_batch_interruption_and_clean_resume_parity ... ok
+test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
+test test_sliding_window_prunes_headers_without_deleting_notes ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.21s
+
+     Running tests/pending_spends_test.rs (target/debug/deps/pending_spends_test-9e31e0659163673d)
+
+running 3 tests
+test test_stale_reservation_and_expired_tx_cleanup ... ok
+test test_slow_proving_heartbeat_refresh_preserves_reservation ... ok
+test test_reserve_notes_and_state_transitions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/reorg_test.rs (target/debug/deps/reorg_test-d7d269ef18a42f8b)
+
+running 3 tests
+test test_chain_identity_reset_error ... ok
+test test_reorg_preserves_in_flight_reservation_on_valid_note ... ok
+test test_reorg_detection_and_resolution_walkback ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/scanner_test.rs (target/debug/deps/scanner_test-b01185a1a15245f4)
+
+running 5 tests
+test test_scanner_rejects_missing_metadata ... ok
+test test_scanner_detects_tree_size_gap ... ok
+test test_scanner_rejects_malformed_action ... ok
+test test_scanner_dual_scope_and_positions_and_spend_detection ... ok
+test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.07s
+
+     Running tests/shard_store_test.rs (target/debug/deps/shard_store_test-eb5aadf8acc325a0)
+
+running 5 tests
+test test_live_zebra_gettreestate_window_comparison ... ignored
+test test_decode_zaino_frontier_hex ... ok
+test test_decode_zaino_tampered_frontier_fails_or_mismatches ... ok
+test test_shard_store_matches_memory_shard_store_roundtrip ... ok
+test test_p1_vs_p2_anchor_comparison ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.67s
+
+     Running tests/spendable_test.rs (target/debug/deps/spendable_test-3e68e471a57cdbec)
+
+running 4 tests
+test test_reorg_orphaned_reservation_blocks_spending_before_relink ... ok
+test test_builder_note_query_rejects_spent_above_anchor_and_unwitnessed_notes ... ok
+test test_spendable_notes_confirmation_boundaries_and_anchor_filtering ... ok
+test test_builder_integration_with_spendable_notes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.42s
+
+     Running tests/transaction_test.rs (target/debug/deps/transaction_test-d5424e50796a199d)
+
+running 14 tests
+test test_c_live_regtest_broadcast_and_mine ... ignored
+test test_fee_acceptance_on_regtest_node ... ignored, requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)
+test test_default_tx_expiry_delta_for_nu6_3_and_nu7 ... ok
+test test_p6_zip317_fee_parity_with_crate_feerule ... ok
+test test_amendment2_zip302_default_memo ... ok
+test test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id ... ok
+test test_a_pure_rust_multi_input_multi_output has been running for over 60 seconds
+test test_amendment1_zip317_fee_strictness has been running for over 60 seconds
+test test_amendment3_ovk_policy has been running for over 60 seconds
+test test_amendment4_action_padding has been running for over 60 seconds
+test test_amendment5_anchor_and_expiry has been running for over 60 seconds
+test test_amendments_6_and_7_security_and_error_handling has been running for over 60 seconds
+test test_b_round_trip_transaction_read_and_txid has been running for over 60 seconds
+test test_p4_analyze_crate_support_and_two_bundles has been running for over 60 seconds
+test test_amendment5_anchor_and_expiry ... ok
+test test_amendment3_ovk_policy ... ok
+test test_amendments_6_and_7_security_and_error_handling ... ok
+test test_amendment1_zip317_fee_strictness ... ok
+test test_amendment4_action_padding ... ok
+test test_p4_analyze_crate_support_and_two_bundles ... ok
+test test_a_pure_rust_multi_input_multi_output ... ok
+test test_b_round_trip_transaction_read_and_txid ... ok
+
+test result: ok. 12 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 105.27s
+
+     Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-3f8c9e3a6db2e6bc)
+
+running 7 tests
+test test_consensus_branch_id_derivation ... ok
+test test_nu6_3_activation_heights_from_consensus ... ok
+test test_address_equivalence_in_code ... ok
+test test_schema_v1_to_v2_migration_in_place_preserves_reservations ... ok
+test test_notes_unique_txid_action_constraint ... ok
+test test_schema_initialization_and_permissions ... ok
+test test_metadata_binding_and_mismatch ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/wallet_handle_test.rs (target/debug/deps/wallet_handle_test-c4ff88583f950a1c)
+
+running 1 test
+test test_wallet_handle_lifecycle_and_async_scan ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+   Doc-tests zcash_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+=== [2/5] Running Cargo Clippy ===
+    Checking zcash-core v0.1.0 (/Users/0xblackadam/Downloads/zcash_scafolder/packages/core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.29s
+=== [3/5] Running SDK Tests ===
+$ napi build --platform --release
+[DEPRECATED] napi.name is deprecated, use napi.binaryName instead.
+[DEPRECATED] napi.triples is deprecated, use napi.targets instead.
+    Finished `release` profile [optimized] target(s) in 0.27s
+$ vitest run
+
+ RUN  v2.1.9 /Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk
+
+ ✓ src/spend-tracking.test.ts (2 tests) 8ms
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > makes zero block requests when already at tip, and requests only >= last_scanned+1 on advance
+[Sync] (undefined) (third-party server) Wallet already synced at height 0 (target end: 0). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 15 (target end: 15). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Starting sync from height 16 to target 25 (tip: 25, batch size: 10, throttle: 50ms)...
+
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+
+ ✓ src/sync.test.ts (2 tests) 47ms
+ ✓ src/client.test.ts (9 tests) 158ms
+ ✓ src/mainnet-guard.test.ts (3 tests) 4ms
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 3: Send during a running sync (verifies non-blocking write lock yield)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 3: Send during a running sync (verifies non-blocking write lock yield)
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 4: Pending note stays excluded until mined or expires
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 4: Pending note stays excluded until mined or expires
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Warning: GetTreeState verification returned error: Failed to parse commitment tree: Non-canonical encoding of Pallas base field value.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Warning: GetTreeState verification returned error: 14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 8: an unreachable node with allowUnverifiedAnchor=true proceeds with the local root
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 9: a node reporting an EMPTY Ironwood tree aborts when the wallet has commitments
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   000000
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 10: an empty local checkpoint matches the node empty-tree marker (check passes)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   000000
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > forbids allowUnverifiedAnchor on testnet with AnchorVerificationError
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4465030 (tip: 4465030, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4465030):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > forbids allowUnverifiedAnchor on testnet with AnchorVerificationError
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest default (NU6.3) when node reports 37a5165b
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest default (NU6.3) when node reports 37a5165b
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest-nu7 opt-in when node reports 77190ad9
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest-nu7 opt-in when node reports 77190ad9
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+ ✓ src/send.test.ts (15 tests) 450ms
+
+ Test Files  5 passed (5)
+      Tests  31 passed (31)
+   Start at  01:47:16
+   Duration  1.70s (transform 490ms, setup 0ms, collect 4.16s, tests 667ms, environment 1ms, prepare 322ms)
+
+=== [4/5] Running zcash-dev CLI Tests ===
+$ tsc
+$ tsc
+$ node --test test/*.test.mjs
+TAP version 13
+# Subtest: zcash-dev regtest wipe refuses to run without --yes
+ok 1 - zcash-dev regtest wipe refuses to run without --yes
+  ---
+  duration_ms: 342.627042
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 397.160083
+=== [5/5] Running Gitleaks Scan ===
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m1:47AM[0m [32mINF[0m [1m92 commits scanned.[0m
+[90m1:47AM[0m [32mINF[0m [1mscanned ~1852240 bytes (1.85 MB) in 406ms[0m
+[90m1:47AM[0m [32mINF[0m [1mno leaks found[0m
+=== VERIFY SUCCESS: All 5 checks passed cleanly! ===

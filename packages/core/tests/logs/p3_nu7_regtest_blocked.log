@@ -1,0 +1,288 @@
+=== [0/5] What this run will destroy (dry run) ===
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   z3-regtest
+   - Docker Volumes: z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet_ca_certificates, z3-regtest_chain
+   - Services:       zebra, cookie-permissions, zallet, rpc-router
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+🔍 [Dry Run] Would execute:
+   1. docker compose --env-file .env.regtest down -v (purges volumes: z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet_ca_certificates, z3-regtest_chain
+   2. bash scripts/regtest-init.sh (re-initializes genesis credentials and parameters)
+   3. docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino
+
+✅ [Dry Run complete: zero destructive actions executed.]
+
+=== [1/5] Building SDK and zcash-dev from source ===
+$ tsc
+$ tsc
+
+=== [2/5] Wiping and rebuilding the regtest cluster ===
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   z3-regtest
+   - Docker Volumes: z3-regtest_zallet, z3-regtest_zallet_ca_certificates, z3-regtest_cookie, z3-regtest_chain
+   - Services:       zebra, cookie-permissions, zallet, rpc-router
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/z3 ===
+
+ Container z3-regtest-rpc-router-1 Stopping 
+ Container z3-regtest-rpc-router-1 Stopped 
+ Container z3-regtest-rpc-router-1 Removing 
+ Container z3-regtest-rpc-router-1 Removed 
+ Container z3-regtest-zallet-1 Stopping 
+ Container z3-regtest-zallet-1 Stopped 
+ Container z3-regtest-zallet-1 Removing 
+ Container z3-regtest-zallet-1 Removed 
+ Container z3-regtest-cookie-permissions-1 Stopping 
+ Container z3-regtest-cookie-permissions-1 Stopped 
+ Container z3-regtest-cookie-permissions-1 Removing 
+ Container z3-regtest-cookie-permissions-1 Removed 
+ Container z3-regtest-zebra-1 Stopping 
+ Container z3-regtest-zebra-1 Stopped 
+ Container z3-regtest-zebra-1 Removing 
+ Container z3-regtest-zebra-1 Removed 
+ Volume z3-regtest-cookie Removing 
+ Network z3-regtest Removing 
+ Volume z3-regtest-zallet Removing 
+ Volume z3-regtest-chain Removing 
+ Volume z3-regtest-zallet-ca-certificates Removing 
+ Network z3-regtest Resource is still in use 
+ Volume z3-regtest-chain Removed 
+ Volume z3-regtest-cookie Removed 
+ Volume z3-regtest-zallet Removed 
+ Volume z3-regtest-zallet-ca-certificates Removed 
+
+=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===
+
+==> regtest/zaino.toml: present, leaving contents untouched.
+==> regtest/zallet.toml: present, leaving contents untouched.
+==> regtest/zebra.toml: present, leaving contents untouched.
+==> regtest/zaino.toml: ensured readable by service containers.
+==> regtest/zallet.toml: ensured readable by service containers.
+==> regtest/zebra.toml: ensured readable by service containers.
+
+Setup complete for regtest.
+Next: docker compose --env-file .env.regtest up -d zebra
+==> Ensured ./config/regtest/zallet.toml is readable by zallet uid 1000
+==> Zallet RPC pwhash already generated, skipping.
+==> Starting Zebra in regtest mode...
+ Network z3-regtest Creating 
+ Network z3-regtest Created 
+ Volume z3-regtest-chain Creating 
+ Volume z3-regtest-chain Created 
+ Volume z3-regtest-cookie Creating 
+ Volume z3-regtest-cookie Created 
+ Container z3-regtest-zebra-1 Creating 
+ Container z3-regtest-zebra-1 Created 
+ Container z3-regtest-zebra-1 Starting 
+ Container z3-regtest-zebra-1 Started 
+==> Waiting for Zebra RPC to be ready...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 blocks (config/regtest activates NU5 through NU6.3 at height 2; Zebra and Zallet agree)...
+   Blocks mined.
+==> Preparing the Zallet data volume...
+==> Running generate-encryption-identity...
+time="2026-10-25T23:20:34+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Volume z3-regtest-zallet-ca-certificates Creating 
+ Volume z3-regtest-zallet-ca-certificates Created 
+ Container z3-regtest-zallet-run-0e48e858a7fa Creating 
+ Container z3-regtest-zallet-run-0e48e858a7fa Created 
+[2m2026-10-25T22:20:34.580009Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+Encryption identity written to /var/lib/zallet/identity.txt
+Public key: age1rh8332wxff73jqyw94uwykaamrrthcgmypx65kv4ka9ds2a54vnshuanlv
+==> Running init-wallet-encryption...
+time="2026-10-25T23:20:34+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Creating 
+ Container z3-regtest-cookie-permissions-1 Created 
+ Container z3-regtest-cookie-permissions-1 Starting 
+ Container z3-regtest-cookie-permissions-1 Started 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zallet-run-b6f4b47e9e7b Creating 
+ Container z3-regtest-zallet-run-b6f4b47e9e7b Created 
+[2m2026-10-25T22:20:40.545307Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+[2m2026-10-25T22:20:40.546813Z[0m [32m INFO[0m [2mzallet_core::components::database[0m[2m:[0m Creating empty database
+[2m2026-10-25T22:20:40.551019Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Migrating everything
+[2m2026-10-25T22:20:40.551158Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bc4f5e57-d600-4b6c-990f-b3538f0bfce1
+[2m2026-10-25T22:20:40.553819Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration be57ef3b-388e-42ea-97e2-678dafcf9754
+[2m2026-10-25T22:20:40.559289Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0ddbe561-8259-4212-9ab7-66fdc4a74e1d
+[2m2026-10-25T22:20:40.562802Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2e0ed2e-8852-475e-b0a4-f154b15b9dbe
+[2m2026-10-25T22:20:40.564770Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration d956978c-9c87-4d6e-815d-fb8f088d094c
+[2m2026-10-25T22:20:40.567562Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 761884d6-30d8-44ef-b204-0b82551c4ca1
+[2m2026-10-25T22:20:40.571803Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 282fad2e-8372-4ca0-8bed-71821320909f
+[2m2026-10-25T22:20:40.574464Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa4d24f-51aa-4a4c-8d9b-e5b8a762865f
+[2m2026-10-25T22:20:40.576826Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bdcdcedc-7b29-4f1c-8307-35f937f0d32a
+[2m2026-10-25T22:20:40.581871Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7da6489d-e835-4657-8be5-f512bcce6cbf
+[2m2026-10-25T22:20:40.585476Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration eeec0d0d-fee0-4231-8c68-5f3a7c7c2245
+[2m2026-10-25T22:20:40.589097Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fa934bdc-97b6-4980-8a83-b2cb1ac465fd
+[2m2026-10-25T22:20:40.592222Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c5bf7f71-2297-41ff-89e1-75e07c4e8838
+[2m2026-10-25T22:20:40.594908Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7029b904-6557-4aa1-9da5-6904b65d2ba5
+[2m2026-10-25T22:20:40.596766Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration aa0a4168-b41b-44c5-a47d-c4c66603cfab
+[2m2026-10-25T22:20:40.598736Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b3e21434-286f-41f3-8d71-44cce968ab2b
+[2m2026-10-25T22:20:40.602473Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b8fe5112-4365-473c-8b42-2b07c0f0adaf
+[2m2026-10-25T22:20:40.604728Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dba47c86-13b5-4601-94b2-0cde0abe1e45
+[2m2026-10-25T22:20:40.606730Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ee89ed2b-c1c2-421e-9e98-c1e3e54a7fc2
+[2m2026-10-25T22:20:40.608592Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d02ec76-8720-4cc6-b646-c4e2ce69221c
+[2m2026-10-25T22:20:40.620351Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 51d7a273-aa19-4109-9325-80e4a5545048
+[2m2026-10-25T22:20:40.624846Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 604349c7-5ce5-4768-bea6-12d106ccda93
+[2m2026-10-25T22:20:40.632787Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a2562b3-f174-46a1-aa8c-1d122ca2e884
+[2m2026-10-25T22:20:40.638190Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0e1d4274-1f8e-44e2-909d-689a4bc2967b
+[2m2026-10-25T22:20:40.640635Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07610aac-b0e3-4ba8-aaa6-cda606f0fd7b
+[2m2026-10-25T22:20:40.643751Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration e2d71ac5-6a44-4c6b-a9a0-6d0a79d355f1
+[2m2026-10-25T22:20:40.646373Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a6487f7-e068-42bb-9d12-6bb8dbe6da00
+[2m2026-10-25T22:20:40.650016Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fec02b61-3988-4b4f-9699-98977fac9e7f
+[2m2026-10-25T22:20:40.653045Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9ffe82d4-3bf5-459a-9a21-7affd9e88e95
+[2m2026-10-25T22:20:40.657284Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 156d8c8f-2173-4b59-89b6-75697d5a2103
+[2m2026-10-25T22:20:40.659701Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration cccc623f-3243-43c7-b884-ceef25149e04
+[2m2026-10-25T22:20:40.664448Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c41dfc0e-e870-4859-be47-d2f572f5ca73
+[2m2026-10-25T22:20:40.675596Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 702cf97b-8395-4edc-b584-5c9f87f0ef35
+[2m2026-10-25T22:20:40.677923Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9fa43ce0-a387-45d1-be03-57a3edc76d01
+[2m2026-10-25T22:20:40.679820Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d36656d-533b-4b65-ae91-dcb95c4ad289
+[2m2026-10-25T22:20:40.683599Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7f2fd1b3-1872-4b90-88ba-7d02b470090f
+[2m2026-10-25T22:20:40.686388Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b951587c-34fd-4f02-a313-05ff7adb6268
+[2m2026-10-25T22:20:40.690238Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 254d4f20-f0f6-4635-80ed-9d52c536d5df
+[2m2026-10-25T22:20:40.696323Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 54733173-5f3c-4870-831e-a48a4a93b1d7
+[2m2026-10-25T22:20:40.698704Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 50fd092d-97b9-44cf-ade9-86b526e4cd50
+[2m2026-10-25T22:20:40.700866Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 894574e0-663e-401a-8426-820b1f75149a
+[2m2026-10-25T22:20:40.705839Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ab1be47e-dbfd-439a-876a-55a7e4a0ea0b
+[2m2026-10-25T22:20:40.711119Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 4e68277f-6269-467e-9437-f3853cc4a41f
+[2m2026-10-25T22:20:40.716558Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07770bfd-c549-4069-9e05-822458f81cc4
+[2m2026-10-25T22:20:40.743177Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 97ac36a9-196f-4dd9-993d-722bde95bebc
+[2m2026-10-25T22:20:40.749150Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 944f8a1e-bdfa-4d52-90ca-663dee8efc62
+[2m2026-10-25T22:20:40.756260Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 93278b0f-77fe-473c-b88e-7f285da38dd3
+[2m2026-10-25T22:20:40.761266Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3d4f12d6-3da9-4ace-ac65-a0dd0a7adc32
+[2m2026-10-25T22:20:40.764364Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 47c0e9c2-2eda-4b9c-be15-63c636c0e1c7
+[2m2026-10-25T22:20:40.766722Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 1f5420e3-f8a0-4afd-a9e5-e20fc6fae271
+[2m2026-10-25T22:20:40.772828Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 64925567-65ae-495e-b6cf-d5f56e99e422
+[2m2026-10-25T22:20:40.776700Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa44e8e-e8a7-4760-8de4-501956c969ac
+[2m2026-10-25T22:20:40.779155Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dc0d6c91-b3db-429e-9a7b-d671cc19656e
+[2m2026-10-25T22:20:40.783558Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a6ef40c7-050a-43c6-a4e2-2f034168c979
+[2m2026-10-25T22:20:40.785749Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 62032f4a-88b5-454d-a591-10f3d4c4d2b7
+[2m2026-10-25T22:20:40.788755Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2b3f7ed-b2ec-4b92-a390-3f9bed3f0324
+[2m2026-10-25T22:20:40.791082Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration adfd5ac7-927f-4288-9cca-55520c4b45d1
+==> Running generate-mnemonic...
+time="2026-10-25T23:20:40+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zallet-run-e1ef45291809 Creating 
+ Container z3-regtest-zallet-run-e1ef45291809 Created 
+[2m2026-10-25T22:20:41.685522Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+[2m2026-10-25T22:20:41.688518Z[0m [32m INFO[0m [2mzallet_core::components::database[0m[2m:[0m Applying latest database migrations
+[2m2026-10-25T22:20:41.689011Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Migrating everything
+Seed fingerprint: zip32seedfp1mef26vc9l9sf4neht7msjuf5xrltc5u6uvau6crd53mptfqg6fgqcfhuaq
+==> Stopping Zebra (will be restarted by docker compose up -d)...
+ Container z3-regtest-cookie-permissions-1 Stopping 
+ Container z3-regtest-cookie-permissions-1 Stopped 
+ Container z3-regtest-cookie-permissions-1 Removing 
+ Container z3-regtest-cookie-permissions-1 Removed 
+ Container z3-regtest-zebra-1 Stopping 
+ Container z3-regtest-zebra-1 Stopped 
+ Container z3-regtest-zebra-1 Removing 
+ Container z3-regtest-zebra-1 Removed 
+ Network z3-regtest Removing 
+ Network z3-regtest Removed 
+
+Wallet initialized. Now run:
+   docker compose --env-file .env.regtest up -d
+   Router available at http://127.0.0.1:8181
+ Network z3-regtest Creating 
+ Network z3-regtest Created 
+time="2026-10-25T23:20:45+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Creating 
+ Container z3-regtest-zebra-1 Created 
+ Container z3-regtest-cookie-permissions-1 Creating 
+ Container z3-regtest-cookie-permissions-1 Created 
+ Container z3-regtest-zallet-1 Creating 
+ Container z3-regtest-zallet-1 Created 
+ Container z3-regtest-rpc-router-1 Creating 
+ Container z3-regtest-rpc-router-1 Created 
+ Container z3-regtest-zebra-1 Starting 
+ Container z3-regtest-zebra-1 Started 
+ Container z3-regtest-cookie-permissions-1 Starting 
+ Container z3-regtest-cookie-permissions-1 Started 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zallet-1 Starting 
+ Container z3-regtest-zallet-1 Started 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-rpc-router-1 Starting 
+ Container z3-regtest-rpc-router-1 Started 
+time="2026-10-25T23:20:52+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zaino-1 Creating 
+ Container z3-regtest-zaino-1 Created 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zaino-1 Starting 
+ Container z3-regtest-zaino-1 Started 
+⏳ Waiting for RPC router at http://127.0.0.1:8181 ...
+
+Creating new default Zallet account if needed...
+✅ Using Zallet Unified Address: undefined
+⏳ Waiting for Zebra RPC after restart...
+Mining 105 blocks for fresh regtest chain...
+time="2026-10-25T23:23:04+01:00" level=warning msg="volume \"z3-regtest-zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zaino-1 Running 
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+✅ Fresh regtest chain created with tip height 105!
+
+
+=== [3/5] Funding Account 0 and Account 1 exactly once ===
+=== FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST (IDEMPOTENT) ===
+
+Account 0:
+  Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+  Address:  uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  UFVK:     uviewregtest1td4fxalun47yu3erk09atltkwh84wcxzz067cyual0wrs4vskmwym6fshe0v0l2juv4wuc9uxv4kjyhrshfszzexstaxt58965k8zrru6738vds2skke86wfx5m28sz79cxuxlm3tmn7l35t9d2ckr2wxh6z842d09d72cqqc4hkjvth7tx9njslgsjdn9uxrcdkc3wlkp83ljfn264q9la72tzf3rmqma0n7pqy754g4ank5f6dhx89nhhmz5z30emt246l5kuagm5fxsq6mzu8v4uey2wf85n0lxjd4qk8angn3e47dekxpz0fs3495uwmj6mqc28c2ftcyatr3flqay5m0pdrlk3n35jzsa27fn8g2ujuwxgwlzjmzu5fx4gpthhjeweclygmvuvd4rpx0ezzfp2upuu054w26pyyjra9ruql00cmgsndlmzxpm0fdypszupc32qgemav29wax0esy5thphwr5svt4m8szkemqu4cs2wn
+
+Account 1:
+  Mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+  Address:  uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  UFVK:     uviewregtest1df3vq7x64yhq7638ym8qwj0n4uf05eaq63pd8tw0l5n8upugrw6p4sf63j4hm7sp5whz6emgu6s2elezqwqp0mlz27v5xsfjvjchrfd439wkhn0lp3ta89wn7azrfp22zcuta8wcmu7pzds83ay942jt3pn0my6u3k29x65d5skjq7z67u2mqpc42evamsxjsqsq8xwl8dd9rlgz53cuux8zlzwxux45e9wyhd639rest6fz37ytquk5d34p9qd04faxuc54zx7aj6n08ftx5ltp9mmy2npl72cgtqzjzye6vf9d070w7pfw4rys8kllaqcarlqz5n6e6t45g6c2t2jzy06nhlk2khvmq8msznxr2xppw2xhmqpgm7sa7dgf4pne2rh80w3jqnvzmfqv5u0t8h04r2rsxj9qk22ntvsqcdn356rq8wwq5xtnkw8f97wglh5ztngu4dtpe3z8r48xqas3pe9ht80yhdc09azzjvdykq6slpka
+
+Fatal error: Error: 14 UNAVAILABLE: No connection established. Last error: read ECONNRESET (2026-10-25T22:23:05.083Z). Resolution note: 
+    at callErrorFromStatus (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+    at Object.onReceiveStatus (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/client.js:193:76)
+    at Object.onReceiveStatus (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:367:141)
+    at Object.onReceiveStatus (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+    at /Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:155:78
+    at process.processTicksAndRejections (node:internal/process/task_queues:84:11)
+for call at
+    at ServiceClientImpl.makeUnaryRequest (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/client.js:161:32)
+    at ServiceClientImpl.<anonymous> (/Users/0xblackadam/Downloads/zcash_scafolder/node_modules/.pnpm/@grpc+grpc-js@1.14.6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+    at /Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/dist/client.js:122:25
+    at new Promise (<anonymous>)
+    at ZcashClient.getInfo (/Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/dist/client.js:121:16)
+    at getBalance (/Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/dist/detection.js:136:31)
+    at main (file:///Users/0xblackadam/Downloads/zcash_scafolder/scripts/item10_fund_and_sync_accounts.mjs:33:26)
+    at file:///Users/0xblackadam/Downloads/zcash_scafolder/scripts/item10_fund_and_sync_accounts.mjs:146:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26) {
+  code: 14,
+  details: 'No connection established. Last error: read ECONNRESET (2026-10-25T22:23:05.083Z). Resolution note: ',
+  metadata: Metadata { internalRepr: Map(0) {}, options: {} }
+}

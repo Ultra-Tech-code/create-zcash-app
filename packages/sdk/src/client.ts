@@ -1,7 +1,21 @@
 import path from 'path';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
+import { getExpectedBranchId } from '@zcash-app/core';
 import { ClientConfig, Network } from './types.js';
+
+export const PINNED_NU7_ACTIVATION_HEIGHT = 4465026;
+export const PINNED_NU7_ACTIVATION_HASH =
+  '000089ba27100beede16d64b34e3d1b626b428cb7ee9fe6dcfdc217ce24e78af';
+export const DEPRECATED_OLD_CHAIN_HASH =
+  '0713a6429dc1cef50224668082022ca8881593e09a3170717e6a725491c03b96';
+
+export class ChainIdentityError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ChainIdentityError';
+  }
+}
 
 export interface LightdInfo {
   version: string;
@@ -54,10 +68,12 @@ export interface CompactOrchardAction {
 
 export class ZcashClient {
   public readonly config: ClientConfig;
+  public readonly safeEndpoint: string;
   private readonly client: any;
 
   constructor(config: ClientConfig) {
-    this.config = config;
+    const network = config.regtestNu7 && config.network === 'regtest' ? 'regtest-nu7' : config.network;
+    this.config = { ...config, network };
     const protoPath = path.resolve(__dirname, '../proto/service.proto');
     const packageDefinition = protoLoader.loadSync(protoPath, {
       keepCase: true,
@@ -71,18 +87,82 @@ export class ZcashClient {
     const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
     const Service = protoDescriptor.cash.z.wallet.sdk.rpc.CompactTxStreamer;
 
+    const hasHttps = config.endpoint.startsWith('https://');
     const isTls =
+      hasHttps ||
       config.endpoint.endsWith(':443') ||
-      config.endpoint.startsWith('https://') ||
       (config as any).tls === true;
 
-    const cleanEndpoint = config.endpoint.replace(/^https?:\/\//, '');
+    let cleanEndpoint = config.endpoint.replace(/^https?:\/\//, '');
+    if (!cleanEndpoint.includes(':')) {
+      cleanEndpoint = isTls ? `${cleanEndpoint}:443` : `${cleanEndpoint}:9067`;
+    }
+
+    this.safeEndpoint = `${isTls ? 'https:' : 'http:'}//${cleanEndpoint}`;
 
     this.client = new Service(
       cleanEndpoint,
       isTls ? grpc.credentials.createSsl() : grpc.credentials.createInsecure()
     );
   }
+
+  /**
+   * Asserts chain identity on connect:
+   * 1. Derives expected consensus branch ID from the crate for the server tip height.
+   * 2. Asserts server's consensusBranchId matches the crate's expectation.
+   * 3. For testnet, checks the pinned block hash at NU7 activation height 4,465,026,
+   *    failing closed with distinct errors for legacy chain (0713a642...) or hash mismatch.
+   */
+  public async assertChainIdentity(): Promise<{
+    consensusBranchId: string;
+    expectedBranchId: string;
+    blockHeight: number;
+    activationBlockHash?: string;
+    chainName?: string;
+    upgradeName?: string;
+    vendor?: string;
+  }> {
+    const info = await this.getInfo();
+    const height = Number(info.blockHeight);
+    const expectedBranchId = getExpectedBranchId(this.config.network, height);
+    const branchReceived = (info.consensusBranchId ?? '').toLowerCase().replace(/^0x/, '');
+
+    if (branchReceived !== expectedBranchId.toLowerCase()) {
+      throw new ChainIdentityError(
+        `Network ${this.config.network} consensus branch mismatch at tip ${height}: expected 0x${expectedBranchId}, received 0x${info.consensusBranchId}`
+      );
+    }
+
+    let activationBlockHash: string | undefined;
+    if (this.config.network === 'testnet' && height >= PINNED_NU7_ACTIVATION_HEIGHT) {
+      const header = await this.getBlockHeader(PINNED_NU7_ACTIVATION_HEIGHT);
+      const hashRev = Buffer.from(header.hash).reverse().toString('hex');
+      activationBlockHash = hashRev;
+
+      if (hashRev.toLowerCase() === DEPRECATED_OLD_CHAIN_HASH.toLowerCase()) {
+        throw new ChainIdentityError(
+          `Server is on deprecated legacy testnet chain (block ${PINNED_NU7_ACTIVATION_HEIGHT} hash ${hashRev}). Expected canonical NU7 activation hash ${PINNED_NU7_ACTIVATION_HASH}.`
+        );
+      }
+
+      if (hashRev.toLowerCase() !== PINNED_NU7_ACTIVATION_HASH.toLowerCase()) {
+        throw new ChainIdentityError(
+          `Block ${PINNED_NU7_ACTIVATION_HEIGHT} hash mismatch: expected ${PINNED_NU7_ACTIVATION_HASH}, received ${hashRev}`
+        );
+      }
+    }
+
+    return {
+      consensusBranchId: branchReceived,
+      expectedBranchId,
+      blockHeight: height,
+      activationBlockHash,
+      chainName: info.chainName,
+      upgradeName: info.upgradeName,
+      vendor: info.vendor,
+    };
+  }
+
 
   public getInfo(): Promise<LightdInfo> {
     return new Promise((resolve, reject) => {

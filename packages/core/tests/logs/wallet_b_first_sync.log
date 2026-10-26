@@ -1,0 +1,46 @@
+================================================================
+   WALLET B ROOT VERIFICATION & EVIDENCE INTEGRITY
+================================================================
+Timestamp: 2026-10-26T13:32:06.631Z
+
+--- SEED SCRIPT PROVENANCE (GENERATED FROM scripts/seed_wallet_from_tree.mjs) ---
+Source Script:              scripts/seed_wallet_from_tree.mjs
+Copied SQLite Tables:       scanned_blocks, ironwood_tree_cap, ironwood_tree_checkpoints, ironwood_tree_checkpoint_marks_removed, ironwood_tree_shards, received_notes
+Base Reference Tree Height: 4542233
+Incremental Scan Range:     4542234 -> 4542241
+----------------------------------------------------------------
+
+Wallet B Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+
+--- OPENING EXISTING WALLET B (READ-ONLY INSPECTION) ---
+Wallet database path: /Users/0xblackadam/.zcash-app-testnet/wallet_b_nu7.db
+Wallet B Scanned Tip Height: 4542475
+Wallet B Total Balance:      1000000 zatoshis (0.01 ZEC)
+Wallet B Spendable Balance:  1000000 zatoshis
+Wallet B Unspent Notes:      1
+Wallet B Tree Size at Tip:   759475
+
+--- THREE-WAY ROOT VERIFICATION AT TIP HEIGHT 4542475 ---
+1. Wallet B Local DB Root:       9b39d0b326b53b9a93e798e7e58add0d086e09ce8972e59cf68fa40ef58a6706
+2. Querying QuickNode JSON-RPC (https://<redacted_host>/<redacted_token>)...
+   QuickNode z_gettreestate:     9b39d0b326b53b9a93e798e7e58add0d086e09ce8972e59cf68fa40ef58a6706
+3. Querying testnet.zec.rocks:443 (GetTreeState via gRPC)...
+   testnet.zec.rocks Root:       9b39d0b326b53b9a93e798e7e58add0d086e09ce8972e59cf68fa40ef58a6706
+
+--- ROOT COMPARISON ASSERTIONS ---
+Wallet B vs QuickNode:       MATCH ✅
+Wallet B vs testnet.zec.rocks: MATCH ✅
+QuickNode vs testnet.zec.rocks: MATCH ✅
+
+ALL THREE ROOTS AT TIP ARE IDENTICAL! ✅
+
+--- VERIFYING RECEIVED NOTES (SQLite query) ---
+Query: SELECT id, value_zatoshis, height, pool, hex(txid) FROM received_notes;
+1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+SUCCESS: 1,000,000-zat note at height 4,542,240 verified in Wallet B!
+Note detail: 1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+================================================================
+   WALLET B VERIFICATION COMPLETE: ALL CHECKS PASSED
+================================================================

@@ -46,9 +46,8 @@ async function main() {
 
   // 2. Perform REAL chain wipe using zcash-dev regtest wipe
   console.log('\n--- 2. EXECUTING REAL zcash-dev regtest wipe ---');
-  const z3Dir = '/Users/0xblackadam/Downloads/z3';
   const devCliPath = path.resolve(__dirname, '../packages/dev/dist/cli.js');
-  execSync(`node "${devCliPath}" regtest wipe --z3-path "${z3Dir}"`, { stdio: 'inherit' });
+  execSync(`node "${devCliPath}" regtest wipe --yes`, { stdio: 'inherit' });
 
   // 3. Connect client to the brand new chain
   console.log('\n--- 3. DETECTING CHAINRESET ON BRAND NEW CHAIN ---');

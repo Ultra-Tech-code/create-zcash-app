@@ -1,0 +1,36 @@
+================================================================
+   TESTNET SEND POST-HOC ON-CHAIN VERIFICATION
+   Status: run after the fact
+   Timestamp: 2026-10-26T08:31:36.636Z
+================================================================
+
+TxID (node/explorer RPC display order):    8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+TxID (internal builder byte-reversed):     5a09656a90ed7332e42de4f9c12f31c71d093e734deb8357b9e641c4ab16a58c
+
+Querying node (https://<redacted>/<redacted>) via getrawtransaction...
+
+--- Node Confirmation Status ---
+Confirmations:      1158
+Block Hash:         00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e
+Raw Tx Bytes Size:  9166 bytes
+
+--- Parsed On-Chain Transaction Header ---
+Version Bytes [0..4]:          06000080
+Version Group ID Bytes [4..8]:  98b684d8
+Branch ID Bytes [8..12]:       d90a1977 -> 0x77190ad9
+Lock Time Bytes [12..16]:      00000000 -> 0
+Expiry Height Bytes [16..20]:  464f4500 -> 4542278
+Branch ID Check: parsed 0x77190ad9 == expected 0x77190ad9 -> true
+
+--- Wallet A State & Received Notes (SQLite query) ---
+Wallet A Scanned Tip Height: 4542245 (source: wallet_a_nu7.db -> scanned_blocks.height)
+1|10000000|4540587|ironwood|EB915F334AF85B6F4C6BB78E639FEAEBC9115822EB18EEA02E50640FD0C474AA|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+2|8990000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C|
+
+--- Wallet B State & Received Notes (SQLite query) ---
+Wallet B Scanned Tip Height: 4542475 (source: wallet_b_nu7.db -> scanned_blocks.height)
+1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+================================================================
+   POST-HOC VERIFICATION COMPLETE
+================================================================

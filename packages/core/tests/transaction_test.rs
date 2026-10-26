@@ -791,9 +791,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     }
     use orchard::bundle::BundleVersion;
     use orchard::keys::SpendAuthorizingKey;
-    use zcash_primitives::transaction::sighash::SignableInput;
-    use zcash_primitives::transaction::sighash_v6::v6_signature_hash;
-    use zcash_primitives::transaction::txid::TxIdDigester;
+    use zcash_primitives::transaction::sighash::{PrecomputedSighashData, SignableInput};
     use zcash_primitives::transaction::{TransactionData, Unauthorized};
 
     // 1. Analyze Crate Support
@@ -826,7 +824,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     let path = MerklePath::from(wit.path().unwrap());
     let anchor: orchard::Anchor = tree.root().into();
 
-    let mut rng = rand::rngs::OsRng;
+    let mut rng = rand::rng();
 
     // 3. Build Orchard Spend Bundle (ValueBalance = +100,000 zatoshis exiting Orchard pool)
     println!("\n--- 2. Building Orchard Spend Bundle ---");
@@ -889,9 +887,9 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
         Some(ironwood_unproven_zat), // ironwood_bundle
     );
 
-    let txid_parts = tx_for_sighash.digest(TxIdDigester);
-    let sighash = v6_signature_hash(&tx_for_sighash, &SignableInput::Shielded, &txid_parts);
-    let sighash_bytes: [u8; 32] = sighash.as_bytes().try_into().expect("32 bytes");
+    let precomputed = PrecomputedSighashData::new(tx_for_sighash);
+    let sighash = precomputed.signature_hash(&SignableInput::Shielded);
+    let sighash_bytes: [u8; 32] = *sighash.as_ref();
     println!("Canonical V6 sighash computed: {}", hex::encode(sighash_bytes));
 
     // 6. Generate Halo 2 ZK proofs for both bundles
@@ -911,10 +909,10 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     println!("\n--- 6. Applying Signatures & Freezing Transaction ---");
     let ask = SpendAuthorizingKey::from(&sk);
     let orchard_authorized = orchard_proven
-        .apply_signatures(rng, sighash_bytes, &[ask])
+        .apply_signatures(rand::rng(), sighash_bytes, &[ask])
         .expect("orchard signing");
     let ironwood_authorized = ironwood_proven
-        .apply_signatures(rng, sighash_bytes, &[])
+        .apply_signatures(rand::rng(), sighash_bytes, &[])
         .expect("ironwood signing");
 
     let orchard_auth_zat = orchard_authorized
@@ -1032,5 +1030,240 @@ fn test_p6_zip317_fee_parity_with_crate_feerule() {
     println!("All {} action counts verified strictly identical to FeeRule::standard()!", test_action_counts.len());
 }
 
+#[test]
+fn test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id() {
+    println!("\n=== TEST: BUILD TESTNET TX AT HEIGHT >= 4,465,026 HAS NU7 BRANCH ID (0x77190ad9) ===");
+    use zcash_protocol::consensus::TEST_NETWORK;
 
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
+
+    let recipient_sk = SpendingKey::from_bytes([99u8; 32]).unwrap();
+    let recipient_fvk = FullViewingKey::from(&recipient_sk);
+    let recipient_addr = recipient_fvk.address_at(0u32, Scope::External);
+    let out1 = OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000));
+
+    let change_addr = fvk.address_at(0u32, Scope::Internal);
+    let out2 = OutputSpec::new(change_addr, NoteValue::from_raw(90_000));
+
+    // Target testnet height >= 4,465,026 (NU7 activation height)
+    let target_height = BlockHeight::from_u32(4_465_026);
+
+    // Derive config using the exact same derivation as the builder: BranchId::for_height
+    let config = TransactionConfig::for_target_height(&TEST_NETWORK, anchor, target_height, Some(5));
+
+    assert_eq!(config.branch_id, BranchId::Nu7);
+    assert_eq!(u32::from(config.branch_id), 0x7719_0ad9);
+
+    let pk = get_shared_proving_key();
+    let built = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1],
+        vec![out1, out2],
+        &config,
+        pk,
+    )
+    .expect("build_and_prove_v6_ironwood_tx failed at NU7 height");
+
+    // Assert consensus branch ID on built transaction
+    let built_branch_u32 = u32::from(built.transaction.consensus_branch_id());
+    assert_eq!(
+        built_branch_u32, 0x7719_0ad9,
+        "Built transaction consensus branch ID must be 0x77190ad9 (NU7)"
+    );
+
+    // Assert round-trip deserialization with Transaction::read
+    let mut reader = &built.raw_bytes[..];
+    let read_tx = Transaction::read(&mut reader, config.branch_id)
+        .expect("Transaction::read failed on NU7 transaction bytes");
+    let read_branch_u32 = u32::from(read_tx.consensus_branch_id());
+    assert_eq!(
+        read_branch_u32, 0x7719_0ad9,
+        "Deserialized transaction consensus branch ID must be 0x77190ad9 (NU7)"
+    );
+
+    println!("Verified: testnet tx built at height {} has consensus branch id 0x{:08x}", target_height, built_branch_u32);
+}
+
+#[test]
+fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
+    println!("\n=== TEST: DEFAULT TX EXPIRY DELTA FOR NU6_3 AND NU7 ===");
+    use zcash_primitives::transaction::builder::{
+        default_tx_expiry_delta, BLOSSOM_DEFAULT_TX_EXPIRY_DELTA, NU7_DEFAULT_TX_EXPIRY_DELTA,
+    };
+
+    // Nu6_3 expiry delta assertion citing crate constant BLOSSOM_DEFAULT_TX_EXPIRY_DELTA
+    let nu6_3_delta = default_tx_expiry_delta(BranchId::Nu6_3);
+    assert_eq!(
+        nu6_3_delta, 40,
+        "Nu6_3 default transaction expiry delta must be 40 blocks"
+    );
+    assert_eq!(
+        nu6_3_delta, BLOSSOM_DEFAULT_TX_EXPIRY_DELTA,
+        "Nu6_3 delta must match crate constant zcash_primitives::transaction::builder::BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (40)"
+    );
+
+    // Nu7 expiry delta assertion citing crate constant NU7_DEFAULT_TX_EXPIRY_DELTA
+    let nu7_delta = default_tx_expiry_delta(BranchId::Nu7);
+    assert_eq!(
+        nu7_delta, 120,
+        "Nu7 default transaction expiry delta must be 120 blocks"
+    );
+    assert_eq!(
+        nu7_delta, NU7_DEFAULT_TX_EXPIRY_DELTA,
+        "Nu7 delta must match crate constant zcash_primitives::transaction::builder::NU7_DEFAULT_TX_EXPIRY_DELTA (120)"
+    );
+
+    // Assert TransactionConfig automatically applies the correct branch expiry delta
+    let dummy_anchor = orchard::Anchor::from_bytes([0u8; 32]).unwrap();
+    let tip = BlockHeight::from_u32(1_000);
+
+    let config_nu6_3 = TransactionConfig::new(BranchId::Nu6_3, dummy_anchor, tip, None);
+    assert_eq!(
+        config_nu6_3.expiry_height,
+        BlockHeight::from_u32(1_000 + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu6_3 must expire at tip + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (1040)"
+    );
+
+    let config_nu7 = TransactionConfig::new(BranchId::Nu7, dummy_anchor, tip, None);
+    assert_eq!(
+        config_nu7.expiry_height,
+        BlockHeight::from_u32(1_000 + NU7_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu7 must expire at tip + NU7_DEFAULT_TX_EXPIRY_DELTA (1120)"
+    );
+
+    println!(
+        "Verified: Nu6_3 delta = {} (BLOSSOM_DEFAULT_TX_EXPIRY_DELTA), Nu7 delta = {} (NU7_DEFAULT_TX_EXPIRY_DELTA)",
+        nu6_3_delta, nu7_delta
+    );
+}
+
+#[test]
+#[ignore = "requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)"]
+fn test_fee_acceptance_on_regtest_node() {
+    println!("\n=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===");
+
+    // Check if regtest node is reachable
+    let check = Command::new("curl")
+        .args([
+            "-s", "-X", "POST", "http://127.0.0.1:29232",
+            "-H", "Content-Type: application/json",
+            "-d", r#"{"jsonrpc":"2.0","id":"1","method":"getstandardfee","params":[]}"#,
+        ])
+        .output();
+
+    let output = match check {
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).to_string(),
+        _ => {
+            println!("SKIPPING: Zebra regtest node not reachable on port 29232");
+            return;
+        }
+    };
+    println!("Node getstandardfee response: {}", output.trim());
+
+    let (sk, fvk, note1, path1, _note2, _path2, anchor) = setup_in_memory_tree_and_notes();
+    let spend1 = SpendInput::new(note1, path1);
+
+    let recipient_sk = SpendingKey::from_bytes([99u8; 32]).unwrap();
+    let recipient_fvk = FullViewingKey::from(&recipient_sk);
+    let recipient_addr = recipient_fvk.address_at(0u32, Scope::External);
+    let change_addr = fvk.address_at(0u32, Scope::Internal);
+
+    let pk = get_shared_proving_key();
+    let tip = BlockHeight::from_u32(107);
+    let config = TransactionConfig::new(BranchId::Nu7, anchor, tip, None);
+    let mut config_custom = config.clone();
+    config_custom.allow_custom_fee = true;
+
+    // Case 1: Crate fee = 10,000 zatoshis (2 actions * 5,000 zatoshis)
+    // Spend: 500,000. Out1: 400,000. Out2: 90,000. Fee: 10,000.
+    let tx_crate_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(90_000)),
+        ],
+        &config,
+        pk,
+    ).expect("build crate fee tx");
+
+    // Case 2a: Node getstandardfee (1,000 zatoshis)
+    // Spend: 500,000. Out1: 400,000. Out2: 99,000. Fee: 1,000.
+    let tx_standard_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(99_000)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build standard fee tx");
+
+    // Case 2b: 2 * getstandardfee for 2 actions = 2,000 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 98,000. Fee: 2,000.
+    let tx_2x_standard_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(98_000)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build 2x standard fee tx");
+
+    // Case 2c: 1 zat below 2 * getstandardfee = 1,999 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 98,001. Fee: 1,999.
+    let tx_below_2x_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(98_001)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build below 2x standard fee tx");
+
+    // Case 3: 1 zat below getstandardfee = 999 zatoshis
+    // Spend: 500,000. Out1: 400,000. Out2: 99,001. Fee: 999.
+    let tx_below_fee = build_and_prove_v6_ironwood_tx(
+        &sk,
+        vec![spend1.clone()],
+        vec![
+            OutputSpec::new(recipient_addr, NoteValue::from_raw(400_000)),
+            OutputSpec::new(change_addr, NoteValue::from_raw(99_001)),
+        ],
+        &config_custom,
+        pk,
+    ).expect("build below fee tx");
+
+    // Submit each to Zebra
+    for (label, tx, fee) in [
+        ("Case 1: Crate Fee (10,000 zat)", tx_crate_fee, 10_000),
+        ("Case 2a: Raw node getstandardfee (1,000 zat)", tx_standard_fee, 1_000),
+        ("Case 2b: 2 * getstandardfee for 2 actions (2,000 zat)", tx_2x_standard_fee, 2_000),
+        ("Case 2c: 1 zat below 2 * getstandardfee (1,999 zat)", tx_below_2x_fee, 1_999),
+        ("Case 3: 1 zat below raw getstandardfee (999 zat)", tx_below_fee, 999),
+    ] {
+
+        let payload = format!(
+            r#"{{"jsonrpc":"2.0","id":"test","method":"sendrawtransaction","params":["{}"]}}"#,
+            hex::encode(&tx.raw_bytes)
+        );
+        let res = Command::new("curl")
+            .args([
+                "-s", "-X", "POST", "http://127.0.0.1:29232",
+                "-H", "Content-Type: application/json",
+                "-d", &payload,
+            ])
+            .output()
+            .expect("curl sendrawtransaction");
+        let res_str = String::from_utf8_lossy(&res.stdout);
+        println!("\n=== {} (fee: {} zatoshis) ===", label, fee);
+        println!("Response: {}", res_str.trim());
+    }
+}
 

@@ -1,0 +1,422 @@
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   z3-regtest
+   - Docker Volumes: z3-regtest_zaino, z3-regtest_chain, z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet-ca-certificates
+   - Services:       zebra, cookie-permissions, zaino, zallet, rpc-router
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /private/tmp/zcash-regtest-verify/packages/dev/docker/regtest ===
+
+ Container z3-regtest-rpc-router-1 Stopping 
+ Container z3-regtest-zaino-1 Stopping 
+ Container z3-regtest-rpc-router-1 Stopped 
+ Container z3-regtest-rpc-router-1 Removing 
+ Container z3-regtest-rpc-router-1 Removed 
+ Container z3-regtest-zallet-1 Stopping 
+ Container z3-regtest-zallet-1 Stopped 
+ Container z3-regtest-zallet-1 Removing 
+ Container z3-regtest-zallet-1 Removed 
+ Container z3-regtest-zaino-1 Stopped 
+ Container z3-regtest-zaino-1 Removing 
+ Container z3-regtest-zaino-1 Removed 
+ Container z3-regtest-cookie-permissions-1 Stopping 
+ Container z3-regtest-cookie-permissions-1 Stopped 
+ Container z3-regtest-cookie-permissions-1 Removing 
+ Container z3-regtest-cookie-permissions-1 Removed 
+ Container z3-regtest-zebra-1 Stopping 
+ Container z3-regtest-zebra-1 Stopped 
+ Container z3-regtest-zebra-1 Removing 
+ Container z3-regtest-zebra-1 Removed 
+ Network z3-regtest_default Removing 
+ Volume z3-regtest_cookie Removing 
+ Volume z3-regtest_zallet Removing 
+ Volume z3-regtest_chain Removing 
+ Volume z3-regtest_zaino Removing 
+ Volume z3-regtest_zallet-ca-certificates Removing 
+ Volume z3-regtest_zallet Removed 
+ Volume z3-regtest_zaino Removed 
+ Volume z3-regtest_zallet-ca-certificates Removed 
+ Volume z3-regtest_chain Removed 
+ Volume z3-regtest_cookie Removed 
+ Network z3-regtest_default Removed 
+
+=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===
+
+==> Starting Zebra in regtest mode...
+ Network z3-regtest_default Creating 
+ Network z3-regtest_default Created 
+ Volume z3-regtest_chain Creating 
+ Volume z3-regtest_chain Created 
+ Volume z3-regtest_cookie Creating 
+ Volume z3-regtest_cookie Created 
+ Container z3-regtest-zebra-1 Creating 
+ Container z3-regtest-zebra-1 Created 
+ Container z3-regtest-zebra-1 Starting 
+ Container z3-regtest-zebra-1 Started 
+==> Waiting for Zebra RPC to be ready...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 blocks to activate NU6.3 at height 2...
+   Blocks mined.
+==> Preparing Zallet data volume...
+==> Initializing Zallet keystore...
+ Volume z3-regtest_zallet-ca-certificates Creating 
+ Volume z3-regtest_zallet-ca-certificates Created 
+time="2026-10-26T14:43:24+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zallet-run-a921398c7630 Creating 
+ Container z3-regtest-zallet-run-a921398c7630 Created 
+[2m2026-10-26T13:43:24.468983Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+Encryption identity written to /var/lib/zallet/identity.txt
+Public key: age1d6vjakua6pmcwkuj2sntcuwwmxac75spfyygaf0kzle22q62e96qnxsc58
+time="2026-10-26T14:43:24+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Creating 
+ Container z3-regtest-cookie-permissions-1 Created 
+ Container z3-regtest-cookie-permissions-1 Starting 
+ Container z3-regtest-cookie-permissions-1 Started 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zallet-run-8d0fd084a97b Creating 
+ Container z3-regtest-zallet-run-8d0fd084a97b Created 
+[2m2026-10-26T13:43:30.477259Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+[2m2026-10-26T13:43:30.479776Z[0m [32m INFO[0m [2mzallet_core::components::database[0m[2m:[0m Creating empty database
+[2m2026-10-26T13:43:30.494812Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Migrating everything
+[2m2026-10-26T13:43:30.496269Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bc4f5e57-d600-4b6c-990f-b3538f0bfce1
+[2m2026-10-26T13:43:30.500584Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration be57ef3b-388e-42ea-97e2-678dafcf9754
+[2m2026-10-26T13:43:30.506204Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0ddbe561-8259-4212-9ab7-66fdc4a74e1d
+[2m2026-10-26T13:43:30.511739Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2e0ed2e-8852-475e-b0a4-f154b15b9dbe
+[2m2026-10-26T13:43:30.515620Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration d956978c-9c87-4d6e-815d-fb8f088d094c
+[2m2026-10-26T13:43:30.518423Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 761884d6-30d8-44ef-b204-0b82551c4ca1
+[2m2026-10-26T13:43:30.522828Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 282fad2e-8372-4ca0-8bed-71821320909f
+[2m2026-10-26T13:43:30.528167Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa4d24f-51aa-4a4c-8d9b-e5b8a762865f
+[2m2026-10-26T13:43:30.533514Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bdcdcedc-7b29-4f1c-8307-35f937f0d32a
+[2m2026-10-26T13:43:30.538528Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration e2d71ac5-6a44-4c6b-a9a0-6d0a79d355f1
+[2m2026-10-26T13:43:30.543842Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7da6489d-e835-4657-8be5-f512bcce6cbf
+[2m2026-10-26T13:43:30.551999Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a6487f7-e068-42bb-9d12-6bb8dbe6da00
+[2m2026-10-26T13:43:30.554669Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration eeec0d0d-fee0-4231-8c68-5f3a7c7c2245
+[2m2026-10-26T13:43:30.560388Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fa934bdc-97b6-4980-8a83-b2cb1ac465fd
+[2m2026-10-26T13:43:30.564368Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c5bf7f71-2297-41ff-89e1-75e07c4e8838
+[2m2026-10-26T13:43:30.569559Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7029b904-6557-4aa1-9da5-6904b65d2ba5
+[2m2026-10-26T13:43:30.575045Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration aa0a4168-b41b-44c5-a47d-c4c66603cfab
+[2m2026-10-26T13:43:30.581715Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b3e21434-286f-41f3-8d71-44cce968ab2b
+[2m2026-10-26T13:43:30.586545Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b8fe5112-4365-473c-8b42-2b07c0f0adaf
+[2m2026-10-26T13:43:30.589722Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dba47c86-13b5-4601-94b2-0cde0abe1e45
+[2m2026-10-26T13:43:30.598727Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ee89ed2b-c1c2-421e-9e98-c1e3e54a7fc2
+[2m2026-10-26T13:43:30.604364Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d02ec76-8720-4cc6-b646-c4e2ce69221c
+[2m2026-10-26T13:43:30.618198Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 51d7a273-aa19-4109-9325-80e4a5545048
+[2m2026-10-26T13:43:30.623004Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 604349c7-5ce5-4768-bea6-12d106ccda93
+[2m2026-10-26T13:43:30.625131Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a2562b3-f174-46a1-aa8c-1d122ca2e884
+[2m2026-10-26T13:43:30.633400Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0e1d4274-1f8e-44e2-909d-689a4bc2967b
+[2m2026-10-26T13:43:30.636598Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07610aac-b0e3-4ba8-aaa6-cda606f0fd7b
+[2m2026-10-26T13:43:30.639082Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fec02b61-3988-4b4f-9699-98977fac9e7f
+[2m2026-10-26T13:43:30.643301Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 156d8c8f-2173-4b59-89b6-75697d5a2103
+[2m2026-10-26T13:43:30.646857Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration cccc623f-3243-43c7-b884-ceef25149e04
+[2m2026-10-26T13:43:30.651949Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c41dfc0e-e870-4859-be47-d2f572f5ca73
+[2m2026-10-26T13:43:30.664130Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 702cf97b-8395-4edc-b584-5c9f87f0ef35
+[2m2026-10-26T13:43:30.668323Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7f2fd1b3-1872-4b90-88ba-7d02b470090f
+[2m2026-10-26T13:43:30.672224Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9fa43ce0-a387-45d1-be03-57a3edc76d01
+[2m2026-10-26T13:43:30.677084Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d36656d-533b-4b65-ae91-dcb95c4ad289
+[2m2026-10-26T13:43:30.679590Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b951587c-34fd-4f02-a313-05ff7adb6268
+[2m2026-10-26T13:43:30.685566Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 54733173-5f3c-4870-831e-a48a4a93b1d7
+[2m2026-10-26T13:43:30.690545Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 50fd092d-97b9-44cf-ade9-86b526e4cd50
+[2m2026-10-26T13:43:30.693700Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 894574e0-663e-401a-8426-820b1f75149a
+[2m2026-10-26T13:43:30.698500Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9ffe82d4-3bf5-459a-9a21-7affd9e88e95
+[2m2026-10-26T13:43:30.702489Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ab1be47e-dbfd-439a-876a-55a7e4a0ea0b
+[2m2026-10-26T13:43:30.708027Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 4e68277f-6269-467e-9437-f3853cc4a41f
+[2m2026-10-26T13:43:30.714440Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 254d4f20-f0f6-4635-80ed-9d52c536d5df
+[2m2026-10-26T13:43:30.720884Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07770bfd-c549-4069-9e05-822458f81cc4
+[2m2026-10-26T13:43:30.752599Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 97ac36a9-196f-4dd9-993d-722bde95bebc
+[2m2026-10-26T13:43:30.756369Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 944f8a1e-bdfa-4d52-90ca-663dee8efc62
+[2m2026-10-26T13:43:30.763350Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 93278b0f-77fe-473c-b88e-7f285da38dd3
+[2m2026-10-26T13:43:30.769065Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3d4f12d6-3da9-4ace-ac65-a0dd0a7adc32
+[2m2026-10-26T13:43:30.773235Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 47c0e9c2-2eda-4b9c-be15-63c636c0e1c7
+[2m2026-10-26T13:43:30.776126Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 1f5420e3-f8a0-4afd-a9e5-e20fc6fae271
+[2m2026-10-26T13:43:30.780230Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 64925567-65ae-495e-b6cf-d5f56e99e422
+[2m2026-10-26T13:43:30.785830Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa44e8e-e8a7-4760-8de4-501956c969ac
+[2m2026-10-26T13:43:30.788431Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dc0d6c91-b3db-429e-9a7b-d671cc19656e
+[2m2026-10-26T13:43:30.793729Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a6ef40c7-050a-43c6-a4e2-2f034168c979
+[2m2026-10-26T13:43:30.798308Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 62032f4a-88b5-454d-a591-10f3d4c4d2b7
+[2m2026-10-26T13:43:30.800341Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2b3f7ed-b2ec-4b92-a390-3f9bed3f0324
+[2m2026-10-26T13:43:30.808342Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration adfd5ac7-927f-4288-9cca-55520c4b45d1
+time="2026-10-26T14:43:30+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zallet-run-d4f36740b003 Creating 
+ Container z3-regtest-zallet-run-d4f36740b003 Created 
+[2m2026-10-26T13:43:31.670896Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+[2m2026-10-26T13:43:31.673495Z[0m [32m INFO[0m [2mzallet_core::components::database[0m[2m:[0m Applying latest database migrations
+[2m2026-10-26T13:43:31.675269Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Migrating everything
+Seed fingerprint: zip32seedfp1jsm3y0wwuuvw4eu9s04k6qhmtka29xta68wp4j83j7d2l67lc79s4l4s7l
+==> Stopping Zebra (will restart cleanly with full stack)...
+ Container z3-regtest-cookie-permissions-1 Stopping 
+ Container z3-regtest-cookie-permissions-1 Stopped 
+ Container z3-regtest-cookie-permissions-1 Removing 
+ Container z3-regtest-cookie-permissions-1 Removed 
+ Container z3-regtest-zebra-1 Stopping 
+ Container z3-regtest-zebra-1 Stopped 
+ Container z3-regtest-zebra-1 Removing 
+ Container z3-regtest-zebra-1 Removed 
+ Network z3-regtest_default Removing 
+ Network z3-regtest_default Removed 
+==> Starting full regtest stack (zebra, cookie-permissions, zallet, rpc-router, zaino)...
+ Network z3-regtest_default Creating 
+ Network z3-regtest_default Created 
+ Volume z3-regtest_zaino Creating 
+ Volume z3-regtest_zaino Created 
+time="2026-10-26T14:43:36+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Creating 
+ Container z3-regtest-zebra-1 Created 
+ Container z3-regtest-cookie-permissions-1 Creating 
+ Container z3-regtest-cookie-permissions-1 Created 
+ Container z3-regtest-zaino-1 Creating 
+ Container z3-regtest-zallet-1 Creating 
+ Container z3-regtest-zallet-1 Created 
+ Container z3-regtest-rpc-router-1 Creating 
+ zaino The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested 
+ Container z3-regtest-zaino-1 Created 
+ Container z3-regtest-rpc-router-1 Created 
+ Container z3-regtest-zebra-1 Starting 
+ Container z3-regtest-zebra-1 Started 
+ Container z3-regtest-cookie-permissions-1 Starting 
+ Container z3-regtest-cookie-permissions-1 Started 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zallet-1 Starting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zaino-1 Starting 
+ Container z3-regtest-zallet-1 Started 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zaino-1 Started 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-rpc-router-1 Starting 
+ Container z3-regtest-rpc-router-1 Started 
+==> Regtest stack initialized successfully.
+time="2026-10-26T14:43:43+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zallet-1 Running 
+ Container z3-regtest-rpc-router-1 Running 
+ Container z3-regtest-zaino-1 Running 
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-zebra-1 Healthy 
+time="2026-10-26T14:43:44+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zaino-1 Running 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+⏳ Waiting for RPC router at http://127.0.0.1:8181 ...
+
+Creating new default Zallet account if needed...
+✅ Using Zallet Unified Address: uregtest1xj2u4slqsuhdsnmstpl9jul902jl4mjfvkkn5w8mrhcnmsvjux7u326xhn3pqcythudeljsawgaa5skc3edvtn4q92jua9ma2zgsvkxzd5akr89mpsnpfmj8mn7mr3p9gsysytx96qfu3kznpr5zmklgp0qwzpc2vuvs63e53myer8accpgn8y486mr8jrwka03t4tt0nmw27xe7fvv
+ Container z3-regtest-zebra-1 Recreate 
+ Container z3-regtest-zebra-1 Recreated 
+ Container z3-regtest-zebra-1 Starting 
+ Container z3-regtest-zebra-1 Started 
+⏳ Waiting for Zebra RPC after restart...
+Mining 105 blocks for fresh regtest chain...
+time="2026-10-26T14:45:37+01:00" level=warning msg="volume \"z3-regtest_zallet\" already exists but was not created by Docker Compose. Use `external: true` to use an existing volume"
+ Container z3-regtest-zaino-1 Running 
+ Container z3-regtest-zebra-1 Running 
+ Container z3-regtest-cookie-permissions-1 Running 
+ Container z3-regtest-zebra-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Waiting 
+ Container z3-regtest-cookie-permissions-1 Healthy 
+ Container z3-regtest-zebra-1 Healthy 
+✅ Fresh regtest chain created with tip height 105!
+
+=== FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST (IDEMPOTENT) ===
+
+Account 0:
+  Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+  Address:  uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  UFVK:     uviewregtest1td4fxalun47yu3erk09atltkwh84wcxzz067cyual0wrs4vskmwym6fshe0v0l2juv4wuc9uxv4kjyhrshfszzexstaxt58965k8zrru6738vds2skke86wfx5m28sz79cxuxlm3tmn7l35t9d2ckr2wxh6z842d09d72cqqc4hkjvth7tx9njslgsjdn9uxrcdkc3wlkp83ljfn264q9la72tzf3rmqma0n7pqy754g4ank5f6dhx89nhhmz5z30emt246l5kuagm5fxsq6mzu8v4uey2wf85n0lxjd4qk8angn3e47dekxpz0fs3495uwmj6mqc28c2ftcyatr3flqay5m0pdrlk3n35jzsa27fn8g2ujuwxgwlzjmzu5fx4gpthhjeweclygmvuvd4rpx0ezzfp2upuu054w26pyyjra9ruql00cmgsndlmzxpm0fdypszupc32qgemav29wax0esy5thphwr5svt4m8szkemqu4cs2wn
+
+Account 1:
+  Mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+  Address:  uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  UFVK:     uviewregtest1df3vq7x64yhq7638ym8qwj0n4uf05eaq63pd8tw0l5n8upugrw6p4sf63j4hm7sp5whz6emgu6s2elezqwqp0mlz27v5xsfjvjchrfd439wkhn0lp3ta89wn7azrfp22zcuta8wcmu7pzds83ay942jt3pn0my6u3k29x65d5skjq7z67u2mqpc42evamsxjsqsq8xwl8dd9rlgz53cuux8zlzwxux45e9wyhd639rest6fz37ytquk5d34p9qd04faxuc54zx7aj6n08ftx5ltp9mmy2npl72cgtqzjzye6vf9d070w7pfw4rys8kllaqcarlqz5n6e6t45g6c2t2jzy06nhlk2khvmq8msznxr2xppw2xhmqpgm7sa7dgf4pne2rh80w3jqnvzmfqv5u0t8h04r2rsxj9qk22ntvsqcdn356rq8wwq5xtnkw8f97wglh5ztngu4dtpe3z8r48xqas3pe9ht80yhdc09azzjvdykq6slpka
+
+Initial Balances before funding:
+  Account 0 Total: 0 zatoshis
+  Account 1 Total: 0 zatoshis
+
+Funding Account 0 with 5.0 ZEC (500,000,000 zatoshis)...
+  Txid 0: 105707aeab2712d2fad109f99bde6567c704a0af71bc5ca1b608bc7eda0cfc30
+Funding Account 1 with 3.0 ZEC (300,000,000 zatoshis)...
+  Txid 1: 2749db228b14611846697b327614a885caead391d628717df32d8498dcc1bccf
+
+Mining 2 blocks to confirm funding transactions...
+Current Zaino indexed chain tip: height 111
+
+--- Syncing Account 0 Wallet ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (100.0%) | Req: 2 | Speed: 1341.5 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  Remote ironwoodTree:   016b883e7c6c7584659d101069fdba14ca14bb7cf3009c18b76b4fdaa6c8945823018d445fc55081b579cd3d4bb01402ad6519e07210f7d0a75a8ff165cfa21fbb231f000000017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+Account 0 Sync Result:
+  Tip Height:      111
+  Blocks Fetched:  110
+  Tree Root Hex:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  TreeState Match: true
+  Unspent Notes:   1
+  Total Balance:   500000000 zatoshis (5 ZEC)
+Account 0 getBalance SDK Output:
+  Confirmed Ironwood: 500000000 zatoshis
+  Pending Ironwood:   0 zatoshis
+  Total:              500000000 zatoshis
+
+--- Syncing Account 1 Wallet ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (100.0%) | Req: 2 | Speed: 2894.7 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  Remote ironwoodTree:   016b883e7c6c7584659d101069fdba14ca14bb7cf3009c18b76b4fdaa6c8945823018d445fc55081b579cd3d4bb01402ad6519e07210f7d0a75a8ff165cfa21fbb231f000000017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+Account 1 Sync Result:
+  Tip Height:      111
+  Blocks Fetched:  110
+  Tree Root Hex:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  TreeState Match: true
+  Unspent Notes:   1
+  Total Balance:   300000000 zatoshis (3 ZEC)
+Account 1 getBalance SDK Output:
+  Confirmed Ironwood: 300000000 zatoshis
+  Pending Ironwood:   0 zatoshis
+  Total:              300000000 zatoshis
+
+✅ SUCCESS: Both Account 0 (5.0 ZEC in 1 note) and Account 1 (3.0 ZEC in 1 note) funded and verified!
+===============================================================
+=== PHASE 3 (P3): CROSS-ACCOUNT PAYMENT VIA SDK send() ONLY ===
+===============================================================
+
+Sender (Account 0):
+  Address: uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  Spend Handle: 1
+
+Recipient (Account 1):
+  Address: uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+
+--- Step 1: Baseline Sync & Balances ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (100.0%) | Req: 2 | Speed: 1692.3 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  Remote ironwoodTree:   016b883e7c6c7584659d101069fdba14ca14bb7cf3009c18b76b4fdaa6c8945823018d445fc55081b579cd3d4bb01402ad6519e07210f7d0a75a8ff165cfa21fbb231f000000017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (100.0%) | Req: 2 | Speed: 2894.7 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+  Remote ironwoodTree:   016b883e7c6c7584659d101069fdba14ca14bb7cf3009c18b76b4fdaa6c8945823018d445fc55081b579cd3d4bb01402ad6519e07210f7d0a75a8ff165cfa21fbb231f000000017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   11f3f3a5b386c16164cf80f04bfa28143c3896b93ac42bbbb05b2021a3b2ee22
+Account 0 Baseline:
+  Total Balance:     500000000 zatoshis (5 ZEC)
+  Confirmed Balance: 500000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Baseline:
+  Total Balance:     300000000 zatoshis (3 ZEC)
+  Confirmed Balance: 300000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+
+--- Step 2: Transaction Parameters ---
+  Transfer Amount: 150000000 zatoshis (1.5 ZEC)
+  Recipient:       uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  Memo:            "P3 Cross-Account Payment: Account 0 -> Account 1 (1.5 ZEC)"
+  Quoted Fee:      10000 zatoshis (0.0001 ZEC, ZIP 317 standard)
+
+--- Step 3: Executing SDK send() ---
+[send] (http://127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+Transaction built, proven, and broadcast successfully!
+  Broadcast TxID (node display order): 262dac6df8e9efa36449dc87ccfc079b4a230acafdc4c4a433105761c2b5af82
+  Internal TxID (raw byte order):      82afb5c261571033a4c4c4fdca0a234a9b07fccc87dc4964a3efe9f86dac2d26
+  Fee:           10000 zatoshis
+  Num Actions:   2
+  Expiry Height: 151
+  Raw Tx Size:   9166 bytes
+  Proving & Send Duration: 2485ms
+
+--- Step 4: Verify In-Flight Balance & Reservation Exclusion ---
+Account 0 In-Flight Spendable Balance: 0 zatoshis (strictly excluded while in flight)
+
+--- Step 5: Mining 1 Block to Confirm Transaction ---
+Current chain tip before mining: height 111
+Mining command sent. Target tip height: 112
+Waiting for Zaino indexer to index mined block...
+Zaino indexer synchronized at height 112!
+
+--- Step 6: Querying Mined Transaction via JSON-RPC getrawtransaction ---
+Querying broadcast txid: 262dac6df8e9efa36449dc87ccfc079b4a230acafdc4c4a433105761c2b5af82
+  Mined TxID (node):   262dac6df8e9efa36449dc87ccfc079b4a230acafdc4c4a433105761c2b5af82
+  Zebra confirmations: 1
+  Zebra blockhash:     21a2ca30e5c471f0049103f72fbe66d3eb34d0279dc93e034402f38053d44d6c
+  Zebra blockheight:   112
+  Zebra tx version:    6
+  Zebra Ironwood actions count: 2
+  Zebra Ironwood valueBalanceZat: 10000 zatoshis
+  Zebra Ironwood flags: {"enableOutputs":true,"enableSpends":true}
+  Zebra Ironwood anchor: 22eeb2a321205bb0bb2bc43ab996383c1428fa4bf080cf6461c186b3a5f3f311
+
+--- Step 7: Resyncing Both Accounts Post-Mining ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 112 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (100.0%) | Req: 2 | Speed: 125.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  d410cceccc574c3f6663ef07c3dbcd00861b9d15097ebfa981c6c16ee3b9cc05
+  Remote ironwoodTree:   012d62625cac2602b7920411f4c43335ff895f6a4cf4e4443977219762cc6b8e3f001f000153887ac4d9f1a8fba056ddfe93794a1c6b926b004846947ed860a94e1f9eea2800017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   d410cceccc574c3f6663ef07c3dbcd00861b9d15097ebfa981c6c16ee3b9cc05
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 112 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (100.0%) | Req: 2 | Speed: 43.5 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  d410cceccc574c3f6663ef07c3dbcd00861b9d15097ebfa981c6c16ee3b9cc05
+  Remote ironwoodTree:   012d62625cac2602b7920411f4c43335ff895f6a4cf4e4443977219762cc6b8e3f001f000153887ac4d9f1a8fba056ddfe93794a1c6b926b004846947ed860a94e1f9eea2800017d99536e7426eb96000c844536dda5684926230c4159f66d049927b92e6d830901bf42e7507746949c4283df95c7471fcd3e6aa53eafd08fb769fb46f3bbc2473a010f9beb0c189e18d276abda65c246bd903f853912a78f280db1a357f94bb3263c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   d410cceccc574c3f6663ef07c3dbcd00861b9d15097ebfa981c6c16ee3b9cc05
+Account 0 Post-Payment:
+  Total Balance:     349990000 zatoshis (3.4999 ZEC)
+  Confirmed Balance: 349990000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Post-Payment:
+  Total Balance:     450000000 zatoshis (4.5 ZEC)
+  Confirmed Balance: 450000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     2
+
+--- Step 8: Mathematical Verification & Balance Invariants ---
+  Arithmetic Verification:
+    A0_before - amount - fee == A0_after: 500000000 - 150000000 - 10000 = 349990000 (Actual: 349990000) -> VALID ✅
+    A1_before + amount       == A1_after: 300000000 + 150000000 = 450000000 (Actual: 450000000) -> VALID ✅
+  Account 0 Expected: 349990000 | Actual: 349990000 -> MATCH ✅
+  Account 1 Expected: 450000000 | Actual: 450000000 -> MATCH ✅
+  Fee Paid:           10000 zatoshis
+  Conservation:       349990000 + 450000000 + 10000 = 800000000 zatoshis (Initial: 800000000 zatoshis) -> CONSERVED ✅
+
+===============================================================
+=== PHASE 3 (P3) VERIFICATION COMPLETE: ALL CHECKS PASSED!  ===
+===============================================================

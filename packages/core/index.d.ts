@@ -75,6 +75,10 @@ export declare function generateMnemonic(): string
 
 export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, diversifierIndex?: number | undefined | null): string
 
+export declare function getDefaultTxExpiryDelta(networkStr: string, height: number): number
+
+export declare function getExpectedBranchId(networkStr: string, height: number): string
+
 /**
  * Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
  *
@@ -92,7 +96,7 @@ export interface JsBuildTransactionRequest {
   memo?: string
   anchorBytes: Buffer
   anchorHeight: number
-  expiryHeight: number
+  expiryHeight?: number
   spendableNoteIds: Array<number>
   reservationId: Buffer
 }

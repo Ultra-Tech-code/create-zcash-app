@@ -1,0 +1,142 @@
+name: z3-regtest
+
+services:
+  zebra:
+    image: ${Z3_ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
+    ports:
+      - "29232:18232"
+      - "28080:8080"
+    volumes:
+      - chain:/home/zebra/.cache/zebra
+      - cookie:/var/run/auth
+      - ./zebra.toml:/home/zebra/.config/zebrad.toml:ro
+    environment:
+      - ZEBRA_RPC__COOKIE_DIR=/var/run/auth
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_TRACING__FILTER=info
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - RUST_LOG=info
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_STATE__CACHE_DIR=/home/zebra/.cache/zebra
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_METRICS__ENDPOINT_ADDR=0.0.0.0:9999
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"getblockchaininfo\",\"params\":[],\"id\":1}' http://127.0.0.1:18232 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      start_interval: 5s
+      retries: 10
+    stop_grace_period: 30s
+
+  cookie-permissions:
+    image: alpine:3
+    depends_on:
+      zebra:
+        condition: service_started
+    volumes:
+      - cookie:/var/run/auth
+      - zallet:/var/run/zallet-data
+      - zallet-ca-certificates:/var/run/zallet-ca
+    environment:
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+    command:
+      - sh
+      - -c
+      - |
+        set -eu
+        touch /var/run/zallet-data/.z3-volume-initialized
+        chown 1000:1000 /var/run/zallet-data /var/run/zallet-data/.z3-volume-initialized
+        cp /etc/ssl/certs/ca-certificates.crt /var/run/zallet-ca/ca-certificates.crt
+        while true; do
+          if [ -f /var/run/auth/.cookie ]; then
+            chmod 0644 /var/run/auth/.cookie 2>/dev/null
+          fi
+          sleep 5
+        done
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /var/run/zallet-ca/ca-certificates.crt && test -f /var/run/zallet-data/.z3-volume-initialized && test \"$$(stat -c '%u:%g' /var/run/zallet-data)\" = \"1000:1000\" && { [ \"$${ZEBRA_RPC__ENABLE_COOKIE_AUTH:-true}\" = \"false\" ] || test -r /var/run/auth/.cookie; }"]
+      interval: 5s
+      timeout: 2s
+      start_period: 5s
+      retries: 12
+
+  zallet:
+    image: zodlinc/zallet:v0.1.0-beta.1@sha256:1849b4469875dc0165942c06d15fa6a7da76b2d43bade578cc8e5903a639869d
+    entrypoint: ["/usr/local/bin/zallet-zaino"]
+    user: "1000:1000"
+    depends_on:
+      zebra:
+        condition: service_healthy
+      cookie-permissions:
+        condition: service_healthy
+    ports:
+      - "50232:28232"
+    volumes:
+      - zallet:/var/lib/zallet
+      - zallet-ca-certificates:/etc/ssl/certs:ro
+      - ./zallet.toml:/etc/zallet/zallet.toml:ro
+    environment:
+      - RUST_LOG=info,hyper_util=warn,reqwest=warn
+    command: ["--datadir", "/var/lib/zallet", "--config", "/etc/zallet/zallet.toml", "start"]
+    stop_grace_period: 15s
+
+  rpc-router:
+    image: z3-regtest-rpc-router
+    depends_on:
+      zebra:
+        condition: service_healthy
+      zallet:
+        condition: service_started
+    ports:
+      - "8181:8181"
+    environment:
+      - LISTEN_PORT=8181
+      - ZEBRA_URL=http://zebra:18232
+      - ZALLET_URL=http://zallet:28232
+      - RPC_USER=zebra
+      - RPC_PASSWORD=zebra
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+
+  zaino:
+    image: ${Z3_ZAINO_IMAGE:-zingodevops/zainod:0.10.0-no-tls}
+    depends_on:
+      zebra:
+        condition: service_healthy
+      cookie-permissions:
+        condition: service_healthy
+    ports:
+      - "28137:8137"
+      - "28237:8237"
+    volumes:
+      - zaino:/app/data
+      - ./zaino.toml:/etc/zaino/zindexer.toml:ro
+    environment:
+      - ZAINO_VALIDATOR_SETTINGS__VALIDATOR_JSONRPC_LISTEN_ADDRESS=zebra:18232
+      - ZAINO_GRPC_SETTINGS__LISTEN_ADDRESS=0.0.0.0:8137
+      - RUST_LOG=info
+      - ZAINO_NETWORK=Regtest
+    entrypoint:
+      - bash
+      - -c
+      - 'ip="$$(getent ahostsv4 "$$HOSTNAME")"; ip="$${ip%% *}"; export ZAINO_JSON_SERVER_SETTINGS__JSON_RPC_LISTEN_ADDRESS="$${ZAINO_JSON_SERVER_SETTINGS__JSON_RPC_LISTEN_ADDRESS:-$${ip}:8237}"; exec /entrypoint.sh "$$@"'
+      - --
+    command: ["start", "--config", "/etc/zaino/zindexer.toml"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8137' 2>/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
+      start_interval: 5s
+      retries: 3
+    stop_grace_period: 15s
+
+volumes:
+  chain:
+  cookie:
+  zallet:
+  zallet-ca-certificates:
+  zaino:

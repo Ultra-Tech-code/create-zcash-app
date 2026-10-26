@@ -1,0 +1,44 @@
+=== TESTNET CHAIN QUERIES ===
+Explorer TxID:  8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+Internal TxID:  5a09656a90ed7332e42de4f9c12f31c71d093e734deb8357b9e641c4ab16a58c
+Target Height:  4542240
+
+--- Querying QuickNode JSON-RPC ---
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/quicknode_getblockcount.json
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/quicknode_getblockhash.json
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/quicknode_getrawtransaction.json
+
+--- Querying testnet.zec.rocks:443 via lightwalletd gRPC ---
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/lightwalletd_getblock.json
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/lightwalletd_gettransaction.json
+
+--- Computing Validation Summary ---
+Saved: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/chain_queries/summary.json
+
+--- Summary Verification Result ---
+{
+  "verified_txid_explorer_order": "8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a",
+  "verified_txid_internal_order": "5a09656a90ed7332e42de4f9c12f31c71d093e734deb8357b9e641c4ab16a58c",
+  "mined_height": 4542240,
+  "endpoint_quicknode_rpc": "https://<redacted_host>/<redacted_token>",
+  "endpoint_lightwalletd": "https://testnet.zec.rocks:443",
+  "checks": {
+    "block_hashes_equal": {
+      "quicknode_getblockhash": "00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e",
+      "lightwalletd_getblock_hash": "00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e",
+      "pass": true
+    },
+    "tx_anchor_matches_send_run_root": {
+      "raw_anchor_on_chain_zebra_order": "3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892",
+      "computed_reversed_anchor": "92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f",
+      "root_printed_in_testnet_send_run_log": "92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f",
+      "pass": true
+    },
+    "expiry_height_equals_4542278": {
+      "node_reported_expiry": 4542278,
+      "expected_expiry": 4542278,
+      "pass": true
+    }
+  },
+  "all_checks_passed": true
+}

@@ -19,8 +19,7 @@ test('zcash-dev regtest wipe refuses to run without --yes', () => {
   assert.ok(fs.existsSync(cli), `built CLI missing at ${cli}; run pnpm --filter zcash-dev build`);
 
   const z3Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-refusal-'));
-  fs.writeFileSync(path.join(z3Dir, '.env.regtest'), 'COMPOSE_PROJECT_NAME=z3-regtest\n');
-  fs.writeFileSync(path.join(z3Dir, 'docker-compose.yml'), 'services: {}\n');
+  fs.writeFileSync(path.join(z3Dir, 'docker-compose.yml'), 'name: z3-regtest\nservices: {}\n');
   const marker = path.join(z3Dir, 'chain-marker');
   fs.writeFileSync(marker, 'must survive the refused wipe\n');
 

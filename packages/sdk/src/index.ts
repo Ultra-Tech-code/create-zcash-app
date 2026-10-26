@@ -7,3 +7,6 @@ export * from './dev.js';
 export * from './constants.js';
 export * from './sync.js';
 export * from './send.js';
+export * from './jsonrpc.js';
+export { WalletHandle } from '@zcash-app/core';
+

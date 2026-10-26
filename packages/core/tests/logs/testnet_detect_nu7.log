@@ -1,0 +1,23 @@
+
+================================================================
+   NOTE DETECTION & TRANSACTION DETAILS (NU7 TESTNET)
+================================================================
+Target Txid:   aa74c4d00f64502ea0ee18eb225811c9ebea9f638eb76b4c6f5bf84a335f91eb
+Mined Height:  4540587
+Spendable Notes returned by wallet: 1
+SQLite received_notes in wallet:
+1|EB915F334AF85B6F4C6BB78E639FEAEBC9115822EB18EEA02E50640FD0C474AA|0|4540587|utest1l4hez2arqx8xdvpl5nt334ak9ehu5k3yej9qprax9raak2ek50h3vg54f02mkl3le62gj2t4qsthqp583w2esx7zhc47hz7zsq0tfsx6|10000000|A173DB4E966F3F4DD1D8ED07E6B53DC1A35421C877379FD3C7D9B92A0B89C820|ironwood
+
+Target Note Detection: SUCCESS ✅
+  Txid:        aa74c4d00f64502ea0ee18eb225811c9ebea9f638eb76b4c6f5bf84a335f91eb
+  Height:      4540587
+  Pool:        ironwood
+  Value:       10,000,000 zatoshis (0.1 TAZ)
+  Recipient:   f31130726da4952602a6a9be933facd4190831ce0f8ea7795a1aa86e1b4dce8be390355ffcbd67105c4128
+  Nullifier:   a173db4e966f3f4dd1d8ed07e6b53dc1a35421c877379fd3c7d9b92a0b89c820
+
+Recipient Address Equivalence Check:
+  Account A full UA:     utest1ltxnvpwqcpfxzcu8z9xwvqrgdmwc4rmwwuvycyegqmtf45dreewn3mwl07nrspyfq5lvlm560lqys7h4420ecpealvry0hdvk73r0n9jjz67299hyrrz02hjf28tdlskkf3uwzwjptr335wkk66y9vwwsv6x5d29y6ap839yhtnpesa0qet8wmn03k95n0pxl3uwve3wu4jawsqywxk
+  Decrypted Note UA:     f31130726da4952602a6a9be933facd4190831ce0f8ea7795a1aa86e1b4dce8be390355ffcbd67105c4128
+  Prefix:                f3113 (testnet unified address prefix)
+  Confirmation:          The decrypted receiver string is Account A's single-receiver Ironwood UA, equivalent to Account A's Ironwood receiver embedded in Account A's full unified address.

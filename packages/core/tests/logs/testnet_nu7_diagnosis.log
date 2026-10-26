@@ -1,0 +1,79 @@
+===============================================================
+=== ZCASH TESTNET NU7 DIAGNOSIS & CHAIN DIVERGENCE REPORT   ===
+===============================================================
+
+Local Node Endpoint: 127.0.0.1:8137 (Zaino/Zebra stack)
+ECC Public Endpoint: https://testnet.zec.rocks:443 (ECC LightWalletD on Zebra:7.0.0)
+
+--- 1. getInfo Comparison (Local vs ECC Public Server) ---
+Local Node (127.0.0.1:8137):
+  Tip Block Height:    4492812
+  Consensus Branch ID: 0x37a5165b (NU6.3)
+  Upgrade Name:        NU6.3
+  Server Vendor:       ZingoLabs ZainoD
+  Node Subversion:     /Zebra:6.4.2/
+
+ECC Public Server (testnet.zec.rocks:443):
+  Tip Block Height:    4540791
+  Consensus Branch ID: 0x77190ad9 (NU7: 0x77190ad9)
+  Upgrade Name:        NU7 Active
+  Server Vendor:       ECC LightWalletD
+  Node Subversion:     /Zebra:7.0.0/
+
+--- 2. Block Hash Comparison Across NU7 Activation Boundary ---
+Height 4465024:
+  Local Hash (Zebra 6.4.2): 000021f35182ef81320d79271d32cd0e44910dfc3d55781ffc0a96a8a67dcf5f
+  ECC Hash   (Zebra 7.0.0): 000021f35182ef81320d79271d32cd0e44910dfc3d55781ffc0a96a8a67dcf5f
+  Status:                   MATCH (pre-NU7 canonical) ✅
+
+Height 4465025:
+  Local Hash (Zebra 6.4.2): 0000326cb8baaf6b1649b7feb811c141dd2dcb9f8570c37e864583e20da5d6f9
+  ECC Hash   (Zebra 7.0.0): 0000326cb8baaf6b1649b7feb811c141dd2dcb9f8570c37e864583e20da5d6f9
+  Status:                   MATCH (pre-NU7 canonical) ✅
+
+Height 4465026:
+  Local Hash (Zebra 6.4.2): 0713a6429dc1cef50224668082022ca8881593e09a3170717e6a725491c03b96
+  ECC Hash   (Zebra 7.0.0): 000089ba27100beede16d64b34e3d1b626b428cb7ee9fe6dcfdc217ce24e78af
+  Status:                   DIVERGED (NU7 activation split) ❌
+
+Height 4465027:
+  Local Hash (Zebra 6.4.2): 0014d39da41d63c631ad18744634f4e0d129505f5b9648f860f514e8a65f79d9
+  ECC Hash   (Zebra 7.0.0): 00013bf70df86b8bab98a6662342f64d751f836c2406fd2701738b1aa1e5f9ae
+  Status:                   DIVERGED (NU7 activation split) ❌
+
+--- 3. ECC Server Protocol & Ironwood Verification ---
+GetBlockRange CompactTx ironwoodActions field present: YES ✅
+GetTreeState ironwoodTree field present:               YES ✅
+Raw ironwoodTree snippet: 01f39a475a67c263bab8bfbb10bdf98b333c046e888b23dbb7b67d892e6700c2...
+
+--- 4. Target Transaction Lookup on ECC Server ---
+Transaction ID:       aa74c4d00f64502ea0ee18eb225811c9ebea9f638eb76b4c6f5bf84a335f91eb
+Mined Block Height:   4540587
+Raw Tx Size:          9166 bytes
+Ironwood Actions:     2
+Orchard Actions:      0
+Trial Decryption:     SUCCESS ✅
+  Decrypted Pool:     ironwood
+  Decrypted Value:    10000000 zatoshis (0.1 TAZ)
+  Recipient UA:       utest1l4hez2arqx8xdvpl5nt334ak9ehu5k3yej9qprax9raak2ek50h3vg54f02mkl3le62gj2t4qsthqp583w2esx7zhc47hz7zsq0tfsx6
+
+--- 5. Upstream NU7 Component Releases & Docker Tags ---
+Zebra:
+  Release Candidate:   v7.0.0-rc.0 (https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0-rc.0)
+  Docker Hub Tag:      zfnd/zebra:7.0.0-rc.0
+  Stable Release:      v7.0.0 (https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0)
+  Docker Hub Tag:      zfnd/zebra:7.0.0
+
+Zaino:
+  Release Tag:         0.10.2 (https://github.com/zingolabs/zaino/releases)
+  Docker Hub Image:    zingodevops/zainod:latest / zingodevops/zainod:0.10.2
+  Dedicated 7.0.0-rc0: unknown (Zaino uses continuous CI tags and 0.10.2 for NU7 testnet support)
+
+Zallet:
+  Release Tag:         v0.1.0-alpha.4 (https://github.com/zodl/zallet/releases)
+  Docker Hub Image:    zodlinc/zallet:v0.1.0-alpha.4
+  Dedicated 7.0.0-rc0: unknown (no specific 7.0.0-rc.0 tag published)
+
+===============================================================
+=== NU7 DIAGNOSIS COMPLETE: OLD CHAIN VS NU7 CHAIN VERIFIED ===
+===============================================================

@@ -1,0 +1,49 @@
+d649e193e4e185efe759560b7e4503a38e8e11fff0da478855ace9191ac301db  chain_queries/lightwalletd_getblock.json  |  node scripts/testnet_chain_queries.mjs
+2cd8ae46a3a3de2bbd460ba9b60742098fa1e487862b5ccc1869eedcaf5b8a1e  chain_queries/lightwalletd_gettransaction.json  |  node scripts/testnet_chain_queries.mjs
+8b25c1d006bbc53669d76805911565c1307da351f515bc218ac8f4dfc77e6773  chain_queries/quicknode_getblockcount.json  |  node scripts/testnet_chain_queries.mjs
+e520115935d7dc1fd25b2b96a6e9a0e1df3b5a56ecaa3ec6a67332e4814a841d  chain_queries/quicknode_getblockhash.json  |  node scripts/testnet_chain_queries.mjs
+f199985e5f74385d902cbe8515a6b380036fd90cf338f5c468af948348ffdb0e  chain_queries/quicknode_getrawtransaction.json  |  node scripts/testnet_chain_queries.mjs
+9d2f11e4f561553f976a9beb53b1fc5378c7ab2718f33a7b07928235be3daadc  chain_queries/run.log  |  node scripts/testnet_chain_queries.mjs 2>&1 | tee packages/core/tests/logs/chain_queries/run.log
+3b50f4acedc06c4d2389388739af48e847352ef1a3759059828da8775f2ae89e  chain_queries/summary.json  |  node scripts/testnet_chain_queries.mjs
+a038582550dbf3282a52eeeb6b11c45a0ab1a42f20671f9bc4f6e534ff1064e6  ci_fresh_clone_after.log  |  bash scripts/test-fresh-clone.sh after
+ede5023b6d4dc6280c26e397d41d2f9dee8d9f6b9126631eb7504844c916f4f0  ci_fresh_clone_before.log  |  bash scripts/test-fresh-clone.sh before
+f1a411b04f31f97e86d368987893b5d9755301adaa7c37bfab5a3606aae9e4ec  fee_acceptance_regtest.log  |  node packages/dev/dist/cli.js test fee-acceptance
+4ee82681119f72e757e8344f05605d63fa2cc797bc1b5f9ae34c72aa88d98f08  ironwood_empty_root.log  |  cargo test --package zcash-core test_ironwood_empty_root
+b8a1bfbb5601129df721c68251ae71e6fc4834965cca871717b6f83aea20bf34  item3_chain_wipe.log  |  node scripts/item3_real_chain_wipe.mjs
+370e234197fe6e0ebd899664657b524c82788c50625571f4713cee59029caa81  live_anchor_verification.log  |  node packages/dev/dist/cli.js verify-anchor
+e00037479ab5229c2ef35043dd8d996113b4b3bc21323ae7b529983f28473ad6  p1_refactor.log  |  cargo test --package zcash-core p1
+536524827d513f4cf0410cfcd7441086d3f817086dd85a4d96611a9fae193973  p3_clean_chain.log  |  node packages/dev/dist/cli.js regtest wipe --yes && node scripts/p3_cross_account.mjs
+eab63781f630b35c5d3c6fb5d8fa23f4c3340b9c6714037c7b46d2df36c0d34c  p3_cross_account.log  |  node scripts/p3_cross_account.mjs
+2fac8bdbee05220b4fc4ad204a202abed6fd673269edcecf3d9c19a89278c2fd  p3_nu7_regtest_blocked.log  |  node packages/dev/dist/cli.js regtest wipe --yes --nu7
+5def5a2a4d91aab712b6d02e42d8ba961f3116b499d07ea98c0f071148439a11  p3_selfcontained_regtest.log  |  cd /tmp/zcash-regtest-verify && (node packages/dev/dist/cli.js regtest wipe --yes && node scripts/item10_fund_and_sync_accounts.mjs && node scripts/p3_cross_account.mjs)
+d8ca5ea5e8d2444d770a8717acfd9388f8b7fd94fcc807d81d8469a6732d7898  p3_zebra7_nu6_3_regtest_failed.log  |  node packages/dev/dist/cli.js regtest test
+5e340b498c0c7f7b7064fad700201345122333c14b036a13e8a18d817edd25e6  p4_cross_pool.log  |  cargo test --package zcash-core p4_cross_pool
+6ccf7e6f4c0913183b9aed1640eb4974ea9234d610e4c5d3af00ef7a275e36e6  p4_followup_orchard_funding.log  |  node packages/dev/dist/cli.js test orchard-funding
+f2707a2676718ced7084d2612a5b0fbcfc3fcc3ac1fb5942667dc4ad3f39d46f  p5_send_tests.log  |  cargo test --package zcash-core p5_send
+e903eb47d427b76fab96ba20bed9dabf50866c4c09bd57b5ae25899e693b29b9  p6_fee_check.log  |  node packages/dev/dist/cli.js test p6-fee
+c5be3dd2fb4c6fc6091f71e1a609b391ec1cc770c8131fd771a72bf63c6d2dc9  p6_fee_grep.log  |  rg -n "fee" packages/
+2e5583c0cd06bac30aaa3b753038499a82d47e5dc1bcc0a3561a8b493566b606  proto_diff.log  |  git diff --no-index proto/ proto_upstream/
+90915ff13df1713b682bf762c66fa7edc160294ed40c7dbd4bce7814ab9e9e03  step1_schema.log  |  cargo test --package zcash-core step1_schema
+3840b57307d319295928ddbec5b2af61558d0d43ddf20a8c2110032aa334b4dd  step2_shard_store.log  |  cargo test --package zcash-core step2_shard_store
+b43e3d0c7cc3f1b2f74f67e764c01d054492601409c4262c4aafcc2e76fb4930  step3_scanner.log  |  cargo test --package zcash-core step3_scanner
+744bbff8506b0cad2c5e19211a66a37324b7e47290149cf6a87ce1b70dce260d  step4_reorg.log  |  cargo test --package zcash-core step4_reorg
+eeb691a704af45c2c2dd7dbaa43019a7f4babf9f8cc6ff5cbe88b7a31ddb0c0e  step5_pending_spends.log  |  cargo test --package zcash-core step5_pending_spends
+3f0b9ac99179be3475e0953fcf8018aa1d9f6c25a02b8d6b88885dda90c17309  step6_spendable.log  |  cargo test --package zcash-core step6_spendable
+ce42adddbd0971fa326f8bab861cdc51decf9eadfb437210827f31d5cd30d543  step7_wallet_handle.log  |  cargo test --package zcash-core step7_wallet_handle
+a1ed24eb71a37dfa66624c5cc1353b7e0e78dca74c3681b7f8ba59f711f0cb57  step8_full_suite.log  |  cargo test --package zcash-core step8_full_suite
+3683b56a5491896548c645b9d3b9f951fd8a8d3bfd3d3eebc7902fab4389e29c  testnet_detect_nu7.log  |  node scripts/diagnose_nu7.mjs
+b669e849e503b0a29fc8098e21bb43b91c68e684d6ea9cbe5f4a4dfc357aa306  testnet_nu7_diagnosis.log  |  node scripts/diagnose_nu7.mjs --verbose
+bde350e2602755d0431733a40fdfd22c91e8a7c37483f1a663aa10312df71fdf  testnet_postcheck.log  |  node scripts/testnet_postcheck.mjs
+6fa1a22a7faa5d7616e587646dd026a13db65766943991a97174951b3c9d225d  testnet_public_rpc.log  |  node scripts/testnet_public_rpc.mjs
+d498a1eb4efe165d8595e48095937bb58b1299cb9abc6ee59d3950308062d200  testnet_readonly.log  |  node scripts/probe_testnet_endpoints.mjs
+8801f6debecb7996ad96b462a21f9154a42c0dc9884b3e8b6d45bc6597d7cf93  testnet_send_run.log  |  node scripts/testnet_send.mjs
+0ddb6a7d408ecf1a2ac2e94e483139c646eab6817a62def5419544916bc9b260  verify_baseline.log  |  bash scripts/verify.sh
+5236d84898ac335b3a7885db4a2b14a7e49019661aa54d1470fc7d77807a8652  verify_c1_anchor_failclosed.log  |  bash scripts/verify.sh
+964966e13174e529ade6da8cd4466d0565dc14382fc6885ab6953c544747c156  verify_c1_empty_root.log  |  cargo test --package zcash-core verify_c1_empty_root
+0fa038416fe26305b547d540b4eee7c1dba0d4d7cc34e61c7eb8b5267d6bc0ff  verify_c2_tooling_docs.log  |  bash scripts/verify.sh
+1deb858c4c29f6d06e78248bd638dc32a644022da2e28c2e32a86371e6b24f02  verify_c3_live_logs.log  |  bash scripts/verify.sh
+072f5fe32b20ca1d5ae8d8ad139740c2c80ca532a7ac9b9e69477ba12e435e35  verify_item1.log  |  bash scripts/verify.sh
+8bcebbeeaf8d92ed11b86525f9571c467d5e9a6b1af9858a329f862692af89d9  verify_live.log  |  bash scripts/verify-live.sh
+a34c43de70d487af8d330519e62e725b9e5807c588644d1a7c03b82d3d41093d  verify_p5_p3_p4_review.log  |  bash scripts/verify.sh
+faf5c0187ff76ed8f1e16e5a13e1a2eed207486903af1ff379f12767b1907f46  verify_squashed_head.log  |  bash scripts/verify.sh
+a53204edfbf9c30fff78424049c7d9f4d9c0a3496f01cc13a34fdb599fdcfd62  wallet_b_first_sync.log  |  node scripts/testnet_wallet_b_full_sync.mjs

@@ -4,6 +4,11 @@
   "description": "TypeScript SDK for building shielded Zcash apps on the Z3 stack",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*",
+    "proto"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run"

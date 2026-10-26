@@ -37,18 +37,12 @@ pub fn get_spending_key(handle: u32) -> Option<UnifiedSpendingKey> {
 
 /// Returns a LocalNetwork configured for Z3 regtest (matching Zebra regtest schedule).
 pub fn regtest_params() -> LocalNetwork {
-    LocalNetwork {
-        overwinter: Some(BlockHeight::from_u32(1)),
-        sapling: Some(BlockHeight::from_u32(1)),
-        blossom: Some(BlockHeight::from_u32(1)),
-        heartwood: Some(BlockHeight::from_u32(1)),
-        canopy: Some(BlockHeight::from_u32(1)),
-        nu5: Some(BlockHeight::from_u32(2)),
-        nu6: Some(BlockHeight::from_u32(2)),
-        nu6_1: Some(BlockHeight::from_u32(2)),
-        nu6_2: Some(BlockHeight::from_u32(2)),
-        nu6_3: Some(BlockHeight::from_u32(2)),
-    }
+    consensus::regtest_consensus_params()
+}
+
+/// Returns a LocalNetwork configured for Z3 regtest with explicit NU7 activation height.
+pub fn regtest_params_with_nu7(nu7_activation: Option<u32>) -> LocalNetwork {
+    consensus::regtest_consensus_params_with_nu7(nu7_activation)
 }
 
 #[derive(Clone)]
@@ -79,6 +73,7 @@ impl Parameters for DynamicNetwork {
 pub fn get_params_for_network(network_str: &str) -> DynamicNetwork {
     match network_str.to_lowercase().as_str() {
         "regtest" => DynamicNetwork::Regtest(regtest_params()),
+        "regtest-nu7" | "regtest_nu7" => DynamicNetwork::Regtest(regtest_params_with_nu7(Some(2))),
         "testnet" | "test" => DynamicNetwork::Test(Network::TestNetwork),
         _ => DynamicNetwork::Main(Network::MainNetwork),
     }
@@ -115,7 +110,7 @@ pub fn internal_derive_account_from_mnemonic(
         .map_err(|e| format!("Failed to derive spending key: {:?}", e))?;
 
     let ufvk = usk.to_unified_full_viewing_key();
-    let ufvk_encoded = ufvk.encode(&params);
+    let ufvk_encoded = ufvk.encode(&params).map_err(|e| format!("Failed to encode UFVK: {:?}", e))?;
 
     let (ua, _) = ufvk
         .default_address(UnifiedAddressRequest::AllAvailableKeys)
@@ -251,7 +246,7 @@ pub fn internal_try_decrypt_action(
 
     if let Some((note, recipient)) = decrypted {
         let pool = if is_ironwood { "ironwood" } else { "orchard" };
-        let ua = UnifiedAddress::from_receivers(Some(recipient), None, None)
+        let ua = UnifiedAddress::from_receivers(Some(recipient), None, None, None, None)
             .map(|u| u.encode(&params))
             .unwrap_or_default();
 
@@ -364,6 +359,20 @@ mod napi_bindings {
             rseed: n.rseed,
         }))
     }
+
+    #[napi]
+    pub fn get_expected_branch_id(network_str: String, height: u32) -> Result<String> {
+        let branch = crate::consensus::get_consensus_branch_id_for_height(&network_str, height)
+            .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))?;
+        Ok(format!("{:08x}", branch))
+    }
+
+    #[napi]
+    pub fn get_default_tx_expiry_delta(network_str: String, height: u32) -> Result<u32> {
+        let network = get_params_for_network(&network_str);
+        let branch_id = zcash_protocol::consensus::BranchId::for_height(&network, BlockHeight::from_u32(height));
+        Ok(zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id))
+    }
 }
 
 #[cfg(test)]
@@ -388,7 +397,7 @@ mod tests {
         use zcash_keys::address::Address;
         use zcash_transparent::keys::{IncomingViewingKey, NonHardenedChildIndex};
 
-        let t_fvk = ufvk.transparent().unwrap();
+        let t_fvk = ufvk.p2pkh().unwrap();
         let ivk = t_fvk.derive_external_ivk().unwrap();
         let t_addr = ivk.derive_address(NonHardenedChildIndex::ZERO).unwrap();
         let addr = Address::from(t_addr);
@@ -450,7 +459,6 @@ mod tests {
         use orchard::keys::Scope;
         use orchard::value::NoteValue;
         use orchard::Anchor;
-        use rand::rngs::OsRng;
         use zcash_protocol::consensus::Network;
 
         let testnet_params = DynamicNetwork::Test(Network::TestNetwork);
@@ -459,7 +467,7 @@ mod tests {
         let seed = mnemonic.to_seed("");
         let usk = UnifiedSpendingKey::from_seed(&testnet_params, &seed, 0.try_into().unwrap()).unwrap();
         let ufvk = usk.to_unified_full_viewing_key();
-        let ufvk_str = ufvk.encode(&testnet_params);
+        let ufvk_str = ufvk.encode(&testnet_params).unwrap();
         let orchard_fvk = ufvk.orchard().unwrap();
 
         // Target an internal-scope change address
@@ -482,13 +490,13 @@ mod tests {
             )
             .unwrap();
 
-        let mut rng = OsRng;
+        let mut rng = rand::rng();
         let (pczt_bundle, _) = builder.build_for_pczt(&mut rng).unwrap();
         let action = &pczt_bundle.actions()[0];
 
         let epk_bytes = action.output().encrypted_note().epk_bytes;
         let cmx_bytes = action.output().cmx().to_bytes();
-        let enc_ciphertext = &action.output().encrypted_note().enc_ciphertext;
+        let enc_ciphertext = action.output().encrypted_note().enc_ciphertext.as_ref();
         let nf_bytes = action.spend().nullifier().to_bytes();
 
         let res = internal_try_decrypt_action(
@@ -521,7 +529,10 @@ pub mod transaction;
 pub mod wallet_db;
 pub mod wallet_handle;
 
-pub use consensus::{get_nu6_3_activation_height, get_nu6_3_branch_id, ConsensusError};
+pub use consensus::{
+    get_consensus_branch_id_for_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
+    ConsensusError,
+};
 pub use pending_spends::PendingSpendsManager;
 pub use scanner::{
     ChainMetadata, CompactBlock, CompactOrchardAction, CompactTx, ScanResult, Scanner,

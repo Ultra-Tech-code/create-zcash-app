@@ -4,6 +4,7 @@ target/
 .DS_Store
 *.log
 !packages/core/tests/logs/*.log
+!packages/core/tests/logs/**/*.log
 .env
 .env.local
 skills.md
@@ -18,3 +19,6 @@ packages/core/src/real_tx_v6.hex
 *.db*
 packages/core/tests/wallet_integration_run/
 packages/sdk/scratch/
+.env.*
+!.env.example
+!.env.sample

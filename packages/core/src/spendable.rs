@@ -42,7 +42,7 @@ pub fn parse_recipient_address(recipient_str: &str) -> Option<Address> {
         }
     }
 
-    if let Ok((_net, ua)) = zcash_address::unified::Address::decode(recipient_str) {
+    if let Ok((_net, _rev, ua)) = zcash_address::unified::Address::decode(recipient_str) {
         for receiver in ua.items() {
             if let zcash_address::unified::Receiver::Orchard(bytes) = receiver {
                 return Address::from_raw_address_bytes(&bytes).into_option();

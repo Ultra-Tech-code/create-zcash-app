@@ -8,10 +8,13 @@ import {
   warmupProver as coreWarmupProver,
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
+  getExpectedBranchId,
+  getDefaultTxExpiryDelta,
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
-import { Account } from './types.js';
+import { Account, VerificationEndpoint } from './types.js';
+import { JsonRpcVerifier } from './jsonrpc.js';
 
 export interface SendFromOptions {
   spendHandle?: number;
@@ -41,6 +44,33 @@ export class AnchorVerificationError extends Error {
     super(message);
     this.name = 'AnchorVerificationError';
   }
+}
+
+/** Thrown when the node's consensus branch does not match the crate's derived consensus branch. */
+export class ConsensusBranchMismatchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConsensusBranchMismatchError';
+  }
+}
+
+/** Thrown when transaction building is attempted within one block before a network upgrade activation. */
+export class UpgradeBoundaryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UpgradeBoundaryError';
+  }
+}
+
+/**
+ * Converts a 32-byte hex transaction ID between internal byte order and node/explorer display order (byte-reversed).
+ */
+export function reverseTxid(hexTxid: string): string {
+  const cleanHex = hexTxid.trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(cleanHex)) {
+    throw new Error(`Invalid transaction ID hex string: expected 64 hex characters, got "${hexTxid}"`);
+  }
+  return Buffer.from(cleanHex, 'hex').reverse().toString('hex');
 }
 
 export interface SendResult {
@@ -100,9 +130,27 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     spendHandle = 0;
   }
 
-  // 1. Sync wallet to tip if behind
+  // 1. Check tip and assert consensus branch matches node (fail closed on all networks)
   const info = await client.getInfo();
   const tipHeight = Number(info.blockHeight);
+  const targetHeight = tipHeight + 1;
+
+  const tipBranchId = getExpectedBranchId(client.config.network, tipHeight).toLowerCase().replace(/^0x/, '');
+  const targetBranchId = getExpectedBranchId(client.config.network, targetHeight).toLowerCase().replace(/^0x/, '');
+
+  if (tipBranchId !== targetBranchId) {
+    throw new UpgradeBoundaryError(
+      `Cannot build transaction: tip height ${tipHeight} is within one block of network upgrade activation at height ${targetHeight}. Transaction building is refused at upgrade boundaries.`
+    );
+  }
+
+  const nodeBranchId = (info.consensusBranchId ?? '').toLowerCase().replace(/^0x/, '');
+  if (!nodeBranchId || nodeBranchId !== tipBranchId) {
+    throw new ConsensusBranchMismatchError(
+      `Consensus branch mismatch on network ${client.config.network} at height ${tipHeight}: local expected 0x${tipBranchId}, node reported 0x${info.consensusBranchId ?? 'none'}`
+    );
+  }
+
   const summary = wallet.getWalletSummary();
   if (summary.lastScannedHeight < tipHeight) {
     await syncWallet(client, wallet);
@@ -133,6 +181,11 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   }
   const localRootHex = localRootBuf.toString('hex');
   const allowUnverifiedAnchor = opts.allowUnverifiedAnchor === true;
+  if (allowUnverifiedAnchor && client.config.network !== 'regtest') {
+    throw new AnchorVerificationError(
+      `allowUnverifiedAnchor is strictly forbidden on ${client.config.network}. Anchors must be verified against consensus.`
+    );
+  }
 
   let treeState: TreeState | undefined;
   try {
@@ -181,6 +234,54 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     }
   }
 
+  // Cross-check anchor against secondary verification endpoints if configured
+  const verifyEndpoints = client.config.verifyEndpoints ?? [];
+  const endpointLabel = client.safeEndpoint ?? client.config.endpoint;
+  if (verifyEndpoints.length === 0) {
+    console.log(
+      `[send] (${endpointLabel}) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.`
+    );
+  } else {
+    for (const ep of verifyEndpoints) {
+      let secondaryRootHex: string | null = null;
+      let epLabel = '';
+      if (typeof ep === 'string' || ep.kind === 'grpc') {
+        const epUrl = typeof ep === 'string' ? ep : ep.url;
+        epLabel = `[${epUrl}] (third-party server)`;
+        const secClient = new ZcashClient({ endpoint: epUrl, network: client.config.network });
+        try {
+          const secTreeState = await secClient.getTreeState(anchorHeight);
+          if (secTreeState.ironwoodTree && !/^0*$/.test(secTreeState.ironwoodTree)) {
+            secondaryRootHex = decodeIronwoodFrontierRoot(secTreeState.ironwoodTree);
+          } else {
+            secondaryRootHex = ironwoodEmptyTreeRoot().toLowerCase();
+          }
+        } finally {
+          await secClient.close();
+        }
+      } else if (ep.kind === 'jsonrpc') {
+        const jsonVerifier = new JsonRpcVerifier(ep.url);
+        epLabel = `[${jsonVerifier.safeUrl}] (third-party server)`;
+        const secTreeState = await jsonVerifier.getTreeState(anchorHeight);
+        const finalRoot = secTreeState.ironwood?.commitments?.finalRoot;
+        if (finalRoot) {
+          secondaryRootHex = finalRoot.toLowerCase();
+        } else {
+          secondaryRootHex = ironwoodEmptyTreeRoot().toLowerCase();
+        }
+      }
+
+      if (secondaryRootHex && secondaryRootHex.toLowerCase() !== localRootHex.toLowerCase()) {
+        throw new AnchorVerificationError(
+          `Secondary endpoint cross-check mismatch at anchor height ${anchorHeight}: primary/local ${localRootHex} != secondary ${epLabel} ${secondaryRootHex}`
+        );
+      }
+      console.log(
+        `[send] Cross-verified anchor root ${localRootHex} against secondary endpoint ${epLabel} at height ${anchorHeight} ✅`
+      );
+    }
+  }
+
   // 3. Query spendable notes and compute ZIP-317 fee
   const spendableNotes = wallet.querySpendableNotes(anchorHeight, minConfs);
   const selectedNotes: JsSpendableNote[] = [];
@@ -207,7 +308,9 @@ export async function send(opts: SendOptions): Promise<SendResult> {
 
   // 4. In-flight reservation
   const reservationId = crypto.randomBytes(32);
-  const expiryHeight = tipHeight + 40;
+  const network = client.config?.network || 'regtest';
+  const expiryDelta = getDefaultTxExpiryDelta(network, targetHeight);
+  const expiryHeight = tipHeight + expiryDelta;
   const selectedNoteIds = selectedNotes.map((n) => n.id);
 
   try {

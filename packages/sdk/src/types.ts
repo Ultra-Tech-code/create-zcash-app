@@ -1,9 +1,16 @@
-export type Network = 'regtest' | 'testnet' | 'mainnet';
+export type Network = 'regtest' | 'testnet' | 'mainnet' | 'regtest-nu7';
+
+export type VerificationEndpoint =
+  | { kind: 'grpc'; url: string }
+  | { kind: 'jsonrpc'; url: string };
 
 export interface ClientConfig {
   endpoint: string;
   network: Network;
+  regtestNu7?: boolean;
   transport?: 'grpc' | 'grpc-web';
+  tls?: boolean;
+  verifyEndpoints?: (string | VerificationEndpoint)[];
 }
 
 export type Ufvk = string;

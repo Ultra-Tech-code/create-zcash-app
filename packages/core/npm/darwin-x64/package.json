@@ -1,0 +1,15 @@
+{
+  "name": "@zcash-app/core-darwin-x64",
+  "version": "0.1.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "zcash-core.darwin-x64.node",
+  "files": [
+    "zcash-core.darwin-x64.node"
+  ],
+  "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
+  "os": [
+    "darwin"
+  ]
+}

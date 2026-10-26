@@ -4,17 +4,25 @@
   "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
   "napi": {
-    "name": "zcash-core",
-    "triples": {
-      "defaults": true,
-      "additional": []
-    }
+    "binaryName": "zcash-core",
+    "targets": [
+      "aarch64-apple-darwin",
+      "x86_64-apple-darwin",
+      "x86_64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc"
+    ]
   },
   "scripts": {
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
+    "prepublish": "napi pre-publish --dry-run --tag-style npm",
     "test": "cargo test"
   },
   "devDependencies": {

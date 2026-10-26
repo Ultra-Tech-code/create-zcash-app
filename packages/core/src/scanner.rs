@@ -611,7 +611,7 @@ impl Scanner {
 }
 
 fn format_address(addr: &Address, network: &DynamicNetwork) -> String {
-    UnifiedAddress::from_receivers(Some(*addr), None, None)
+    UnifiedAddress::from_receivers(Some(*addr), None, None, None, None)
         .map(|ua| ua.encode(network))
         .unwrap_or_else(|| hex::encode(addr.to_raw_address_bytes()))
 }

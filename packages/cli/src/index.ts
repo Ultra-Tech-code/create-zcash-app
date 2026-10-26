@@ -185,7 +185,7 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
     if (generateDockerCompose) {
       const composeContent = `services:
   zebra:
-    image: zfnd/zebra:6.4.2
+    image: zfnd/zebra:7.0.0
     restart: unless-stopped
     ports:
       - "8181:8181"
