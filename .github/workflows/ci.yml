@@ -59,6 +59,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Set RUSTFLAGS for deterministic build path remapping
+        shell: bash
+        run: |
+          CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
+          echo "RUSTFLAGS=--remap-path-prefix ${{ github.workspace }}=/build --remap-path-prefix ${CARGO_DIR}=/cargo" >> "$GITHUB_ENV"
+
       - name: Build Rust core addon
         run: ${{ matrix.settings.build }}
 
@@ -124,4 +130,41 @@ jobs:
           pnpm --filter @zcash-app/sdk build
           pnpm --filter zcash-dev build
           pnpm --filter zcash-dev test
+
+  prepublish:
+    name: napi prepublish (dry-run)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download all native artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: packages/core/artifacts
+
+      - name: Move artifacts to packages/core root
+        run: |
+          find packages/core/artifacts -name "*.node" -exec cp {} packages/core/ \;
+          ls -la packages/core/*.node
+
+      - name: Copy native artifacts into npm per-platform dirs
+        run: pnpm --filter @zcash-app/core exec napi artifacts --output-dir .
+
+      - name: Dry-run NAPI pre-publish
+        run: pnpm --filter @zcash-app/core run prepublish
 

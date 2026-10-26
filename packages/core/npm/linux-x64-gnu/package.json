@@ -1,0 +1,18 @@
+{
+  "name": "@zcash-app/core-linux-x64-gnu",
+  "version": "0.1.0",
+  "cpu": [
+    "x64"
+  ],
+  "main": "zcash-core.linux-x64-gnu.node",
+  "files": [
+    "zcash-core.linux-x64-gnu.node"
+  ],
+  "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ]
+}
