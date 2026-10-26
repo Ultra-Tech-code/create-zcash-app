@@ -11,7 +11,7 @@ import {
   ironwoodEmptyTreeRoot,
   getDefaultTxExpiryDelta,
 } from '@zcash-app/core';
-import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError, ConsensusBranchMismatchError, UpgradeBoundaryError } from './send.js';
+import { send, SendOptions, quoteFee, warmupProver, reverseTxid, AnchorVerificationError, ConsensusBranchMismatchError, UpgradeBoundaryError } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -936,6 +936,24 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(buildSpy).toHaveBeenCalledWith(
         expect.objectContaining({ expiryHeight: 3_543_405 + 120 })
       );
+    });
+  });
+
+  describe('reverseTxid helper', () => {
+    it('correctly reverses txid between internal order and node/explorer order', () => {
+      const explorerTxid = '8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a';
+      const internalTxid = '5a09656a90ed7332e42de4f9c12f31c71d093e734deb8357b9e641c4ab16a58c';
+
+      expect(reverseTxid(explorerTxid)).toBe(internalTxid);
+      expect(reverseTxid(internalTxid)).toBe(explorerTxid);
+      // Involutive property: reverse(reverse(x)) === x
+      expect(reverseTxid(reverseTxid(explorerTxid))).toBe(explorerTxid);
+    });
+
+    it('rejects invalid hex strings and incorrect lengths', () => {
+      expect(() => reverseTxid('not_hex')).toThrow('Invalid transaction ID hex string');
+      expect(() => reverseTxid('1234')).toThrow('Invalid transaction ID hex string');
+      expect(() => reverseTxid('g'.repeat(64))).toThrow('Invalid transaction ID hex string');
     });
   });
 });

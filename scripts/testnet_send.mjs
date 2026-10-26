@@ -393,7 +393,7 @@ async function main() {
 
     try {
       const tipInfo = await client.getInfo();
-      log(`  [${new Date().toISOString()}] Current tip: ${tipInfo.blockHeight} (waiting for block containing ${built.txid})...`);
+      log(`  [${new Date().toISOString()}] Current tip: ${tipInfo.blockHeight} (waiting for block containing ${txidRpc})...`);
     } catch {}
 
     await new Promise((r) => setTimeout(r, 10000));
@@ -405,9 +405,9 @@ async function main() {
   }
 
   log(`\nTRANSACTION CONFIRMED ON-CHAIN! ✅`);
-  log(`  Mined Block Height: ${minedHeight}`);
-  log(`  Confirmations:      ${confirmedTx.confirmations}`);
-  log(`  Block Hash:         ${confirmedTx.blockhash}`);
+  log(`  Node Reported Mined Height: ${minedHeight}`);
+  log(`  Node Reported Block Hash:   ${confirmedTx.blockhash}`);
+  log(`  Confirmations:              ${confirmedTx.confirmations}`);
 
   // 12. Query live node for on-chain branch ID verification
   log('\n--- Step 8: Verify On-Chain Consensus Branch ID from Live Node ---');

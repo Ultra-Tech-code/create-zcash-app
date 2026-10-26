@@ -62,6 +62,17 @@ export class UpgradeBoundaryError extends Error {
   }
 }
 
+/**
+ * Converts a 32-byte hex transaction ID between internal byte order and node/explorer display order (byte-reversed).
+ */
+export function reverseTxid(hexTxid: string): string {
+  const cleanHex = hexTxid.trim().toLowerCase();
+  if (!/^[0-9a-f]{64}$/.test(cleanHex)) {
+    throw new Error(`Invalid transaction ID hex string: expected 64 hex characters, got "${hexTxid}"`);
+  }
+  return Buffer.from(cleanHex, 'hex').reverse().toString('hex');
+}
+
 export interface SendResult {
   txid: string;
   fee: bigint;
