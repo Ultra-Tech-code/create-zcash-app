@@ -8,6 +8,7 @@ import { ZcashClient } from '../packages/sdk/dist/client.js';
 import { syncWallet } from '../packages/sdk/dist/sync.js';
 import { accountFromMnemonic } from '../packages/sdk/dist/keys.js';
 import { JsonRpcVerifier } from '../packages/sdk/dist/jsonrpc.js';
+import { reverseTxid } from '../packages/sdk/dist/send.js';
 import {
   WalletHandle,
   decodeIronwoodFrontierRoot,
@@ -318,7 +319,7 @@ async function main() {
     process.exit(1);
   }
 
-  const txidRpc = Buffer.from(built.txid, 'hex').reverse().toString('hex');
+  const txidRpc = reverseTxid(built.txid);
 
   // 9. Pre-broadcast validation & parameter verification
   log('\n================================================================');
