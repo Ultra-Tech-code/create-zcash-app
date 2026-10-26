@@ -79,7 +79,7 @@ export class JsonRpcVerifier {
     return this.requestCounter;
   }
 
-  private async call<T>(method: string, params: any[] = []): Promise<T> {
+  public async call<T>(method: string, params: any[] = []): Promise<T> {
     this.requestCounter++;
     this.reqId++;
     const body = JSON.stringify({
@@ -140,5 +140,9 @@ export class JsonRpcVerifier {
 
   public async getTreeState(heightOrHash: number | string): Promise<JsonRpcTreeState> {
     return this.call<JsonRpcTreeState>('z_gettreestate', [String(heightOrHash)]);
+  }
+
+  public async getRawTransaction(txid: string, verbose: number = 1): Promise<any> {
+    return this.call<any>('getrawtransaction', [txid, verbose]);
   }
 }
