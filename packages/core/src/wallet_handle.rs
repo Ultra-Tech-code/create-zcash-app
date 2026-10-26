@@ -318,6 +318,7 @@ impl WalletHandle {
             "main" | "mainnet" => DynamicNetwork::Main(zcash_protocol::consensus::Network::MainNetwork),
             "test" | "testnet" => DynamicNetwork::Test(zcash_protocol::consensus::Network::TestNetwork),
             "regtest" => DynamicNetwork::Regtest(crate::regtest_params()),
+            "regtest-nu7" | "regtest_nu7" => DynamicNetwork::Regtest(crate::regtest_params_with_nu7(Some(2))),
             other => return Err(Error::new(Status::InvalidArg, format!("Unknown network: {}", other))),
         };
 

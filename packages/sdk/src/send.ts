@@ -8,6 +8,7 @@ import {
   warmupProver as coreWarmupProver,
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
+  getExpectedBranchId,
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
@@ -41,6 +42,14 @@ export class AnchorVerificationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AnchorVerificationError';
+  }
+}
+
+/** Thrown when the node's consensus branch does not match the crate's derived consensus branch. */
+export class ConsensusBranchMismatchError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConsensusBranchMismatchError';
   }
 }
 
@@ -101,9 +110,18 @@ export async function send(opts: SendOptions): Promise<SendResult> {
     spendHandle = 0;
   }
 
-  // 1. Sync wallet to tip if behind
+  // 1. Check tip and assert consensus branch matches node (fail closed on all networks)
   const info = await client.getInfo();
   const tipHeight = Number(info.blockHeight);
+
+  const expectedBranchId = getExpectedBranchId(client.config.network, tipHeight).toLowerCase().replace(/^0x/, '');
+  const nodeBranchId = (info.consensusBranchId ?? '').toLowerCase().replace(/^0x/, '');
+  if (!nodeBranchId || nodeBranchId !== expectedBranchId) {
+    throw new ConsensusBranchMismatchError(
+      `Consensus branch mismatch on network ${client.config.network} at height ${tipHeight}: local expected 0x${expectedBranchId}, node reported 0x${info.consensusBranchId ?? 'none'}`
+    );
+  }
+
   const summary = wallet.getWalletSummary();
   if (summary.lastScannedHeight < tipHeight) {
     await syncWallet(client, wallet);

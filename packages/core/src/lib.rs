@@ -37,19 +37,12 @@ pub fn get_spending_key(handle: u32) -> Option<UnifiedSpendingKey> {
 
 /// Returns a LocalNetwork configured for Z3 regtest (matching Zebra regtest schedule).
 pub fn regtest_params() -> LocalNetwork {
-    LocalNetwork {
-        overwinter: Some(BlockHeight::from_u32(1)),
-        sapling: Some(BlockHeight::from_u32(1)),
-        blossom: Some(BlockHeight::from_u32(1)),
-        heartwood: Some(BlockHeight::from_u32(1)),
-        canopy: Some(BlockHeight::from_u32(1)),
-        nu5: Some(BlockHeight::from_u32(2)),
-        nu6: Some(BlockHeight::from_u32(2)),
-        nu6_1: Some(BlockHeight::from_u32(2)),
-        nu6_2: Some(BlockHeight::from_u32(2)),
-        nu6_3: Some(BlockHeight::from_u32(2)),
-        nu7: Some(BlockHeight::from_u32(2)),
-    }
+    consensus::regtest_consensus_params()
+}
+
+/// Returns a LocalNetwork configured for Z3 regtest with explicit NU7 activation height.
+pub fn regtest_params_with_nu7(nu7_activation: Option<u32>) -> LocalNetwork {
+    consensus::regtest_consensus_params_with_nu7(nu7_activation)
 }
 
 #[derive(Clone)]
@@ -80,6 +73,7 @@ impl Parameters for DynamicNetwork {
 pub fn get_params_for_network(network_str: &str) -> DynamicNetwork {
     match network_str.to_lowercase().as_str() {
         "regtest" => DynamicNetwork::Regtest(regtest_params()),
+        "regtest-nu7" | "regtest_nu7" => DynamicNetwork::Regtest(regtest_params_with_nu7(Some(2))),
         "testnet" | "test" => DynamicNetwork::Test(Network::TestNetwork),
         _ => DynamicNetwork::Main(Network::MainNetwork),
     }

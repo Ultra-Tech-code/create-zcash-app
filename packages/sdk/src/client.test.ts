@@ -141,10 +141,30 @@ describe('Chain Identity Guard', () => {
     await client.close();
   });
 
-  it('derives expected branch ID for regtest from crate params', async () => {
-    const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  it('derives expected branch ID for regtest default (NU6.3) and opt-in (NU7) from crate params', async () => {
+    // 1. Default regtest: NU6.3 (0x37a5165b)
+    const clientDefault = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
 
-    vi.spyOn(client, 'getInfo').mockResolvedValue({
+    vi.spyOn(clientDefault, 'getInfo').mockResolvedValue({
+      version: '0.10.0',
+      vendor: 'Zaino',
+      taddrSupport: true,
+      chainName: 'regtest',
+      saplingActivationHeight: '1',
+      consensusBranchId: '37a5165b',
+      blockHeight: '10',
+    });
+
+    const resultDefault = await clientDefault.assertChainIdentity();
+    expect(resultDefault.consensusBranchId).toBe('37a5165b');
+    expect(resultDefault.expectedBranchId).toBe('37a5165b');
+
+    await clientDefault.close();
+
+    // 2. Opt-in regtest: NU7 (0x77190ad9) via regtestNu7 flag
+    const clientNu7 = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest', regtestNu7: true });
+
+    vi.spyOn(clientNu7, 'getInfo').mockResolvedValue({
       version: '0.10.2',
       vendor: 'Zaino',
       taddrSupport: true,
@@ -154,10 +174,10 @@ describe('Chain Identity Guard', () => {
       blockHeight: '10',
     });
 
-    const result = await client.assertChainIdentity();
-    expect(result.consensusBranchId).toBe('77190ad9');
-    expect(result.expectedBranchId).toBe('77190ad9');
+    const resultNu7 = await clientNu7.assertChainIdentity();
+    expect(resultNu7.consensusBranchId).toBe('77190ad9');
+    expect(resultNu7.expectedBranchId).toBe('77190ad9');
 
-    await client.close();
+    await clientNu7.close();
   });
 });

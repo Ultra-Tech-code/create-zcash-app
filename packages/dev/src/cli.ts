@@ -24,10 +24,12 @@ program
   .description('Get node & indexer status')
   .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)', 'regtest')
+  .option('--nu7', 'Opt-in to NU7 consensus branch expectations on regtest')
   .action(async (options) => {
     const client = createClient({
       endpoint: options.endpoint,
       network: options.network as any,
+      regtestNu7: Boolean(options.nu7),
     });
     try {
       const info = await client.getInfo();

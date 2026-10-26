@@ -72,7 +72,8 @@ export class ZcashClient {
   private readonly client: any;
 
   constructor(config: ClientConfig) {
-    this.config = config;
+    const network = config.regtestNu7 && config.network === 'regtest' ? 'regtest-nu7' : config.network;
+    this.config = { ...config, network };
     const protoPath = path.resolve(__dirname, '../proto/service.proto');
     const packageDefinition = protoLoader.loadSync(protoPath, {
       keepCase: true,

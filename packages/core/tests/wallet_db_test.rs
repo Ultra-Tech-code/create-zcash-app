@@ -50,9 +50,13 @@ fn test_consensus_branch_id_derivation() {
     let mainnet_nu7 = get_consensus_branch_id_for_height("mainnet", 3_543_405).expect("branch");
     assert_eq!(mainnet_nu7, 0x7719_0ad9, "Mainnet 3,543,405 must derive Nu7 (0x77190ad9)");
 
-    // Regtest at height 2 -> 0x37a5165b (NU6.3 / NU7 parameters)
+    // Regtest at height 2 -> 0x37a5165b (NU6.3 default)
     let regtest_branch = get_consensus_branch_id_for_height("regtest", 2).expect("branch");
-    assert_eq!(regtest_branch, 0x7719_0ad9, "Regtest at height 2 with NU7 activated must derive 0x77190ad9");
+    assert_eq!(regtest_branch, 0x37a5_165b, "Regtest default at height 2 must derive Nu6_3 (0x37a5165b)");
+
+    // Regtest opt-in at height 2 -> 0x77190ad9 (NU7)
+    let regtest_nu7_branch = get_consensus_branch_id_for_height("regtest-nu7", 2).expect("branch");
+    assert_eq!(regtest_nu7_branch, 0x7719_0ad9, "Regtest opt-in at height 2 must derive Nu7 (0x77190ad9)");
 }
 
 #[test]

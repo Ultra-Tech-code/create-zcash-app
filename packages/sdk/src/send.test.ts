@@ -10,7 +10,7 @@ import {
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
 } from '@zcash-app/core';
-import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError } from './send.js';
+import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError, ConsensusBranchMismatchError } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -74,7 +74,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
   function createMockClient(): ZcashClient {
     return {
       config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
-      getInfo: vi.fn().mockResolvedValue({ blockHeight: '10' }),
+      getInfo: vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '37a5165b' }),
       getTreeState: vi.fn().mockResolvedValue({
         network: 'regtest',
         height: '5',
@@ -588,6 +588,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
     const mockClient = createMockClient();
     (mockClient.config as any).network = 'testnet';
+    mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4465030', consensusBranchId: '77190ad9' });
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
     vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
       {
@@ -629,5 +630,96 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       const expectedFee = BigInt(expectedActions) * 5000n;
       expect(fee).toBe(expectedFee);
     }
+  });
+
+  describe('Consensus Branch Verification & Regtest Modes', () => {
+    it('refuses with ConsensusBranchMismatchError when node branch does not match expected branch (fail closed)', async () => {
+      const mockClient = createMockClient();
+      // Regtest expects 37a5165b, but node reports 77190ad9 (or anything mismatched)
+      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' });
+
+      await expect(
+        send({
+          client: mockClient,
+          wallet,
+          from: 0,
+          to: 'uregtest1recipient...',
+          amount: 100_000_000n,
+        })
+      ).rejects.toThrow(ConsensusBranchMismatchError);
+    });
+
+    it('accepts regtest default (NU6.3) when node reports 37a5165b', async () => {
+      insertMockNote(21, 500_000_000, 2, '21'.repeat(32));
+      const mockClient = createMockClient();
+      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '37a5165b' });
+
+      vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        {
+          id: 21,
+          recipient: 'uregtest1...',
+          valueZatoshis: 500_000_000,
+          nullifier: '21'.repeat(32),
+          height: 2,
+          treePosition: 0,
+        },
+      ]);
+      const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+        txid: '21'.repeat(32),
+        rawBytes: Buffer.from('hex', 'hex'),
+        fee: 10000,
+        numActions: 2,
+        expiryHeight: 50,
+      } as any);
+
+      const res = await send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      });
+
+      expect(res.txid).toBe('21'.repeat(32));
+      expect(buildSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('accepts regtest-nu7 opt-in when node reports 77190ad9', async () => {
+      insertMockNote(22, 500_000_000, 2, '22'.repeat(32));
+      const mockClient = createMockClient();
+      (mockClient.config as any).network = 'regtest-nu7';
+      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' });
+
+      vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        {
+          id: 22,
+          recipient: 'uregtest1...',
+          valueZatoshis: 500_000_000,
+          nullifier: '22'.repeat(32),
+          height: 2,
+          treePosition: 0,
+        },
+      ]);
+      const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+        txid: '22'.repeat(32),
+        rawBytes: Buffer.from('hex', 'hex'),
+        fee: 10000,
+        numActions: 2,
+        expiryHeight: 50,
+      } as any);
+
+      const res = await send({
+        client: mockClient,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      });
+
+      expect(res.txid).toBe('22'.repeat(32));
+      expect(buildSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });
