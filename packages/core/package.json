@@ -4,6 +4,11 @@
   "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
   "main": "index.js",
   "types": "index.d.ts",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "*.node"
+  ],
   "napi": {
     "name": "zcash-core",
     "triples": {
