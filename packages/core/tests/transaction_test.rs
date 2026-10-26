@@ -1139,6 +1139,7 @@ fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
 }
 
 #[test]
+#[ignore = "requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)"]
 fn test_fee_acceptance_on_regtest_node() {
     println!("\n=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===");
 
