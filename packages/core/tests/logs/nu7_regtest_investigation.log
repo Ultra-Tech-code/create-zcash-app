@@ -1,0 +1,120 @@
+===============================================================
+=== INVESTIGATION: NU7 REGTEST ON ZEBRA 7.0.0 + LIGHTWALLETD ==
+===============================================================
+
+--- 1. Querying Zebra getblockchaininfo on port 39232 ---
+Chain: test
+Block count: 105
+NU7 upgrade activation: { name: 'NU7', activationheight: 2, status: 'active' }
+Value pools: [
+  {
+    "id": "transparent",
+    "chainValue": 0,
+    "chainValueZat": 0,
+    "monitored": false
+  },
+  {
+    "id": "sprout",
+    "chainValue": 0,
+    "chainValueZat": 0,
+    "monitored": false
+  },
+  {
+    "id": "sapling",
+    "chainValue": 6.25,
+    "chainValueZat": 625000000,
+    "monitored": true
+  },
+  {
+    "id": "orchard",
+    "chainValue": 0,
+    "chainValueZat": 0,
+    "monitored": false
+  },
+  {
+    "id": "lockbox",
+    "chainValue": 0,
+    "chainValueZat": 0,
+    "monitored": false
+  },
+  {
+    "id": "ironwood",
+    "chainValue": 216.66666632,
+    "chainValueZat": 21666666632,
+    "monitored": true
+  }
+]
+
+--- 2. Querying Block 105 Coinbase Transaction ---
+Block 105 Coinbase TxID: 544fda2b0921a7238af43ed08320cd4d5a511624188b6d6e57d9c23640acded1
+Coinbase Tx Version: 6
+Coinbase Tx VersionGroupID: 0xd884b698
+Coinbase Transparent Outputs (vout length): 0
+Coinbase Ironwood Actions count: 1
+Coinbase Ironwood valueBalanceZat: -208333333
+Coinbase Ironwood anchor: 2fd8e51a03d9bbe2dd809831b1497aeb68a6e37ddf707ced4aa2d8dff13529ae
+
+--- 3. Querying lightwalletd getInfo on port 39067 ---
+Lightwalletd vendor: ECC LightWalletD
+Lightwalletd version: v0.6.0
+Lightwalletd consensusBranchId: 77190ad9
+Lightwalletd blockHeight: 105
+
+--- 4. Querying lightwalletd GetTreeState at height 105 ---
+Height: 105
+Sapling tree (length): 132
+Orchard tree: 000000
+Ironwood tree (length): 452
+
+--- 5. Syncing Account 0 Wallet to Height 105 ---
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 1 to target 105 (tip: 105, batch size: 50, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 105/105 (100.0%) | Req: 4 | Speed: 314.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Verified against GetTreeState(105):
+  Wallet Ironwood Root:  5ec3ffe3a9b7a340b2078f5f190b6f26f92951f43d7b688e09955c6d7cfaca1a
+  Remote ironwoodTree:   014fa7029ab810e673ac9ca25009874ab4cd006057fa728c8ac9b2e997039ce8280139785d5088f6cc9ac2ecce32c3750c6dcd92b8855aac7a61007dc5ef2f8c443b1f01db90ce8b4fc6bb5c0dcfa66138d87ad810c453ee4736c43a9597e8c1c281e7260159fb6f29e1e07d9a8953ae44abdecc0a6da5cfc0b0d80626a31ded671db9181e000001ef56bc18230b46e368b14508d6aadc4690f5fcc91aab0195eaa61b23c22d0d2101213581386aeebc3e4983995a7b7672684f00d51a7f9aff01b566e7f4fcd13b3a00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   5ec3ffe3a9b7a340b2078f5f190b6f26f92951f43d7b688e09955c6d7cfaca1a
+Account 0 Sync Summary: {
+  "lastScannedHeight": 105,
+  "treeSize": 104,
+  "unspentNotesCount": 104,
+  "totalBalanceZatoshis": 21666666632,
+  "spendableBalanceZatoshis": 21666666632
+}
+
+--- 6. Executing send() from Account 0 to Account 1 ---
+[send] (http://127.0.0.1:39067) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+Send Result:
+  Internal TxID:   20567882c82afed472f3b7bc4bb7868d20384148704b010b841a1c82980bf52e
+  Explorer TxID:   2ef50b98821c1a840b014b70484138208d86b74bbcb7f372d4fe2ac882785620
+  Fee (zatoshis):  10000
+  Num Actions:     2
+  Expiry Height:   225
+
+--- 7. Verifying in mempool & mining block 106 ---
+Mempool contents: [ '2ef50b98821c1a840b014b70484138208d86b74bbcb7f372d4fe2ac882785620' ]
+Mined block hash: f289507fe0fcd79be4b2ecd07ac90534850f088b5610fce07b3e2c8169b65521
+Block 106 height: 106
+Block 106 nTx: 2
+Block 106 txids: [
+  'fe52fd3675740f9d4d0c9cc1d9c4b27f49d0611c87fcb9a157520198006087bf',
+  '2ef50b98821c1a840b014b70484138208d86b74bbcb7f372d4fe2ac882785620'
+]
+
+--- 8. Syncing Account 1 and verifying received shielded note ---
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 1 to target 106 (tip: 106, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 106/106 (100.0%) | Req: 2 | Speed: 2409.1 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Verified against GetTreeState(106):
+  Wallet Ironwood Root:  36e806c71e33ee06c1e32d5ed8edc13b69f58d0345191b0263d4fc467dcea803
+  Remote ironwoodTree:   01634d9ea79f3c4956ae154999e90d1e19c606234f5d99f6b5c97c63edb5f55f1a001f010a03ad097be26d5e563f45c3ddf46c7d2dd68b2e08fc7a8e48d05d14bc36090a0001d74bfd9bc3259d44f80fca0aec670b8ba87303d8eb30a67e006d7a257775bc090001ef56bc18230b46e368b14508d6aadc4690f5fcc91aab0195eaa61b23c22d0d2101213581386aeebc3e4983995a7b7672684f00d51a7f9aff01b566e7f4fcd13b3a00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   36e806c71e33ee06c1e32d5ed8edc13b69f58d0345191b0263d4fc467dcea803
+Account 1 Sync Summary: {
+  "lastScannedHeight": 106,
+  "treeSize": 107,
+  "unspentNotesCount": 1,
+  "totalBalanceZatoshis": 100000000,
+  "spendableBalanceZatoshis": 100000000
+}
+
+===============================================================
+=== INVESTIGATION RESULT: ALL COMPONENTS PASSED CLEANLY! ✅ ===
+===============================================================

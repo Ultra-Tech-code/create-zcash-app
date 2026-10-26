@@ -11,6 +11,7 @@ f1a411b04f31f97e86d368987893b5d9755301adaa7c37bfab5a3606aae9e4ec  fee_acceptance
 4ee82681119f72e757e8344f05605d63fa2cc797bc1b5f9ae34c72aa88d98f08  ironwood_empty_root.log  |  cargo test --package zcash-core test_ironwood_empty_root
 b8a1bfbb5601129df721c68251ae71e6fc4834965cca871717b6f83aea20bf34  item3_chain_wipe.log  |  node scripts/item3_real_chain_wipe.mjs
 370e234197fe6e0ebd899664657b524c82788c50625571f4713cee59029caa81  live_anchor_verification.log  |  node packages/dev/dist/cli.js verify-anchor
+324153da130a0e71cd1c5b587478bbcfd0f884e6cb6a22f8152ba984d28ce06b  nu7_regtest_investigation.log  |  node scripts/nu7_regtest_investigation.mjs 2>&1 | tee packages/core/tests/logs/nu7_regtest_investigation.log
 e00037479ab5229c2ef35043dd8d996113b4b3bc21323ae7b529983f28473ad6  p1_refactor.log  |  cargo test --package zcash-core p1
 536524827d513f4cf0410cfcd7441086d3f817086dd85a4d96611a9fae193973  p3_clean_chain.log  |  node packages/dev/dist/cli.js regtest wipe --yes && node scripts/p3_cross_account.mjs
 eab63781f630b35c5d3c6fb5d8fa23f4c3340b9c6714037c7b46d2df36c0d34c  p3_cross_account.log  |  node scripts/p3_cross_account.mjs
