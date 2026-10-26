@@ -1,0 +1,45 @@
+================================================================
+   WALLET B FULL STANDARD SYNC (PROVING CANONICAL PATH)
+================================================================
+Timestamp: 2026-10-26T02:21:35.564Z
+
+--- PRIOR SEEDED WALLET B ARTIFACT DOCUMENTATION ---
+Previously, wallet_b_nu7.db was accelerated for rapid test assertions
+by cloning the commitment tree tables (blocks, sapling_tree, orchard_tree)
+from synced reference wallet_a_nu7.db up to height 4,542,233, followed by
+a 7-block scan (4,542,234 to 4,542,241). This logic has been preserved
+in scripts/seed_wallet_from_tree.mjs with a prominent "TEST ONLY" header.
+----------------------------------------------------------------
+
+Wallet B Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+
+--- ANNOUNCEMENT & CLEAN SETUP ---
+Notice: Backing up seeded wallet_b_nu7.db -> wallet_b_nu7.db.seeded_bak
+Notice: Deleting ~/.zcash-app-testnet/wallet_b_nu7.db to create fresh wallet
+Creating fresh Wallet B at: /Users/0xblackadam/.zcash-app-testnet/wallet_b_nu7.db
+Fresh Wallet B initialized with Account B UFVK.
+
+--- Connecting to https://testnet.zec.rocks:443 ---
+Remote Tip Height:        4542475
+Chain Name:               test
+Consensus Branch ID:      0x77190ad9
+Starting full scan from activation height 4134000 to tip 4542475...
+Batch size: 1000 blocks | Throttle: 50ms pause per batch
+[Sync Progress] Height: 4542475/4542475 (100.0%) | Notes: 0 | Speed: 301.4 blocks/s
+
+--- SYNC BENCHMARK RESULTS ---
+Total blocks scanned:     408475
+Total elapsed time:       1355.5 seconds (22.59 minutes)
+Average throughput:       301.3 blocks/s
+Final wallet height:      4542475
+
+--- VERIFYING RECEIVED NOTES (SQLite query) ---
+Query: SELECT id, value_zatoshis, height, pool, hex(txid) FROM received_notes;
+1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+SUCCESS: 1,000,000-zat note at height 4,542,240 detected in fresh Wallet B!
+Note detail: 1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+================================================================
+   WALLET B FULL STANDARD SYNC COMPLETED SUCCESSFULLY
+================================================================
