@@ -22,7 +22,7 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
-    "prepublish": "napi pre-publish --dry-run",
+    "prepublish": "napi pre-publish --dry-run --tag-style npm",
     "test": "cargo test"
   },
   "devDependencies": {
