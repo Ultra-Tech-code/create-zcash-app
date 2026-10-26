@@ -1,0 +1,246 @@
+=== [0/5] What this run will destroy (dry run) ===
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   z3-regtest
+   - Docker Volumes: z3-regtest_chain, z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet_ca_certificates
+   - Services:       zebra, cookie-permissions, zallet, rpc-router
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+🔍 [Dry Run] Would execute:
+   1. docker compose --env-file .env.regtest down -v (purges volumes: z3-regtest_chain, z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet_ca_certificates
+   2. bash scripts/regtest-init.sh (re-initializes genesis credentials and parameters)
+   3. docker compose --env-file .env.regtest up -d && docker compose --env-file .env.regtest up -d zaino
+
+✅ [Dry Run complete: zero destructive actions executed.]
+
+=== [1/5] Building SDK and zcash-dev from source ===
+
+=== [2/5] Wiping and rebuilding the regtest cluster ===
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   z3-regtest
+   - Docker Volumes: z3-regtest_chain, z3-regtest_cookie, z3-regtest_zallet, z3-regtest_zallet_ca_certificates
+   - Services:       zebra, cookie-permissions, zallet, rpc-router
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/z3 ===
+
+
+=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===
+
+==> regtest/zaino.toml: present, leaving contents untouched.
+==> regtest/zallet.toml: present, leaving contents untouched.
+==> regtest/zebra.toml: present, leaving contents untouched.
+==> regtest/zaino.toml: ensured readable by service containers.
+==> regtest/zallet.toml: ensured readable by service containers.
+==> regtest/zebra.toml: ensured readable by service containers.
+
+Setup complete for regtest.
+Next: docker compose --env-file .env.regtest up -d zebra
+==> Ensured ./config/regtest/zallet.toml is readable by zallet uid 1000
+==> Zallet RPC pwhash already generated, skipping.
+==> Starting Zebra in regtest mode...
+==> Waiting for Zebra RPC to be ready...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 blocks (config/regtest activates NU5 through NU6.3 at height 2; Zebra and Zallet agree)...
+   Blocks mined.
+==> Preparing the Zallet data volume...
+==> Running generate-encryption-identity...
+==> Running init-wallet-encryption...
+==> Running generate-mnemonic...
+Seed fingerprint: zip32seedfp18x3rkekk40qd2600xm02mgxvnfld9mqz3gupayvea0gk7qgmxhfs6n5qnn
+==> Stopping Zebra (will be restarted by docker compose up -d)...
+
+Wallet initialized. Now run:
+   docker compose --env-file .env.regtest up -d
+   Router available at http://127.0.0.1:8181
+⏳ Waiting for RPC router at http://127.0.0.1:8181 ...
+
+Creating new default Zallet account if needed...
+✅ Using Zallet Unified Address: uregtest1fp38qk7a93030gnzgltvcrxpake6xeardzn4rea0vezlgh9gawgmje62ppwad32jwrs00qw8076s667vu7ycf8x8x90tfykpl84vyuj6e8rc9q2lfkn6ghxxtsms0wywfqj003zns6qet4dn5emtqmggp8p6c62danj9eak8f3vnzmvwtd8n7cgga85q79ftfky5za4wp48j2pj704m
+⏳ Waiting for Zebra RPC after restart...
+Mining 105 blocks for fresh regtest chain...
+✅ Fresh regtest chain created with tip height 105!
+
+
+=== [3/5] Funding Account 0 and Account 1 exactly once ===
+=== FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST (IDEMPOTENT) ===
+
+Account 0:
+  Mnemonic: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+  Address:  uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  UFVK:     uviewregtest1td4fxalun47yu3erk09atltkwh84wcxzz067cyual0wrs4vskmwym6fshe0v0l2juv4wuc9uxv4kjyhrshfszzexstaxt58965k8zrru6738vds2skke86wfx5m28sz79cxuxlm3tmn7l35t9d2ckr2wxh6z842d09d72cqqc4hkjvth7tx9njslgsjdn9uxrcdkc3wlkp83ljfn264q9la72tzf3rmqma0n7pqy754g4ank5f6dhx89nhhmz5z30emt246l5kuagm5fxsq6mzu8v4uey2wf85n0lxjd4qk8angn3e47dekxpz0fs3495uwmj6mqc28c2ftcyatr3flqay5m0pdrlk3n35jzsa27fn8g2ujuwxgwlzjmzu5fx4gpthhjeweclygmvuvd4rpx0ezzfp2upuu054w26pyyjra9ruql00cmgsndlmzxpm0fdypszupc32qgemav29wax0esy5thphwr5svt4m8szkemqu4cs2wn
+
+Account 1:
+  Mnemonic: "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+  Address:  uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  UFVK:     uviewregtest1df3vq7x64yhq7638ym8qwj0n4uf05eaq63pd8tw0l5n8upugrw6p4sf63j4hm7sp5whz6emgu6s2elezqwqp0mlz27v5xsfjvjchrfd439wkhn0lp3ta89wn7azrfp22zcuta8wcmu7pzds83ay942jt3pn0my6u3k29x65d5skjq7z67u2mqpc42evamsxjsqsq8xwl8dd9rlgz53cuux8zlzwxux45e9wyhd639rest6fz37ytquk5d34p9qd04faxuc54zx7aj6n08ftx5ltp9mmy2npl72cgtqzjzye6vf9d070w7pfw4rys8kllaqcarlqz5n6e6t45g6c2t2jzy06nhlk2khvmq8msznxr2xppw2xhmqpgm7sa7dgf4pne2rh80w3jqnvzmfqv5u0t8h04r2rsxj9qk22ntvsqcdn356rq8wwq5xtnkw8f97wglh5ztngu4dtpe3z8r48xqas3pe9ht80yhdc09azzjvdykq6slpka
+
+Initial Balances before funding:
+  Account 0 Total: 0 zatoshis
+  Account 1 Total: 0 zatoshis
+
+Funding Account 0 with 5.0 ZEC (500,000,000 zatoshis)...
+  Txid 0: 1a0fe39d5d28113fc65ce3da6d42db06edcd4a8cc03ad50736acc633cd7e74bc
+Funding Account 1 with 3.0 ZEC (300,000,000 zatoshis)...
+  Txid 1: 3ffa0c853c729d7713d35cc6c2c3acabbf3117c9b977d0589f66440106b766c6
+
+Mining 2 blocks to confirm funding transactions...
+Current Zaino indexed chain tip: height 111
+
+--- Syncing Account 0 Wallet ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (NaN%) | Req: 2 | Speed: 1222.2 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  Remote ironwoodTree:   01a873f4da65b48b94c5c5c29fb0c8cb66e5aa9bbeb22534828581c1f3f1b09009010dc0c29e20a5969e737a93df705083b60cf4843cb31e5110494c2af92ec96b1f1f00000001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+Account 0 Sync Result:
+  Tip Height:      111
+  Blocks Fetched:  110
+  Tree Root Hex:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  TreeState Match: true
+  Unspent Notes:   1
+  Total Balance:   500000000 zatoshis (5 ZEC)
+Account 0 getBalance SDK Output:
+  Confirmed Ironwood: 500000000 zatoshis
+  Pending Ironwood:   0 zatoshis
+  Total:              500000000 zatoshis
+
+--- Syncing Account 1 Wallet ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (NaN%) | Req: 2 | Speed: 2820.5 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  Remote ironwoodTree:   01a873f4da65b48b94c5c5c29fb0c8cb66e5aa9bbeb22534828581c1f3f1b09009010dc0c29e20a5969e737a93df705083b60cf4843cb31e5110494c2af92ec96b1f1f00000001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+Account 1 Sync Result:
+  Tip Height:      111
+  Blocks Fetched:  110
+  Tree Root Hex:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  TreeState Match: true
+  Unspent Notes:   1
+  Total Balance:   300000000 zatoshis (3 ZEC)
+Account 1 getBalance SDK Output:
+  Confirmed Ironwood: 300000000 zatoshis
+  Pending Ironwood:   0 zatoshis
+  Total:              300000000 zatoshis
+
+✅ SUCCESS: Both Account 0 (5.0 ZEC in 1 note) and Account 1 (3.0 ZEC in 1 note) funded and verified!
+
+=== [4/5] Running the P3 cross-account payment ===
+===============================================================
+=== PHASE 3 (P3): CROSS-ACCOUNT PAYMENT VIA SDK send() ONLY ===
+===============================================================
+
+Sender (Account 0):
+  Address: uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+  Spend Handle: 1
+
+Recipient (Account 1):
+  Address: uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+
+--- Step 1: Baseline Sync & Balances ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (NaN%) | Req: 2 | Speed: 2200.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  Remote ironwoodTree:   01a873f4da65b48b94c5c5c29fb0c8cb66e5aa9bbeb22534828581c1f3f1b09009010dc0c29e20a5969e737a93df705083b60cf4843cb31e5110494c2af92ec96b1f1f00000001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 111/111 (NaN%) | Req: 2 | Speed: 2750.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+  Remote ironwoodTree:   01a873f4da65b48b94c5c5c29fb0c8cb66e5aa9bbeb22534828581c1f3f1b09009010dc0c29e20a5969e737a93df705083b60cf4843cb31e5110494c2af92ec96b1f1f00000001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   05eed25c0e6135c209db3123b936f4f66aa34a6d604195e05c2cc92170cd0201
+Account 0 Baseline:
+  Total Balance:     500000000 zatoshis (5 ZEC)
+  Confirmed Balance: 500000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Baseline:
+  Total Balance:     300000000 zatoshis (3 ZEC)
+  Confirmed Balance: 300000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+
+--- Step 2: Transaction Parameters ---
+  Transfer Amount: 150000000 zatoshis (1.5 ZEC)
+  Recipient:       uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
+  Memo:            "P3 Cross-Account Payment: Account 0 -> Account 1 (1.5 ZEC)"
+  Quoted Fee:      10000 zatoshis (0.0001 ZEC, ZIP 317 standard)
+
+--- Step 3: Executing SDK send() ---
+[send] (http://127.0.0.1:28137) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+Transaction built, proven, and broadcast successfully!
+  Broadcast TxID (node display order): 78e64eb283cd8617d99254b32fc12e487ad5ce5efce47a635eadaee70027f4ee
+  Internal TxID (raw byte order):      eef42700e7aead5e637ae4fc5eced57a482ec12fb35492d91786cd83b24ee678
+  Fee:           10000 zatoshis
+  Num Actions:   2
+  Expiry Height: 151
+  Raw Tx Size:   9166 bytes
+  Proving & Send Duration: 2513ms
+
+--- Step 4: Verify In-Flight Balance & Reservation Exclusion ---
+Account 0 In-Flight Spendable Balance: 0 zatoshis (strictly excluded while in flight)
+
+--- Step 5: Mining 1 Block to Confirm Transaction ---
+Current chain tip before mining: height 111
+Mining command sent. Target tip height: 112
+Waiting for Zaino indexer to index mined block...
+Zaino indexer synchronized at height 112!
+
+--- Step 6: Querying Mined Transaction via JSON-RPC getrawtransaction ---
+Querying broadcast txid: 78e64eb283cd8617d99254b32fc12e487ad5ce5efce47a635eadaee70027f4ee
+  Mined TxID (node):   78e64eb283cd8617d99254b32fc12e487ad5ce5efce47a635eadaee70027f4ee
+  Zebra confirmations: 1
+  Zebra blockhash:     6e7ad08dbecae47d7732733ed29b425a3c576fadc8bc3efb07ad971c8c5f7d34
+  Zebra blockheight:   112
+  Zebra tx version:    6
+  Zebra Ironwood actions count: 2
+  Zebra Ironwood valueBalanceZat: 10000 zatoshis
+  Zebra Ironwood flags: {"enableOutputs":true,"enableSpends":true}
+  Zebra Ironwood anchor: 0102cd7021c92c5ce09541606d4aa36af6f436b92331db09c235610e5cd2ee05
+
+--- Step 7: Resyncing Both Accounts Post-Mining ---
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 112 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (NaN%) | Req: 2 | Speed: 125.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  37ce5ec85f57719926d189aca4066ace452ff272317c18e460398b018334ab31
+  Remote ironwoodTree:   015338bbda5957b42ace1e98199b1113a74eeadd84f2f6efa7b26138d6760cf32c001f00014c6ce6ad25ec92c1cfd78e1f4cb5136f08a0a0a86d1a6b5a05fa7b70d0ca8e170001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   37ce5ec85f57719926d189aca4066ace452ff272317c18e460398b018334ab31
+[Sync] (http://127.0.0.1:28137) (third-party server) Starting sync from height 112 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:28137) (third-party server) Height: 112/112 (NaN%) | Req: 2 | Speed: 200.0 blocks/s
+[Sync] (http://127.0.0.1:28137) (third-party server) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  37ce5ec85f57719926d189aca4066ace452ff272317c18e460398b018334ab31
+  Remote ironwoodTree:   015338bbda5957b42ace1e98199b1113a74eeadd84f2f6efa7b26138d6760cf32c001f00014c6ce6ad25ec92c1cfd78e1f4cb5136f08a0a0a86d1a6b5a05fa7b70d0ca8e170001469d2f674fdd0cebada22ca081f6a5a230e1a200a705f707fb5747526d8f300e0111d1d50419f3d3aca192437318b6bb98d4d779b3e4c792c3fb359e57a31aae1201045e63ed70c0063223824f2af7606889d7151020ff205bef255f3d596515b32700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   37ce5ec85f57719926d189aca4066ace452ff272317c18e460398b018334ab31
+Account 0 Post-Payment:
+  Total Balance:     349990000 zatoshis (3.4999 ZEC)
+  Confirmed Balance: 349990000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     1
+Account 1 Post-Payment:
+  Total Balance:     450000000 zatoshis (4.5 ZEC)
+  Confirmed Balance: 450000000 zatoshis
+  Pending Balance:   0 zatoshis
+  Unspent Notes:     2
+
+--- Step 8: Mathematical Verification & Balance Invariants ---
+  Arithmetic Verification:
+    A0_before - amount - fee == A0_after: 500000000 - 150000000 - 10000 = 349990000 (Actual: 349990000) -> VALID ✅
+    A1_before + amount       == A1_after: 300000000 + 150000000 = 450000000 (Actual: 450000000) -> VALID ✅
+  Account 0 Expected: 349990000 | Actual: 349990000 -> MATCH ✅
+  Account 1 Expected: 450000000 | Actual: 450000000 -> MATCH ✅
+  Fee Paid:           10000 zatoshis
+  Conservation:       349990000 + 450000000 + 10000 = 800000000 zatoshis (Initial: 800000000 zatoshis) -> CONSERVED ✅
+
+===============================================================
+=== PHASE 3 (P3) VERIFICATION COMPLETE: ALL CHECKS PASSED!  ===
+===============================================================
+
+=== [5/5] VERIFY-LIVE SUCCESS: wiped, funded once, P3 payment completed (exit 0) ===
