@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -94,9 +95,47 @@ for (const [relPath] of manifestEntries.entries()) {
   }
 }
 
+// Require every MANIFEST file to be tracked by git
+let trackedFilesList = [];
+try {
+  const lsOutput = execSync('git ls-files packages/core/tests/logs', {
+    cwd: projectRoot,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  trackedFilesList = lsOutput
+    .trim()
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((repoRelPath) => path.relative(logsDir, path.resolve(projectRoot, repoRelPath)));
+} catch (err) {
+  console.error(`❌ ERROR: Failed to execute git ls-files: ${err.message}`);
+  process.exit(1);
+}
+
+const trackedSet = new Set(trackedFilesList);
+
+for (const [relPath] of manifestEntries.entries()) {
+  if (!trackedSet.has(relPath)) {
+    console.error(`❌ UNTRACKED FILE: ${relPath} listed in MANIFEST but NOT tracked by git!`);
+    errors++;
+  }
+}
+
+for (const trackedRelPath of trackedSet) {
+  if (trackedRelPath === 'MANIFEST' || trackedRelPath === '.gitignore' || trackedRelPath === '.DS_Store') {
+    continue;
+  }
+  if (!manifestEntries.has(trackedRelPath)) {
+    console.error(`❌ UNLISTED TRACKED FILE: ${trackedRelPath} is tracked by git but NOT listed in MANIFEST!`);
+    errors++;
+  }
+}
+
 if (errors > 0) {
   console.error(`\n❌ Provenance check FAILED with ${errors} error(s).`);
   process.exit(1);
 }
 
-console.log(`✅ All ${checked} log files match MANIFEST sha256 and recorded provenance commands cleanly.`);
+console.log(`✅ All ${checked} log files match MANIFEST sha256, tracked in git, and recorded provenance commands cleanly.`);

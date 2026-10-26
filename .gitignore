@@ -4,6 +4,7 @@ target/
 .DS_Store
 *.log
 !packages/core/tests/logs/*.log
+!packages/core/tests/logs/**/*.log
 .env
 .env.local
 skills.md
