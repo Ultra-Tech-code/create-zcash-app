@@ -783,6 +783,7 @@ module.exports.decodeIronwoodFrontierRoot = nativeBinding.decodeIronwoodFrontier
 module.exports.deriveAccountFromMnemonic = nativeBinding.deriveAccountFromMnemonic
 module.exports.generateMnemonic = nativeBinding.generateMnemonic
 module.exports.getAddressFromUfvk = nativeBinding.getAddressFromUfvk
+module.exports.getDefaultTxExpiryDelta = nativeBinding.getDefaultTxExpiryDelta
 module.exports.getExpectedBranchId = nativeBinding.getExpectedBranchId
 module.exports.ironwoodEmptyTreeRoot = nativeBinding.ironwoodEmptyTreeRoot
 module.exports.quoteFee = nativeBinding.quoteFee

@@ -118,7 +118,7 @@ pub struct JsBuildTransactionRequest {
     pub memo: Option<String>,
     pub anchor_bytes: Buffer,
     pub anchor_height: u32,
-    pub expiry_height: u32,
+    pub expiry_height: Option<u32>,
     pub spendable_note_ids: Vec<i64>,
     pub reservation_id: Buffer,
 }
@@ -253,15 +253,26 @@ impl Task for BuildTransactionTask {
             outputs.push(crate::transaction::OutputSpec::new(change_address, change_val));
         }
 
-        let target_height = zcash_protocol::consensus::BlockHeight::from_u32(self.req.anchor_height);
+        let offset = crate::transaction::DEFAULT_ANCHOR_OFFSET;
+        let tip_height_u32 = self.req.anchor_height.saturating_add(offset);
+        let tip_height = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32);
+        let target_height = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32 + 1);
         let branch_id = zcash_protocol::consensus::BranchId::for_height(&self.network, target_height);
+        let expiry_delta = zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id);
+        let default_expiry = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32 + expiry_delta);
+
+        let expiry_height = match self.req.expiry_height {
+            Some(h) if h > 0 => zcash_protocol::consensus::BlockHeight::from_u32(h),
+            _ => default_expiry,
+        };
+
         let mut config = crate::transaction::TransactionConfig::new(
             branch_id,
             anchor,
-            target_height,
-            None,
+            tip_height,
+            Some(offset),
         );
-        config = config.with_expiry_height(zcash_protocol::consensus::BlockHeight::from_u32(self.req.expiry_height));
+        config = config.with_expiry_height(expiry_height);
 
         let pk = get_or_init_proving_key();
 

@@ -9,8 +9,9 @@ import {
   JsBuiltTransaction,
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
+  getDefaultTxExpiryDelta,
 } from '@zcash-app/core';
-import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError, ConsensusBranchMismatchError } from './send.js';
+import { send, SendOptions, quoteFee, warmupProver, AnchorVerificationError, ConsensusBranchMismatchError, UpgradeBoundaryError } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -57,13 +58,14 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     height: number,
     nullifierHex: string
   ): void {
+    const txidHex = id.toString(16).padStart(64, '0');
     const sql = `
       INSERT OR REPLACE INTO received_notes (
         id, account_id, pool, txid, action_index, height, recipient,
         value_zatoshis, nullifier, rho, rseed, cmx,
         tree_position, scope, memo, spent_in_txid, spent_at_height
       ) VALUES (
-        ${id}, 'acct0', 'ironwood', X'${'11'.repeat(32)}', 0, ${height}, 'uregtest1...',
+        ${id}, 'acct0', 'ironwood', X'${txidHex}', 0, ${height}, 'uregtest1...',
         ${valueZatoshis}, X'${nullifierHex}', X'${'22'.repeat(32)}', X'${'33'.repeat(32)}', X'${'44'.repeat(32)}',
         0, 'external', NULL, NULL, NULL
       );
@@ -721,5 +723,222 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(res.txid).toBe('22'.repeat(32));
       expect(buildSpy).toHaveBeenCalledTimes(1);
     });
+
+    it('computes correct branch default expiry delta (+40 for NU6.3, +120 for NU7) through send pipeline and core NAPI', async () => {
+      // 1. Direct core NAPI getDefaultTxExpiryDelta assertions
+      const nu6_3_testnet_delta = getDefaultTxExpiryDelta('testnet', 4_465_025);
+      const nu7_testnet_delta = getDefaultTxExpiryDelta('testnet', 4_465_026);
+      const nu7_tip_delta = getDefaultTxExpiryDelta('testnet', 4_542_238);
+      const regtest_default_delta = getDefaultTxExpiryDelta('regtest', 10);
+      const regtest_nu7_delta = getDefaultTxExpiryDelta('regtest-nu7', 10);
+
+      expect(nu6_3_testnet_delta).toBe(40);
+      expect(nu7_testnet_delta).toBe(120);
+      expect(nu7_tip_delta).toBe(120);
+      expect(regtest_default_delta).toBe(40);
+      expect(regtest_nu7_delta).toBe(120);
+
+      // 2. Through send() pipeline at NU6.3 height (asserts tip + 40 passed to buildReq)
+      insertMockNote(30, 500_000_000, 4_465_020, '30'.repeat(32));
+      const clientNu6_3 = createMockClient();
+      (clientNu6_3.config as any).network = 'testnet';
+      (clientNu6_3 as any).network = 'testnet';
+      clientNu6_3.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4465024', consensusBranchId: '37a5165b' });
+
+      vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        {
+          id: 30,
+          recipient: 'uregtest1...',
+          valueZatoshis: 500_000_000,
+          nullifier: '30'.repeat(32),
+          height: 4_465_020,
+          treePosition: 0,
+        },
+      ]);
+      const buildSpyNu6_3 = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+        txid: '30'.repeat(32),
+        rawBytes: Buffer.from('hex', 'hex'),
+        fee: 10000,
+        numActions: 2,
+        expiryHeight: 4_465_064,
+      } as any);
+
+      await send({
+        client: clientNu6_3,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      });
+
+      expect(buildSpyNu6_3).toHaveBeenCalledWith(
+        expect.objectContaining({
+          expiryHeight: 4_465_024 + 40, // +40 for NU6.3
+        })
+      );
+
+      // 3. Through send() pipeline at NU7 height (asserts tip + 120 passed to buildReq)
+      insertMockNote(31, 500_000_000, 4_542_230, '31'.repeat(32));
+      const clientNu7 = createMockClient();
+      (clientNu7.config as any).network = 'testnet';
+      (clientNu7 as any).network = 'testnet';
+      clientNu7.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4542238', consensusBranchId: '77190ad9' });
+
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        {
+          id: 31,
+          recipient: 'uregtest1...',
+          valueZatoshis: 500_000_000,
+          nullifier: '31'.repeat(32),
+          height: 4_542_230,
+          treePosition: 0,
+        },
+      ]);
+      const buildSpyNu7 = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+        txid: '31'.repeat(32),
+        rawBytes: Buffer.from('hex', 'hex'),
+        fee: 10000,
+        numActions: 2,
+        expiryHeight: 4_542_358,
+      } as any);
+
+      await send({
+        client: clientNu7,
+        wallet,
+        from: 0,
+        to: 'uregtest1recipient...',
+        amount: 100_000_000n,
+      });
+
+      expect(buildSpyNu7).toHaveBeenCalledWith(
+        expect.objectContaining({
+          expiryHeight: 4_542_238 + 120, // +120 for NU7
+        })
+      );
+    });
+
+    it('enforces network upgrade boundaries: refuses to build 1 block before activation and computes for tip+1 (testnet & mainnet)', async () => {
+      // Testnet activation: 4,465,026
+      // Tip 4,465,024 -> target 4,465,025 (NU6.3 ok)
+      // Tip 4,465,025 -> target 4,465,026 (refuse!)
+      // Tip 4,465,026 -> target 4,465,027 (NU7 ok)
+      const mockTestnetClient = createMockClient();
+      (mockTestnetClient.config as any).network = 'testnet';
+      (mockTestnetClient as any).network = 'testnet';
+
+      insertMockNote(40, 500_000_000, 4_465_020, '40'.repeat(32));
+      insertMockNote(41, 500_000_000, 4_465_020, '41'.repeat(32));
+      insertMockNote(42, 500_000_000, 3_543_400, '42'.repeat(32));
+      insertMockNote(43, 500_000_000, 3_543_400, '43'.repeat(32));
+
+      vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
+      const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
+        txid: '40'.repeat(32),
+        rawBytes: Buffer.from('hex', 'hex'),
+        fee: 10000,
+        numActions: 2,
+        expiryHeight: 4_465_064,
+      } as any);
+
+      // (a) Testnet tip 4,465,024 -> NU6.3 OK (+40 delta)
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        { id: 40, recipient: 'utest1...', valueZatoshis: 500_000_000, nullifier: '40'.repeat(32), height: 4_465_020, treePosition: 0 },
+      ]);
+      mockTestnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4465024', consensusBranchId: '37a5165b' });
+      await send({
+        client: mockTestnetClient,
+        wallet,
+        from: 0,
+        to: 'utest1recipient...',
+        amount: 100_000_000n,
+      });
+      expect(buildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ expiryHeight: 4_465_024 + 40 })
+      );
+
+      // (b) Testnet tip 4,465,025 -> within 1 block before NU7 activation (4,465,026) -> REFUSE
+      mockTestnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4465025', consensusBranchId: '37a5165b' });
+      await expect(
+        send({
+          client: mockTestnetClient,
+          wallet,
+          from: 0,
+          to: 'utest1recipient...',
+          amount: 100_000_000n,
+        })
+      ).rejects.toThrow(UpgradeBoundaryError);
+
+      // (c) Testnet tip 4,465,026 -> NU7 OK (+120 delta)
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        { id: 41, recipient: 'utest1...', valueZatoshis: 500_000_000, nullifier: '41'.repeat(32), height: 4_465_020, treePosition: 1 },
+      ]);
+      mockTestnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '4465026', consensusBranchId: '77190ad9' });
+      await send({
+        client: mockTestnetClient,
+        wallet,
+        from: 0,
+        to: 'utest1recipient...',
+        amount: 100_000_000n,
+      });
+      expect(buildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ expiryHeight: 4_465_026 + 120 })
+      );
+
+      // Mainnet activation: 3,543,405
+      // Tip 3,543,403 -> target 3,543,404 (NU6.3 ok)
+      // Tip 3,543,404 -> target 3,543,405 (refuse!)
+      // Tip 3,543,405 -> target 3,543,406 (NU7 ok)
+      const mockMainnetClient = createMockClient();
+      (mockMainnetClient.config as any).network = 'mainnet';
+      (mockMainnetClient as any).network = 'mainnet';
+
+      // (d) Mainnet tip 3,543,403 -> NU6.3 OK (+40 delta)
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        { id: 42, recipient: 'u1...', valueZatoshis: 500_000_000, nullifier: '42'.repeat(32), height: 3_543_400, treePosition: 2 },
+      ]);
+      mockMainnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '3543403', consensusBranchId: '37a5165b' });
+      await send({
+        client: mockMainnetClient,
+        wallet,
+        from: 0,
+        to: 'u1recipient...',
+        amount: 100_000_000n,
+      });
+      expect(buildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ expiryHeight: 3_543_403 + 40 })
+      );
+
+      // (e) Mainnet tip 3,543,404 -> within 1 block before NU7 activation (3,543,405) -> REFUSE
+      mockMainnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '3543404', consensusBranchId: '37a5165b' });
+      await expect(
+        send({
+          client: mockMainnetClient,
+          wallet,
+          from: 0,
+          to: 'u1recipient...',
+          amount: 100_000_000n,
+        })
+      ).rejects.toThrow(UpgradeBoundaryError);
+
+      // (f) Mainnet tip 3,543,405 -> NU7 OK (+120 delta)
+      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
+        { id: 43, recipient: 'u1...', valueZatoshis: 500_000_000, nullifier: '43'.repeat(32), height: 3_543_400, treePosition: 3 },
+      ]);
+      mockMainnetClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '3543405', consensusBranchId: '77190ad9' });
+      await send({
+        client: mockMainnetClient,
+        wallet,
+        from: 0,
+        to: 'u1recipient...',
+        amount: 100_000_000n,
+      });
+      expect(buildSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ expiryHeight: 3_543_405 + 120 })
+      );
+    });
   });
 });
+
+
+

@@ -366,6 +366,13 @@ mod napi_bindings {
             .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))?;
         Ok(format!("{:08x}", branch))
     }
+
+    #[napi]
+    pub fn get_default_tx_expiry_delta(network_str: String, height: u32) -> Result<u32> {
+        let network = get_params_for_network(&network_str);
+        let branch_id = zcash_protocol::consensus::BranchId::for_height(&network, BlockHeight::from_u32(height));
+        Ok(zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id))
+    }
 }
 
 #[cfg(test)]

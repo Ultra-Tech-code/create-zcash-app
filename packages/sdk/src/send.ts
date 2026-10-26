@@ -9,6 +9,7 @@ import {
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
   getExpectedBranchId,
+  getDefaultTxExpiryDelta,
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
@@ -50,6 +51,14 @@ export class ConsensusBranchMismatchError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ConsensusBranchMismatchError';
+  }
+}
+
+/** Thrown when transaction building is attempted within one block before a network upgrade activation. */
+export class UpgradeBoundaryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UpgradeBoundaryError';
   }
 }
 
@@ -113,12 +122,21 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   // 1. Check tip and assert consensus branch matches node (fail closed on all networks)
   const info = await client.getInfo();
   const tipHeight = Number(info.blockHeight);
+  const targetHeight = tipHeight + 1;
 
-  const expectedBranchId = getExpectedBranchId(client.config.network, tipHeight).toLowerCase().replace(/^0x/, '');
+  const tipBranchId = getExpectedBranchId(client.config.network, tipHeight).toLowerCase().replace(/^0x/, '');
+  const targetBranchId = getExpectedBranchId(client.config.network, targetHeight).toLowerCase().replace(/^0x/, '');
+
+  if (tipBranchId !== targetBranchId) {
+    throw new UpgradeBoundaryError(
+      `Cannot build transaction: tip height ${tipHeight} is within one block of network upgrade activation at height ${targetHeight}. Transaction building is refused at upgrade boundaries.`
+    );
+  }
+
   const nodeBranchId = (info.consensusBranchId ?? '').toLowerCase().replace(/^0x/, '');
-  if (!nodeBranchId || nodeBranchId !== expectedBranchId) {
+  if (!nodeBranchId || nodeBranchId !== tipBranchId) {
     throw new ConsensusBranchMismatchError(
-      `Consensus branch mismatch on network ${client.config.network} at height ${tipHeight}: local expected 0x${expectedBranchId}, node reported 0x${info.consensusBranchId ?? 'none'}`
+      `Consensus branch mismatch on network ${client.config.network} at height ${tipHeight}: local expected 0x${tipBranchId}, node reported 0x${info.consensusBranchId ?? 'none'}`
     );
   }
 
@@ -279,7 +297,9 @@ export async function send(opts: SendOptions): Promise<SendResult> {
 
   // 4. In-flight reservation
   const reservationId = crypto.randomBytes(32);
-  const expiryHeight = tipHeight + 40;
+  const network = client.config?.network || 'regtest';
+  const expiryDelta = getDefaultTxExpiryDelta(network, targetHeight);
+  const expiryHeight = tipHeight + expiryDelta;
   const selectedNoteIds = selectedNotes.map((n) => n.id);
 
   try {

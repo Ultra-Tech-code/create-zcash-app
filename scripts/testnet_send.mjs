@@ -13,6 +13,7 @@ import {
   decodeIronwoodFrontierRoot,
   ironwoodEmptyTreeRoot,
   getExpectedBranchId,
+  getDefaultTxExpiryDelta,
   quoteFee,
 } from '../packages/core/index.js';
 
@@ -284,13 +285,14 @@ async function main() {
 
   const selectedNoteIds = selectedNotes.map((n) => n.id);
   const reservationId = Buffer.alloc(32, 0x5a);
-  const expiryHeight = tipHeight + 40;
+  const expiryDelta = getDefaultTxExpiryDelta('testnet', tipHeight);
+  const expiryHeight = tipHeight + expiryDelta;
 
   log(`Spendable Note IDs:      ${selectedNoteIds.join(', ')}`);
   log(`Total Inbound:           ${selectedTotal} zatoshis`);
   log(`Output Amount:           ${amountZat} zatoshis`);
   log(`ZIP-317 Quoted Fee:      ${requiredFee} zatoshis`);
-  log(`Expiry Height:           ${expiryHeight}`);
+  log(`Expiry Height:           ${expiryHeight} (tip + ${expiryDelta})`);
 
   // 8. Build and prove transaction
   log('\n--- Step 5: Build and Halo2-Prove V6 Ironwood Transaction ---');
@@ -316,11 +318,14 @@ async function main() {
     process.exit(1);
   }
 
+  const txidRpc = Buffer.from(built.txid, 'hex').reverse().toString('hex');
+
   // 9. Pre-broadcast validation & parameter verification
   log('\n================================================================');
   log('   PRE-BROADCAST VERIFICATION SUMMARY');
   log('================================================================');
-  log(`TxID (display order):    ${built.txid}`);
+  log(`TxID (node/explorer RPC order):    ${txidRpc}`);
+  log(`TxID (internal builder byte order): ${built.txid}`);
   log(`Fee Paid:                ${built.fee} zatoshis (ZIP 317 standard)`);
   log(`Expiry Height:           ${built.expiryHeight}`);
   log(`Consensus Branch ID:     0x${expectedBranch} (NU7)`);
@@ -355,13 +360,14 @@ async function main() {
   const txidBuf = Buffer.from(built.txid, 'hex');
   wallet.markBroadcastWithReservation(txidBuf, reservationId);
   log(`TRANSACTION BROADCAST ACCEPTED BY NODE! ✅`);
-  log(`  Confirmed TxID: ${built.txid}`);
+  log(`  Confirmed TxID (explorer order): ${txidRpc}`);
+  log(`  Confirmed TxID (internal order): ${built.txid}`);
   log(`  Log saved to:   ${sendLogPath}`);
 
   // 11. Wait for confirmation on live chain
   log('\n--- Step 7: Await On-Chain Confirmation ---');
-  log(`Polling live testnet node for txid: ${built.txid}...`);
-  const txidRpc = Buffer.from(built.txid, 'hex').reverse().toString('hex');
+  log(`Polling live testnet node for txid: ${txidRpc}...`);
+  log(`  Explorer TxID: ${txidRpc}`);
   log(`  Internal TxID: ${built.txid}`);
   log(`  RPC TxID:      ${txidRpc}`);
 
