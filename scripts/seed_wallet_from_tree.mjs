@@ -9,9 +9,10 @@
  * PURPOSE:
  * Explains and reproduces how wallet_b_nu7.db was initially seeded:
  * 1. Creates wallet_b_nu7.db initialized with Account B's mnemonic/UFVK.
- * 2. Clones the note commitment tree and sync metadata tables (blocks,
- *    sapling_tree, orchard_tree, etc.) from an already-synced reference
- *    wallet (e.g. wallet_a_nu7.db) up to height 4,542,233.
+ * 2. Clones the note commitment tree and sync metadata tables (scanned_blocks,
+ *    ironwood_tree_cap, ironwood_tree_checkpoints, ironwood_tree_checkpoint_marks_removed,
+ *    ironwood_tree_shards) from an already-synced reference wallet (e.g. wallet_a_nu7.db)
+ *    up to height 4,542,233.
  * 3. Performs a narrow 7-block incremental scan (4,542,234 to 4,542,241)
  *    using Account B's UFVK against testnet.zec.rocks to detect the incoming
  *    transaction note at height 4,542,240 without rescanning 400k+ historical blocks.
@@ -67,7 +68,7 @@ handleB.close?.();
 console.log('2. Cloning commitment tree state from Wallet A...');
 const dumpSql = execFileSync('/usr/bin/sqlite3', [
   walletAPath,
-  '.dump blocks sapling_tree orchard_tree received_notes',
+  '.dump scanned_blocks ironwood_tree_cap ironwood_tree_checkpoints ironwood_tree_checkpoint_marks_removed ironwood_tree_shards received_notes',
 ], { encoding: 'utf8' });
 
 // Filter out received_notes so Wallet B only inherits the tree, not Wallet A notes
@@ -85,7 +86,7 @@ fs.unlinkSync(dumpFile);
 // Set scanned height back to 4542233 so the next 7 blocks will be scanned for Account B notes
 execFileSync('/usr/bin/sqlite3', [
   walletBPath,
-  'UPDATE blocks SET height = 4542233 WHERE height > 4542233;',
+  'UPDATE scanned_blocks SET height = 4542233 WHERE height > 4542233;',
 ]);
 
 console.log('3. Running incremental 7-block scan (4542234 -> 4542241)...');

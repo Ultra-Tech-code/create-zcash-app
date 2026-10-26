@@ -1,0 +1,21 @@
+{
+  "height": 4542240,
+  "hash_explorer_order": "00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e",
+  "hash_raw_bytes_hex": "2ea96ff117d29e9012bb3548107e5f701174c7bbf87364225024e5b2495c0000",
+  "prev_hash_explorer_order": "00005e80d191d363361a7e11dd5e02fa0c509af41134f9ecd5c927826d1ed361",
+  "time": 1792976987,
+  "header_hex": "",
+  "vtx_count": 2,
+  "vtx": [
+    {
+      "index": 0,
+      "txid_explorer_order": "ff59728ac081aebe7b702f95451d4f4dceb0e0449a8ce7ca069c0ef8c42facf3",
+      "txid_internal_order": "f3ac2fc4f80e9c06cae78c9a44e0b0ce4d4f1d45952f707bbeae81c08a7259ff"
+    },
+    {
+      "index": 1,
+      "txid_explorer_order": "8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a",
+      "txid_internal_order": "5a09656a90ed7332e42de4f9c12f31c71d093e734deb8357b9e641c4ab16a58c"
+    }
+  ]
+}

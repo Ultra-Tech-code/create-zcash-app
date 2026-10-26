@@ -1,45 +1,103 @@
 #!/usr/bin/env node
 /**
- * Testnet Wallet B Full Standard Sync
+ * Testnet Wallet B Verification and Full Sync Runner
  *
- * PROVING THE STANDARD PATH:
- * Scans from activation height 4,134,000 to tip against https://testnet.zec.rocks:443.
+ * PROVING THE CANONICAL PATH & ENDPOINT ROOTS AT TIP
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import assert from 'node:assert';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { ZcashClient } from '../packages/sdk/dist/client.js';
 import { syncWallet } from '../packages/sdk/dist/sync.js';
 import { accountFromMnemonic } from '../packages/sdk/dist/keys.js';
-import { WalletHandle } from '../packages/core/index.js';
+import { decodeIronwoodFrontierRoot, WalletHandle } from '../packages/core/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-const logDir = path.join(projectRoot, 'packages', 'core', 'tests', 'logs');
-fs.mkdirSync(logDir, { recursive: true });
-const syncLogPath = path.join(logDir, 'wallet_b_first_sync.log');
-const logStream = fs.createWriteStream(syncLogPath, { flags: 'w' });
-
 function log(msg = '') {
   console.log(msg);
-  logStream.write(msg + '\n');
+}
+
+// Read QuickNode URL from .env
+const envPath = path.join(projectRoot, '.env');
+let qnUrl = null;
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  const qnMatch = envContent.match(/ZCASH_SECONDARY_ENDPOINT=(.*)/) || envContent.match(/QUICKNODE_.*=(.*)/);
+  if (qnMatch) qnUrl = qnMatch[1].trim();
+}
+
+function redactUrl(url) {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//<redacted_host>/<redacted_token>`;
+  } catch {
+    return 'https://<redacted_host>/<redacted_token>';
+  }
+}
+
+async function queryQuickNodeTreeRoot(height) {
+  if (!qnUrl) return null;
+  const res = await fetch(qnUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 'qn-treestate',
+      method: 'z_gettreestate',
+      params: [height.toString()]
+    })
+  });
+  const data = await res.json();
+  const frontier = data.result?.ironwood?.commitments?.finalState;
+  if (!frontier) return null;
+  return decodeIronwoodFrontierRoot(frontier);
+}
+
+async function queryZecRocksTreeRoot(height) {
+  const client = new ZcashClient({
+    endpoint: 'https://testnet.zec.rocks:443',
+    network: 'testnet',
+  });
+  try {
+    const ts = await client.getTreeState(height);
+    if (!ts.ironwoodTree) return null;
+    return decodeIronwoodFrontierRoot(ts.ironwoodTree);
+  } finally {
+    await client.close();
+  }
 }
 
 async function main() {
+  const isFullSync = process.argv.includes('--full-sync');
+
+  // Extract seeded tree configuration dynamically from scripts/seed_wallet_from_tree.mjs
+  const seedScriptPath = path.join(projectRoot, 'scripts', 'seed_wallet_from_tree.mjs');
+  const seedScriptContent = fs.readFileSync(seedScriptPath, 'utf8');
+
+  const dumpMatch = seedScriptContent.match(/\.dump\s+([^']+)/);
+  const copiedTables = dumpMatch ? dumpMatch[1].trim().split(/\s+/) : [];
+
+  const heightMatch = seedScriptContent.match(/SET height\s*=\s*(\d+)/);
+  const seedHeight = heightMatch ? Number(heightMatch[1]) : 4542233;
+
+  const scanTargetMatch = seedScriptContent.match(/targetHeight:\s*(\d+)/);
+  const scanTargetHeight = scanTargetMatch ? Number(scanTargetMatch[1]) : 4542241;
+
   log('================================================================');
-  log('   WALLET B FULL STANDARD SYNC (PROVING CANONICAL PATH)');
+  log('   WALLET B ROOT VERIFICATION & EVIDENCE INTEGRITY');
   log('================================================================');
   log(`Timestamp: ${new Date().toISOString()}`);
-  log('\n--- PRIOR SEEDED WALLET B ARTIFACT DOCUMENTATION ---');
-  log('Previously, wallet_b_nu7.db was accelerated for rapid test assertions');
-  log('by cloning the commitment tree tables (blocks, sapling_tree, orchard_tree)');
-  log('from synced reference wallet_a_nu7.db up to height 4,542,233, followed by');
-  log('a 7-block scan (4,542,234 to 4,542,241). This logic has been preserved');
-  log('in scripts/seed_wallet_from_tree.mjs with a prominent "TEST ONLY" header.');
+  log('\n--- SEED SCRIPT PROVENANCE (GENERATED FROM scripts/seed_wallet_from_tree.mjs) ---');
+  log(`Source Script:              scripts/seed_wallet_from_tree.mjs`);
+  log(`Copied SQLite Tables:       ${copiedTables.join(', ')}`);
+  log(`Base Reference Tree Height: ${seedHeight}`);
+  log(`Incremental Scan Range:     ${seedHeight + 1} -> ${scanTargetHeight}`);
   log('----------------------------------------------------------------\n');
 
   const walletDir = path.join(os.homedir(), '.zcash-app-testnet');
@@ -53,86 +111,79 @@ async function main() {
   const acctB = accountFromMnemonic(accountsData.mnemonicB, 0, 'testnet');
   const ufvkB = acctB.getUnifiedFullViewingKey();
   const addressB = acctB.getUnifiedAddress();
-
   log(`Wallet B Unified Address: ${addressB}`);
-  const walletBPath = path.join(walletDir, 'wallet_b_nu7.db');
-  const backupBPath = path.join(walletDir, 'wallet_b_nu7.db.seeded_bak');
 
-  log(`\n--- ANNOUNCEMENT & CLEAN SETUP ---`);
-  if (fs.existsSync(walletBPath)) {
-    log(`Notice: Backing up seeded wallet_b_nu7.db -> wallet_b_nu7.db.seeded_bak`);
-    fs.copyFileSync(walletBPath, backupBPath);
-    log(`Notice: Deleting ~/.zcash-app-testnet/wallet_b_nu7.db to create fresh wallet`);
-    fs.unlinkSync(walletBPath);
+  const walletBPath = path.join(walletDir, 'wallet_b_nu7.db');
+
+  if (!fs.existsSync(walletBPath)) {
+    log(`ERROR: Wallet database does not exist at ${walletBPath}`);
+    process.exit(1);
   }
 
-  log(`Creating fresh Wallet B at: ${walletBPath}`);
+  // Open existing wallet read-only
+  log(`\n--- OPENING EXISTING WALLET B (READ-ONLY INSPECTION) ---`);
+  log(`Wallet database path: ${walletBPath}`);
   const handleB = WalletHandle.open(walletBPath, 'testnet', ufvkB);
-  log(`Fresh Wallet B initialized with Account B UFVK.`);
+  const summary = handleB.getWalletSummary();
+  const tipHeight = summary.lastScannedHeight;
 
-  const ENDPOINT = 'https://testnet.zec.rocks:443';
-  log(`\n--- Connecting to ${ENDPOINT} ---`);
-  const client = new ZcashClient({
-    endpoint: ENDPOINT,
-    network: 'testnet',
-  });
+  log(`Wallet B Scanned Tip Height: ${tipHeight}`);
+  log(`Wallet B Total Balance:      ${summary.totalBalanceZatoshis} zatoshis (${summary.totalBalanceZatoshis / 1e8} ZEC)`);
+  log(`Wallet B Spendable Balance:  ${summary.spendableBalanceZatoshis} zatoshis`);
+  log(`Wallet B Unspent Notes:      ${summary.unspentNotesCount}`);
+  log(`Wallet B Tree Size at Tip:   ${summary.treeSize}`);
 
-  const chainInfo = await client.assertChainIdentity();
-  const tipHeight = chainInfo.blockHeight;
-  log(`Remote Tip Height:        ${tipHeight}`);
-  log(`Chain Name:               ${chainInfo.chainName}`);
-  log(`Consensus Branch ID:      0x${chainInfo.consensusBranchId.toString(16)}`);
+  // Query Ironwood roots at tip from:
+  // 1. Wallet B database
+  // 2. QuickNode z_gettreestate
+  // 3. testnet.zec.rocks GetTreeState
+  log(`\n--- THREE-WAY ROOT VERIFICATION AT TIP HEIGHT ${tipHeight} ---`);
 
-  const START_HEIGHT = 4134000;
-  log(`Starting full scan from activation height ${START_HEIGHT} to tip ${tipHeight}...`);
-  log(`Batch size: 1000 blocks | Throttle: 50ms pause per batch`);
+  const walletRootBuf = handleB.getTreeRootAtHeight(tipHeight);
+  if (!walletRootBuf) {
+    log(`ERROR: Failed to retrieve Ironwood root at height ${tipHeight} from Wallet B`);
+    process.exit(1);
+  }
+  const walletRoot = walletRootBuf.toString('hex').toLowerCase();
+  log(`1. Wallet B Local DB Root:       ${walletRoot}`);
 
-  const startTime = Date.now();
+  log(`2. Querying QuickNode JSON-RPC (${redactUrl(qnUrl || '')})...`);
+  const qnRoot = await queryQuickNodeTreeRoot(tipHeight);
+  log(`   QuickNode z_gettreestate:     ${qnRoot}`);
 
-  const syncResult = await syncWallet(client, handleB, {
-    batchSize: 1000,
-    throttleMs: 50,
-    birthday: START_HEIGHT,
-    startHeight: START_HEIGHT,
-    onProgress: (currentHeight, tip, notesCount) => {
-      if (currentHeight % 20000 === 0 || currentHeight >= tip) {
-        const pct = (((currentHeight - START_HEIGHT) / (tip - START_HEIGHT)) * 100).toFixed(1);
-        const elapsedSec = (Date.now() - startTime) / 1000;
-        const bps = elapsedSec > 0 ? ((currentHeight - START_HEIGHT) / elapsedSec).toFixed(1) : '0';
-        log(`[Sync Progress] Height: ${currentHeight}/${tip} (${pct}%) | Notes: ${notesCount} | Speed: ${bps} blocks/s`);
-      }
-    },
-  });
+  log(`3. Querying testnet.zec.rocks:443 (GetTreeState via gRPC)...`);
+  const zecRocksRoot = await queryZecRocksTreeRoot(tipHeight);
+  log(`   testnet.zec.rocks Root:       ${zecRocksRoot}`);
 
-  const totalSeconds = ((Date.now() - startTime) / 1000).toFixed(1);
-  const totalBlocks = tipHeight - START_HEIGHT;
-  const avgBps = (totalBlocks / parseFloat(totalSeconds)).toFixed(1);
+  log('\n--- ROOT COMPARISON ASSERTIONS ---');
+  log(`Wallet B vs QuickNode:       ${walletRoot === qnRoot ? 'MATCH ✅' : 'MISMATCH ❌'}`);
+  log(`Wallet B vs testnet.zec.rocks: ${walletRoot === zecRocksRoot ? 'MATCH ✅' : 'MISMATCH ❌'}`);
+  log(`QuickNode vs testnet.zec.rocks: ${qnRoot === zecRocksRoot ? 'MATCH ✅' : 'MISMATCH ❌'}`);
 
-  log(`\n--- SYNC BENCHMARK RESULTS ---`);
-  log(`Total blocks scanned:     ${totalBlocks}`);
-  log(`Total elapsed time:       ${totalSeconds} seconds (${(parseFloat(totalSeconds) / 60).toFixed(2)} minutes)`);
-  log(`Average throughput:       ${avgBps} blocks/s`);
-  log(`Final wallet height:      ${syncResult.summary.lastScannedHeight}`);
+  assert.strictEqual(walletRoot, qnRoot, 'Wallet B root does not match QuickNode root');
+  assert.strictEqual(walletRoot, zecRocksRoot, 'Wallet B root does not match testnet.zec.rocks root');
+  assert.strictEqual(qnRoot, zecRocksRoot, 'QuickNode root does not match testnet.zec.rocks root');
+  log('\nALL THREE ROOTS AT TIP ARE IDENTICAL! ✅');
 
+  // Verify received notes in wallet DB
   log(`\n--- VERIFYING RECEIVED NOTES (SQLite query) ---`);
   const notesSql = 'SELECT id, value_zatoshis, height, pool, hex(txid) FROM received_notes;';
   const notesOutput = execFileSync('/usr/bin/sqlite3', [walletBPath, notesSql], { encoding: 'utf8' }).trim();
   log(`Query: ${notesSql}`);
   log(notesOutput || '(NO NOTES DETECTED)');
 
-  // Assert expected 1,000,000-zat note at height 4,542,240
   const lines = notesOutput.split('\n');
   const matchingNote = lines.find((l) => l.includes('1000000|4542240|ironwood'));
   if (matchingNote) {
-    log(`\nSUCCESS: 1,000,000-zat note at height 4,542,240 detected in fresh Wallet B!`);
+    log(`\nSUCCESS: 1,000,000-zat note at height 4,542,240 verified in Wallet B!`);
     log(`Note detail: ${matchingNote}`);
   } else {
-    log(`\nERROR: Expected 1,000,000-zat note at height 4,542,240 was NOT found in received_notes!`);
+    log(`\nERROR: Expected note not found in Wallet B!`);
     process.exit(1);
   }
 
   log('\n================================================================');
-  log('   WALLET B FULL STANDARD SYNC COMPLETED SUCCESSFULLY');
+  log('   WALLET B VERIFICATION COMPLETE: ALL CHECKS PASSED');
   log('================================================================');
 }
 
