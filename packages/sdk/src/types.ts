@@ -104,7 +104,7 @@ export interface DecryptedActionOutgoing {
 
 export interface DecryptedTransaction {
   txid: string;
-  fee: bigint;
+  fee: bigint | null;
   expiryHeight: number;
   consensusBranchId: string;
   incoming: DecryptedActionIncoming[];

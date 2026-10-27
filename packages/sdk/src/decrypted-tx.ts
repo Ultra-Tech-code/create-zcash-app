@@ -24,7 +24,7 @@ export function decryptTransaction(
   const res = coreDecryptTransaction(ufvk, network, buf, height);
   return {
     txid: res.txid,
-    fee: BigInt(res.fee),
+    fee: res.fee !== null && res.fee !== undefined ? BigInt(res.fee) : null,
     expiryHeight: res.expiryHeight,
     consensusBranchId: res.consensusBranchId,
     incoming: res.incoming.map((inc) => ({

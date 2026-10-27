@@ -39,7 +39,7 @@ pub struct DecryptedActionOutgoing {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DecryptedTransactionResult {
     pub txid: String,
-    pub fee: i64,
+    pub fee: Option<i64>,
     pub expiry_height: u32,
     pub consensus_branch_id: String,
     pub incoming: Vec<DecryptedActionIncoming>,
@@ -100,10 +100,14 @@ pub fn internal_decrypt_transaction(
     let txid_hex = tx.txid().to_string();
     let expiry_height = u32::from(tx.expiry_height());
 
+    // Compute fee as the sum of all value balances (transparent in - out, sapling, orchard, ironwood).
+    // If transparent inputs are present without known prevout amounts or if the overall balance
+    // is incomputable, fee_paid returns None (null) rather than silently defaulting to 0.
     let fee = tx
-        .ironwood_bundle()
-        .map(|b| i64::from(*b.value_balance()))
-        .unwrap_or(0);
+        .fee_paid(|_| Ok::<Option<zcash_protocol::value::Zatoshis>, zcash_protocol::value::BalanceError>(None))
+        .ok()
+        .flatten()
+        .map(|z| u64::from(z) as i64);
 
     let mut ufvks = HashMap::new();
     ufvks.insert(0u32, ufvk);
