@@ -310,7 +310,7 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   const reservationId = crypto.randomBytes(32);
   const network = client.config?.network || 'regtest';
   const expiryDelta = getDefaultTxExpiryDelta(network, targetHeight);
-  const expiryHeight = tipHeight + expiryDelta;
+  const expiryHeight = targetHeight + expiryDelta;
   const selectedNoteIds = selectedNotes.map((n) => n.id);
 
   try {

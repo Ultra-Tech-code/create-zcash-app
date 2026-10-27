@@ -259,7 +259,7 @@ impl Task for BuildTransactionTask {
         let target_height = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32 + 1);
         let branch_id = zcash_protocol::consensus::BranchId::for_height(&self.network, target_height);
         let expiry_delta = zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id);
-        let default_expiry = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32 + expiry_delta);
+        let default_expiry = zcash_protocol::consensus::BlockHeight::from_u32(tip_height_u32 + 1 + expiry_delta);
 
         let expiry_height = match self.req.expiry_height {
             Some(h) if h > 0 => zcash_protocol::consensus::BlockHeight::from_u32(h),
