@@ -1,0 +1,115 @@
+========================================================================
+=== PART B: LOCAL LIGHTWALLETD & FRESH WALLET B SDK SYNC RUNNER =====
+========================================================================
+Timestamp: 2026-10-27T14:06:31.012Z
+[AUTH] Local Zebra cookie loaded from /Users/0xblackadam/Library/Caches/zebra/.cookie (token redacted)
+[WALLET] Wallet B account initialized (mnemonic & UFVK redacted)
+[WALLET] Wallet B Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+
+--- 1. Evaluating Host Reachability (Docker vs Native) ---
+Testing whether standard Docker container network can reach host 127.0.0.1:18232...
+❌ Docker bridge container cannot reach 127.0.0.1 on the macOS host (container network namespace isolates loopback).
+👉 As instructed ("If Docker cannot reach 127.0.0.1 on the host, say so and try native"), using native lightwalletd v0.6.0 binary.
+✅ Using native binary: /tmp/lightwalletd (Mach-O arm64)
+
+--- 2. Starting Local lightwalletd v0.6.0 against Local Node ---
+Command: /tmp/lightwalletd [args redacted credentials]
+Connecting to backend node: http://127.0.0.1:18232 via cookie authentication
+Waiting for local lightwalletd gRPC server readiness on port 39067...
+✅ lightwalletd ready! Vendor: ECC LightWalletD, Block Height: 4547680, Branch: 77190ad9, Backend: /Zebra:7.0.0/
+Ingestion Status: Started background block ingestion from height 0 sequentially (v0.6.0 default). Total request errors: 0
+
+--- 3. Setting Up Fresh Wallet DB in /tmp ---
+Created fresh wallet directory: /tmp/local_wallet_b_sync
+Wallet database path:           /tmp/local_wallet_b_sync/wallet_b.db
+Initial scanned height:  0
+Initial balance:         0 zatoshis
+Initial unspent notes:   0
+
+--- 4. Running SDK Sync from 4134000 to Tip ---
+Sync range: 4134000 -> 4547680 (413,681 blocks)
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 4134000 to target 4547680 (tip: 4547680, batch size: 10000, throttle: 0ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4143999/4547680 (2.4%) | Req: 2 | Speed: 960.1 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4153999/4547680 (4.8%) | Req: 3 | Speed: 913.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4163999/4547680 (7.3%) | Req: 4 | Speed: 899.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4173999/4547680 (9.7%) | Req: 5 | Speed: 912.1 blocks/s
+[Sync Progress] Scanned: 4174049/4547680 (9.7%) | Speed: 772.7 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4183999/4547680 (12.1%) | Req: 6 | Speed: 905.1 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4193999/4547680 (14.5%) | Req: 7 | Speed: 915.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4203999/4547680 (16.9%) | Req: 8 | Speed: 930.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4213999/4547680 (19.3%) | Req: 9 | Speed: 909.5 blocks/s
+[Sync Progress] Scanned: 4214049/4547680 (19.4%) | Speed: 839.1 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4223999/4547680 (21.8%) | Req: 10 | Speed: 923.3 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4233999/4547680 (24.2%) | Req: 11 | Speed: 913.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4243999/4547680 (26.6%) | Req: 12 | Speed: 881.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4253999/4547680 (29.0%) | Req: 13 | Speed: 881.1 blocks/s
+[Sync Progress] Scanned: 4254049/4547680 (29.0%) | Speed: 836.2 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4263999/4547680 (31.4%) | Req: 14 | Speed: 891.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4273999/4547680 (33.8%) | Req: 15 | Speed: 893.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4283999/4547680 (36.3%) | Req: 16 | Speed: 898.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4293999/4547680 (38.7%) | Req: 17 | Speed: 905.7 blocks/s
+[Sync Progress] Scanned: 4294049/4547680 (38.7%) | Speed: 857.1 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4303999/4547680 (41.1%) | Req: 18 | Speed: 894.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4313999/4547680 (43.5%) | Req: 19 | Speed: 599.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4323999/4547680 (45.9%) | Req: 20 | Speed: 565.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4333999/4547680 (48.3%) | Req: 21 | Speed: 573.1 blocks/s
+[Sync Progress] Scanned: 4334049/4547680 (48.4%) | Speed: 559.7 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4343999/4547680 (50.8%) | Req: 22 | Speed: 577.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4353999/4547680 (53.2%) | Req: 23 | Speed: 575.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4363999/4547680 (55.6%) | Req: 24 | Speed: 583.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4373999/4547680 (58.0%) | Req: 25 | Speed: 577.9 blocks/s
+[Sync Progress] Scanned: 4374049/4547680 (58.0%) | Speed: 564.7 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4383999/4547680 (60.4%) | Req: 26 | Speed: 572.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4393999/4547680 (62.9%) | Req: 27 | Speed: 574.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4403999/4547680 (65.3%) | Req: 28 | Speed: 579.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4413999/4547680 (67.7%) | Req: 29 | Speed: 584.2 blocks/s
+[Sync Progress] Scanned: 4414049/4547680 (67.7%) | Speed: 573.3 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4423999/4547680 (70.1%) | Req: 30 | Speed: 583.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4433999/4547680 (72.5%) | Req: 31 | Speed: 583.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4443999/4547680 (74.9%) | Req: 32 | Speed: 584.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4453999/4547680 (77.4%) | Req: 33 | Speed: 577.5 blocks/s
+[Sync Progress] Scanned: 4454049/4547680 (77.4%) | Speed: 567.3 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4463999/4547680 (79.8%) | Req: 34 | Speed: 574.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4473999/4547680 (82.2%) | Req: 35 | Speed: 570.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4483999/4547680 (84.6%) | Req: 36 | Speed: 569.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4493999/4547680 (87.0%) | Req: 37 | Speed: 567.3 blocks/s
+[Sync Progress] Scanned: 4494049/4547680 (87.0%) | Speed: 559.5 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4503999/4547680 (89.4%) | Req: 38 | Speed: 569.3 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4513999/4547680 (91.9%) | Req: 39 | Speed: 573.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4523999/4547680 (94.3%) | Req: 40 | Speed: 577.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4533999/4547680 (96.7%) | Req: 41 | Speed: 566.1 blocks/s
+[Sync Progress] Scanned: 4534049/4547680 (96.7%) | Speed: 547.5 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4543999/4547680 (99.1%) | Req: 42 | Speed: 517.6 blocks/s
+[Sync Progress] Scanned: 4547680/4547680 (100.0%) | Speed: 518.5 blocks/s | Notes found: 0
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4547680/4547680 (100.0%) | Req: 43 | Speed: 518.5 blocks/s
+
+✅ SDK sync completed in 797.91s (518.5 blocks/s)!
+Final scanned tip height: 4547680
+Total balance:            1000000 zatoshis (0.01 ZEC)
+Spendable balance:        1000000 zatoshis
+Unspent notes:            1
+Tree size:                765862
+
+--- 5. Three-Way Ironwood Root Verification at Tip (Height 4547680) ---
+1. Fresh Wallet B Local DB Root: e14a87988f5adc1c298ce93fdf6bcc7229cf1bc0ae9b00836fd29b9f2ebdb800
+2. Querying Local Zebra Node (127.0.0.1:18232 z_gettreestate)...
+   Local Zebra Node FinalRoot:   e14a87988f5adc1c298ce93fdf6bcc7229cf1bc0ae9b00836fd29b9f2ebdb800
+3. Querying testnet.zec.rocks:443 (GetTreeState via gRPC)...
+   testnet.zec.rocks Root:       e14a87988f5adc1c298ce93fdf6bcc7229cf1bc0ae9b00836fd29b9f2ebdb800
+
+--- ROOT COMPARISON ASSERTIONS ---
+Wallet B vs Local Zebra Node:   MATCH ✅
+Wallet B vs testnet.zec.rocks:  MATCH ✅
+Local Zebra vs zec.rocks:       MATCH ✅
+ALL THREE IRONWOOD ROOTS AT TIP ARE IDENTICAL! ✅
+
+--- 6. Verifying Received Notes (SQLite query) ---
+Query: SELECT id, value_zatoshis, height, pool, hex(txid) FROM received_notes;
+1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+CONFIRMED: 1,000,000 zat note at height 4,542,240 is verified in fresh Wallet B! ✅
+NO SPEND: Balance of 1,000,000 zatoshis remains completely unspent (spendable). ✅
+
+========================================================================
+=== PART B VERIFIED: ALL LOCAL NODE & SYNC ASSERTIONS PASSED ✅ ======
+========================================================================
