@@ -21,6 +21,11 @@ function reverseHex(hexStr) {
   return Buffer.from(hexStr, 'hex').reverse().toString('hex');
 }
 
+function replaceHome(str) {
+  if (!str) return str;
+  return String(str).replaceAll(os.homedir(), '~');
+}
+
 async function main() {
   console.log('===============================================================');
   console.log('=== PART A: LOCAL TESTNET ZEBRA NODE READ-ONLY RPC QUERIES ===');
@@ -28,7 +33,7 @@ async function main() {
 
   // 1. Secret handling: Read cookie from disk at runtime without logging/echoing it
   if (!fs.existsSync(COOKIE_PATH)) {
-    console.error(`❌ Local Zebra cookie file not found at: ${COOKIE_PATH}`);
+    console.error(`❌ Local Zebra cookie file not found at: ${replaceHome(COOKIE_PATH)}`);
     process.exit(1);
   }
 
@@ -40,7 +45,7 @@ async function main() {
 
   // Format of Zebra cookie is __cookie__:<token>
   const authHeader = 'Basic ' + Buffer.from(rawCookie).toString('base64');
-  console.log(`[AUTH] Successfully read cookie authentication from ${COOKIE_PATH} (token redacted)`);
+  console.log(`[AUTH] Successfully read cookie authentication from ${replaceHome(COOKIE_PATH)} (token redacted)`);
 
   async function rpcCall(method, params = []) {
     let res;

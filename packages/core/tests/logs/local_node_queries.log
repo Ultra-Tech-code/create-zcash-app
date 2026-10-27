@@ -1,20 +1,20 @@
 ===============================================================
 === PART A: LOCAL TESTNET ZEBRA NODE READ-ONLY RPC QUERIES ===
 ===============================================================
-[AUTH] Successfully read cookie authentication from /Users/0xblackadam/Library/Caches/zebra/.cookie (token redacted)
+[AUTH] Successfully read cookie authentication from ~/Library/Caches/zebra/.cookie (token redacted)
 
 --- 1. Querying getblockchaininfo ---
 Chain:               test
-Blocks:              4547617
-Best Block Hash:     0000293093ceae53bf6e8f74516070dd86a598304365c53a97e2c0496bc9867e
+Blocks:              4548518
+Best Block Hash:     00001cc06d9d6c6785785079e6e4246042eb5d600c0e004f5e23e6dd56b636db
 NU7 Upgrade Status:  {"name":"NU7","activationheight":4465026,"status":"active"}
 [PASS] Chain is testnet
-[PASS] Tip is well past NU7 activation height 4465026 (blocks=4547617)
+[PASS] Tip is well past NU7 activation height 4465026 (blocks=4548518)
 [PASS] NU7 consensus upgrade is active
 
 --- 2. Querying getblockcount ---
-Block count:         4547617
-[PASS] Block count equals getblockchaininfo blocks (count=4547617)
+Block count:         4548518
+[PASS] Block count equals getblockchaininfo blocks (count=4548518)
 
 --- 3. Querying getrawtransaction for 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a ---
 Tx Version:          6

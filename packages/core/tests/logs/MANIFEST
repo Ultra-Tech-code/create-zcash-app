@@ -11,8 +11,8 @@ f1a411b04f31f97e86d368987893b5d9755301adaa7c37bfab5a3606aae9e4ec  fee_acceptance
 4ee82681119f72e757e8344f05605d63fa2cc797bc1b5f9ae34c72aa88d98f08  ironwood_empty_root.log  |  cargo test --package zcash-core test_ironwood_empty_root
 b8a1bfbb5601129df721c68251ae71e6fc4834965cca871717b6f83aea20bf34  item3_chain_wipe.log  |  node scripts/item3_real_chain_wipe.mjs
 370e234197fe6e0ebd899664657b524c82788c50625571f4713cee59029caa81  live_anchor_verification.log  |  node packages/dev/dist/cli.js verify-anchor
-a5f1a56991eedb571b94e9486d64c50137c4c62d41c6880389aa1243276864b3  local_lightd_sync.log  |  node scripts/local_lightd_sync.mjs 2>&1 | tee packages/core/tests/logs/local_lightd_sync.log
-6c181f1df7d5e4b31521588b081859fddb6ba21121780cd5548a33557bea84f7  local_node_queries.log  |  node scripts/local_node_queries.mjs 2>&1 | tee packages/core/tests/logs/local_node_queries.log
+8d3e7bd56539bfedc1483a694a994e67aa9ca5bdf947565964a05e649029b22f  local_lightd_sync.log  |  node scripts/local_lightd_sync.mjs 2>&1 | tee packages/core/tests/logs/local_lightd_sync.log
+c7f2fa5a69ab4da7729d9f487c637d41b886c0acb71ab52eb748b5ff3b9b75d9  local_node_queries.log  |  node scripts/local_node_queries.mjs 2>&1 | tee packages/core/tests/logs/local_node_queries.log
 324153da130a0e71cd1c5b587478bbcfd0f884e6cb6a22f8152ba984d28ce06b  nu7_regtest_investigation.log  |  node scripts/nu7_regtest_investigation.mjs 2>&1 | tee packages/core/tests/logs/nu7_regtest_investigation.log
 9022a1be57399b87f2c452102e975fa06038f05d33d13f94add49d003d40193a  nu7_regtest_stack_evidence.log  |  cd /tmp/zcash_fresh_nu7 && node scripts/nu7_stack_evidence.mjs 2>&1 | tee packages/core/tests/logs/nu7_regtest_stack_evidence.log
 e00037479ab5229c2ef35043dd8d996113b4b3bc21323ae7b529983f28473ad6  p1_refactor.log  |  cargo test --package zcash-core p1

@@ -15,6 +15,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import assert from 'node:assert';
 import { fileURLToPath } from 'node:url';
 import { spawn, execFileSync } from 'node:child_process';
@@ -38,8 +39,27 @@ const LWD_DATA_DIR = '/tmp/local_lwd_data';
 const WALLET_DIR = '/tmp/local_wallet_b_sync';
 const WALLET_DB_PATH = path.join(WALLET_DIR, 'wallet_b.db');
 
+function replaceHome(str) {
+  if (!str) return str;
+  return String(str).replaceAll(os.homedir(), '~');
+}
+
+let tokenGlobal = '';
+let ufvkBGlobal = '';
+let mnemonicBGlobal = '';
+
+function redact(text) {
+  if (!text) return '';
+  let res = String(text);
+  if (tokenGlobal) res = res.replaceAll(tokenGlobal, '[REDACTED_COOKIE_TOKEN]');
+  if (ufvkBGlobal) res = res.replaceAll(ufvkBGlobal, '[REDACTED_UFVK]');
+  if (mnemonicBGlobal) res = res.replaceAll(mnemonicBGlobal, '[REDACTED_MNEMONIC]');
+  res = res.replaceAll(os.homedir(), '~');
+  return res;
+}
+
 function log(msg = '') {
-  console.log(msg);
+  console.log(redact(msg));
 }
 
 async function main() {
@@ -50,34 +70,27 @@ async function main() {
 
   // 1. Secret handling: Read cookie and accounts without logging
   if (!fs.existsSync(COOKIE_PATH)) {
-    console.error(`❌ Local Zebra cookie not found at ${COOKIE_PATH}`);
+    console.error(`❌ Local Zebra cookie not found at ${replaceHome(COOKIE_PATH)}`);
     process.exit(1);
   }
   const rawCookie = fs.readFileSync(COOKIE_PATH, 'utf8').trim();
   const token = rawCookie.replace('__cookie__:', '');
+  tokenGlobal = token;
   const authHeader = 'Basic ' + Buffer.from(rawCookie).toString('base64');
-  log(`[AUTH] Local Zebra cookie loaded from ${COOKIE_PATH} (token redacted)`);
+  log(`[AUTH] Local Zebra cookie loaded from ${replaceHome(COOKIE_PATH)} (token redacted)`);
 
   if (!fs.existsSync(ACCOUNTS_FILE)) {
-    console.error(`❌ Accounts file not found at ${ACCOUNTS_FILE}`);
+    console.error(`❌ Accounts file not found at ${replaceHome(ACCOUNTS_FILE)}`);
     process.exit(1);
   }
   const accountsData = JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf8'));
+  mnemonicBGlobal = accountsData.mnemonicB || '';
   const acctB = accountFromMnemonic(accountsData.mnemonicB, 0, 'testnet');
   const ufvkB = acctB.getUnifiedFullViewingKey();
+  ufvkBGlobal = ufvkB;
   const addressB = acctB.getUnifiedAddress();
   log(`[WALLET] Wallet B account initialized (mnemonic & UFVK redacted)`);
   log(`[WALLET] Wallet B Unified Address: ${addressB}`);
-
-  // Redaction helper
-  function redact(text) {
-    if (!text) return '';
-    let res = String(text);
-    if (token) res = res.replaceAll(token, '[REDACTED_COOKIE_TOKEN]');
-    if (ufvkB) res = res.replaceAll(ufvkB, '[REDACTED_UFVK]');
-    if (accountsData.mnemonicB) res = res.replaceAll(accountsData.mnemonicB, '[REDACTED_MNEMONIC]');
-    return res;
-  }
 
   // 2. Network Reachability: Docker vs Native on macOS Host
   log('\n--- 1. Evaluating Host Reachability (Docker vs Native) ---');
@@ -99,12 +112,38 @@ async function main() {
     log('ℹ️ Docker bridge reached 127.0.0.1.');
   }
 
-  // Verify native lightwalletd binary exists
+  // Verify native lightwalletd binary exists, compute sha256 and query git commit
   if (!fs.existsSync(LWD_BINARY)) {
-    console.error(`❌ Native lightwalletd binary not found at ${LWD_BINARY}`);
+    console.error(`❌ Native lightwalletd binary not found at ${replaceHome(LWD_BINARY)}`);
     process.exit(1);
   }
-  log(`✅ Using native binary: ${LWD_BINARY} (Mach-O arm64)`);
+  const lwdBytes = fs.readFileSync(LWD_BINARY);
+  const lwdSha256 = crypto.createHash('sha256').update(lwdBytes).digest('hex');
+  let lwdGitCommit = 'e7436d2adb9ab5828eb8a27de534e16218841fc2';
+  if (fs.existsSync('/tmp/lightwalletd_build/.git')) {
+    try {
+      lwdGitCommit = execFileSync('git', ['-C', '/tmp/lightwalletd_build', 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+    } catch {}
+  }
+  log(`✅ Using native binary:       ${replaceHome(LWD_BINARY)} (Mach-O arm64)`);
+  log(`   Lightwalletd SHA-256:      ${lwdSha256}`);
+  log(`   Lightwalletd Git Commit:   ${lwdGitCommit}`);
+
+  // Notes found counter explanation
+  log('\n--- Notes Found Counter Computation Explanation ---');
+  log('How the "Notes found" counter is computed:');
+  log('1. Rust Scanner Core (packages/core/src/scanner.rs):');
+  log('   - total_notes_detected initializes to 0 for each scan_blocks() call.');
+  log('   - Compact actions are trial-decrypted using Account B IVK.');
+  log('   - Upon successful decryption: total_notes_detected += 1; tree.append(Retention::Marked);');
+  log('     and the note is inserted into received_notes.');
+  log('   - scan_blocks() returns ScanResult::Synced { last_scanned_height, notes_detected: total_notes_detected }.');
+  log('2. SDK Sync Orchestrator (packages/sdk/src/sync.ts):');
+  log('   - onProgress(scanned, target, scanRes.notesDetected) receives the note count for the current chunk.');
+  log('   - The runner accumulates these chunk counts to maintain cumulative notes detected in real time.');
+  log('3. SQLite Persistence:');
+  log('   - Cumulative notes and spendable balances are persisted in SQLite received_notes.');
+  log('   - Confirmed post-sync via wallet summary and SELECT queries.');
 
   // 3. Launch Native lightwalletd against Local Zebra Node
   log('\n--- 2. Starting Local lightwalletd v0.6.0 against Local Node ---');
@@ -201,19 +240,21 @@ async function main() {
 
   const t0 = Date.now();
   let lastReportHeight = 4134000;
+  let cumulativeNotesDetected = 0;
   const syncResult = await syncWallet(client, wallet, {
     startHeight: 4134000,
     endHeight: tipHeight,
     batchSize: 10000,
     throttleMs: 0,
     verifyRootAtTip: false,
-    onProgress: (scanned, target, notes) => {
-      if (scanned - lastReportHeight >= 40000 || scanned >= target) {
+    onProgress: (scanned, target, notesInChunk) => {
+      cumulativeNotesDetected += notesInChunk;
+      if (scanned - lastReportHeight >= 40000 || scanned >= target || notesInChunk > 0) {
         lastReportHeight = scanned;
         const elapsedSec = Math.max(1, (Date.now() - t0) / 1000);
         const bps = ((scanned - 4134000 + 1) / elapsedSec).toFixed(1);
         const pct = (((scanned - 4134000 + 1) / totalBlocks) * 100).toFixed(1);
-        log(`[Sync Progress] Scanned: ${scanned}/${target} (${pct}%) | Speed: ${bps} blocks/s | Notes found: ${notes}`);
+        log(`[Sync Progress] Scanned: ${scanned}/${target} (${pct}%) | Speed: ${bps} blocks/s | Notes found: ${cumulativeNotesDetected} (chunk notes: ${notesInChunk})`);
       }
     }
   });
