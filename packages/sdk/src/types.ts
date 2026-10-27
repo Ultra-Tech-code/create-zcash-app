@@ -80,3 +80,33 @@ export interface TxResult {
   txid: string;
   fee: bigint;
 }
+
+export interface DecryptedMemo {
+  text?: string;
+  hex: string;
+}
+
+export interface DecryptedActionIncoming {
+  actionIndex: number;
+  value: bigint;
+  memo: DecryptedMemo;
+  recipient: string;
+  isChange: boolean;
+  isInternal: boolean;
+}
+
+export interface DecryptedActionOutgoing {
+  actionIndex: number;
+  value: bigint;
+  memo: DecryptedMemo;
+  recipient: string;
+}
+
+export interface DecryptedTransaction {
+  txid: string;
+  fee: bigint;
+  expiryHeight: number;
+  consensusBranchId: string;
+  incoming: DecryptedActionIncoming[];
+  outgoing: DecryptedActionOutgoing[];
+}
