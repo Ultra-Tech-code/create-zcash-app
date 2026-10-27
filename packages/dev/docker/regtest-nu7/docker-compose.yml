@@ -1,0 +1,55 @@
+name: zcash-regtest-nu7
+
+services:
+  zebra:
+    image: ${ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
+    ports:
+      - "${ZEBRA_RPC_PORT:-39232}:18232"
+      - "${ZEBRA_HEALTH_PORT:-38080}:8080"
+    volumes:
+      - zebra-data:/home/zebra/.cache/zebra
+      - ./zebra.toml:/home/zebra/.config/zebrad.toml:ro
+    environment:
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+      - ZEBRA_TRACING__FILTER=info
+      - RUST_LOG=info
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"getblockchaininfo\",\"params\":[],\"id\":1}' http://127.0.0.1:18232 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 10
+    stop_grace_period: 15s
+
+  lightwalletd:
+    image: ${LIGHTWALLETD_IMAGE:-electriccoinco/lightwalletd@sha256:abc8199dae800e050415a3459f71c7850aeefeb1ca6a681e9b9eda7249ce8613}
+    platform: linux/amd64
+    depends_on:
+      zebra:
+        condition: service_healthy
+    ports:
+      - "${LIGHTWALLETD_GRPC_PORT:-39067}:9067"
+      - "${LIGHTWALLETD_HTTP_PORT:-39068}:9068"
+    command:
+      - lightwalletd
+      - --no-tls=true
+      - --zcash-conf-path=/dev/null
+      - --grpc-bind-addr=0.0.0.0:9067
+      - --http-bind-addr=0.0.0.0:9068
+      - --zcashd-url=http://zebra:18232
+      - --log-level=INFO
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9068/ || exit 0"]
+      interval: 5s
+      timeout: 3s
+      start_period: 5s
+      retries: 10
+    stop_grace_period: 10s
+
+volumes:
+  zebra-data:
