@@ -16,6 +16,7 @@ e00037479ab5229c2ef35043dd8d996113b4b3bc21323ae7b529983f28473ad6  p1_refactor.lo
 536524827d513f4cf0410cfcd7441086d3f817086dd85a4d96611a9fae193973  p3_clean_chain.log  |  node packages/dev/dist/cli.js regtest wipe --yes && node scripts/p3_cross_account.mjs
 eab63781f630b35c5d3c6fb5d8fa23f4c3340b9c6714037c7b46d2df36c0d34c  p3_cross_account.log  |  node scripts/p3_cross_account.mjs
 2fac8bdbee05220b4fc4ad204a202abed6fd673269edcecf3d9c19a89278c2fd  p3_nu7_regtest_blocked.log  |  node packages/dev/dist/cli.js regtest wipe --yes --nu7
+ce7e3713241552ddd2c48c70f6c9be6e6166619c7aa3df0e156e2dbd885021ea  p3_nu7_regtest_evidence.log  |  node scripts/nu7_stack_evidence.mjs
 5def5a2a4d91aab712b6d02e42d8ba961f3116b499d07ea98c0f071148439a11  p3_selfcontained_regtest.log  |  cd /tmp/zcash-regtest-verify && (node packages/dev/dist/cli.js regtest wipe --yes && node scripts/item10_fund_and_sync_accounts.mjs && node scripts/p3_cross_account.mjs)
 d8ca5ea5e8d2444d770a8717acfd9388f8b7fd94fcc807d81d8469a6732d7898  p3_zebra7_nu6_3_regtest_failed.log  |  node packages/dev/dist/cli.js regtest test
 5e340b498c0c7f7b7064fad700201345122333c14b036a13e8a18d817edd25e6  p4_cross_pool.log  |  cargo test --package zcash-core p4_cross_pool

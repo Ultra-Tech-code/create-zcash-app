@@ -8,12 +8,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-const { ZcashClient } = await import(`${projectRoot}/packages/sdk/dist/client.js`);
-const { syncWallet } = await import(`${projectRoot}/packages/sdk/dist/sync.js`);
-const { accountFromMnemonic } = await import(`${projectRoot}/packages/sdk/dist/keys.js`);
-const { KNOWN_TEST_MNEMONICS } = await import(`${projectRoot}/packages/sdk/dist/constants.js`);
-const { send, reverseTxid } = await import(`${projectRoot}/packages/sdk/dist/send.js`);
-const { WalletHandle } = await import(`${projectRoot}/packages/core/index.js`);
+const {
+  ZcashClient,
+  syncWallet,
+  accountFromMnemonic,
+  KNOWN_TEST_MNEMONICS,
+  send,
+  reverseTxid,
+  WalletHandle,
+} = await import(`${projectRoot}/packages/sdk/dist/index.js`);
 
 const ZEBRA_PORT = process.env.ZEBRA_RPC_PORT || '39232';
 const LIGHTD_PORT = process.env.LIGHTWALLETD_GRPC_PORT || '39067';
