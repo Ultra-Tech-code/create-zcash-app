@@ -72,6 +72,8 @@ A glassmorphic Next.js App Router UI providing real-time visibility into your lo
 - **Overview**: Live total balance and per-pool breakdown (Ironwood vs. Orchard).
 - **Addresses**: Unified Address (ZIP-316), diversified addresses, and view-only UFVK with copy buttons.
 - **Transactions**: Live list of incoming notes detected by trial-decryption.
+- **Background Sync**: Non-blocking status API (`/api/sync/status`) responding in < 5s with scanned progress and pending/failed fetch metrics.
+- **Security Notice**: Memos and counterparties are stored in plaintext in the SQLite wallet DB (`~/.zcash-app/dashboard/`); directory permissions are strictly 0700 and database file permissions are strictly 0600.
 - **Faucet / Fund**: Instant funding and block generation triggers.
 - **Health / Logs**: Zaino gRPC connection status, version pin verification (≥ 0.10.0), and active network upgrade (`NU6.3`).
 

@@ -647,7 +647,7 @@ fn test_schema_v2_to_v3_migration_in_place() {
     assert_eq!(tx_count, 3, "Must have exactly 3 transaction rows");
 
     // Verify row retrieval
-    let (txid_q, dir_q, val_q, fee_q, memo_q, cparty_q): (String, String, i64, i64, Option<String>, Option<String>) = conn.query_row(
+    let (txid_q, dir_q, val_q, fee_q, memo_q, cparty_q): (String, String, i64, Option<i64>, Option<String>, Option<String>) = conn.query_row(
         "SELECT txid, direction, value, fee, memo, counterparty FROM wallet_transactions WHERE direction = 'out'",
         [],
         |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
@@ -655,9 +655,42 @@ fn test_schema_v2_to_v3_migration_in_place() {
     assert_eq!(txid_q, "txid_out_123");
     assert_eq!(dir_q, "out");
     assert_eq!(val_q, 1000000);
-    assert_eq!(fee_q, 10000);
+    assert_eq!(fee_q, Some(10000));
     assert_eq!(memo_q, Some("Payment for services".to_string()));
     assert_eq!(cparty_q, Some("uregtest1recipient".to_string()));
+
+    // Test nullable fee (when fee is incomputable)
+    conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, action_index, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES (
+            'txid_null_fee', 0, 102, 'in', 250000, NULL, NULL, NULL, 'ironwood', 1700000020
+        )",
+        [],
+    ).expect("insert nullable fee transaction");
+    let null_fee: Option<i64> = conn.query_row(
+        "SELECT fee FROM wallet_transactions WHERE txid = 'txid_null_fee'",
+        [],
+        |r| r.get(0),
+    ).expect("query null fee");
+    assert!(null_fee.is_none(), "Fee must be NULL when incomputable");
+
+    // Test idempotent upsert with UNIQUE(txid, action_index, direction)
+    conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, action_index, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES (
+            'txid_out_123', 0, 100, 'out', 1200000, 10000, 'Updated payment', 'uregtest1recipient', 'ironwood', 1700000050
+        ) ON CONFLICT(txid, action_index, direction) DO UPDATE SET value = excluded.value, memo = excluded.memo",
+        [],
+    ).expect("upsert wallet_transaction");
+    let (val_up, memo_up): (i64, Option<String>) = conn.query_row(
+        "SELECT value, memo FROM wallet_transactions WHERE txid = 'txid_out_123' AND direction = 'out'",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    ).expect("query upserted tx");
+    assert_eq!(val_up, 1200000);
+    assert_eq!(memo_up, Some("Updated payment".to_string()));
 
     // 7. Verify CHECK constraints on direction and pool
     let bad_dir = conn.execute(
@@ -677,7 +710,7 @@ fn test_schema_v2_to_v3_migration_in_place() {
     assert!(bad_pool.is_err(), "Invalid pool must be rejected by CHECK constraint");
 
     // 8. Verify indexes exist
-    for idx in ["idx_wallet_transactions_txid", "idx_wallet_transactions_height", "idx_wallet_transactions_direction"] {
+    for idx in ["idx_wallet_transactions_txid", "idx_wallet_transactions_height", "idx_wallet_transactions_direction", "idx_wallet_transactions_upsert"] {
         let count: i64 = conn.query_row(
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?1",
             rusqlite::params![idx],

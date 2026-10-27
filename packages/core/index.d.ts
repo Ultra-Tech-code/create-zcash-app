@@ -15,7 +15,11 @@ export declare class WalletHandle {
    * Opens or initializes a wallet database file with strict 0700/0600 permissions,
    * WAL mode, busy_timeout=5000ms, and starts background proving key warm-up.
    */
-  static open(dbPath: string, networkStr: string, ufvkStr: string, accountId?: string | undefined | null): WalletHandle
+  static open(dbPath: string, networkStr: string, ufvkStr: string, accountId?: string | undefined | null, birthday?: number | undefined | null): WalletHandle
+  /** Returns the Unified Full Viewing Key string for this wallet. */
+  get ufvk(): string
+  /** Returns the network string for this wallet. */
+  get network(): string
   /** Asynchronously scans a batch of raw CompactBlock protobuf buffers off the main Node.js event loop. */
   scanBlocks(rawBlocks: Array<Buffer>): Promise<unknown>
   /** Returns a comprehensive balance and sync status summary. */
@@ -44,6 +48,18 @@ export declare class WalletHandle {
   getTreeRoot(depth?: number | undefined | null): Buffer | null
   /** Looks up a received note by its 32-byte commitment hex (cmx). */
   getNoteByCmx(cmxHex: string): JsSpendableNote | null
+  /** Upserts a decrypted transaction record into wallet_transactions idempotently. */
+  upsertWalletTransaction(txid: string, actionIndex: number, height: number, direction: string, value: number, fee: number | undefined | null, memo: string | undefined | null, counterparty: string | undefined | null, pool: string): void
+  /** Queries persisted wallet_transactions ordered by block height descending. */
+  getWalletTransactions(limit?: number | undefined | null, offset?: number | undefined | null): Array<JsPersistedTransaction>
+  /** Returns all distinct transaction IDs (and their heights) that touched the wallet in the given block range. */
+  getTouchedTransactions(minHeight: number, maxHeight: number): Array<JsTouchedTx>
+  /** Records a transaction fetch attempt in the persistent retry queue. */
+  recordTxFetchAttempt(txid: string, height: number, status: string, error?: string | undefined | null): void
+  /** Returns counts of pending and failed transaction fetches. */
+  getTxFetchCounts(): JsTxFetchStatus
+  /** Deletes wallet_transactions rows at height >= from_height (e.g. on chain reorganization). */
+  deleteWalletTransactionsFromHeight(fromHeight: number): number
 }
 
 /**
@@ -134,11 +150,25 @@ export interface JsDecryptedMemo {
 
 export interface JsDecryptedTransactionResult {
   txid: string
-  fee: number
+  fee?: number
   expiryHeight: number
   consensusBranchId: string
   incoming: Array<JsDecryptedActionIncoming>
   outgoing: Array<JsDecryptedActionOutgoing>
+}
+
+export interface JsPersistedTransaction {
+  id: number
+  txid: string
+  actionIndex: number
+  height: number
+  direction: string
+  value: number
+  fee?: number
+  memo?: string
+  counterparty?: string
+  pool: string
+  createdAt: number
 }
 
 export interface JsScanResult {
@@ -156,6 +186,16 @@ export interface JsSpendableNote {
   nullifier: string
   height: number
   treePosition: number
+}
+
+export interface JsTouchedTx {
+  txidBytes: Buffer
+  height: number
+}
+
+export interface JsTxFetchStatus {
+  pendingCount: number
+  failedCount: number
 }
 
 /** Returns the conventional ZIP 317 fee for a transaction with the given number of actions. */

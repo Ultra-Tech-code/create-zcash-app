@@ -241,12 +241,44 @@ fn test_reorg_detection_and_resolution_walkback() {
         [0x02u8; 32], // height 2 on both chains (common ancestor!)
     ];
 
+    // Insert test wallet_transactions at height 2 (common ancestor) and height 3, 4 (orphaned chain)
+    db.conn().execute(
+        "INSERT INTO wallet_transactions (txid, action_index, height, direction, value, fee, pool, created_at)
+         VALUES ('tx_h2', 0, 2, 'in', 500000, 10000, 'ironwood', 1700000002)",
+        [],
+    ).expect("insert tx at h2");
+    db.conn().execute(
+        "INSERT INTO wallet_transactions (txid, action_index, height, direction, value, fee, pool, created_at)
+         VALUES ('tx_h3', 0, 3, 'out', 200000, 10000, 'ironwood', 1700000003)",
+        [],
+    ).expect("insert tx at h3");
+    db.conn().execute(
+        "INSERT INTO wallet_transactions (txid, action_index, height, direction, value, fee, pool, created_at)
+         VALUES ('tx_h4', 0, 4, 'in', 100000, 10000, 'ironwood', 1700000004)",
+        [],
+    ).expect("insert tx at h4");
+
     println!("  Resolving reorg back to common ancestor...");
     let fork_h = Scanner::resolve_reorg(db.conn_mut(), 3, &ancestor_hashes).expect("resolve reorg");
     assert_eq!(fork_h, 2, "Common ancestor must be height 2");
     println!("  Reorg successfully resolved to fork height {}", fork_h);
 
     // 5. Assertions on post-reorg state:
+    // a.1) wallet_transactions at height >= from_height (height > fork_h = 2) were deleted
+    let h3_tx_count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM wallet_transactions WHERE height >= 3",
+        [],
+        |r| r.get(0),
+    ).expect("count txs >= 3");
+    assert_eq!(h3_tx_count, 0, "wallet_transactions rows at height >= fromHeight must be deleted on reorg");
+
+    let h2_tx_count: i64 = db.conn().query_row(
+        "SELECT COUNT(*) FROM wallet_transactions WHERE height = 2",
+        [],
+        |r| r.get(0),
+    ).expect("count txs at 2");
+    assert_eq!(h2_tx_count, 1, "wallet_transactions row at common ancestor height 2 must be preserved");
+    println!("  wallet_transactions confirmed deleted for heights >= 3 and preserved for height <= 2");
     // a) Note 2 (mined on orphan chain at height 3) was deleted
     let note2_count: i64 = db.conn().query_row("SELECT COUNT(*) FROM received_notes WHERE height = 3", [], |r| r.get(0)).expect("count note 2");
     assert_eq!(note2_count, 0, "Note 2 mined on orphaned chain must be deleted");

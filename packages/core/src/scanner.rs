@@ -604,6 +604,12 @@ impl Scanner {
             params![fork_h as i64],
         )?;
 
+        // 6. Delete wallet_transactions recorded on the orphaned chain (height > fork_h)
+        tx.execute(
+            "DELETE FROM wallet_transactions WHERE height > ?1",
+            params![fork_h as i64],
+        )?;
+
         tx.commit()?;
 
         Ok(fork_h)

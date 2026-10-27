@@ -44,6 +44,7 @@ bde350e2602755d0431733a40fdfd22c91e8a7c37483f1a663aa10312df71fdf  testnet_postch
 6fa1a22a7faa5d7616e587646dd026a13db65766943991a97174951b3c9d225d  testnet_public_rpc.log  |  node scripts/testnet_public_rpc.mjs
 d498a1eb4efe165d8595e48095937bb58b1299cb9abc6ee59d3950308062d200  testnet_readonly.log  |  node scripts/probe_testnet_endpoints.mjs
 8801f6debecb7996ad96b462a21f9154a42c0dc9884b3e8b6d45bc6597d7cf93  testnet_send_run.log  |  node scripts/testnet_send.mjs
+cd01e5a948c7da29933b22a9d510e225342cd7cc7a3b7ec534b06d55dc91bee0  testnet_sync_stage2b_evidence.log  |  node scripts/testnet_stage2b_sync_evidence.mjs 2>&1 | tee packages/core/tests/logs/testnet_sync_stage2b_evidence.log
 0ddb6a7d408ecf1a2ac2e94e483139c646eab6817a62def5419544916bc9b260  verify_baseline.log  |  bash scripts/verify.sh
 5236d84898ac335b3a7885db4a2b14a7e49019661aa54d1470fc7d77807a8652  verify_c1_anchor_failclosed.log  |  bash scripts/verify.sh
 964966e13174e529ade6da8cd4466d0565dc14382fc6885ab6953c544747c156  verify_c1_empty_root.log  |  cargo test --package zcash-core verify_c1_empty_root

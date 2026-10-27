@@ -401,7 +401,7 @@ mod napi_bindings {
     #[napi(object)]
     pub struct JsDecryptedTransactionResult {
         pub txid: String,
-        pub fee: i64,
+        pub fee: Option<i64>,
         pub expiry_height: u32,
         pub consensus_branch_id: String,
         pub incoming: Vec<JsDecryptedActionIncoming>,

@@ -252,6 +252,21 @@ export class ZcashClient {
     });
   }
 
+  public getTransaction(txHash: Buffer): Promise<{ data: Buffer; height: number }> {
+    return new Promise((resolve, reject) => {
+      this.client.GetTransaction({ hash: txHash }, (err: any, response: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            data: Buffer.from(response?.data || []),
+            height: Number(response?.height || 0),
+          });
+        }
+      });
+    });
+  }
+
   public close(): Promise<void> {
     return new Promise((resolve) => {
       this.client.close();

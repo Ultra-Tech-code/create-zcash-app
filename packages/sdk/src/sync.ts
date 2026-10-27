@@ -5,6 +5,8 @@ import {
   decodeIronwoodFrontierRoot,
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
+import { reverseTxid } from './send.js';
+import { decryptTransaction } from './decrypted-tx.js';
 
 export { decodeIronwoodFrontierRoot };
 
@@ -31,6 +33,9 @@ export interface SyncOptions {
   throttleMs?: number;
   maxRetries?: number;
   checkpoints?: CheckpointVerification[];
+  ufvk?: string;
+  network?: string;
+  fetchFullTransactions?: boolean;
 }
 
 export interface WalletSyncResult {
@@ -43,6 +48,8 @@ export interface WalletSyncResult {
   elapsedMs: number;
   blocksPerSecond: number;
   checkpointResults: CheckpointResult[];
+  pendingFetches: number;
+  failedFetches: number;
 }
 
 /**
@@ -102,6 +109,7 @@ export async function syncWallet(
       }
     }
 
+    const earlyFetchCounts = wallet.getTxFetchCounts();
     return {
       summary: initialSummary,
       blocksFetched: 0,
@@ -112,6 +120,8 @@ export async function syncWallet(
       elapsedMs: Date.now() - startTime,
       blocksPerSecond: 0,
       checkpointResults,
+      pendingFetches: earlyFetchCounts.pendingCount,
+      failedFetches: earlyFetchCounts.failedCount,
     };
   }
 
@@ -166,6 +176,8 @@ export async function syncWallet(
 
     totalBlocksFetched += rawBlocks.length;
 
+    const batchScanStart = currentStart;
+
     // Scan raw blocks into WalletHandle in chunks to respect Rust time-bounded transactions
     let slice = rawBlocks;
     let sliceCursor = currentStart;
@@ -187,6 +199,7 @@ export async function syncWallet(
         }
 
         const commonAncestor = wallet.resolveReorg(fromHeight, ancestorHashes);
+        wallet.deleteWalletTransactionsFromHeight(fromHeight);
         console.log(
           `[Sync] ${endpointLabel} Reorg resolved back to common ancestor height ${commonAncestor}. Resuming stream.`
         );
@@ -202,6 +215,85 @@ export async function syncWallet(
       const numScanned = scanRes.lastScannedHeight - sliceCursor + 1;
       slice = slice.slice(numScanned);
       sliceCursor = scanRes.lastScannedHeight + 1;
+    }
+
+    // After scanning batch: fetch full transactions for all touched txs and upsert into wallet_transactions
+    const effectiveUfvk = options.ufvk ?? (wallet as any).ufvk;
+    const effectiveNetwork = options.network ?? (wallet as any).network ?? client.config?.network ?? 'testnet';
+
+    if (options.fetchFullTransactions !== false && effectiveUfvk && sliceCursor > batchScanStart) {
+      const touched = wallet.getTouchedTransactions(batchScanStart, sliceCursor - 1);
+      if (touched.length > 0) {
+        for (const touch of touched) {
+          const rawHex = touch.txidBytes.toString('hex');
+          const explorerTxid = reverseTxid(rawHex);
+
+          let txData: { data: Buffer; height: number } | null = null;
+          let lastErr: any = null;
+
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+              totalRequests++;
+              txData = await client.getTransaction(touch.txidBytes);
+              break;
+            } catch (err: any) {
+              lastErr = err;
+              if (attempt < 3) {
+                await new Promise((r) => setTimeout(r, 200 * attempt));
+              }
+            }
+          }
+
+          if (!txData || txData.data.length === 0) {
+            const errMsg = lastErr?.message ?? 'Empty data returned by GetTransaction';
+            console.warn(
+              `[Sync] ${endpointLabel} Failed to fetch full transaction ${explorerTxid} (attempted 3x): ${errMsg}`
+            );
+            wallet.recordTxFetchAttempt(explorerTxid, touch.height, 'failed', errMsg);
+            continue;
+          }
+
+          try {
+            const dec = decryptTransaction(effectiveUfvk, effectiveNetwork, txData.data, touch.height);
+
+            for (const out of dec.outgoing) {
+              wallet.upsertWalletTransaction(
+                dec.txid,
+                out.actionIndex,
+                touch.height,
+                'out',
+                Number(out.value),
+                dec.fee !== null ? Number(dec.fee) : null,
+                out.memo.text ?? null,
+                out.recipient,
+                'ironwood'
+              );
+            }
+
+            for (const inc of dec.incoming) {
+              const direction = inc.isChange ? 'internal' : 'in';
+              wallet.upsertWalletTransaction(
+                dec.txid,
+                inc.actionIndex,
+                touch.height,
+                direction,
+                Number(inc.value),
+                dec.fee !== null ? Number(dec.fee) : null,
+                inc.memo.text ?? null,
+                null,
+                'ironwood'
+              );
+            }
+
+            wallet.recordTxFetchAttempt(explorerTxid, touch.height, 'done', null);
+          } catch (decErr: any) {
+            console.warn(
+              `[Sync] ${endpointLabel} Failed to decrypt transaction ${explorerTxid}: ${decErr.message}`
+            );
+            wallet.recordTxFetchAttempt(explorerTxid, touch.height, 'failed', decErr.message);
+          }
+        }
+      }
     }
 
     const elapsedTotal = Math.max(1, Date.now() - startTime);
@@ -294,6 +386,7 @@ export async function syncWallet(
 
   const totalElapsed = Date.now() - startTime;
   const blocksPerSecond = Number((totalBlocksFetched / (Math.max(1, totalElapsed) / 1000)).toFixed(1));
+  const fetchCounts = wallet.getTxFetchCounts();
 
   return {
     summary: finalSummary,
@@ -305,5 +398,7 @@ export async function syncWallet(
     elapsedMs: totalElapsed,
     blocksPerSecond,
     checkpointResults,
+    pendingFetches: fetchCounts.pendingCount,
+    failedFetches: fetchCounts.failedCount,
   };
 }
