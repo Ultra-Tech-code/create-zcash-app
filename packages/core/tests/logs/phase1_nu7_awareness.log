@@ -1,7 +1,7 @@
 ================================================================
- PHASE 1 - NU7 AWARENESS & DASHBOARD PRESET VERIFICATION
+ PHASE 1.1 - NU7 AWARENESS, GUARDS & DASHBOARD FIXES TEST SUITE
 ================================================================
-Timestamp: 2026-10-27T21:32:39.044Z
+Timestamp: 2026-10-27T22:29:20.087Z
 Base URL:  http://127.0.0.1:3050
 
 --- 1. SDK Consensus Helper Tests ---
@@ -39,23 +39,50 @@ Base URL:  http://127.0.0.1:3050
 [PASS] Preset 'testnet' consensus branch matches -> branch: 0x77190ad9
 [PASS] Preset 'testnet' upgradeName matches node -> upgradeName: NU7
 [PASS] Preset 'testnet' branchMatches verification flag -> branchMatches: true
-[PASS] Preset 'testnet-local' status success -> status: 200, endpoint: 127.0.0.1:39067
-[PASS] Preset 'testnet-local' network matches -> network: testnet
+[PASS] Preset 'testnet-local' response handled gracefully -> Offline or unreachable: 14 UNAVAILABLE: No connection established. Last error: null. Resolution note: 
 [PASS] Preset 'mainnet' status success -> status: 200, endpoint: zec.rocks:443
 [PASS] Preset 'mainnet' network matches -> network: mainnet
 
---- 3. Regtest NU7 Faucet Mining Test ---
+--- 3. Chain Name Guard Tests (regtest-vs-testnet) ---
+[PASS] Chain Guard: Detects regtest node when testnet selected
+[PASS] Chain Guard: Sets branchMatches to false on chain mismatch
+[PASS] Chain Guard: Formats exact mismatch message for regtest node -> You selected testnet but this node reports chain 'test' (height 112). This looks like a regtest node. Pick the matching preset.
+[PASS] Chain Guard: Detects testnet node when regtest selected
+[PASS] Chain Guard: Sets branchMatches to false on testnet node mismatch
+[PASS] Chain Guard: Formats exact mismatch message for testnet node -> You selected regtest but this node reports chain 'test' (height 4548891). This looks like a testnet node. Pick the matching preset.
+
+--- 4. Watch-Only Fixture Refusal Tests ---
+[PASS] SDK Refusal: dev.fixtures.account strictly refuses testnet
+[PASS] SDK Refusal: dev.fixtures.account strictly refuses mainnet
+[PASS] /api/account: Testnet is marked isWatchOnly
+[PASS] /api/account: Testnet fixture UA is refused (null)
+[PASS] /api/account: Testnet fixture UFVK is refused (null)
+[PASS] /api/account: Testnet status is ready (watch-only)
+[PASS] /api/account: Testnet message explains watch-only & fixture refusal -> Testnet is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.
+[PASS] /api/account: Mainnet is marked isWatchOnly
+[PASS] /api/account: Mainnet fixture UA is refused (null)
+[PASS] /api/account: Mainnet fixture UFVK is refused (null)
+[PASS] /api/account: Mainnet message explains watch-only & fixture refusal -> Mainnet is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.
+
+--- 5. /api/account Error Surfacing (No Silent Zeros) ---
+[PASS] /api/account: Offline node returns status "error" -> status: error
+[PASS] /api/account: Offline node returns success false
+[PASS] /api/account: Offline node message describes connection failure -> Failed to query node on 127.0.0.1:59999: 14 UNAVAILABLE: No connection established. Last error: null. Resolution note: 
+[PASS] /api/account: Balances are null on error (NO silent zeros) -> balances: null
+
+--- 6. Regtest NU7 Faucet Mining Test ---
 [PASS] NU7 Regtest mine 1 block call -> rpcUrl: http://127.0.0.1:39232
 [PASS] NU7 Regtest mine RPC targeted 39232 -> Targeted port 39232
-[PASS] NU7 Regtest block hash returned -> block: 8578cc6c353ab893...
+[PASS] NU7 Regtest block hash returned -> block: 718c5a034d6a1f0a...
 
---- 4. Testnet Non-Blocking Account Check ---
-[PASS] Testnet account query response time < 5000ms -> 17ms
-[PASS] Testnet account isWatchOnly flagged -> isWatchOnly: true
-[PASS] Testnet UA derived -> UA: utest1jede2g2usu3wh6v7r5...
-[PASS] Testnet UFVK derived -> UFVK: uviewtest1qrszyn6racamvp...
+--- 7. Local Testnet Lightwalletd Helper Checks ---
+[PASS] Helper: Builds 39167 gRPC port default
+[PASS] Helper: Builds 39168 HTTP port default
+[PASS] Helper: Builds 18232 RPC port default
+[PASS] Helper: Includes --no-tls-very-insecure flag
+[PASS] Helper: Redaction removes cookie token completely
 
 ================================================================
- Summary: 43 / 43 checks passed.
+ Summary: 64 / 64 checks passed.
 ================================================================
 
