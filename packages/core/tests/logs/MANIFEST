@@ -37,6 +37,7 @@ eeb691a704af45c2c2dd7dbaa43019a7f4babf9f8cc6ff5cbe88b7a31ddb0c0e  step5_pending_
 3f0b9ac99179be3475e0953fcf8018aa1d9f6c25a02b8d6b88885dda90c17309  step6_spendable.log  |  cargo test --package zcash-core step6_spendable
 ce42adddbd0971fa326f8bab861cdc51decf9eadfb437210827f31d5cd30d543  step7_wallet_handle.log  |  cargo test --package zcash-core step7_wallet_handle
 a1ed24eb71a37dfa66624c5cc1353b7e0e78dca74c3681b7f8ba59f711f0cb57  step8_full_suite.log  |  cargo test --package zcash-core step8_full_suite
+a8fb4449e24c32b1e87ea3ba6c8dfe1ada4b2a2e218b050331a54e44a5797925  testnet_decrypt_evidence.log  |  node scripts/testnet_tx_decrypt_evidence.mjs
 3683b56a5491896548c645b9d3b9f951fd8a8d3bfd3d3eebc7902fab4389e29c  testnet_detect_nu7.log  |  node scripts/diagnose_nu7.mjs
 b669e849e503b0a29fc8098e21bb43b91c68e684d6ea9cbe5f4a4dfc357aa306  testnet_nu7_diagnosis.log  |  node scripts/diagnose_nu7.mjs --verbose
 bde350e2602755d0431733a40fdfd22c91e8a7c37483f1a663aa10312df71fdf  testnet_postcheck.log  |  node scripts/testnet_postcheck.mjs
