@@ -1,0 +1,96 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION & EVIDENCE =====
+===============================================================
+
+--- 1. Wiping and initializing NU7 stack via zcash-dev CLI ---
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   zcash-regtest-nu7
+   - Docker Volumes: zcash-regtest-nu7_zebra-data
+   - Services:       zebra, lightwalletd
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /private/tmp/zcash_fresh_nu7/packages/dev/docker/regtest-nu7 ===
+
+
+=== 🛠️  Reinitializing fresh NU7 chain via regtest-init.sh ===
+
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.0.0 in NU7 regtest mode...
+ Network zcash-regtest-nu7_default Creating 
+ Network zcash-regtest-nu7_default Created 
+ Volume zcash-regtest-nu7_zebra-data Creating 
+ Volume zcash-regtest-nu7_zebra-data Created 
+ Container zcash-regtest-nu7-zebra-1 Creating 
+ Container zcash-regtest-nu7-zebra-1 Created 
+ Container zcash-regtest-nu7-zebra-1 Starting 
+ Container zcash-regtest-nu7-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Starting lightwalletd service...
+ Container zcash-regtest-nu7-zebra-1 Running 
+ Container zcash-regtest-nu7-lightwalletd-1 Creating 
+ Container zcash-regtest-nu7-lightwalletd-1 Created 
+ Container zcash-regtest-nu7-zebra-1 Waiting 
+ Container zcash-regtest-nu7-zebra-1 Healthy 
+ Container zcash-regtest-nu7-lightwalletd-1 Starting 
+ Container zcash-regtest-nu7-lightwalletd-1 Started 
+==> Waiting for lightwalletd on port 39067...
+   lightwalletd is reachable.
+==> NU7 Regtest stack initialized successfully.
+⏳ Waiting for Zebra RPC on port 39232...
+Mining 105 blocks for fresh regtest chain...
+✅ Fresh NU7 regtest chain created with tip height 105!
+
+[PASS] Zebra chain is Regtest
+[PASS] Tip height is at least 105 (height=107)
+[PASS] NU7 consensus branch is active (activation=2)
+
+--- 2. Connecting to lightwalletd ---
+[PASS] lightwalletd consensusBranchId is 77190ad9
+[PASS] lightwalletd blockHeight matches Zebra tip (height=107)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 1 to target 107 (tip: 107, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 107/107 (100.0%) | Req: 2 | Speed: 419.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Verified against GetTreeState(107):
+  Wallet Ironwood Root:  a8a5fdca6bcf23b4fed7afeb1a5c3099d7cd68f52b68b9f02c8a57d7c09a3b09
+  Remote ironwoodTree:   01da5a4eaf2c16d50750c1dd21cbadc386a855a8fc3d97c0dfbc2c70187216cb33012d8bb12ffdcca09e925f5f75a16c348079faa3d4ca79f39842072bd0cf2a3e261f000001af5688073e9fde610a7dadc921c365246c5da6f37c032a8d93afe50b1f0f221b0001cb7d89817b4aca13d62ce6d5f1f94825a7726da3e14a8c7449e560e53e23d62d01bc51695f14262cd9505f19024fb633f076dd7afb293a756f1f9b85764acd7c1700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   a8a5fdca6bcf23b4fed7afeb1a5c3099d7cd68f52b68b9f02c8a57d7c09a3b09
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=106)
+[PASS] Account 0 has spendable balance (balance=22083333298)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+[send] (http://127.0.0.1:39067) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.
+[PASS] Send returned valid txid (txid=779cd29add6aaa8d0718286ddc899eee2a4a4b80ad0467c424a3ebad2ce9e1cc)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=228, expected=228)
+
+--- 5. Verifying mempool and mining block ---
+[PASS] Transaction is present in Zebra mempool (explorerTxid=cce1e92cadeba324c46704ad804b4a2aee9e89dc6d2818078daa6add9ad29c77)
+[PASS] Block successfully mined (blockHash=c5134b872680ca31d4f5a2c2deecf0cbd92c34462564d7b80149c5227cbfff2d)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 1 to target 108 (tip: 108, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 108/108 (100.0%) | Req: 2 | Speed: 2700.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Verified against GetTreeState(108):
+  Wallet Ironwood Root:  ac53ffe06475f4d24a8c534177eeeb62be513f70d18b74fe016f480bba891816
+  Remote ironwoodTree:   016bbf84df18391d3a57f2e9a56ee27c4e20c2a1828f311a2c24d9fe748eeadc3c001f0001cf1f1830ff677bdd1ebbe520c786d6d09100306d6d1590d7c849224307ce121f01af5688073e9fde610a7dadc921c365246c5da6f37c032a8d93afe50b1f0f221b0001cb7d89817b4aca13d62ce6d5f1f94825a7726da3e14a8c7449e560e53e23d62d01bc51695f14262cd9505f19024fb633f076dd7afb293a756f1f9b85764acd7c1700000000000000000000000000000000000000000000000000
+  Derived Remote Root:   ac53ffe06475f4d24a8c534177eeeb62be513f70d18b74fe016f480bba891816
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has exactly 1 unspent note
+[PASS] Account 1 balance is 1.0 ZEC (100,000,000 zatoshis)
+
+======================================================================
+=== NU7 REGTEST STACK END-TO-END VERIFIED: 19/19 ASSERTIONS PASSED ✅ ===
+======================================================================
+

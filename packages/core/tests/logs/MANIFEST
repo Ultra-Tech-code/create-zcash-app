@@ -14,6 +14,7 @@ b8a1bfbb5601129df721c68251ae71e6fc4834965cca871717b6f83aea20bf34  item3_chain_wi
 a5f1a56991eedb571b94e9486d64c50137c4c62d41c6880389aa1243276864b3  local_lightd_sync.log  |  node scripts/local_lightd_sync.mjs 2>&1 | tee packages/core/tests/logs/local_lightd_sync.log
 6c181f1df7d5e4b31521588b081859fddb6ba21121780cd5548a33557bea84f7  local_node_queries.log  |  node scripts/local_node_queries.mjs 2>&1 | tee packages/core/tests/logs/local_node_queries.log
 324153da130a0e71cd1c5b587478bbcfd0f884e6cb6a22f8152ba984d28ce06b  nu7_regtest_investigation.log  |  node scripts/nu7_regtest_investigation.mjs 2>&1 | tee packages/core/tests/logs/nu7_regtest_investigation.log
+9022a1be57399b87f2c452102e975fa06038f05d33d13f94add49d003d40193a  nu7_regtest_stack_evidence.log  |  cd /tmp/zcash_fresh_nu7 && node scripts/nu7_stack_evidence.mjs 2>&1 | tee packages/core/tests/logs/nu7_regtest_stack_evidence.log
 e00037479ab5229c2ef35043dd8d996113b4b3bc21323ae7b529983f28473ad6  p1_refactor.log  |  cargo test --package zcash-core p1
 536524827d513f4cf0410cfcd7441086d3f817086dd85a4d96611a9fae193973  p3_clean_chain.log  |  node packages/dev/dist/cli.js regtest wipe --yes && node scripts/p3_cross_account.mjs
 eab63781f630b35c5d3c6fb5d8fa23f4c3340b9c6714037c7b46d2df36c0d34c  p3_cross_account.log  |  node scripts/p3_cross_account.mjs

@@ -4,8 +4,8 @@ services:
   zebra:
     image: ${ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
     ports:
-      - "${ZEBRA_RPC_PORT:-39232}:18232"
-      - "${ZEBRA_HEALTH_PORT:-38080}:8080"
+      - "127.0.0.1:${ZEBRA_RPC_PORT:-39232}:18232"
+      - "127.0.0.1:${ZEBRA_HEALTH_PORT:-38080}:8080"
     volumes:
       - zebra-data:/home/zebra/.cache/zebra
       - ./zebra.toml:/home/zebra/.config/zebrad.toml:ro
@@ -34,8 +34,8 @@ services:
       zebra:
         condition: service_healthy
     ports:
-      - "${LIGHTWALLETD_GRPC_PORT:-39067}:9067"
-      - "${LIGHTWALLETD_HTTP_PORT:-39068}:9068"
+      - "127.0.0.1:${LIGHTWALLETD_GRPC_PORT:-39067}:9067"
+      - "127.0.0.1:${LIGHTWALLETD_HTTP_PORT:-39068}:9068"
     command:
       - --no-tls-very-insecure
       - --grpc-bind-addr=0.0.0.0:9067
