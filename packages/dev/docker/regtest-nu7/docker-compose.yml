@@ -37,7 +37,6 @@ services:
       - "${LIGHTWALLETD_GRPC_PORT:-39067}:9067"
       - "${LIGHTWALLETD_HTTP_PORT:-39068}:9068"
     command:
-      - lightwalletd
       - --no-tls=true
       - --zcash-conf-path=/dev/null
       - --grpc-bind-addr=0.0.0.0:9067
