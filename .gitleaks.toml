@@ -16,5 +16,7 @@ paths = [
     '''packages/sdk/src/sync\.test\.ts''',
     '''packages/sdk/dist/sync\.test\.js''',
     '''packages/core/tests/fixtures/.*''',
-    '''packages/core/tests/logs/.*'''
+    '''packages/core/tests/logs/.*''',
+    '''packages/dev/test/.*'''
 ]
+

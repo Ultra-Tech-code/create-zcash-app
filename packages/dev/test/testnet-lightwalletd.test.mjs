@@ -117,8 +117,8 @@ describe('Local Testnet Lightwalletd Helper (v0.6.0 Flags & Secret Redaction)', 
       /Zebra cookie file not found.*Note that Zebra generates a fresh cookie token each time it restarts/
     );
 
-    // 2. Valid format __cookie__:<hex>
-    const sampleToken = 'c827361a9e8f420b17d3';
+    // 2. Valid format __cookie__:<token>
+    const sampleToken = 'mock_cookie_token_test_12345';
     fs.writeFileSync(cookiePath, `__cookie__:${sampleToken}\n`);
     const creds = readZebraCookie(cookiePath);
     assert.strictEqual(creds.user, '__cookie__');
