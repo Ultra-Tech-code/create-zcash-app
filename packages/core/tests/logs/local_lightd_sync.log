@@ -1,0 +1,133 @@
+========================================================================
+=== PART B: LOCAL LIGHTWALLETD & FRESH WALLET B SDK SYNC RUNNER =====
+========================================================================
+Timestamp: 2026-10-27T20:06:32.422Z
+[AUTH] Local Zebra cookie loaded from ~/Library/Caches/zebra/.cookie (token redacted)
+[WALLET] Wallet B account initialized (mnemonic & UFVK redacted)
+[WALLET] Wallet B Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+
+--- 1. Evaluating Host Reachability (Docker vs Native) ---
+Testing whether standard Docker container network can reach host 127.0.0.1:18232...
+❌ Docker bridge container cannot reach 127.0.0.1 on the macOS host (container network namespace isolates loopback).
+👉 As instructed ("If Docker cannot reach 127.0.0.1 on the host, say so and try native"), using native lightwalletd v0.6.0 binary.
+✅ Using native binary:       /tmp/lightwalletd (Mach-O arm64)
+   Lightwalletd SHA-256:      36f948c9f27331e095bd345d93dd8ae51ff7d8da11e20b48795c3349ddbe167c
+   Lightwalletd Git Commit:   e7436d2adb9ab5828eb8a27de534e16218841fc2
+
+--- Notes Found Counter Computation Explanation ---
+How the "Notes found" counter is computed:
+1. Rust Scanner Core (packages/core/src/scanner.rs):
+   - total_notes_detected initializes to 0 for each scan_blocks() call.
+   - Compact actions are trial-decrypted using Account B IVK.
+   - Upon successful decryption: total_notes_detected += 1; tree.append(Retention::Marked);
+     and the note is inserted into received_notes.
+   - scan_blocks() returns ScanResult::Synced { last_scanned_height, notes_detected: total_notes_detected }.
+2. SDK Sync Orchestrator (packages/sdk/src/sync.ts):
+   - onProgress(scanned, target, scanRes.notesDetected) receives the note count for the current chunk.
+   - The runner accumulates these chunk counts to maintain cumulative notes detected in real time.
+3. SQLite Persistence:
+   - Cumulative notes and spendable balances are persisted in SQLite received_notes.
+   - Confirmed post-sync via wallet summary and SELECT queries.
+
+--- 2. Starting Local lightwalletd v0.6.0 against Local Node ---
+Command: /tmp/lightwalletd [args redacted credentials]
+Connecting to backend node: http://127.0.0.1:18232 via cookie authentication
+Waiting for local lightwalletd gRPC server readiness on port 39067...
+✅ lightwalletd ready! Vendor: ECC LightWalletD, Block Height: 4548549, Branch: 77190ad9, Backend: /Zebra:7.0.0/
+Ingestion Status: Started background block ingestion from height 0 sequentially (v0.6.0 default). Total request errors: 0
+
+--- 3. Setting Up Fresh Wallet DB in /tmp ---
+Created fresh wallet directory: /tmp/local_wallet_b_sync
+Wallet database path:           /tmp/local_wallet_b_sync/wallet_b.db
+Initial scanned height:  0
+Initial balance:         0 zatoshis
+Initial unspent notes:   0
+
+--- 4. Running SDK Sync from 4134000 to Tip ---
+Sync range: 4134000 -> 4548549 (414,550 blocks)
+[Sync] (http://127.0.0.1:39067) (third-party server) Starting sync from height 4134000 to target 4548549 (tip: 4548549, batch size: 10000, throttle: 0ms)...
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4143999/4548549 (2.4%) | Req: 2 | Speed: 1081.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4153999/4548549 (4.8%) | Req: 3 | Speed: 1075.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4163999/4548549 (7.2%) | Req: 4 | Speed: 965.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4173999/4548549 (9.6%) | Req: 5 | Speed: 970.6 blocks/s
+[Sync Progress] Scanned: 4174049/4548549 (9.7%) | Speed: 822.6 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4183999/4548549 (12.1%) | Req: 6 | Speed: 976.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4193999/4548549 (14.5%) | Req: 7 | Speed: 988.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4203999/4548549 (16.9%) | Req: 8 | Speed: 1009.3 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4213999/4548549 (19.3%) | Req: 9 | Speed: 1019.2 blocks/s
+[Sync Progress] Scanned: 4214049/4548549 (19.3%) | Speed: 937.6 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4223999/4548549 (21.7%) | Req: 10 | Speed: 1030.1 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4233999/4548549 (24.1%) | Req: 11 | Speed: 1022.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4243999/4548549 (26.5%) | Req: 12 | Speed: 1014.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4253999/4548549 (28.9%) | Req: 13 | Speed: 1014.8 blocks/s
+[Sync Progress] Scanned: 4254049/4548549 (29.0%) | Speed: 958.7 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4263999/4548549 (31.4%) | Req: 14 | Speed: 1020.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4273999/4548549 (33.8%) | Req: 15 | Speed: 1028.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4283999/4548549 (36.2%) | Req: 16 | Speed: 1033.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4293999/4548549 (38.6%) | Req: 17 | Speed: 1038.7 blocks/s
+[Sync Progress] Scanned: 4294049/4548549 (38.6%) | Speed: 976.2 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4303999/4548549 (41.0%) | Req: 18 | Speed: 1021.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4313999/4548549 (43.4%) | Req: 19 | Speed: 662.2 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4323999/4548549 (45.8%) | Req: 20 | Speed: 620.0 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4333999/4548549 (48.2%) | Req: 21 | Speed: 627.2 blocks/s
+[Sync Progress] Scanned: 4334049/4548549 (48.3%) | Speed: 612.1 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4343999/4548549 (50.7%) | Req: 22 | Speed: 631.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4353999/4548549 (53.1%) | Req: 23 | Speed: 627.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4363999/4548549 (55.5%) | Req: 24 | Speed: 635.1 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4373999/4548549 (57.9%) | Req: 25 | Speed: 627.9 blocks/s
+[Sync Progress] Scanned: 4374049/4548549 (57.9%) | Speed: 613.3 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4383999/4548549 (60.3%) | Req: 26 | Speed: 617.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4393999/4548549 (62.7%) | Req: 27 | Speed: 618.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4403999/4548549 (65.1%) | Req: 28 | Speed: 622.3 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4413999/4548549 (67.5%) | Req: 29 | Speed: 626.9 blocks/s
+[Sync Progress] Scanned: 4414049/4548549 (67.6%) | Speed: 615.0 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4423999/4548549 (70.0%) | Req: 30 | Speed: 625.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4433999/4548549 (72.4%) | Req: 31 | Speed: 624.3 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4443999/4548549 (74.8%) | Req: 32 | Speed: 625.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4453999/4548549 (77.2%) | Req: 33 | Speed: 617.2 blocks/s
+[Sync Progress] Scanned: 4454049/4548549 (77.2%) | Speed: 606.6 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4463999/4548549 (79.6%) | Req: 34 | Speed: 613.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4473999/4548549 (82.0%) | Req: 35 | Speed: 608.5 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4483999/4548549 (84.4%) | Req: 36 | Speed: 607.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4493999/4548549 (86.8%) | Req: 37 | Speed: 606.5 blocks/s
+[Sync Progress] Scanned: 4494049/4548549 (86.9%) | Speed: 598.6 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4503999/4548549 (89.3%) | Req: 38 | Speed: 608.7 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4513999/4548549 (91.7%) | Req: 39 | Speed: 612.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4523999/4548549 (94.1%) | Req: 40 | Speed: 615.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4533999/4548549 (96.5%) | Req: 41 | Speed: 602.1 blocks/s
+[Sync Progress] Scanned: 4534049/4548549 (96.5%) | Speed: 581.6 blocks/s | Notes found: 0 (chunk notes: 0)
+[Sync Progress] Scanned: 4542266/4548549 (98.5%) | Speed: 546.1 blocks/s | Notes found: 1 (chunk notes: 1)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4543999/4548549 (98.9%) | Req: 42 | Speed: 547.8 blocks/s
+[Sync Progress] Scanned: 4548549/4548549 (100.0%) | Speed: 548.5 blocks/s | Notes found: 1 (chunk notes: 0)
+[Sync] (http://127.0.0.1:39067) (third-party server) Height: 4548549/4548549 (100.0%) | Req: 43 | Speed: 548.5 blocks/s
+
+✅ SDK sync completed in 755.81s (548.5 blocks/s)!
+Final scanned tip height: 4548549
+Total balance:            1000000 zatoshis (0.01 ZEC)
+Spendable balance:        1000000 zatoshis
+Unspent notes:            1
+Tree size:                767821
+
+--- 5. Three-Way Ironwood Root Verification at Tip (Height 4548549) ---
+1. Fresh Wallet B Local DB Root: 99c02841b4b74ab712433fe3bd5ab0f0f48c5528f0054a9c5092ce4d11708e02
+2. Querying Local Zebra Node (127.0.0.1:18232 z_gettreestate)...
+   Local Zebra Node FinalRoot:   99c02841b4b74ab712433fe3bd5ab0f0f48c5528f0054a9c5092ce4d11708e02
+3. Querying testnet.zec.rocks:443 (GetTreeState via gRPC)...
+   testnet.zec.rocks Root:       99c02841b4b74ab712433fe3bd5ab0f0f48c5528f0054a9c5092ce4d11708e02
+
+--- ROOT COMPARISON ASSERTIONS ---
+Wallet B vs Local Zebra Node:   MATCH ✅
+Wallet B vs testnet.zec.rocks:  MATCH ✅
+Local Zebra vs zec.rocks:       MATCH ✅
+ALL THREE IRONWOOD ROOTS AT TIP ARE IDENTICAL! ✅
+
+--- 6. Verifying Received Notes (SQLite query) ---
+Query: SELECT id, value_zatoshis, height, pool, hex(txid) FROM received_notes;
+1|1000000|4542240|ironwood|5A09656A90ED7332E42DE4F9C12F31C71D093E734DEB8357B9E641C4AB16A58C
+
+CONFIRMED: 1,000,000 zat note at height 4,542,240 is verified in fresh Wallet B! ✅
+NO SPEND: Balance of 1,000,000 zatoshis remains completely unspent (spendable). ✅
+
+========================================================================
+=== PART B VERIFIED: ALL LOCAL NODE & SYNC ASSERTIONS PASSED ✅ ======
+========================================================================

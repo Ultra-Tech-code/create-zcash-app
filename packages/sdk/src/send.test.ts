@@ -309,7 +309,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     expect(spendableWhilePending.length).toBe(0);
 
     // 4. Case A: If transaction expires without being mined on chain (simulated chain advance past expiry_height)
-    runSql('DELETE FROM pending_spends WHERE expiry_height <= 50;');
+    runSql('DELETE FROM pending_spends WHERE expiry_height <= 51;');
 
     const spendableAfterExpiry = wallet.querySpendableNotes(5, 1);
     expect(spendableAfterExpiry.length).toBe(1);
@@ -774,7 +774,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
       expect(buildSpyNu6_3).toHaveBeenCalledWith(
         expect.objectContaining({
-          expiryHeight: 4_465_024 + 40, // +40 for NU6.3
+          expiryHeight: 4_465_024 + 1 + 40, // target height (tip + 1) + 40 for NU6.3
         })
       );
 
@@ -813,7 +813,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
       expect(buildSpyNu7).toHaveBeenCalledWith(
         expect.objectContaining({
-          expiryHeight: 4_542_238 + 120, // +120 for NU7
+          expiryHeight: 4_542_238 + 1 + 120, // target height (tip + 1) + 120 for NU7
         })
       );
     });
@@ -854,7 +854,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
         amount: 100_000_000n,
       });
       expect(buildSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ expiryHeight: 4_465_024 + 40 })
+        expect.objectContaining({ expiryHeight: 4_465_024 + 1 + 40 })
       );
 
       // (b) Testnet tip 4,465,025 -> within 1 block before NU7 activation (4,465,026) -> REFUSE
@@ -882,7 +882,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
         amount: 100_000_000n,
       });
       expect(buildSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ expiryHeight: 4_465_026 + 120 })
+        expect.objectContaining({ expiryHeight: 4_465_026 + 1 + 120 })
       );
 
       // Mainnet activation: 3,543,405
@@ -906,7 +906,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
         amount: 100_000_000n,
       });
       expect(buildSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ expiryHeight: 3_543_403 + 40 })
+        expect.objectContaining({ expiryHeight: 3_543_403 + 1 + 40 })
       );
 
       // (e) Mainnet tip 3,543,404 -> within 1 block before NU7 activation (3,543,405) -> REFUSE
@@ -934,7 +934,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
         amount: 100_000_000n,
       });
       expect(buildSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ expiryHeight: 3_543_405 + 120 })
+        expect.objectContaining({ expiryHeight: 3_543_405 + 1 + 120 })
       );
     });
   });

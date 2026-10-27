@@ -1,0 +1,49 @@
+===============================================================
+=== PART A: LOCAL TESTNET ZEBRA NODE READ-ONLY RPC QUERIES ===
+===============================================================
+[AUTH] Successfully read cookie authentication from ~/Library/Caches/zebra/.cookie (token redacted)
+
+--- 1. Querying getblockchaininfo ---
+Chain:               test
+Blocks:              4548518
+Best Block Hash:     00001cc06d9d6c6785785079e6e4246042eb5d600c0e004f5e23e6dd56b636db
+NU7 Upgrade Status:  {"name":"NU7","activationheight":4465026,"status":"active"}
+[PASS] Chain is testnet
+[PASS] Tip is well past NU7 activation height 4465026 (blocks=4548518)
+[PASS] NU7 consensus upgrade is active
+
+--- 2. Querying getblockcount ---
+Block count:         4548518
+[PASS] Block count equals getblockchaininfo blocks (count=4548518)
+
+--- 3. Querying getrawtransaction for 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a ---
+Tx Version:          6
+Tx VersionGroupID:   0xd884b698
+Tx Expiry Height:    4542278
+Tx Ironwood Anchor:  3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892
+Tx Reversed Anchor:  92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f
+[PASS] Tx Version is 6 (NU7 format)
+[PASS] Tx VersionGroupID is 0xd884b698
+[PASS] Tx Expiry Height is 4542278
+[PASS] Tx expiry matches summary.json expected_expiry (expiry=4542278)
+[PASS] Tx raw anchor matches summary.json raw_anchor_on_chain_zebra_order (anchor=3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892)
+[PASS] Tx reversed anchor matches summary.json root_printed_in_testnet_send_run_log (reversed=92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f)
+
+--- 4. Querying getblock for height 4542240 ---
+Block Height:        4542240
+Block Hash:          00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e
+Block Num Tx:        2
+[PASS] Block height is 4542240
+[PASS] Block contains verified testnet send txid
+[PASS] Block hash matches summary.json quicknode_getblockhash & lightwalletd_getblock_hash (hash=00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e)
+
+--- 5. Querying z_gettreestate for height 4542475 ---
+TreeState Height:    4542475
+Ironwood FinalRoot:  9b39d0b326b53b9a93e798e7e58add0d086e09ce8972e59cf68fa40ef58a6706
+[PASS] TreeState height is 4542475
+[PASS] Ironwood root matches known three-way root verification (9b39d0b3...6706) (root=9b39d0b326b53b9a93e798e7e58add0d086e09ce8972e59cf68fa40ef58a6706)
+
+======================================================================
+=== PART A VERIFIED: ALL 15/15 LOCAL NODE ASSERTIONS PASSED ✅ ===
+======================================================================
+

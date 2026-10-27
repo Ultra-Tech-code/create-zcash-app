@@ -4,7 +4,17 @@ import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
 import { spawn, execSync } from 'child_process';
-import { createClient, dev, accountFromMnemonic } from '@zcash-app/sdk';
+import { createClient, dev, accountFromMnemonic, KNOWN_TEST_MNEMONICS } from '@zcash-app/sdk';
+
+export function getRegtestAccount0MinerAddress(network: string = 'regtest-nu7'): string {
+  if (network !== 'regtest' && network !== 'regtest-nu7') {
+    throw new Error(
+      `Security Error: Refusing miner address derivation for non-regtest network "${network}". KNOWN_TEST_MNEMONICS is strictly restricted to regtest.`
+    );
+  }
+  const acct = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, network as any);
+  return acct.getUnifiedAddress();
+}
 
 const REMOTE_ENDPOINTS: Record<string, string> = {
   regtest: '127.0.0.1:28137',
@@ -238,18 +248,20 @@ program
     });
   });
 
-function resolveRegtestDir(explicitPath?: string): string {
+export function resolveRegtestDir(explicitPath?: string, stack: string = 'nu6'): string {
   if (explicitPath && explicitPath.trim()) {
     return path.resolve(explicitPath.trim());
   }
   if (process.env.ZCASH_REGTEST_DIR && process.env.ZCASH_REGTEST_DIR.trim()) {
     return path.resolve(process.env.ZCASH_REGTEST_DIR.trim());
   }
-  const candidateBuilt = path.resolve(__dirname, '../docker/regtest');
+  const isNu7 = stack.toLowerCase() === 'nu7';
+  const folder = isNu7 ? 'regtest-nu7' : 'regtest';
+  const candidateBuilt = path.resolve(__dirname, `../docker/${folder}`);
   if (fs.existsSync(candidateBuilt) && fs.existsSync(path.join(candidateBuilt, 'docker-compose.yml'))) {
     return candidateBuilt;
   }
-  const candidateSrc = path.resolve(__dirname, '../../dev/docker/regtest');
+  const candidateSrc = path.resolve(__dirname, `../../dev/docker/${folder}`);
   if (fs.existsSync(candidateSrc) && fs.existsSync(path.join(candidateSrc, 'docker-compose.yml'))) {
     return candidateSrc;
   }
@@ -261,15 +273,92 @@ const regtestCmd = program
   .description('Regtest environment management commands');
 
 regtestCmd
-  .command('setup')
-  .description('Configure and initialize regtest stack (pins images, creates account, sets miner_address & miner_memo)')
+  .command('up')
+  .alias('setup')
+  .description('Configure and initialize regtest stack (default: z3 nu6, or --stack nu7)')
+  .option('--stack <stack>', 'Regtest stack to run (nu6 | nu7)', 'nu6')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
   .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .action(async (options) => {
-    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path);
+    const stack = (options.stack || 'nu6').toLowerCase();
+    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path, stack);
     if (!fs.existsSync(regtestDir)) {
       console.error(`❌ Could not locate regtest directory at: ${regtestDir}. Please specify with --regtest-path <path> or ZCASH_REGTEST_DIR.`);
       process.exit(1);
+    }
+
+    if (stack === 'nu7') {
+      console.log(`\n=== 🛠️  Setting up NU7 Regtest (Zebra 7.0.0 + lightwalletd) in ${regtestDir} ===\n`);
+      const accountUa = getRegtestAccount0MinerAddress('regtest-nu7');
+      console.log(`✅ Using Account 0 Unified Address for NU7 mining:\n   ${accountUa}`);
+
+      const zebraTomlPath = path.join(regtestDir, 'zebra.toml');
+      if (fs.existsSync(zebraTomlPath)) {
+        let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
+        if (!zebraConfig.includes('[mining]')) {
+          zebraConfig += `\n[mining]\nminer_address = "${accountUa}"\nminer_memo = "regtest"\n`;
+        } else {
+          zebraConfig = zebraConfig.replace(/miner_address\s*=\s*".*"/, `miner_address = "${accountUa}"`);
+          if (zebraConfig.includes('miner_memo')) {
+            zebraConfig = zebraConfig.replace(/miner_memo\s*=\s*".*"/, `miner_memo = "regtest"`);
+          } else {
+            zebraConfig = zebraConfig.replace('[mining]', `[mining]\nminer_memo = "regtest"`);
+          }
+        }
+        fs.writeFileSync(zebraTomlPath, zebraConfig);
+        console.log(`✅ Updated ${path.basename(zebraTomlPath)} with Account 0 miner address.`);
+      }
+
+      console.log('\n🐳 Starting NU7 Regtest containers...');
+      const initScript = path.join(regtestDir, 'regtest-init.sh');
+      if (fs.existsSync(initScript)) {
+        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      } else {
+        execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
+      }
+
+      const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
+      console.log(`\n⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
+      let ready = false;
+      for (let i = 0; i < 30; i++) {
+        try {
+          const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
+          });
+          if (res.ok) {
+            ready = true;
+            break;
+          }
+        } catch (e) {}
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      if (!ready) {
+        console.error('❌ Zebra RPC did not become ready in time.');
+        process.exit(1);
+      }
+
+      const bciRes = await (await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] }),
+      })).json();
+      const currentHeight = Number(bciRes.result || 0);
+      console.log(`Current block height: ${currentHeight}`);
+      if (currentHeight < 105) {
+        const needed = 105 - currentHeight;
+        console.log(`Mining ${needed} blocks for coinbase maturity (target tip 105)...`);
+        await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [needed] }),
+        });
+        console.log('✅ Mined maturity blocks.');
+      }
+
+      console.log('\n🎉 NU7 Regtest setup completed successfully! Stack is ready for SDK testing.\n');
+      return;
     }
 
     console.log(`\n=== 🛠️  Setting up Regtest in ${regtestDir} ===\n`);
@@ -411,12 +500,14 @@ regtestCmd
   .command('wipe')
   .alias('reset')
   .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
+  .option('--stack <stack>', 'Regtest stack to wipe (nu6 | nu7)', 'nu6')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
   .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .option('-y, --yes', 'Confirm wiping regtest blockchain without interactive prompt')
   .option('--dry-run', 'Derive and print exact volumes/containers to be wiped without executing')
   .action(async (options) => {
-    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path);
+    const stack = (options.stack || 'nu6').toLowerCase();
+    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path, stack);
     if (!fs.existsSync(regtestDir)) {
       console.error(`❌ Could not locate regtest directory at: ${regtestDir}. Please specify with --regtest-path <path> or ZCASH_REGTEST_DIR.`);
       process.exit(1);
@@ -432,8 +523,9 @@ regtestCmd
     const composeContent = fs.readFileSync(composePath, 'utf8');
     const projectNameMatch = composeContent.match(/^name:\s*(.+)$/m);
     const projectName = projectNameMatch ? projectNameMatch[1].trim() : 'z3-regtest';
-    if (projectName !== 'z3-regtest') {
-      console.error(`❌ Refusing to wipe: Expected name: z3-regtest, but found "${projectName}". Only regtest environments may be wiped.`);
+    const ALLOWED_PROJECT_NAMES = ['z3-regtest', 'zcash-regtest-nu7'];
+    if (!ALLOWED_PROJECT_NAMES.includes(projectName)) {
+      console.error(`❌ Refusing to wipe: Expected name to be one of [${ALLOWED_PROJECT_NAMES.join(', ')}], but found "${projectName}". Only regtest environments may be wiped.`);
       process.exit(1);
     }
 
@@ -444,14 +536,16 @@ regtestCmd
       const vOutput = execSync(`cd "${regtestDir}" && docker compose config --volumes`, { encoding: 'utf8' });
       dynamicVolumes = vOutput.split('\n').map((v: string) => v.trim()).filter(Boolean).map((v: string) => `${projectName}_${v}`);
     } catch (e: any) {
-      dynamicVolumes = [`${projectName}_chain`, `${projectName}_zallet`, `${projectName}_cookie`, `${projectName}_zallet_ca_certificates`];
+      dynamicVolumes = projectName === 'zcash-regtest-nu7'
+        ? [`${projectName}_zebra-data`]
+        : [`${projectName}_chain`, `${projectName}_zallet`, `${projectName}_cookie`, `${projectName}_zallet_ca_certificates`];
     }
 
     try {
       const sOutput = execSync(`cd "${regtestDir}" && docker compose config --services`, { encoding: 'utf8' });
       dynamicServices = sOutput.split('\n').map((s: string) => s.trim()).filter(Boolean);
     } catch (e: any) {
-      dynamicServices = ['zebra', 'cookie-permissions', 'zallet', 'rpc-router'];
+      dynamicServices = projectName === 'zcash-regtest-nu7' ? ['zebra', 'lightwalletd'] : ['zebra', 'cookie-permissions', 'zallet', 'rpc-router'];
     }
 
     // Print dynamically derived resource deletion warning
@@ -466,7 +560,7 @@ regtestCmd
       console.log('🔍 [Dry Run] Would execute:');
       console.log(`   1. docker compose down -v (purges volumes: ${dynamicVolumes.join(', ')})`);
       console.log('   2. bash regtest-init.sh (re-initializes genesis credentials and parameters)');
-      console.log(`   3. docker compose up -d && docker compose up -d zaino`);
+      console.log(`   3. docker compose up -d`);
       console.log('\n✅ [Dry Run complete: zero destructive actions executed.]');
       return;
     }
@@ -491,6 +585,40 @@ regtestCmd
 
     console.log(`\n=== 🧹 Wiping Regtest Blockchain in ${regtestDir} ===\n`);
     execSync(`cd "${regtestDir}" && docker compose down -v`, { stdio: 'inherit' });
+
+    if (projectName === 'zcash-regtest-nu7' || stack === 'nu7') {
+      console.log('\n=== 🛠️  Reinitializing fresh NU7 chain via regtest-init.sh ===\n');
+      const initScript = path.join(regtestDir, 'regtest-init.sh');
+      if (fs.existsSync(initScript)) {
+        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      } else {
+        execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
+      }
+
+      const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
+      console.log(`⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
+      for (let i = 0; i < 30; i++) {
+        try {
+          const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
+          });
+          if (res.ok) break;
+        } catch (e) {}
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+
+      console.log('Mining 105 blocks for fresh regtest chain...');
+      await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [105] }),
+      });
+      console.log('✅ Fresh NU7 regtest chain created with tip height 105!\n');
+      return;
+    }
+
     console.log('\n=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===\n');
     const initScript = path.join(regtestDir, 'regtest-init.sh');
     const legacyInitScript = path.join(regtestDir, 'scripts/regtest-init.sh');
@@ -570,4 +698,12 @@ regtestCmd
     console.log('✅ Fresh regtest chain created with tip height 105!\n');
   });
 
-program.parse(process.argv);
+const isEntrypoint =
+  process.argv[1] &&
+  (path.resolve(process.argv[1]) === __filename ||
+    path.basename(process.argv[1]) === 'zcash-dev' ||
+    process.argv[1].endsWith('dist/cli.js'));
+
+if (isEntrypoint) {
+  program.parse(process.argv);
+}

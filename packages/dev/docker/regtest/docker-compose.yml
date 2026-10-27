@@ -4,8 +4,8 @@ services:
   zebra:
     image: ${Z3_ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
     ports:
-      - "29232:18232"
-      - "28080:8080"
+      - "127.0.0.1:29232:18232"
+      - "127.0.0.1:28080:8080"
     volumes:
       - chain:/home/zebra/.cache/zebra
       - cookie:/var/run/auth
@@ -74,7 +74,7 @@ services:
       cookie-permissions:
         condition: service_healthy
     ports:
-      - "50232:28232"
+      - "127.0.0.1:50232:28232"
     volumes:
       - zallet:/var/lib/zallet
       - zallet-ca-certificates:/etc/ssl/certs:ro
@@ -92,7 +92,7 @@ services:
       zallet:
         condition: service_started
     ports:
-      - "8181:8181"
+      - "127.0.0.1:8181:8181"
     environment:
       - LISTEN_PORT=8181
       - ZEBRA_URL=http://zebra:18232
@@ -109,8 +109,8 @@ services:
       cookie-permissions:
         condition: service_healthy
     ports:
-      - "28137:8137"
-      - "28237:8237"
+      - "127.0.0.1:28137:8137"
+      - "127.0.0.1:28237:8237"
     volumes:
       - zaino:/app/data
       - ./zaino.toml:/etc/zaino/zindexer.toml:ro

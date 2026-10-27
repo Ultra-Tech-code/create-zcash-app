@@ -134,11 +134,11 @@ fn test_a_pure_rust_multi_input_multi_output() {
     let change_addr = fvk.address_at(0u32, Scope::Internal);
     let out2 = OutputSpec::new(change_addr, NoteValue::from_raw(390_000));
 
-    // Anchor: 5 blocks below tip=100 (height 95), expiry = 140 (tip + 40)
+    // Anchor: 5 blocks below tip=100 (height 95), expiry = 141 (target height 101 + 40)
     let tip = BlockHeight::from_u32(100);
     let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip, Some(5));
 
-    assert_eq!(config.expiry_height, BlockHeight::from_u32(140));
+    assert_eq!(config.expiry_height, BlockHeight::from_u32(141));
     assert_eq!(config.anchor_height, Some(BlockHeight::from_u32(95)));
     assert!(!config.allow_custom_fee);
 
@@ -162,7 +162,7 @@ fn test_a_pure_rust_multi_input_multi_output() {
 
     assert_eq!(built.num_actions, 2);
     assert_eq!(built.fee, Zatoshis::const_from_u64(10_000));
-    assert_eq!(built.expiry_height, BlockHeight::from_u32(140));
+    assert_eq!(built.expiry_height, BlockHeight::from_u32(141));
     assert!(!built.raw_bytes.is_empty());
 
     // Verify bundle proof with VerifyingKey
@@ -451,19 +451,19 @@ fn test_amendment5_anchor_and_expiry() {
     let spend1 = SpendInput::new(note1, path1);
     let out1 = OutputSpec::new(fvk.address_at(0u32, Scope::Internal), NoteValue::from_raw(490_000));
 
-    // Test with tip = 200: expiry MUST be 240 (tip + 40)
+    // Test with tip = 200: expiry MUST be 241 (target height 201 + 40)
     let tip_200 = BlockHeight::from_u32(200);
     let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip_200, Some(5));
-    assert_eq!(config.expiry_height, BlockHeight::from_u32(240));
+    assert_eq!(config.expiry_height, BlockHeight::from_u32(241));
     assert_eq!(config.anchor_height, Some(BlockHeight::from_u32(195)));
 
     let pk = get_shared_proving_key();
     let built = build_and_prove_v6_ironwood_tx(&sk, vec![spend1], vec![out1], &config, pk).unwrap();
-    assert_eq!(built.expiry_height, BlockHeight::from_u32(240));
-    assert_eq!(built.transaction.expiry_height(), BlockHeight::from_u32(240));
+    assert_eq!(built.expiry_height, BlockHeight::from_u32(241));
+    assert_eq!(built.transaction.expiry_height(), BlockHeight::from_u32(241));
     assert_eq!(*built.transaction.ironwood_bundle().unwrap().anchor(), config.anchor);
 
-    println!("AMENDMENT 5 RESULT: SUCCESS (Anchor chosen 5 blocks below tip, expiry tip + 40 verified on built tx)");
+    println!("AMENDMENT 5 RESULT: SUCCESS (Anchor chosen 5 blocks below tip, expiry target height 201 + 40 verified on built tx)");
 }
 
 /// Unit test verifying Amendment 6 & 7:
@@ -1121,15 +1121,15 @@ fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
     let config_nu6_3 = TransactionConfig::new(BranchId::Nu6_3, dummy_anchor, tip, None);
     assert_eq!(
         config_nu6_3.expiry_height,
-        BlockHeight::from_u32(1_000 + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA),
-        "TransactionConfig with Nu6_3 must expire at tip + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (1040)"
+        BlockHeight::from_u32(1_001 + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu6_3 must expire at target height + BLOSSOM_DEFAULT_TX_EXPIRY_DELTA (1041)"
     );
 
     let config_nu7 = TransactionConfig::new(BranchId::Nu7, dummy_anchor, tip, None);
     assert_eq!(
         config_nu7.expiry_height,
-        BlockHeight::from_u32(1_000 + NU7_DEFAULT_TX_EXPIRY_DELTA),
-        "TransactionConfig with Nu7 must expire at tip + NU7_DEFAULT_TX_EXPIRY_DELTA (1120)"
+        BlockHeight::from_u32(1_001 + NU7_DEFAULT_TX_EXPIRY_DELTA),
+        "TransactionConfig with Nu7 must expire at target height + NU7_DEFAULT_TX_EXPIRY_DELTA (1121)"
     );
 
     println!(

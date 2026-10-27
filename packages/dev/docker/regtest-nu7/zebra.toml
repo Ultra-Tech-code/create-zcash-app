@@ -1,0 +1,23 @@
+# Zebra regtest configuration with NU7 activated at height 2.
+# Used by the standalone NU7 regtest stack (Zebra 7.0.0 + lightwalletd).
+
+[network]
+network = "Regtest"
+
+[network.testnet_parameters.activation_heights]
+BeforeOverwinter = 1
+Overwinter = 1
+Sapling = 1
+Blossom = 1
+Heartwood = 1
+Canopy = 1
+NU5 = 2
+NU6 = 2
+"NU6.1" = 2
+"NU6.2" = 2
+"NU6.3" = 2
+NU7 = 2
+
+[mining]
+miner_address = "uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k"
+miner_memo = "regtest"

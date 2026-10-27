@@ -250,7 +250,7 @@ impl TransactionConfig {
     /// anchor, and branch ID.
     ///
     /// The anchor height is recorded as `tip_height - DEFAULT_ANCHOR_OFFSET` (5 blocks below tip).
-    /// The expiry height defaults to `tip_height + DEFAULT_EXPIRY_DELTA` (40 blocks above tip).
+    /// The expiry height defaults to `(tip_height + 1) + DEFAULT_EXPIRY_DELTA` (matching builder target height default).
     /// `allow_custom_fee` defaults to `false`.
     pub fn new(
         branch_id: BranchId,
@@ -261,7 +261,8 @@ impl TransactionConfig {
         let offset = anchor_offset.unwrap_or(DEFAULT_ANCHOR_OFFSET);
         let anchor_height = BlockHeight::from_u32(u32::from(tip_height).saturating_sub(offset));
         let expiry_delta = default_tx_expiry_delta(branch_id);
-        let expiry_height = BlockHeight::from_u32(u32::from(tip_height) + expiry_delta);
+        let target_height = u32::from(tip_height) + 1;
+        let expiry_height = BlockHeight::from_u32(target_height + expiry_delta);
         Self {
             branch_id,
             anchor,
@@ -280,7 +281,18 @@ impl TransactionConfig {
         anchor_offset: Option<u32>,
     ) -> Self {
         let branch_id = BranchId::for_height(params, target_height);
-        Self::new(branch_id, anchor, target_height, anchor_offset)
+        let offset = anchor_offset.unwrap_or(DEFAULT_ANCHOR_OFFSET);
+        let tip_height = u32::from(target_height).saturating_sub(1);
+        let anchor_height = BlockHeight::from_u32(tip_height.saturating_sub(offset));
+        let expiry_delta = default_tx_expiry_delta(branch_id);
+        let expiry_height = BlockHeight::from_u32(u32::from(target_height) + expiry_delta);
+        Self {
+            branch_id,
+            anchor,
+            anchor_height: Some(anchor_height),
+            expiry_height,
+            allow_custom_fee: false,
+        }
     }
 
     /// Sets the expiry height explicitly.
