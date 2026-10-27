@@ -10,6 +10,8 @@ interface ConsensusBannerProps {
     expectedUpgradeName?: string;
     branchMatches?: boolean;
     blockHeight?: string | number;
+    chainMismatch?: boolean;
+    chainMismatchMessage?: string;
   } | null;
   network: string;
 }
@@ -26,8 +28,38 @@ export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, netw
     expectedUpgradeName = 'Unknown',
     branchMatches = false,
     blockHeight = 0,
+    chainMismatch = false,
+    chainMismatchMessage,
   } = nodeInfo;
 
+  // Guard 1: Chain name mismatch precedes branch-id check
+  if (chainMismatch && chainMismatchMessage) {
+    return (
+      <div
+        id="consensus-banner-chain-mismatch"
+        style={{
+          padding: '0.875rem 1.25rem',
+          background: 'rgba(239, 68, 68, 0.15)',
+          border: '1px solid rgba(239, 68, 68, 0.4)',
+          borderRadius: '10px',
+          marginBottom: '1.5rem',
+          color: '#fca5a5',
+          fontSize: '0.85rem',
+          lineHeight: '1.5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+        }}
+      >
+        <span style={{ fontSize: '1.25rem' }}>🚫</span>
+        <div>
+          <strong>Chain Network Mismatch:</strong> {chainMismatchMessage}
+        </div>
+      </div>
+    );
+  }
+
+  // Guard 2: Branch ID check
   if (!branchMatches && expectedBranchId) {
     return (
       <div
@@ -42,16 +74,18 @@ export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, netw
           fontSize: '0.85rem',
           lineHeight: '1.5',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           gap: '0.75rem',
         }}
       >
         <span style={{ fontSize: '1.25rem' }}>⚠️</span>
         <div>
-          <strong>Consensus Branch ID Mismatch:</strong> Connected node at height #{blockHeight} reports branch ID{' '}
-          <code className="mono-text">0x{actualBranchId}</code> (<strong>{upgradeName}</strong>), but expected branch ID for {network} is{' '}
-          <code className="mono-text">0x{expectedBranchId}</code> (<strong>{expectedUpgradeName}</strong>).
-          The node may be syncing an alternate chain or running differing consensus activation heights.
+          <div>
+            <strong>Consensus Branch ID Mismatch:</strong> Connected node at height #{blockHeight} reports branch ID{' '}
+            <code className="mono-text">0x{actualBranchId}</code> (<strong>{upgradeName}</strong>), but expected branch ID for {network} is{' '}
+            <code className="mono-text">0x{expectedBranchId}</code> (<strong>{expectedUpgradeName}</strong>).
+            The node may be syncing an alternate chain or running differing consensus activation heights.
+          </div>
         </div>
       </div>
     );
