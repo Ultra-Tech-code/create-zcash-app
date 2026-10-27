@@ -37,11 +37,26 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const isNu7Regtest = preset === 'regtest-nu7';
   const isWatchOnly = network !== 'regtest';
+  const isError = accountData?.status === 'error';
+  const isSyncing = accountData?.status === 'syncing';
 
-  const totalZec = zatoshisToZec(accountData?.balances?.total || '0');
-  const ironwoodZec = zatoshisToZec(accountData?.balances?.ironwood || accountData?.balances?.orchard || '0');
-  const saplingZec = zatoshisToZec(accountData?.balances?.sapling || '0');
-  const transparentZec = zatoshisToZec(accountData?.balances?.transparent || '0');
+  const totalZec = isError
+    ? '—'
+    : isWatchOnly && !accountData?.balances
+    ? '—'
+    : zatoshisToZec(accountData?.balances?.total || '0');
+
+  const ironwoodZec = isError || !accountData?.balances
+    ? '—'
+    : zatoshisToZec(accountData?.balances?.ironwood || accountData?.balances?.orchard || '0');
+
+  const saplingZec = isError || !accountData?.balances
+    ? '—'
+    : zatoshisToZec(accountData?.balances?.sapling || '0');
+
+  const transparentZec = isError || !accountData?.balances
+    ? '—'
+    : zatoshisToZec(accountData?.balances?.transparent || '0');
 
   // Upgrade name and branch ID directly from node
   const upgradeName = nodeInfo?.upgradeName || 'Unknown';
@@ -56,16 +71,78 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <span className={`badge badge-${network}`}>{network}</span>
         </div>
 
+        {isError && (
+          <div
+            id="account-error-banner"
+            style={{
+              padding: '0.75rem 1rem',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              borderRadius: '8px',
+              color: '#fca5a5',
+              fontSize: '0.85rem',
+              lineHeight: '1.5',
+              marginBottom: '1rem',
+            }}
+          >
+            ⚠️ <strong>Account Query Error:</strong> {accountData.message}
+          </div>
+        )}
+
+        {isSyncing && (
+          <div
+            id="account-syncing-banner"
+            style={{
+              padding: '0.75rem 1rem',
+              background: 'rgba(59, 130, 246, 0.15)',
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              borderRadius: '8px',
+              color: '#93c5fd',
+              fontSize: '0.85rem',
+              lineHeight: '1.5',
+              marginBottom: '1rem',
+            }}
+          >
+            🔄 <strong>Node Syncing:</strong> {accountData.message}
+          </div>
+        )}
+
+        {isWatchOnly && !accountData?.ufvk && !isError && (
+          <div
+            id="watch-only-banner"
+            style={{
+              padding: '0.75rem 1rem',
+              background: 'rgba(59, 130, 246, 0.1)',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '8px',
+              color: '#93c5fd',
+              fontSize: '0.85rem',
+              lineHeight: '1.5',
+              marginBottom: '1rem',
+            }}
+          >
+            🔒 <strong>Watch-Only:</strong> {accountData?.message || `${network} operates watch-only. Paste a UFVK to view balance.`}
+          </div>
+        )}
+
         <div style={{ marginBottom: '1.5rem' }}>
           <div style={{ fontSize: '2.25rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--accent-gold)' }}>
             {totalZec} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>ZEC</span>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            Confirmed: {zatoshisToZec(accountData?.balances?.confirmed?.total || '0')} ZEC
-            {accountData?.balances?.pending?.total !== '0' && (
-              <span style={{ marginLeft: '0.5rem', color: 'var(--accent-blue)' }}>
-                (Pending: {zatoshisToZec(accountData?.balances?.pending?.total || '0')} ZEC)
-              </span>
+            {isError ? (
+              <span style={{ color: '#fca5a5' }}>Balance unavailable (error connecting to node)</span>
+            ) : isWatchOnly && !accountData?.balances ? (
+              <span>Import a Unified Full Viewing Key (UFVK) to scan balances</span>
+            ) : (
+              <>
+                Confirmed: {zatoshisToZec(accountData?.balances?.confirmed?.total || '0')} ZEC
+                {accountData?.balances?.pending?.total && accountData.balances.pending.total !== '0' && (
+                  <span style={{ marginLeft: '0.5rem', color: 'var(--accent-blue)' }}>
+                    (Pending: {zatoshisToZec(accountData?.balances?.pending?.total || '0')} ZEC)
+                  </span>
+                )}
+              </>
             )}
           </div>
         </div>

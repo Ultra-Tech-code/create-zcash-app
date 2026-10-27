@@ -8,9 +8,9 @@ export namespace dev {
   export const fixtures = {
     mnemonics: KNOWN_TEST_MNEMONICS,
     account(index: number, network: 'regtest' | 'testnet' | 'mainnet' = 'regtest'): Account {
-      if (network === 'mainnet') {
+      if (network === 'mainnet' || network === 'testnet') {
         throw new Error(
-          'Security Error: Test fixture mnemonics are publicly known and strictly prohibited on mainnet. Import an explicit UFVK or private seed for production.'
+          `Security Error: Test fixture mnemonics are publicly known and strictly prohibited on ${network}. Import an explicit UFVK for watch-only monitoring.`
         );
       }
       if (index < 0) {

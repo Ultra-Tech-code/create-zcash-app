@@ -48,7 +48,7 @@ export default function Dashboard() {
         setNodeInfo(null);
       }
 
-      if (acctJson.success) {
+      if (acctJson) {
         setAccountData(acctJson);
       } else {
         setAccountData(null);

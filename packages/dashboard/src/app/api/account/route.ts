@@ -24,48 +24,37 @@ export async function GET(request: Request) {
   const fixtureIndex = parseInt(searchParams.get('index') || '0', 10);
 
   try {
-    // Safety guard: Fixture mnemonic derivation is only permitted on regtest and testnet.
-    // On mainnet, public test mnemonics are strictly prohibited by SDK guard.
-    if (network === 'mainnet') {
+    // Safety guard: Fixture mnemonic derivation is only permitted on regtest.
+    // On mainnet and testnet, public test mnemonics are strictly prohibited; accounts are watch-only.
+    if (network === 'mainnet' || network === 'testnet') {
       return NextResponse.json({
         success: true,
+        status: 'ready',
+        message: `${network === 'mainnet' ? 'Mainnet' : 'Testnet'} is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.`,
         accountIndex: fixtureIndex,
+        preset: presetParam || undefined,
         network,
         endpoint,
-        unifiedAddress: 'Mainnet Watch-Only (Import UFVK to view)',
-        transparentAddress: undefined,
-        ufvk: undefined,
+        unifiedAddress: null,
+        transparentAddress: null,
+        ufvk: null,
         isWatchOnly: true,
-        balances: {
-          orchard: '0',
-          ironwood: '0',
-          sapling: '0',
-          transparent: '0',
-          total: '0',
-          confirmed: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
-          pending: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
-        },
+        balances: null,
         notes: [],
-        notice: 'Mainnet operates strictly watch-only. Import an explicit UFVK to monitor an account.',
       });
     }
 
     const acct = dev.fixtures.account(fixtureIndex, network as any);
     const ua = acct.getUnifiedAddress();
     const ufvk = acct.getUnifiedFullViewingKey();
+    const transparentAddress = acct.getTransparentAddress ? acct.getTransparentAddress() : undefined;
 
-    let balances: any = {
-      orchard: '0',
-      ironwood: '0',
-      sapling: '0',
-      transparent: '0',
-      total: '0',
-      confirmed: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
-      pending: { orchard: '0', ironwood: '0', sapling: '0', transparent: '0', total: '0' },
-    };
+    let balances: any = null;
     let incomingNotes: any[] = [];
+    let status: 'ready' | 'syncing' | 'error' = 'ready';
+    let message = 'Account ready and synchronized';
 
-    // Attempt balance and note scanning for regtest (small height, safe to scan synchronously)
+    // Balance and note scanning for regtest
     if (network === 'regtest') {
       try {
         const client = createClient({ endpoint, network });
@@ -98,14 +87,24 @@ export async function GET(request: Request) {
         }));
         await client.close();
       } catch (e: any) {
-        // Indexer may be starting or offline
+        const errMsg = e?.message || String(e);
+        if (errMsg.toLowerCase().includes('syncing') || errMsg.toLowerCase().includes('catching up')) {
+          status = 'syncing';
+          message = `Node is syncing: ${errMsg}`;
+        } else {
+          status = 'error';
+          message = `Failed to query node on ${endpoint}: ${errMsg}`;
+        }
+        // Do NOT swallow errors into silent zeros; keep balances as null
+        balances = null;
+        incomingNotes = [];
       }
     }
 
-    const transparentAddress = acct.getTransparentAddress ? acct.getTransparentAddress() : undefined;
-
     return NextResponse.json({
-      success: true,
+      success: status !== 'error',
+      status,
+      message,
       accountIndex: fixtureIndex,
       preset: presetParam || undefined,
       network,
@@ -113,14 +112,19 @@ export async function GET(request: Request) {
       unifiedAddress: ua,
       transparentAddress,
       ufvk,
-      isWatchOnly: network !== 'regtest',
+      isWatchOnly: false,
       balances,
       notes: incomingNotes,
     });
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || 'Account derivation failed' },
-      { status: 500 }
+      {
+        success: false,
+        status: 'error',
+        message: err.message || 'Account derivation failed',
+        error: err.message || 'Account derivation failed',
+      },
+      { status: 400 }
     );
   }
 }

@@ -26,22 +26,40 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const isWatchOnly = network !== 'regtest';
   const isMainnet = network === 'mainnet';
   const ufvk = accountData?.ufvk || '';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {accountData?.status === 'error' && (
+        <div
+          id="addresses-error-banner"
+          style={{
+            padding: '0.75rem 1rem',
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            borderRadius: '8px',
+            color: '#fca5a5',
+            fontSize: '0.85rem',
+            lineHeight: '1.5',
+          }}
+        >
+          ⚠️ <strong>Account Error:</strong> {accountData.message}
+        </div>
+      )}
+
       {/* Account Selector */}
       <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Active Account</h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            {isMainnet
-              ? 'Mainnet Watch-Only Account'
+            {isWatchOnly
+              ? `Watch-Only Account (${network === 'mainnet' ? 'Mainnet' : 'Testnet'})`
               : `BIP-39 Test Fixture Account #${activeAccountIndex} (${network})`}
           </p>
         </div>
-        {!isMainnet && (
+        {!isWatchOnly && (
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {[0, 1, 2].map((idx) => (
               <button
@@ -83,9 +101,13 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
             border: '1px solid var(--border-color)',
             fontSize: '0.8rem',
             lineHeight: '1.4',
+            wordBreak: 'break-all',
           }}
         >
-          {accountData?.unifiedAddress || 'Loading...'}
+          {accountData?.unifiedAddress ||
+            (isWatchOnly
+              ? `Watch-only mode on ${network}. Paste a Unified Full Viewing Key (UFVK) to view address and history.`
+              : 'Loading...')}
         </div>
       </div>
 
