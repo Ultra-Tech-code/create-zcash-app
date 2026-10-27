@@ -1,0 +1,61 @@
+================================================================
+ PHASE 1 - NU7 AWARENESS & DASHBOARD PRESET VERIFICATION
+================================================================
+Timestamp: 2026-10-27T21:32:39.044Z
+Base URL:  http://127.0.0.1:3050
+
+--- 1. SDK Consensus Helper Tests ---
+[PASS] NU7 branch ID mapping -> 77190ad9 -> NU7
+[PASS] NU7 with 0x prefix -> 0x77190ad9 -> NU7
+[PASS] NU7 uppercase -> 0X77190AD9 -> NU7
+[PASS] NU7 numeric form -> 0x77190ad9 -> NU7
+[PASS] NU6.3 branch ID mapping -> 37a5165b -> NU6.3
+[PASS] NU6.3 with 0x prefix -> 0x37a5165b -> NU6.3
+[PASS] NU6 branch ID mapping -> c8e71055 -> NU6
+[PASS] NU5 branch ID mapping -> c2d6d0b4 -> NU5
+[PASS] Canopy branch ID mapping -> e9ff75a6 -> Canopy
+[PASS] Heartwood branch ID mapping -> f5b9230b -> Heartwood
+[PASS] Blossom branch ID mapping -> 2bb40e60 -> Blossom
+[PASS] Sapling branch ID mapping -> 76b809bb -> Sapling
+[PASS] Overwinter branch ID mapping -> 5ba81b19 -> Overwinter
+[PASS] Sprout branch ID mapping -> 00000000 -> Sprout
+[PASS] Unknown branch ID fallback -> deadbeef -> Unknown (0xdeadbeef)
+[PASS] Unknown branch ID with 0x prefix -> 0x12345678 -> Unknown (0x12345678)
+[PASS] Empty / null branch ID handling
+
+--- 2. Dashboard /api/status Preset Tests ---
+[PASS] Preset 'regtest-nu7' status success -> status: 200, endpoint: 127.0.0.1:39067
+[PASS] Preset 'regtest-nu7' network matches -> network: regtest
+[PASS] Preset 'regtest-nu7' consensus branch matches -> branch: 0x77190ad9
+[PASS] Preset 'regtest-nu7' upgradeName matches node -> upgradeName: NU7
+[PASS] Preset 'regtest-nu7' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'regtest-z3' status success -> status: 200, endpoint: 127.0.0.1:28137
+[PASS] Preset 'regtest-z3' network matches -> network: regtest
+[PASS] Preset 'regtest-z3' consensus branch matches -> branch: 0x37a5165b
+[PASS] Preset 'regtest-z3' upgradeName matches node -> upgradeName: NU6.3
+[PASS] Preset 'regtest-z3' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'testnet' status success -> status: 200, endpoint: testnet.zec.rocks:443
+[PASS] Preset 'testnet' network matches -> network: testnet
+[PASS] Preset 'testnet' consensus branch matches -> branch: 0x77190ad9
+[PASS] Preset 'testnet' upgradeName matches node -> upgradeName: NU7
+[PASS] Preset 'testnet' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'testnet-local' status success -> status: 200, endpoint: 127.0.0.1:39067
+[PASS] Preset 'testnet-local' network matches -> network: testnet
+[PASS] Preset 'mainnet' status success -> status: 200, endpoint: zec.rocks:443
+[PASS] Preset 'mainnet' network matches -> network: mainnet
+
+--- 3. Regtest NU7 Faucet Mining Test ---
+[PASS] NU7 Regtest mine 1 block call -> rpcUrl: http://127.0.0.1:39232
+[PASS] NU7 Regtest mine RPC targeted 39232 -> Targeted port 39232
+[PASS] NU7 Regtest block hash returned -> block: 8578cc6c353ab893...
+
+--- 4. Testnet Non-Blocking Account Check ---
+[PASS] Testnet account query response time < 5000ms -> 17ms
+[PASS] Testnet account isWatchOnly flagged -> isWatchOnly: true
+[PASS] Testnet UA derived -> UA: utest1jede2g2usu3wh6v7r5...
+[PASS] Testnet UFVK derived -> UFVK: uviewtest1qrszyn6racamvp...
+
+================================================================
+ Summary: 43 / 43 checks passed.
+================================================================
+

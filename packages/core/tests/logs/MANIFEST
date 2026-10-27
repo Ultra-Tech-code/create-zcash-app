@@ -27,6 +27,7 @@ d8ca5ea5e8d2444d770a8717acfd9388f8b7fd94fcc807d81d8469a6732d7898  p3_zebra7_nu6_
 f2707a2676718ced7084d2612a5b0fbcfc3fcc3ac1fb5942667dc4ad3f39d46f  p5_send_tests.log  |  cargo test --package zcash-core p5_send
 e903eb47d427b76fab96ba20bed9dabf50866c4c09bd57b5ae25899e693b29b9  p6_fee_check.log  |  node packages/dev/dist/cli.js test p6-fee
 c5be3dd2fb4c6fc6091f71e1a609b391ec1cc770c8131fd771a72bf63c6d2dc9  p6_fee_grep.log  |  rg -n "fee" packages/
+b38936a58bfe17a01637994f2b449e6a6af42b7c76ed7565016a1963532d1853  phase1_nu7_awareness.log  |  node scripts/test_phase1_nu7_awareness.mjs
 2e5583c0cd06bac30aaa3b753038499a82d47e5dc1bcc0a3561a8b493566b606  proto_diff.log  |  git diff --no-index proto/ proto_upstream/
 90915ff13df1713b682bf762c66fa7edc160294ed40c7dbd4bce7814ab9e9e03  step1_schema.log  |  cargo test --package zcash-core step1_schema
 3840b57307d319295928ddbec5b2af61558d0d43ddf20a8c2110032aa334b4dd  step2_shard_store.log  |  cargo test --package zcash-core step2_shard_store

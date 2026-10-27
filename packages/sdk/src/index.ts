@@ -8,5 +8,6 @@ export * from './constants.js';
 export * from './sync.js';
 export * from './send.js';
 export * from './jsonrpc.js';
+export * from './consensus.js';
 export { WalletHandle } from '@zcash-app/core';
 

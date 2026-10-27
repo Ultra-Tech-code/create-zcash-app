@@ -1,0 +1,89 @@
+'use client';
+
+import React from 'react';
+
+interface ConsensusBannerProps {
+  nodeInfo: {
+    upgradeName?: string;
+    actualBranchId?: string;
+    expectedBranchId?: string;
+    expectedUpgradeName?: string;
+    branchMatches?: boolean;
+    blockHeight?: string | number;
+  } | null;
+  network: string;
+}
+
+export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, network }) => {
+  if (!nodeInfo || !nodeInfo.actualBranchId) {
+    return null;
+  }
+
+  const {
+    upgradeName = 'Unknown',
+    actualBranchId = '',
+    expectedBranchId = '',
+    expectedUpgradeName = 'Unknown',
+    branchMatches = false,
+    blockHeight = 0,
+  } = nodeInfo;
+
+  if (!branchMatches && expectedBranchId) {
+    return (
+      <div
+        id="consensus-banner-mismatch"
+        style={{
+          padding: '0.875rem 1.25rem',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.35)',
+          borderRadius: '10px',
+          marginBottom: '1.5rem',
+          color: '#fca5a5',
+          fontSize: '0.85rem',
+          lineHeight: '1.5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+        }}
+      >
+        <span style={{ fontSize: '1.25rem' }}>⚠️</span>
+        <div>
+          <strong>Consensus Branch ID Mismatch:</strong> Connected node at height #{blockHeight} reports branch ID{' '}
+          <code className="mono-text">0x{actualBranchId}</code> (<strong>{upgradeName}</strong>), but expected branch ID for {network} is{' '}
+          <code className="mono-text">0x{expectedBranchId}</code> (<strong>{expectedUpgradeName}</strong>).
+          The node may be syncing an alternate chain or running differing consensus activation heights.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      id="consensus-banner-verified"
+      style={{
+        padding: '0.75rem 1.25rem',
+        background: 'rgba(16, 185, 129, 0.08)',
+        border: '1px solid rgba(16, 185, 129, 0.25)',
+        borderRadius: '10px',
+        marginBottom: '1.5rem',
+        color: '#6ee7b7',
+        fontSize: '0.85rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.5rem',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <span>✓</span>
+        <span>
+          <strong>Consensus Verified:</strong> Active Upgrade <strong>{upgradeName}</strong> (<code className="mono-text">0x{actualBranchId}</code>) matches expected rules at height #{blockHeight}.
+        </span>
+      </div>
+      <div style={{ fontSize: '0.75rem', opacity: 0.85 }}>
+        Network: <span style={{ textTransform: 'capitalize' }}>{network}</span>
+      </div>
+    </div>
+  );
+};
