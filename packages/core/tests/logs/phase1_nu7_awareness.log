@@ -1,7 +1,7 @@
 ================================================================
  PHASE 1.1 - NU7 AWARENESS, GUARDS & DASHBOARD FIXES TEST SUITE
 ================================================================
-Timestamp: 2026-10-27T22:29:20.087Z
+Timestamp: 2026-10-27T22:37:48.927Z
 Base URL:  http://127.0.0.1:3050
 
 --- 1. SDK Consensus Helper Tests ---
@@ -46,10 +46,10 @@ Base URL:  http://127.0.0.1:3050
 --- 3. Chain Name Guard Tests (regtest-vs-testnet) ---
 [PASS] Chain Guard: Detects regtest node when testnet selected
 [PASS] Chain Guard: Sets branchMatches to false on chain mismatch
-[PASS] Chain Guard: Formats exact mismatch message for regtest node -> You selected testnet but this node reports chain 'test' (height 112). This looks like a regtest node. Pick the matching preset.
+[PASS] Chain Guard: Formats mismatch message with detection signal for regtest node -> You selected testnet but this node reports chain 'test' (height 113). Sapling activates at height 1, so this is a regtest node. Pick the matching preset.
 [PASS] Chain Guard: Detects testnet node when regtest selected
 [PASS] Chain Guard: Sets branchMatches to false on testnet node mismatch
-[PASS] Chain Guard: Formats exact mismatch message for testnet node -> You selected regtest but this node reports chain 'test' (height 4548891). This looks like a testnet node. Pick the matching preset.
+[PASS] Chain Guard: Formats mismatch message with detection signal for testnet node -> You selected regtest but this node reports chain 'test' (height 4548906). Sapling activates at height 280000, so this is a testnet node. Pick the matching preset.
 
 --- 4. Watch-Only Fixture Refusal Tests ---
 [PASS] SDK Refusal: dev.fixtures.account strictly refuses testnet
@@ -73,7 +73,7 @@ Base URL:  http://127.0.0.1:3050
 --- 6. Regtest NU7 Faucet Mining Test ---
 [PASS] NU7 Regtest mine 1 block call -> rpcUrl: http://127.0.0.1:39232
 [PASS] NU7 Regtest mine RPC targeted 39232 -> Targeted port 39232
-[PASS] NU7 Regtest block hash returned -> block: 718c5a034d6a1f0a...
+[PASS] NU7 Regtest block hash returned -> block: 56f1ad3448f4b780...
 
 --- 7. Local Testnet Lightwalletd Helper Checks ---
 [PASS] Helper: Builds 39167 gRPC port default

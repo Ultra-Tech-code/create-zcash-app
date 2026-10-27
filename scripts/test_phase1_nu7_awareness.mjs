@@ -132,9 +132,9 @@ try {
 
   assertCheck('Chain Guard: Detects regtest node when testnet selected', regtestAsTestnetData.info?.chainMismatch === true);
   assertCheck('Chain Guard: Sets branchMatches to false on chain mismatch', regtestAsTestnetData.info?.branchMatches === false);
-  const expectedMsgA = `You selected testnet but this node reports chain 'test' (height ${regtestAsTestnetData.info?.blockHeight}). This looks like a regtest node. Pick the matching preset.`;
+  const expectedMsgA = `You selected testnet but this node reports chain 'test' (height ${regtestAsTestnetData.info?.blockHeight}). Sapling activates at height 1, so this is a regtest node. Pick the matching preset.`;
   assertCheck(
-    'Chain Guard: Formats exact mismatch message for regtest node',
+    'Chain Guard: Formats mismatch message with detection signal for regtest node',
     regtestAsTestnetData.info?.chainMismatchMessage === expectedMsgA,
     regtestAsTestnetData.info?.chainMismatchMessage
   );
@@ -145,9 +145,9 @@ try {
 
   assertCheck('Chain Guard: Detects testnet node when regtest selected', testnetAsRegtestData.info?.chainMismatch === true);
   assertCheck('Chain Guard: Sets branchMatches to false on testnet node mismatch', testnetAsRegtestData.info?.branchMatches === false);
-  const expectedMsgB = `You selected regtest but this node reports chain 'test' (height ${testnetAsRegtestData.info?.blockHeight}). This looks like a testnet node. Pick the matching preset.`;
+  const expectedMsgB = `You selected regtest but this node reports chain 'test' (height ${testnetAsRegtestData.info?.blockHeight}). Sapling activates at height 280000, so this is a testnet node. Pick the matching preset.`;
   assertCheck(
-    'Chain Guard: Formats exact mismatch message for testnet node',
+    'Chain Guard: Formats mismatch message with detection signal for testnet node',
     testnetAsRegtestData.info?.chainMismatchMessage === expectedMsgB,
     testnetAsRegtestData.info?.chainMismatchMessage
   );

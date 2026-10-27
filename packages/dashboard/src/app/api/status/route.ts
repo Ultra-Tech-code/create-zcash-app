@@ -2,21 +2,33 @@ import { NextResponse } from 'next/server';
 import { createClient, getUpgradeName, getExpectedBranchId } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../endpoints';
 
-function inferChainType(info: any): 'regtest' | 'testnet' | 'mainnet' | 'unknown' {
+function inferChainInfo(info: any): { chain: 'regtest' | 'testnet' | 'mainnet' | 'unknown'; signal: string } {
   const chain = (info.chainName || '').toLowerCase().trim();
   const sapling = String(info.saplingActivationHeight || '');
   const height = Number(info.blockHeight) || 0;
 
-  if (chain === 'regtest' || sapling === '1' || (chain === 'test' && height < 200000 && sapling !== '280000')) {
-    return 'regtest';
+  if (sapling === '1') {
+    return { chain: 'regtest', signal: 'Sapling activates at height 1, so this is a regtest node' };
   }
-  if (chain === 'main' || sapling === '419200') {
-    return 'mainnet';
+  if (chain === 'regtest') {
+    return { chain: 'regtest', signal: "Chain reports 'regtest', so this is a regtest node" };
   }
-  if (chain === 'test' || sapling === '280000') {
-    return 'testnet';
+  if (sapling === '280000') {
+    return { chain: 'testnet', signal: 'Sapling activates at height 280000, so this is a testnet node' };
   }
-  return 'unknown';
+  if (chain === 'test' && height >= 200000) {
+    return { chain: 'testnet', signal: `Chain is 'test' at height ${height} (>= 200000), so this is a testnet node` };
+  }
+  if (chain === 'test' && height < 200000 && sapling !== '280000') {
+    return { chain: 'regtest', signal: `Chain is 'test' at height ${height} with non-testnet Sapling (${sapling || 'unset'}), so this is a regtest node` };
+  }
+  if (chain === 'main' || chain === 'mainnet' || sapling === '419200') {
+    return {
+      chain: 'mainnet',
+      signal: sapling === '419200' ? 'Sapling activates at height 419200, so this is a mainnet node' : "Chain reports 'main', so this is a mainnet node",
+    };
+  }
+  return { chain: 'unknown', signal: `Unknown chain '${chain}'` };
 }
 
 export async function GET(request: Request) {
@@ -47,11 +59,11 @@ export async function GET(request: Request) {
     const actualUpgradeName = getUpgradeName(actualBranchId);
     const blockHeight = Number(info.blockHeight) || 0;
 
-    // Guard 1: Compare node's chain name to selected network BEFORE branch-id check
-    const inferredChain = inferChainType(info);
-    const chainMismatch = inferredChain !== 'unknown' && inferredChain !== network;
+    // Guard 1: Compare node's chain identity to selected network BEFORE branch-id check
+    const chainInfo = inferChainInfo(info);
+    const chainMismatch = chainInfo.chain !== 'unknown' && chainInfo.chain !== network;
     const chainMismatchMessage = chainMismatch
-      ? `You selected ${network} but this node reports chain '${info.chainName}' (height ${info.blockHeight}). This looks like a ${inferredChain} node. Pick the matching preset.`
+      ? `You selected ${network} but this node reports chain '${info.chainName}' (height ${info.blockHeight}). ${chainInfo.signal}. Pick the matching preset.`
       : undefined;
 
     // Determine network string for expected branch derivation
