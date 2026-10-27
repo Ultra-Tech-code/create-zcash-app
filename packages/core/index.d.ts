@@ -62,6 +62,8 @@ export interface DecryptedNote {
   rseed: string
 }
 
+export declare function decryptTransaction(ufvkStr: string, networkStr: string, rawTxBytes: Buffer, height: number): JsDecryptedTransactionResult
+
 export declare function deriveAccountFromMnemonic(mnemonicStr: string, accountIndex: number, networkStr: string): DerivedAccount
 
 export interface DerivedAccount {
@@ -107,6 +109,36 @@ export interface JsBuiltTransaction {
   fee: number
   numActions: number
   expiryHeight: number
+}
+
+export interface JsDecryptedActionIncoming {
+  actionIndex: number
+  value: number
+  memo: JsDecryptedMemo
+  recipient: string
+  isChange: boolean
+  isInternal: boolean
+}
+
+export interface JsDecryptedActionOutgoing {
+  actionIndex: number
+  value: number
+  memo: JsDecryptedMemo
+  recipient: string
+}
+
+export interface JsDecryptedMemo {
+  text?: string
+  hex: string
+}
+
+export interface JsDecryptedTransactionResult {
+  txid: string
+  fee: number
+  expiryHeight: number
+  consensusBranchId: string
+  incoming: Array<JsDecryptedActionIncoming>
+  outgoing: Array<JsDecryptedActionOutgoing>
 }
 
 export interface JsScanResult {

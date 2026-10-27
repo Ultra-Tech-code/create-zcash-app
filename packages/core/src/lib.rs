@@ -373,6 +373,91 @@ mod napi_bindings {
         let branch_id = zcash_protocol::consensus::BranchId::for_height(&network, BlockHeight::from_u32(height));
         Ok(zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id))
     }
+
+    #[napi(object)]
+    pub struct JsDecryptedMemo {
+        pub text: Option<String>,
+        pub hex: String,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedActionIncoming {
+        pub action_index: u32,
+        pub value: i64,
+        pub memo: JsDecryptedMemo,
+        pub recipient: String,
+        pub is_change: bool,
+        pub is_internal: bool,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedActionOutgoing {
+        pub action_index: u32,
+        pub value: i64,
+        pub memo: JsDecryptedMemo,
+        pub recipient: String,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedTransactionResult {
+        pub txid: String,
+        pub fee: i64,
+        pub expiry_height: u32,
+        pub consensus_branch_id: String,
+        pub incoming: Vec<JsDecryptedActionIncoming>,
+        pub outgoing: Vec<JsDecryptedActionOutgoing>,
+    }
+
+    #[napi]
+    pub fn decrypt_transaction(
+        ufvk_str: String,
+        network_str: String,
+        raw_tx_bytes: Buffer,
+        height: u32,
+    ) -> Result<JsDecryptedTransactionResult> {
+        let res = crate::decrypted_tx::internal_decrypt_transaction(
+            &ufvk_str,
+            &network_str,
+            &raw_tx_bytes,
+            height,
+        )
+        .map_err(|e| Error::new(Status::GenericFailure, e))?;
+
+        Ok(JsDecryptedTransactionResult {
+            txid: res.txid,
+            fee: res.fee,
+            expiry_height: res.expiry_height,
+            consensus_branch_id: res.consensus_branch_id,
+            incoming: res
+                .incoming
+                .into_iter()
+                .map(|inc| JsDecryptedActionIncoming {
+                    action_index: inc.action_index,
+                    value: inc.value,
+                    memo: JsDecryptedMemo {
+                        text: inc.memo.text,
+                        hex: inc.memo.hex,
+                    },
+                    recipient: inc.recipient,
+                    is_change: inc.is_change,
+                    is_internal: inc.is_internal,
+                })
+                .collect(),
+            outgoing: res
+                .outgoing
+                .into_iter()
+                .map(|out| JsDecryptedActionOutgoing {
+                    action_index: out.action_index,
+                    value: out.value,
+                    memo: JsDecryptedMemo {
+                        text: out.memo.text,
+                        hex: out.memo.hex,
+                    },
+                    recipient: out.recipient,
+                })
+                .collect(),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -520,6 +605,7 @@ mod tests {
 }
 
 pub mod consensus;
+pub mod decrypted_tx;
 pub mod pending_spends;
 pub mod scanner;
 pub mod schema;
@@ -532,6 +618,10 @@ pub mod wallet_handle;
 pub use consensus::{
     get_consensus_branch_id_for_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
     ConsensusError,
+};
+pub use decrypted_tx::{
+    internal_decrypt_transaction, parse_decrypted_memo, DecryptedActionIncoming,
+    DecryptedActionOutgoing, DecryptedMemo, DecryptedTransactionResult,
 };
 pub use pending_spends::PendingSpendsManager;
 pub use scanner::{
@@ -558,3 +648,4 @@ pub use wallet_handle::{
     decode_ironwood_frontier_root, ironwood_empty_tree_root, JsScanResult, JsSpendableNote,
     WalletHandle, WalletSummary,
 };
+

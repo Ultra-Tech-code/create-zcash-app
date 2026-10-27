@@ -131,7 +131,7 @@ fn test_schema_initialization_and_permissions() {
     // Check metadata keys
     assert_eq!(
         db.get_metadata(metadata_keys::SCHEMA_VERSION).expect("meta"),
-        Some("2".to_string())
+        Some("3".to_string())
     );
     assert_eq!(
         db.get_metadata(metadata_keys::NETWORK).expect("meta"),
@@ -162,6 +162,7 @@ fn test_schema_initialization_and_permissions() {
         "ironwood_tree_cap",
         "ironwood_tree_checkpoints",
         "ironwood_tree_checkpoint_marks_removed",
+        "wallet_transactions",
     ];
 
     for table in expected_tables {
@@ -391,23 +392,23 @@ fn test_schema_v1_to_v2_migration_in_place_preserves_reservations() {
 
     // 3. Run initialize_schema to perform in-place upgrade from v1 to v2
     println!("  Running initialize_schema(&mut conn) to trigger in-place v1 -> v2 migration...");
-    zcash_core::initialize_schema(&mut conn).expect("run migration to v2");
+    zcash_core::initialize_schema(&mut conn).expect("run migration to latest schema");
 
-    // 4. Assert schema_version is now bumped to 2
+    // 4. Assert schema_version is now bumped to 3 (latest CURRENT_SCHEMA_VERSION)
     let version_in_meta: String = conn.query_row(
         "SELECT value FROM wallet_metadata WHERE key = 'schema_version'",
         [],
         |r| r.get(0),
     ).expect("query schema_version");
-    assert_eq!(version_in_meta, "2", "Schema metadata version must be bumped to 2");
+    assert_eq!(version_in_meta, "3", "Schema metadata version must be bumped to 3");
 
     let max_mig_version: u32 = conn.query_row(
         "SELECT MAX(version) FROM schema_migrations",
         [],
         |r| r.get(0),
     ).expect("query schema_migrations");
-    assert_eq!(max_mig_version, 2, "Latest applied schema migration must be 2");
-    println!("  Confirmed database upgraded to schema_version 2 in-place");
+    assert_eq!(max_mig_version, 3, "Latest applied schema migration must be 3");
+    println!("  Confirmed database upgraded to schema_version 3 in-place");
 
     // 5. Assert reservation is preserved intact
     let (res_state, res_note_id, res_expiry): (String, Option<i64>, u32) = conn.query_row(
@@ -449,3 +450,243 @@ fn test_schema_v1_to_v2_migration_in_place_preserves_reservations() {
     assert_eq!(state_idx_count, 1, "idx_pending_spends_state must exist after v2 migration");
     println!("  SUCCESS: Verified idx_pending_spends_txid and idx_pending_spends_state exist in sqlite_master after v2 migration!");
 }
+
+#[test]
+fn test_schema_v2_to_v3_migration_in_place() {
+    println!("\n=== TEST: IN-PLACE SCHEMA MIGRATION V2 -> V3 (WALLET_TRANSACTIONS) ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+    let db_path = temp_dir.path().join("wallet_v2_to_v3.db");
+
+    // 1. Manually create a genuine v2 schema database
+    let mut conn = rusqlite::Connection::open(&db_path).expect("open raw sqlite");
+    conn.execute_batch("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;").expect("pragmas");
+
+    let tx = conn.transaction().expect("tx");
+    tx.execute_batch(
+        "
+        CREATE TABLE schema_migrations (
+            version INTEGER PRIMARY KEY,
+            applied_at INTEGER NOT NULL
+        );
+        CREATE TABLE wallet_metadata (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+        CREATE TABLE scanned_blocks (
+            height INTEGER PRIMARY KEY,
+            block_hash BLOB NOT NULL,
+            prev_hash BLOB NOT NULL,
+            tree_size INTEGER NOT NULL,
+            scanned_at INTEGER NOT NULL
+        );
+        CREATE TABLE received_notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_id TEXT NOT NULL,
+            pool TEXT NOT NULL CHECK(pool = 'ironwood'),
+            txid BLOB NOT NULL,
+            action_index INTEGER NOT NULL,
+            height INTEGER NOT NULL,
+            recipient TEXT NOT NULL,
+            value_zatoshis INTEGER NOT NULL,
+            nullifier BLOB NOT NULL UNIQUE,
+            rho BLOB NOT NULL,
+            rseed BLOB NOT NULL,
+            cmx BLOB NOT NULL,
+            tree_position INTEGER NOT NULL,
+            scope TEXT NOT NULL CHECK(scope IN ('external', 'internal')),
+            memo BLOB,
+            spent_in_txid BLOB,
+            spent_at_height INTEGER,
+            CONSTRAINT uq_txid_action UNIQUE (txid, action_index)
+        );
+        CREATE TABLE pending_spends (
+            nullifier BLOB PRIMARY KEY,
+            note_id INTEGER,
+            txid BLOB NOT NULL,
+            created_at INTEGER NOT NULL,
+            expiry_height INTEGER NOT NULL,
+            state TEXT NOT NULL CHECK(state IN ('reserved', 'broadcast', 'mined')),
+            owner_pid INTEGER NOT NULL,
+            heartbeat_at INTEGER NOT NULL,
+            FOREIGN KEY(note_id) REFERENCES received_notes(id) ON DELETE SET NULL
+        );
+        CREATE INDEX idx_pending_spends_txid ON pending_spends(txid);
+        CREATE INDEX idx_pending_spends_state ON pending_spends(state);
+        CREATE TABLE ironwood_tree_shards (
+            shard_index INTEGER PRIMARY KEY,
+            subtree_end_height INTEGER,
+            root_hash BLOB,
+            shard_data BLOB,
+            contains_marked INTEGER,
+            CONSTRAINT ironwood_shard_root_unique UNIQUE (root_hash)
+        );
+        CREATE TABLE ironwood_tree_cap (
+            cap_id INTEGER PRIMARY KEY,
+            cap_data BLOB NOT NULL
+        );
+        CREATE TABLE ironwood_tree_checkpoints (
+            checkpoint_id INTEGER PRIMARY KEY,
+            position INTEGER
+        );
+        CREATE TABLE ironwood_tree_checkpoint_marks_removed (
+            checkpoint_id INTEGER NOT NULL,
+            mark_removed_position INTEGER NOT NULL,
+            PRIMARY KEY (checkpoint_id, mark_removed_position),
+            FOREIGN KEY (checkpoint_id) REFERENCES ironwood_tree_checkpoints(checkpoint_id) ON DELETE CASCADE
+        );
+
+        INSERT INTO schema_migrations (version, applied_at) VALUES (1, unixepoch());
+        INSERT INTO schema_migrations (version, applied_at) VALUES (2, unixepoch());
+        INSERT INTO wallet_metadata (key, value) VALUES ('schema_version', '2');
+        ",
+    ).expect("v2 tables");
+    tx.commit().expect("commit v2");
+
+    // 2. Insert existing v2 notes and pending reservations to verify backward compatibility
+    let nullifier = vec![0x33u8; 32];
+    let txid = vec![0x44u8; 32];
+    let dummy = vec![0x55u8; 32];
+
+    conn.execute(
+        "INSERT INTO received_notes (
+            id, account_id, pool, txid, action_index, height, recipient, value_zatoshis,
+            nullifier, rho, rseed, cmx, tree_position, scope
+        ) VALUES (
+            1, 'acct0', 'ironwood', ?1, 0, 10, 'ua_test_v2', 1000000,
+            ?2, ?3, ?3, ?3, 5, 'external'
+        )",
+        rusqlite::params![txid, nullifier, dummy],
+    ).expect("insert v2 note");
+
+    conn.execute(
+        "INSERT INTO pending_spends (
+            nullifier, note_id, txid, created_at, expiry_height, state, owner_pid, heartbeat_at
+        ) VALUES (
+            ?1, 1, ?2, 2000, 50, 'reserved', 1234, 2000
+        )",
+        rusqlite::params![nullifier, txid],
+    ).expect("insert v2 reservation");
+
+    // Verify initial v2 state
+    let v2_meta: String = conn.query_row(
+        "SELECT value FROM wallet_metadata WHERE key = 'schema_version'",
+        [],
+        |r| r.get(0),
+    ).expect("query v2 version");
+    assert_eq!(v2_meta, "2");
+
+    // 3. Run initialize_schema to perform in-place upgrade from v2 to v3
+    println!("  Running initialize_schema(&mut conn) to trigger in-place v2 -> v3 migration...");
+    zcash_core::initialize_schema(&mut conn).expect("run migration to v3");
+
+    // 4. Assert schema_version is now bumped to 3
+    let v3_meta: String = conn.query_row(
+        "SELECT value FROM wallet_metadata WHERE key = 'schema_version'",
+        [],
+        |r| r.get(0),
+    ).expect("query schema_version");
+    assert_eq!(v3_meta, "3", "Schema metadata version must be bumped to 3");
+
+    let max_mig_version: u32 = conn.query_row(
+        "SELECT MAX(version) FROM schema_migrations",
+        [],
+        |r| r.get(0),
+    ).expect("query schema_migrations");
+    assert_eq!(max_mig_version, 3, "Latest applied schema migration must be 3");
+
+    // 5. Assert v2 existing data was preserved completely
+    let (note_val, note_scope): (i64, String) = conn.query_row(
+        "SELECT value_zatoshis, scope FROM received_notes WHERE id = 1",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    ).expect("query note");
+    assert_eq!(note_val, 1000000);
+    assert_eq!(note_scope, "external");
+
+    let (spend_state, spend_expiry): (String, u32) = conn.query_row(
+        "SELECT state, expiry_height FROM pending_spends WHERE nullifier = ?1",
+        rusqlite::params![nullifier],
+        |r| Ok((r.get(0)?, r.get(1)?)),
+    ).expect("query spend");
+    assert_eq!(spend_state, "reserved");
+    assert_eq!(spend_expiry, 50);
+
+    // 6. Test wallet_transactions table operations: insert and query
+    conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES (
+            'txid_out_123', 100, 'out', 1000000, 10000, 'Payment for services', 'uregtest1recipient', 'ironwood', 1700000000
+        )",
+        [],
+    ).expect("insert outgoing wallet_transaction");
+
+    conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES (
+            'txid_in_456', 101, 'in', 500000, 0, NULL, NULL, 'ironwood', 1700000010
+        )",
+        [],
+    ).expect("insert incoming wallet_transaction");
+
+    conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES (
+            'txid_out_123', 100, 'internal', 390000, 10000, NULL, NULL, 'ironwood', 1700000000
+        )",
+        [],
+    ).expect("insert internal change wallet_transaction");
+
+    let tx_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM wallet_transactions",
+        [],
+        |r| r.get(0),
+    ).expect("count txs");
+    assert_eq!(tx_count, 3, "Must have exactly 3 transaction rows");
+
+    // Verify row retrieval
+    let (txid_q, dir_q, val_q, fee_q, memo_q, cparty_q): (String, String, i64, i64, Option<String>, Option<String>) = conn.query_row(
+        "SELECT txid, direction, value, fee, memo, counterparty FROM wallet_transactions WHERE direction = 'out'",
+        [],
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
+    ).expect("query out tx");
+    assert_eq!(txid_q, "txid_out_123");
+    assert_eq!(dir_q, "out");
+    assert_eq!(val_q, 1000000);
+    assert_eq!(fee_q, 10000);
+    assert_eq!(memo_q, Some("Payment for services".to_string()));
+    assert_eq!(cparty_q, Some("uregtest1recipient".to_string()));
+
+    // 7. Verify CHECK constraints on direction and pool
+    let bad_dir = conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES ('bad_tx', 100, 'sideways', 100, 10, NULL, NULL, 'ironwood', 1000)",
+        [],
+    );
+    assert!(bad_dir.is_err(), "Invalid direction must be rejected by CHECK constraint");
+
+    let bad_pool = conn.execute(
+        "INSERT INTO wallet_transactions (
+            txid, height, direction, value, fee, memo, counterparty, pool, created_at
+        ) VALUES ('bad_tx', 100, 'in', 100, 10, NULL, NULL, 'orchard', 1000)",
+        [],
+    );
+    assert!(bad_pool.is_err(), "Invalid pool must be rejected by CHECK constraint");
+
+    // 8. Verify indexes exist
+    for idx in ["idx_wallet_transactions_txid", "idx_wallet_transactions_height", "idx_wallet_transactions_direction"] {
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'index' AND name = ?1",
+            rusqlite::params![idx],
+            |r| r.get(0),
+        ).expect("check index");
+        assert_eq!(count, 1, "Index '{}' must exist after v3 migration", idx);
+        println!("  Index verified: {}", idx);
+    }
+
+    println!("  SUCCESS: In-place migration v2 -> v3 preserves existing v2 data and initializes wallet_transactions table!");
+}
+

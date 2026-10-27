@@ -19,7 +19,7 @@ zcash_protocol = { version = "0.11.0", features = ["local-consensus"] }
 zcash_primitives = "0.31.0"
 hex = "0.4"
 thiserror = "2"
-zcash_client_backend = { version = "0.25.0", features = ["orchard", "unstable-serialization"] }
+zcash_client_backend = { version = "0.25.0", features = ["orchard", "sync-decryptor", "unstable-serialization"] }
 zcash_note_encryption = "0.5"
 incrementalmerkletree = "0.9"
 shardtree = "0.8"
