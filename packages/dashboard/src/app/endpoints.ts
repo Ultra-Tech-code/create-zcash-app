@@ -50,9 +50,9 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
   },
   'testnet-local': {
     id: 'testnet-local',
-    label: 'Testnet - local lightwalletd (127.0.0.1:39067, if reachable)',
+    label: 'Testnet - local lightwalletd (127.0.0.1:39167, if reachable)',
     network: 'testnet',
-    endpoint: '127.0.0.1:39067',
+    endpoint: '127.0.0.1:39167',
     description: 'Local lightwalletd connected to local testnet Zebra node',
     isLocal: true,
     supportsZalletFaucet: false,
@@ -70,6 +70,7 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
 
 export const ALLOWED_ENDPOINTS = [
   '127.0.0.1:39067',
+  '127.0.0.1:39167',
   '127.0.0.1:28137',
   'testnet.zec.rocks:443',
   'zec.rocks:443',
