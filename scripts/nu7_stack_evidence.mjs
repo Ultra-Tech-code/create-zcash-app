@@ -64,7 +64,19 @@ async function main() {
   // 2. Query lightwalletd
   console.log('\n--- 2. Connecting to lightwalletd ---');
   const client = new ZcashClient({ endpoint: `http://127.0.0.1:${LIGHTD_PORT}`, network: 'regtest-nu7' });
-  const lightdInfo = await client.getInfo();
+  let lightdInfo;
+  for (let i = 0; i < 30; i++) {
+    try {
+      lightdInfo = await client.getInfo();
+      if (lightdInfo && Number(lightdInfo.blockHeight) >= bci.result.blocks) {
+        break;
+      }
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  if (!lightdInfo) {
+    lightdInfo = await client.getInfo();
+  }
   assertCheck('lightwalletd consensusBranchId is 77190ad9', lightdInfo.consensusBranchId === '77190ad9');
   assertCheck('lightwalletd blockHeight matches Zebra tip', Number(lightdInfo.blockHeight) >= 105, `height=${lightdInfo.blockHeight}`);
 
@@ -119,6 +131,15 @@ async function main() {
   const block = await rpcCall('getblock', [String(nextHeight), 1]);
   assertCheck('Mined block height incremented', block.result.height === nextHeight);
   assertCheck('Mined block includes the sent transaction', block.result.tx.includes(explorerTxid));
+
+  // Wait for lightwalletd to ingest the mined block
+  for (let i = 0; i < 30; i++) {
+    try {
+      const tipCheck = await client.getInfo();
+      if (Number(tipCheck.blockHeight) >= nextHeight) break;
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 1000));
+  }
 
   // 6. Sync Account 1 (Recipient) and verify receipt
   console.log('\n--- 6. Syncing Account 1 (Recipient) to confirm receipt ---');

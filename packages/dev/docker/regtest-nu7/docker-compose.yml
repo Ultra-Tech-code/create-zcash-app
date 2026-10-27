@@ -37,12 +37,15 @@ services:
       - "${LIGHTWALLETD_GRPC_PORT:-39067}:9067"
       - "${LIGHTWALLETD_HTTP_PORT:-39068}:9068"
     command:
-      - --no-tls=true
-      - --zcash-conf-path=/dev/null
+      - --no-tls-very-insecure
       - --grpc-bind-addr=0.0.0.0:9067
       - --http-bind-addr=0.0.0.0:9068
-      - --zcashd-url=http://zebra:18232
-      - --log-level=INFO
+      - --rpchost=zebra
+      - --rpcport=18232
+      - --rpcuser=zebra
+      - --rpcpassword=zebra
+      - --no-backend-check
+      - --log-level=7
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://127.0.0.1:9068/ || exit 0"]
       interval: 5s
