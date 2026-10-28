@@ -128,6 +128,7 @@ async function handleSyncRequest(request: Request, isPost = false) {
       const client = createClient({ endpoint, network });
       startDashboardSync(client, wallet, {
         network,
+        accountId,
         birthday,
         ufvk,
         targetHeight,

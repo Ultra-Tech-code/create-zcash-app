@@ -1,12 +1,25 @@
 ========================================================================
-STAGE 2c: PLAYWRIGHT UI TEST SUITE — KEYS & ACTIVITY TABS
+STAGE 2d: PLAYWRIGHT UI TEST SUITE — WIPED DASHBOARD DB REAL COLD SYNC
 ========================================================================
-Execution Time:  2026-10-28T09:47:42.169Z
+Execution Time:  2026-10-28T10:43:02.502Z
 Dashboard URL:   http://127.0.0.1:3050
 Target TxID:     8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
 Birthday:        4542200
 Screenshots Dir: packages/core/tests/logs/screenshots/
 ========================================================================
+
+[0/7] Identifying and wiping testnet dashboard databases...
+  Dashboard DB Directory: /Users/0xblackadam/.zcash-app/dashboard
+  Wallet A Expected DB:   /Users/0xblackadam/.zcash-app/dashboard/testnet_acct_e1e539f9.db
+  Wallet B Expected DB:   /Users/0xblackadam/.zcash-app/dashboard/testnet_acct_bb3726b1.db
+
+  --- DB DID NOT EXIST BEFORE RUN CHECK ---
+  Wallet A DB Exists Before Run: false (MUST BE false)
+  Wallet B DB Exists Before Run: false (MUST BE false)
+  ✓ Verified: Testnet DB did not exist before run. Demonstrably fresh cold sync!
+
+  Starting Next.js dashboard server on port 3050...
+  ✓ Dashboard server running and responding.
 
 [1/7] Launching headless browser (Google Chrome)...
 [2/7] Navigating to dashboard on testnet: http://127.0.0.1:3050/?preset=testnet...
@@ -14,33 +27,39 @@ Screenshots Dir: packages/core/tests/logs/screenshots/
 [3/7] Navigating to Keys Tab and importing Wallet A UFVK...
   ✓ Wallet A imported via POST successfully
   ✓ Verified UFVK is collapsed behind "Reveal UFVK" button (Confidentiality enforced)
-  📸 Screenshot saved: stage2c_01_wallet_a_keys.png
+  📸 Screenshot saved: stage2d_01_wallet_a_keys.png
 
-[4/7] Navigating to Activity Tab for Wallet A (expecting OUT row)...
-  ✓ Found OUT row for tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
-  📸 Screenshot saved: stage2c_02_wallet_a_activity_out.png
+[4/7] Navigating to Activity Tab for Wallet A (fresh cold sync from 4542200 to tip)...
+  Waiting for live sync to detect and display OUT row in UI table...
+  ✓ Found OUT row for tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a in UI transactions table!
+  Wallet A DB Exists After Sync: true (MUST BE true)
+  ✓ Rows demonstrably come from a fresh sync through the UI into a brand-new DB.
+  📸 Screenshot saved: stage2d_02_wallet_a_activity_out.png
 
 [5/7] Navigating to Keys Tab and clearing session via "Forget Key"...
   ✓ Server-side session cleared and cookie expired
-  📸 Screenshot saved: stage2c_03_keys_forgotten.png
+  📸 Screenshot saved: stage2d_03_keys_forgotten.png
 
 [6/7] Importing Wallet B UFVK via POST...
   ✓ Wallet B imported via POST successfully
   ✓ Verified UFVK is collapsed behind "Reveal UFVK" button
-  📸 Screenshot saved: stage2c_04_wallet_b_keys.png
+  📸 Screenshot saved: stage2d_04_wallet_b_keys.png
 
-[7/7] Navigating to Activity Tab for Wallet B (expecting IN row)...
-  ✓ Found IN row for tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
-  📸 Screenshot saved: stage2c_05_wallet_b_activity_in.png
+[7/7] Navigating to Activity Tab for Wallet B (expecting IN row from cold sync)...
+  Waiting for live sync to detect and display IN row in UI table...
+  ✓ Found IN row for tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a in UI transactions table!
+  Wallet B DB Exists After Sync: true (MUST BE true)
+  📸 Screenshot saved: stage2d_05_wallet_b_activity_in.png
 
 ========================================================================
 PLAYWRIGHT SCREENSHOT EVIDENCE & SHA256 HASHES
 ========================================================================
-d2cc6f0517fab7e9289ab8206e14cefc50dd9de0ea05a2124fa5b368d2d9733f  packages/core/tests/logs/screenshots/stage2c_01_wallet_a_keys.png
-b4b7c92b905e70f220c331507fcf0e19b6bf4f8de40e30edc8512d24ff7d55ac  packages/core/tests/logs/screenshots/stage2c_02_wallet_a_activity_out.png
-7b9c1c2bd6b182eee61c7af0df6bab7d40c595e2b5c9b05ade54b01a7fb44aa7  packages/core/tests/logs/screenshots/stage2c_03_keys_forgotten.png
-21c6a40d48e20c88967eecc80d7f2a43420a7668f5226caf06a56f88c843eb44  packages/core/tests/logs/screenshots/stage2c_04_wallet_b_keys.png
-cb3ed45bcf783306018a1d99725453d041cf8a0389059efa5ec68aef584410bf  packages/core/tests/logs/screenshots/stage2c_05_wallet_b_activity_in.png
+dc0a7fe8cbb988f6edf3c9e657aea609af6e15ea6e492dab6bdc85d6e971d32f  packages/core/tests/logs/screenshots/stage2d_01_wallet_a_keys.png
+242fed6cbe4e38e193a1ecac843114ba3683a9d27f08dcd89b67070c51c8628a  packages/core/tests/logs/screenshots/stage2d_02_wallet_a_activity_out.png
+f485f08c45cdf5d719ac0bb01adb54c6a79e54cd772ae86763b4115bb51d2119  packages/core/tests/logs/screenshots/stage2d_03_keys_forgotten.png
+98f98a360338720c1772a06ea9f80ac26ef93748bde39bb66580d2748324653c  packages/core/tests/logs/screenshots/stage2d_04_wallet_b_keys.png
+eb7f0bcbe1ed1f0a1140be204e9d1c33fa897d7a74499edc9979f9941bb83e25  packages/core/tests/logs/screenshots/stage2d_05_wallet_b_activity_in.png
 ========================================================================
 ✓ PLAYWRIGHT TEST SUITE COMPLETED SUCCESSFULLY: ALL ASSERTIONS PASSED!
 ========================================================================
+

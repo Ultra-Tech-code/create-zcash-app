@@ -144,7 +144,7 @@ export function startDashboardSync(
   options: SyncOptions = {}
 ): DashboardSyncStatus {
   const network = options.network ?? (wallet as any).network ?? client.config?.network ?? 'testnet';
-  const accountId = 'account0';
+  const accountId = options.accountId ?? (wallet as any).accountId ?? 'account0';
   const key = `${network.toLowerCase()}:${accountId.toLowerCase()}`;
 
   // If already syncing, return current status immediately

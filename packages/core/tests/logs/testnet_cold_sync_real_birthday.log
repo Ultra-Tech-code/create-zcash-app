@@ -1,0 +1,66 @@
+========================================================================
+STAGE 2d: REAL COLD SYNC FROM REAL BIRTHDAY (NO MANUAL SEEDING)
+========================================================================
+Execution Time:    2026-10-28T10:39:56.393Z
+Birthday Height:   4542200
+Target TxID:       8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+Network:           testnet
+Remote Endpoint:   https://testnet.zec.rocks:443
+========================================================================
+
+[1/5] Identifying and deleting dashboard wallet files for testnet...
+  Exact Dashboard Wallet Directory: /Users/0xblackadam/.zcash-app/dashboard
+  Found 1 existing testnet file(s) in dashboard directory:
+    Deleting: /Users/0xblackadam/.zcash-app/dashboard/testnet_acct_e1e539f9.db
+  ✓ Exact testnet dashboard wallet files demonstrably deleted.
+
+[2/5] Reading accounts.json and deriving Account 0 for Wallet A...
+  Derived Account ID:  acct_e1e539f9
+  Target DB Path:      /Users/0xblackadam/.zcash-app/dashboard/testnet_acct_e1e539f9.db
+  DB Exists Before Run: false (MUST BE false)
+
+[3/5] Opening brand new WalletHandle with birthday 4542200...
+  Wallet opened. Database created at: /Users/0xblackadam/.zcash-app/dashboard/testnet_acct_e1e539f9.db
+  Initial lastScannedHeight: 0 (expected: 0)
+  Initial treeSize:          0 (expected: 0)
+  Initial isTreeEmpty:       true (expected: true)
+  ✓ Verified cold start state: tree is empty, no starting blocks.
+
+[4/5] Executing real cold sync to testnet tip (NO manual seeding)...
+  Live Testnet Tip Height: 4550639
+  Total Blocks to Scan:    8440 (from birthday 4542200)
+
+  --- SYNC PERFORMANCE & RESULTS ---
+  Sync Duration:           24.28 seconds (24284 ms)
+  Blocks Fetched:          8440
+  Scan Rate:               355.5 blocks/sec
+  Total RPC Requests:      14
+  Final Scanned Height:    4550639
+  Final ShardTree Size:    773707
+  Unspent Notes Detected:  1
+  Pending Tx Fetches:      0
+  Failed Tx Fetches:       0
+
+  --- TREE ROOT VERIFICATION ---
+  Wallet Ironwood Root:    805c04242b9470629512e5dd7ef90ed3b4e9071664cf58149038c76e891f8b0e
+  Zebra Tip TreeState Root: 805c04242b9470629512e5dd7ef90ed3b4e9071664cf58149038c76e891f8b0e
+  Tree Root Match Status:  EXACT MATCH (VERIFIED)
+
+[5/5] Verifying decrypted transactions table...
+  Total Transactions Found: 2
+    Row [id=2]: txid=8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a action=0 height=4542240 direction=internal value=8990000 memo="undefined"
+    Row [id=1]: txid=8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a action=1 height=4542240 direction=out value=1000000 memo="Phase 5 Controlled Live Send"
+
+  Target OUT Transaction:  8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Height:                  4542240
+  Direction:               out
+  Value:                   1000000 zatoshis
+  Memo:                    "Phase 5 Controlled Live Send"
+  Action Index:            1
+  ✓ Target OUT transaction detected, decrypted, and upserted with correct direction (out).
+  ✓ Internal change output detected: action 0, value 8990000 zatoshis
+
+========================================================================
+✓ REAL COLD SYNC TEST COMPLETED SUCCESSFULLY WITH 100% ROOT INTEGRITY
+========================================================================
+

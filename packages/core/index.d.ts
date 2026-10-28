@@ -60,6 +60,18 @@ export declare class WalletHandle {
   getTxFetchCounts(): JsTxFetchStatus
   /** Deletes wallet_transactions rows at height >= from_height (e.g. on chain reorganization). */
   deleteWalletTransactionsFromHeight(fromHeight: number): number
+  /** Checks whether the wallet's commitment tree is empty (no checkpoints and no scanned blocks). */
+  isTreeEmpty(): boolean
+  /**
+   * Initializes the commitment tree frontier from a machine-captured or lightwalletd GetTreeState
+   * frontier hex at height B - 1, and verifies that the parsed tree size equals expected_tree_size
+   * (the CompactBlock ironwoodCommitmentTreeSize at B - 1).
+   *
+   * Inserts the starting checkpoint into ShardTree and records the checkpoint block in scanned_blocks.
+   * This operation is idempotent: if the tree is already initialized at this height with the matching
+   * tree size and root, it returns Ok with `already_initialized: true`.
+   */
+  initTreeFrontier(height: number, frontierHex: string, expectedTreeSize: number, blockHash?: Buffer | undefined | null): JsTreeFrontierInitResult
 }
 
 /**
@@ -193,6 +205,13 @@ export interface JsSpendableNote {
 export interface JsTouchedTx {
   txidBytes: Buffer
   height: number
+}
+
+export interface JsTreeFrontierInitResult {
+  height: number
+  treeSize: number
+  rootHex: string
+  alreadyInitialized: boolean
 }
 
 export interface JsTxFetchStatus {

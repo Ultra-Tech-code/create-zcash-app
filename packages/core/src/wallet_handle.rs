@@ -18,6 +18,9 @@ use zcash_primitives::transaction::fees::transparent::InputSize;
 use zcash_primitives::transaction::fees::zip317::FeeRule;
 use zcash_primitives::transaction::fees::FeeRule as _;
 
+use rusqlite::OptionalExtension;
+use zcash_protocol::consensus::BlockHeight;
+
 static GLOBAL_PROVING_KEY: OnceLock<ProvingKey> = OnceLock::new();
 
 /// Returns the shared Orchard circuit proving key, initializing it if not already built.
@@ -50,6 +53,14 @@ pub struct WalletSummary {
     pub unspent_notes_count: u32,
     pub total_balance_zatoshis: i64,
     pub spendable_balance_zatoshis: i64,
+}
+
+#[napi(object)]
+pub struct JsTreeFrontierInitResult {
+    pub height: u32,
+    pub tree_size: u32,
+    pub root_hex: String,
+    pub already_initialized: bool,
 }
 
 #[napi(object)]
@@ -928,6 +939,149 @@ impl WalletHandle {
             rusqlite::params![from_height as i64],
         ).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
         Ok(count as u32)
+    }
+
+    /// Checks whether the wallet's commitment tree is empty (no checkpoints and no scanned blocks).
+    #[napi]
+    pub fn is_tree_empty(&self) -> Result<bool> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let count: i64 = db_guard.conn()
+            .query_row("SELECT COUNT(*) FROM ironwood_tree_checkpoints", [], |r| r.get(0))
+            .unwrap_or(0);
+        let scanned_count: i64 = db_guard.conn()
+            .query_row("SELECT COUNT(*) FROM scanned_blocks", [], |r| r.get(0))
+            .unwrap_or(0);
+        Ok(count == 0 && scanned_count == 0)
+    }
+
+    /// Initializes the commitment tree frontier from a machine-captured or lightwalletd GetTreeState
+    /// frontier hex at height B - 1, and verifies that the parsed tree size equals expected_tree_size
+    /// (the CompactBlock ironwoodCommitmentTreeSize at B - 1).
+    ///
+    /// Inserts the starting checkpoint into ShardTree and records the checkpoint block in scanned_blocks.
+    /// This operation is idempotent: if the tree is already initialized at this height with the matching
+    /// tree size and root, it returns Ok with `already_initialized: true`.
+    #[napi]
+    pub fn init_tree_frontier(
+        &self,
+        height: u32,
+        frontier_hex: String,
+        expected_tree_size: u32,
+        block_hash: Option<Buffer>,
+    ) -> Result<JsTreeFrontierInitResult> {
+        let trimmed_hex = frontier_hex.trim();
+        if trimmed_hex.is_empty() {
+            return Err(Error::new(
+                Status::InvalidArg,
+                format!("Ironwood frontier field is empty or missing at height {height}"),
+            ));
+        }
+
+        let mut db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {e}")))?;
+
+        // Idempotency check: see if scanned_blocks already has a record at this height
+        let existing: Option<(i64, Vec<u8>)> = db_guard.conn().query_row(
+            "SELECT tree_size, block_hash FROM scanned_blocks WHERE height = ?1",
+            rusqlite::params![height as i64],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        ).optional().map_err(|e| Error::new(Status::GenericFailure, format!("DB query error: {e}")))?;
+
+        if let Some((existing_sz, _)) = existing {
+            if existing_sz as u32 == expected_tree_size {
+                let store = crate::shard_store::SqliteShardStore::new(db_guard.conn(), "ironwood_tree");
+                let shard_tree = crate::IronwoodShardTree::new(store, 100);
+                if let Ok(Some(root)) = shard_tree.root_at_checkpoint_id(&BlockHeight::from_u32(height)) {
+                    return Ok(JsTreeFrontierInitResult {
+                        height,
+                        tree_size: expected_tree_size,
+                        root_hex: hex::encode(root.to_bytes()),
+                        already_initialized: true,
+                    });
+                }
+            }
+        }
+
+        // Parse frontier bytes
+        let bytes = hex::decode(trimmed_hex)
+            .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid frontier hex encoding at height {height}: {e}")))?;
+
+        let (parsed_size, frontier, root_hex) = if bytes.is_empty() || trimmed_hex == "000000" {
+            if expected_tree_size > 0 {
+                return Err(Error::new(
+                    Status::InvalidArg,
+                    format!("Ironwood frontier is empty (zero bytes) but expected tree size is {expected_tree_size} at height {height}"),
+                ));
+            }
+            (0u32, incrementalmerkletree::frontier::Frontier::empty(), hex::encode(orchard::Anchor::empty_tree().to_bytes()))
+        } else {
+            let tree = zcash_primitives::merkle_tree::read_commitment_tree::<orchard::tree::MerkleHashOrchard, _, 32>(&bytes[..])
+                .map_err(|e| Error::new(Status::InvalidArg, format!("Failed to parse Ironwood commitment tree frontier at height {height}: {e}")))?;
+            let size = tree.size() as u32;
+            if size != expected_tree_size {
+                return Err(Error::new(
+                    Status::InvalidArg,
+                    format!(
+                        "Tree size mismatch at height {height}: parsed frontier size {size} does not equal CompactBlock ironwoodCommitmentTreeSize {expected_tree_size}"
+                    ),
+                ));
+            }
+            let root_anchor: orchard::Anchor = tree.root().into();
+            (size, tree.to_frontier(), hex::encode(root_anchor.to_bytes()))
+        };
+
+        // Insert into ShardTree and scanned_blocks atomically
+        let tx = db_guard.conn_mut().transaction()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start transaction: {e}")))?;
+
+        {
+            let store = crate::shard_store::SqliteShardStore::new(&tx, "ironwood_tree");
+            let mut shard_tree = crate::IronwoodShardTree::new(store, 100);
+            shard_tree.insert_frontier(
+                frontier,
+                incrementalmerkletree::Retention::Checkpoint {
+                    id: BlockHeight::from_u32(height),
+                    marking: incrementalmerkletree::Marking::None,
+                },
+            ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to insert frontier into ShardTree: {e:?}")))?;
+        }
+
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?
+            .as_secs() as i64;
+        let hash_bytes = match block_hash {
+            Some(ref buf) => buf.to_vec(),
+            None => vec![0u8; 32],
+        };
+
+        tx.execute(
+            "INSERT OR REPLACE INTO scanned_blocks (height, block_hash, prev_hash, tree_size, scanned_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![
+                height as i64,
+                &hash_bytes,
+                &vec![0u8; 32],
+                parsed_size as i64,
+                now,
+            ],
+        ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to insert scanned_block checkpoint: {e}")))?;
+
+        tx.execute(
+            "INSERT OR IGNORE INTO wallet_metadata (key, value) VALUES ('first_scanned_height', ?1)",
+            rusqlite::params![(height + 1).to_string()],
+        ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to update wallet_metadata: {e}")))?;
+
+        tx.commit()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to commit frontier transaction: {e}")))?;
+
+        Ok(JsTreeFrontierInitResult {
+            height,
+            tree_size: parsed_size,
+            root_hex,
+            already_initialized: false,
+        })
     }
 }
 

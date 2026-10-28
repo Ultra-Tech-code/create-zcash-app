@@ -35,6 +35,7 @@ export interface SyncOptions {
   checkpoints?: CheckpointVerification[];
   ufvk?: string;
   network?: string;
+  accountId?: string;
   fetchFullTransactions?: boolean;
 }
 
@@ -52,6 +53,58 @@ export interface WalletSyncResult {
   failedFetches: number;
 }
 
+export interface TreeFrontierInitResult {
+  height: number;
+  treeSize: number;
+  rootHex: string;
+  alreadyInitialized: boolean;
+}
+
+/**
+ * Initializes the wallet's commitment tree frontier from lightwalletd GetTreeState at height (birthday - 1).
+ * Verified against lightwalletd v0.6.0 walletrpc/service.proto:L185 (TreeState.ironwoodTree = 7).
+ *
+ * Verifies that the parsed frontier tree size equals CompactBlock ironwoodCommitmentTreeSize at height (birthday - 1),
+ * inserting the starting checkpoint into ShardTree and recorded in scanned_blocks.
+ */
+export async function initWalletTreeFrontier(
+  client: ZcashClient,
+  wallet: WalletHandle,
+  birthday: number
+): Promise<TreeFrontierInitResult> {
+  const initHeight = birthday - 1;
+  if (initHeight < 1) {
+    throw new Error(`Invalid birthday height ${birthday}: cannot initialize frontier before height 1`);
+  }
+
+  // 1. Call lightwalletd GetTreeState(height B - 1)
+  const treeState = await client.getTreeState(initHeight);
+  // Read ironwoodTree field (packages/sdk/proto/service.proto:L185)
+  const ironwoodTree = treeState.ironwoodTree;
+  if (!ironwoodTree || ironwoodTree.trim() === '') {
+    throw new Error(`Ironwood commitment tree frontier field is empty or missing in GetTreeState(${initHeight})`);
+  }
+
+  // 2. Fetch CompactBlock at height B - 1 to read chainMetadata.ironwoodCommitmentTreeSize
+  const block = await client.getBlock(initHeight);
+  const metadata = block.chainMetadata;
+  if (!metadata || metadata.ironwoodCommitmentTreeSize === undefined) {
+    throw new Error(`CompactBlock at height ${initHeight} missing chainMetadata.ironwoodCommitmentTreeSize`);
+  }
+  const expectedTreeSize = metadata.ironwoodCommitmentTreeSize;
+  const blockHashBuf = block.hash && block.hash.length === 32 ? Buffer.from(block.hash) : undefined;
+
+  // 3. Delegate to Core for parsing, size verification, and ShardTree insertion
+  const res = wallet.initTreeFrontier(initHeight, ironwoodTree, expectedTreeSize, blockHashBuf);
+
+  return {
+    height: res.height,
+    treeSize: res.treeSize,
+    rootHex: res.rootHex,
+    alreadyInitialized: res.alreadyInitialized,
+  };
+}
+
 /**
  * Synchronizes a WalletHandle against a live Zaino/Zcash indexer with streaming,
  * reorg resolution via resolveReorg, request throttling, exponential backoff,
@@ -67,14 +120,34 @@ export async function syncWallet(
   const maxRetries = options.maxRetries ?? 5;
   const endpointLabel = `(${client.safeEndpoint}) (third-party server)`;
 
-  const initialSummary = wallet.getWalletSummary();
+  let initialSummary = wallet.getWalletSummary();
   const info = await client.getInfo();
   const tipHeight = Number(info.blockHeight);
+  let totalRequests = 1; // 1 for getInfo
+
+  const bday = options.birthday;
+  if (
+    bday !== undefined &&
+    bday > 2 &&
+    (initialSummary.lastScannedHeight === 0 || wallet.isTreeEmpty())
+  ) {
+    console.log(
+      `[Sync] ${endpointLabel} Cold start detected for birthday ${bday} with empty tree. Initializing starting frontier at height ${bday - 1}...`
+    );
+    const frontierInit = await initWalletTreeFrontier(client, wallet, bday);
+    totalRequests += 2; // 1 for GetTreeState, 1 for GetBlock
+    console.log(
+      `[Sync] ${endpointLabel} Starting tree frontier initialized at height ${frontierInit.height}: size ${frontierInit.treeSize}, root ${frontierInit.rootHex} (already_init: ${frontierInit.alreadyInitialized})`
+    );
+    initialSummary = wallet.getWalletSummary();
+  }
 
   let currentStart = options.startHeight ?? (
     initialSummary.lastScannedHeight === 0
       ? (options.birthday ?? 2)
-      : initialSummary.lastScannedHeight + 1
+      : (bday !== undefined && initialSummary.lastScannedHeight === bday - 1)
+        ? bday
+        : initialSummary.lastScannedHeight + 1
   );
   const syncStartHeight = currentStart;
   const targetEnd = options.endHeight
@@ -83,7 +156,6 @@ export async function syncWallet(
       ? Math.min(options.targetHeight, tipHeight)
       : tipHeight;
 
-  let totalRequests = 1; // 1 for getInfo
   const startTime = Date.now();
   let totalBlocksFetched = 0;
   const checkpointResults: CheckpointResult[] = [];

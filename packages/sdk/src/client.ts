@@ -38,13 +38,21 @@ export interface TreeState {
   ironwoodTree: string;
 }
 
+export interface ChainMetadata {
+  saplingCommitmentTreeSize?: number;
+  orchardCommitmentTreeSize?: number;
+  ironwoodCommitmentTreeSize?: number;
+}
+
 export interface CompactBlock {
-  protoVersion: number;
+  protoVersion?: number;
   height: string | number;
   hash: Buffer;
   prevHash: Buffer;
   time: number;
+  header?: Buffer;
   vtx: CompactTx[];
+  chainMetadata?: ChainMetadata;
 }
 
 export interface CompactTx {
@@ -182,6 +190,28 @@ export class ZcashClient {
       end: { height: endHeight },
     });
     return stream as unknown as AsyncIterable<CompactBlock>;
+  }
+
+  public getBlock(height: number): Promise<CompactBlock> {
+    return new Promise((resolve, reject) => {
+      this.client.GetBlock({ height }, (err: any, response: CompactBlock) => {
+        if (err) {
+          // Fallback to getBlockRange if GetBlock is not supported
+          (async () => {
+            try {
+              for await (const b of this.getBlockRange(height, height)) {
+                return resolve(b);
+              }
+              reject(err);
+            } catch (_) {
+              reject(err);
+            }
+          })();
+        } else {
+          resolve(response);
+        }
+      });
+    });
   }
 
   public getAddressUtxos(addresses: string[], startHeight = 0, maxEntries = 0): Promise<any[]> {
