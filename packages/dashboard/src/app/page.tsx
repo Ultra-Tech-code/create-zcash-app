@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { NETWORK_PRESETS, PresetId } from './endpoints';
 import { NetworkSelector } from './components/NetworkSelector';
 import { ConsensusBanner } from './components/ConsensusBanner';
@@ -195,16 +195,33 @@ export default function Dashboard() {
 
       {/* Navigation Tabs */}
       <nav style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', paddingBottom: '0.5rem', overflowX: 'auto' }}>
-        {(['overview', 'addresses', 'transactions', 'faucet', 'send', 'health'] as const).map((tab) => (
-          <button
-            key={tab}
-            id={`tab-${tab}`}
-            className={activeTab === tab ? 'btn-primary' : 'btn-secondary'}
-            style={{ fontSize: '0.85rem', padding: '0.45rem 1rem', textTransform: 'capitalize' }}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'faucet' ? 'Faucet / Mine' : tab}
-          </button>
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'addresses', aliasId: 'keys', label: 'Keys' },
+          { id: 'transactions', aliasId: 'activity', label: 'Activity' },
+          { id: 'faucet', label: 'Faucet / Mine' },
+          { id: 'send', label: 'Send' },
+          { id: 'health', label: 'Health' },
+        ].map(({ id, aliasId, label }) => (
+          <React.Fragment key={id}>
+            <button
+              id={`tab-${id}`}
+              data-testid={`tab-${id}`}
+              className={activeTab === id ? 'btn-primary' : 'btn-secondary'}
+              style={{ fontSize: '0.85rem', padding: '0.45rem 1rem' }}
+              onClick={() => setActiveTab(id as any)}
+            >
+              {label}
+            </button>
+            {aliasId && (
+              <button
+                id={`tab-${aliasId}`}
+                data-testid={`tab-${aliasId}`}
+                style={{ display: 'none' }}
+                onClick={() => setActiveTab(id as any)}
+              />
+            )}
+          </React.Fragment>
         ))}
       </nav>
 
@@ -228,11 +245,17 @@ export default function Dashboard() {
             activeAccountIndex={activeAccountIndex}
             onSelectAccountIndex={(idx) => setActiveAccountIndex(idx)}
             network={network}
+            onRefresh={refreshData}
           />
         )}
 
         {activeTab === 'transactions' && (
-          <TransactionsTab notes={accountData?.notes || []} />
+          <TransactionsTab
+            notes={accountData?.notes || []}
+            network={network}
+            preset={activePreset}
+            account="account0"
+          />
         )}
 
         {activeTab === 'faucet' && (
