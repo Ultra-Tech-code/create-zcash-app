@@ -57,3 +57,12 @@ cd01e5a948c7da29933b22a9d510e225342cd7cc7a3b7ec534b06d55dc91bee0  testnet_sync_s
 a34c43de70d487af8d330519e62e725b9e5807c588644d1a7c03b82d3d41093d  verify_p5_p3_p4_review.log  |  bash scripts/verify.sh
 faf5c0187ff76ed8f1e16e5a13e1a2eed207486903af1ff379f12767b1907f46  verify_squashed_head.log  |  bash scripts/verify.sh
 a53204edfbf9c30fff78424049c7d9f4d9c0a3496f01cc13a34fdb599fdcfd62  wallet_b_first_sync.log  |  node scripts/testnet_wallet_b_full_sync.mjs
+433c9b3bea0ba63ea68cc8ce4b7ebfb33c8ea42a16f3123fa5e3dbdcf8aed87c  stage2c_api_security.log  |  node scripts/test_api_security.mjs 2>&1 | tee packages/core/tests/logs/stage2c_api_security.log
+5e9a745f466d60748ac906c266fbf4be48ec5f8b402aebcabf27969b9875e644  testnet_cold_sync_evidence.log  |  node scripts/testnet_cold_sync_no_tree_seeding.mjs 2>&1 | tee packages/core/tests/logs/testnet_cold_sync_evidence.log
+e681b6d155f48ec3912fd91a56b58657927d3265b5ef3dc3a767cd0c56086ea3  testnet_stage2c_playwright.log  |  node scripts/testnet_stage2c_ui_playwright.mjs 2>&1 | tee packages/core/tests/logs/testnet_stage2c_playwright.log
+d2cc6f0517fab7e9289ab8206e14cefc50dd9de0ea05a2124fa5b368d2d9733f  screenshots/stage2c_01_wallet_a_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+b4b7c92b905e70f220c331507fcf0e19b6bf4f8de40e30edc8512d24ff7d55ac  screenshots/stage2c_02_wallet_a_activity_out.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+7b9c1c2bd6b182eee61c7af0df6bab7d40c595e2b5c9b05ade54b01a7fb44aa7  screenshots/stage2c_03_keys_forgotten.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+21c6a40d48e20c88967eecc80d7f2a43420a7668f5226caf06a56f88c843eb44  screenshots/stage2c_04_wallet_b_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+cb3ed45bcf783306018a1d99725453d041cf8a0389059efa5ec68aef584410bf  screenshots/stage2c_05_wallet_b_activity_in.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+

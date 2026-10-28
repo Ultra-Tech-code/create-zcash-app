@@ -18,17 +18,22 @@ export async function GET(request: Request) {
   const network: Network = preset
     ? preset.network
     : ((searchParams.get('network') || 'regtest') as Network);
-  const accountId = searchParams.get('account') || 'account0';
+  let accountId = searchParams.get('account') || 'account0';
   const limit = parseInt(searchParams.get('limit') || '100', 10);
   const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-  let ufvk = searchParams.get('ufvk') || undefined;
+  // SECURITY: NEVER read ufvk from searchParams or query string.
+  // UFVK is held strictly in the server-side session (httpOnly, SameSite=Strict cookie).
+  let ufvk: string | undefined = undefined;
 
-  // Check server session if ufvk not provided directly
+  // Check server session strictly
   const sessionId = getSessionIdFromRequest(request);
   const sessionData = sessionId ? getSession(sessionId) : undefined;
-  if (!ufvk && sessionData && sessionData.network === network) {
+  if (sessionData && sessionData.network === network) {
     ufvk = sessionData.ufvk;
+    if (sessionData.accountId) {
+      accountId = sessionData.accountId;
+    }
   }
 
   // On regtest, default to the fixture account if ufvk is not provided

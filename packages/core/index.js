@@ -786,6 +786,7 @@ module.exports.generateMnemonic = nativeBinding.generateMnemonic
 module.exports.getAddressFromUfvk = nativeBinding.getAddressFromUfvk
 module.exports.getDefaultTxExpiryDelta = nativeBinding.getDefaultTxExpiryDelta
 module.exports.getExpectedBranchId = nativeBinding.getExpectedBranchId
+module.exports.getTransparentAddressFromUfvk = nativeBinding.getTransparentAddressFromUfvk
 module.exports.ironwoodEmptyTreeRoot = nativeBinding.ironwoodEmptyTreeRoot
 module.exports.quoteFee = nativeBinding.quoteFee
 module.exports.tryDecryptAction = nativeBinding.tryDecryptAction

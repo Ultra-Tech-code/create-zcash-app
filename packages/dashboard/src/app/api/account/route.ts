@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient, dev, getBalance, detectIncoming, accountFromUfvk } from '@zcash-app/sdk';
-import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../endpoints';
+import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
 import { getSession, getSessionIdFromRequest } from '../../session';
 
 export async function GET(request: Request) {
@@ -10,17 +10,14 @@ export async function GET(request: Request) {
 
   const network: Network = preset ? preset.network : ((searchParams.get('network') || 'regtest') as Network);
   const queryEndpoint = searchParams.get('endpoint');
+  const customEndpoint = searchParams.get('customEndpoint');
 
-  let endpoint = preset ? preset.endpoint : (queryEndpoint || '127.0.0.1:28137');
-  if (queryEndpoint) {
-    const isAllowed =
-      queryEndpoint.startsWith('127.0.0.1:') ||
-      queryEndpoint.startsWith('localhost:') ||
-      ALLOWED_ENDPOINTS.includes(queryEndpoint);
-    if (isAllowed) {
-      endpoint = queryEndpoint;
-    }
-  }
+  const endpoint = resolveAllowedEndpoint({
+    presetParam,
+    network,
+    queryEndpoint,
+    customEndpoint,
+  });
 
   const fixtureIndex = parseInt(searchParams.get('index') || '0', 10);
 
@@ -35,6 +32,7 @@ export async function GET(request: Request) {
       if (sessionUfvk) {
         const watchAcct = accountFromUfvk(sessionUfvk, network);
         const ua = watchAcct.getUnifiedAddress();
+        const transparentAddress = watchAcct.getTransparentAddress ? watchAcct.getTransparentAddress() : null;
         return NextResponse.json({
           success: true,
           status: 'ready',
@@ -44,7 +42,7 @@ export async function GET(request: Request) {
           network,
           endpoint,
           unifiedAddress: ua,
-          transparentAddress: null,
+          transparentAddress: transparentAddress || null,
           ufvk: sessionUfvk,
           isWatchOnly: true,
           hasImportedKey: true,

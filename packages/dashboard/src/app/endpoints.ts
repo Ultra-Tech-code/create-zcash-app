@@ -81,3 +81,31 @@ export const NETWORK_ENDPOINTS: Record<Network, string> = {
   testnet: 'testnet.zec.rocks:443',
   mainnet: 'zec.rocks:443',
 };
+
+export function resolveAllowedEndpoint(options: {
+  presetParam?: PresetId | null;
+  network?: Network;
+  queryEndpoint?: string | null;
+  customEndpoint?: string | null;
+}): string {
+  const { presetParam, network = 'regtest', queryEndpoint, customEndpoint } = options;
+
+  // 1. Explicit custom endpoint field is accepted
+  if (customEndpoint && typeof customEndpoint === 'string' && customEndpoint.trim()) {
+    return customEndpoint.trim();
+  }
+
+  // 2. Preset endpoint takes precedence if preset is specified
+  if (presetParam && NETWORK_PRESETS[presetParam]) {
+    return NETWORK_PRESETS[presetParam].endpoint;
+  }
+
+  // 3. Accept queryEndpoint only if it is explicitly in ALLOWED_ENDPOINTS (matching a preset endpoint)
+  // Do NOT accept arbitrary 127.0.0.1:* from the query string
+  if (queryEndpoint && ALLOWED_ENDPOINTS.includes(queryEndpoint)) {
+    return queryEndpoint;
+  }
+
+  // 4. Fall back to network default endpoint
+  return NETWORK_ENDPOINTS[network] || '127.0.0.1:39067';
+}

@@ -1,0 +1,31 @@
+=== RUNNING DASHBOARD API SECURITY TESTS (http://127.0.0.1:3050) ===
+
+Test 1: Verify GET /api/sync/status ignores ?ufvk= in query string...
+✓ PASS: GET /api/sync/status?ufvk=... returned message "UFVK required for background synchronization"
+
+Test 2: Verify GET /api/transactions ignores ?ufvk= in query string...
+✓ PASS: GET /api/transactions?ufvk=... returned message "No UFVK loaded for this account"
+
+Test 3: Verify GET /api/account/import-key is refused (POST only)...
+✓ PASS: GET /api/account/import-key returned 405 Method Not Allowed
+
+Test 4: Verify POST /api/account/import-key requires birthday...
+✓ PASS: Missing birthday height was rejected with 400
+
+Test 5: Verify POST /api/account/import-key refuses key prefix mismatch...
+✓ PASS: Testnet UFVK on mainnet was refused
+
+Test 6: Verify POST /api/account/import-key sets HttpOnly, SameSite=Strict cookie...
+✓ PASS: Response includes Set-Cookie with HttpOnly and SameSite=Strict
+
+Test 7: Verify GET /api/account with session cookie reflects imported watch-only account...
+✓ PASS: Account endpoint returns valid UA and transparent address without exposing secret keys
+
+Test 8: Verify custom endpoints security...
+✓ PASS: Arbitrary ?endpoint=127.0.0.1:9999 was rejected; preserved preset 127.0.0.1:39067
+✓ PASS: Explicit customEndpoint field was accepted: 127.0.0.1:9999
+
+Test 9: Verify POST /api/account/forget-key clears session and expires cookie...
+✓ PASS: Session cleared and cookie expired with SameSite=Strict
+
+=== ALL 9 API SECURITY TESTS PASSED CLEANLY! ===

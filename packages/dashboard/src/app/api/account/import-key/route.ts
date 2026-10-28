@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import {
   createSessionId,
   getSessionIdFromRequest,
@@ -42,11 +43,14 @@ export async function POST(request: Request) {
     }
 
     const sessionId = getSessionIdFromRequest(request) || createSessionId();
+    const ufvkHash = crypto.createHash('sha256').update(ufvk.trim()).digest('hex').slice(0, 8);
+    const effectiveAccountId = accountId && accountId !== 'account0' ? accountId : `acct_${ufvkHash}`;
+
     setSession(sessionId, {
       ufvk: ufvk.trim(),
       birthday: Math.floor(birthday),
       network,
-      accountId,
+      accountId: effectiveAccountId,
     });
 
     const response = NextResponse.json({
@@ -54,14 +58,14 @@ export async function POST(request: Request) {
       message: 'UFVK imported successfully in server memory',
       network,
       birthday: Math.floor(birthday),
-      accountId,
+      accountId: effectiveAccountId,
     });
 
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
       value: sessionId,
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'strict',
       path: '/',
       secure: false,
     });

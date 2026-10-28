@@ -6,7 +6,7 @@ import {
   getDashboardSyncStatus,
   startDashboardSync,
 } from '@zcash-app/sdk';
-import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../../endpoints';
+import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../../endpoints';
 import {
   getSession,
   getSessionIdFromRequest,
@@ -39,20 +39,20 @@ async function handleSyncRequest(request: Request, isPost = false) {
   const network: Network = preset
     ? preset.network
     : ((body.network || searchParams.get('network') || 'regtest') as Network);
+
   const queryEndpoint = body.endpoint || searchParams.get('endpoint');
+  const customEndpoint = body.customEndpoint || searchParams.get('customEndpoint');
 
-  let endpoint = preset ? preset.endpoint : (queryEndpoint || '127.0.0.1:28137');
-  if (queryEndpoint) {
-    const isAllowed =
-      queryEndpoint.startsWith('127.0.0.1:') ||
-      queryEndpoint.startsWith('localhost:') ||
-      ALLOWED_ENDPOINTS.includes(queryEndpoint);
-    if (isAllowed) {
-      endpoint = queryEndpoint;
-    }
-  }
+  // Accept only NETWORK_PRESETS endpoints or an explicit custom endpoint field
+  // Arbitrary 127.0.0.1:* from the query string is rejected
+  const endpoint = resolveAllowedEndpoint({
+    presetParam,
+    network,
+    queryEndpoint,
+    customEndpoint,
+  });
 
-  const accountId = body.account || searchParams.get('account') || 'account0';
+  let accountId = body.account || searchParams.get('account') || 'account0';
   const rawBirthday = body.birthday !== undefined ? body.birthday : searchParams.get('birthday');
   let birthday = rawBirthday !== undefined && rawBirthday !== null ? parseInt(String(rawBirthday), 10) : undefined;
   const shouldStart = body.start !== undefined ? body.start !== false : searchParams.get('start') !== 'false';
@@ -69,15 +69,20 @@ async function handleSyncRequest(request: Request, isPost = false) {
       ? parseInt(searchParams.get('batchSize')!, 10)
       : 50;
 
-  let ufvk = body.ufvk || searchParams.get('ufvk') || undefined;
+  // SECURITY: NEVER read ufvk from the query string or GET requests.
+  // UFVK is accepted ONLY in a POST body, then held in the server-side session.
+  let ufvk: string | undefined = isPost && body.ufvk ? String(body.ufvk).trim() : undefined;
 
-  // Check server session if ufvk not provided directly
+  // Check server session if ufvk not provided directly in POST body
   const sessionId = getSessionIdFromRequest(request);
   let sessionData = sessionId ? getSession(sessionId) : undefined;
   if (!ufvk && sessionData && sessionData.network === network) {
     ufvk = sessionData.ufvk;
     if (birthday === undefined) {
       birthday = sessionData.birthday;
+    }
+    if (sessionData.accountId) {
+      accountId = sessionData.accountId;
     }
   }
 
@@ -149,7 +154,7 @@ async function handleSyncRequest(request: Request, isPost = false) {
         name: SESSION_COOKIE_NAME,
         value: newSessionId,
         httpOnly: true,
-        sameSite: 'lax',
+        sameSite: 'strict',
         path: '/',
         secure: false,
       });

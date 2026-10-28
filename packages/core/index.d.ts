@@ -97,6 +97,8 @@ export declare function getDefaultTxExpiryDelta(networkStr: string, height: numb
 
 export declare function getExpectedBranchId(networkStr: string, height: number): string
 
+export declare function getTransparentAddressFromUfvk(ufvkStr: string, networkStr: string): string | null
+
 /**
  * Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
  *

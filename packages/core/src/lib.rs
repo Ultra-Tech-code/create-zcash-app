@@ -148,6 +148,25 @@ pub fn internal_get_address_from_ufvk(
     Ok(ua.encode(&params))
 }
 
+pub fn internal_get_transparent_address_from_ufvk(
+    ufvk_str: &str,
+    network_str: &str,
+) -> Result<Option<String>, String> {
+    let params = get_params_for_network(network_str);
+    let ufvk = UnifiedFullViewingKey::decode(&params, ufvk_str)
+        .map_err(|e| format!("Failed to decode UFVK: {:?}", e))?;
+
+    let (ua, _) = ufvk
+        .default_address(UnifiedAddressRequest::AllAvailableKeys)
+        .map_err(|e| format!("Failed to derive default address: {:?}", e))?;
+
+    if let Some(t_addr) = ua.transparent() {
+        let addr = zcash_keys::address::Address::from(*t_addr);
+        return Ok(Some(addr.encode(&params)));
+    }
+    Ok(None)
+}
+
 #[derive(Debug, Clone)]
 pub struct DecryptedNoteInfo {
     pub pool: String,
@@ -322,6 +341,15 @@ mod napi_bindings {
         diversifier_index: Option<u32>,
     ) -> Result<String> {
         internal_get_address_from_ufvk(&ufvk_str, &network_str, diversifier_index)
+            .map_err(|e| Error::new(Status::GenericFailure, e))
+    }
+
+    #[napi]
+    pub fn get_transparent_address_from_ufvk(
+        ufvk_str: String,
+        network_str: String,
+    ) -> Result<Option<String>> {
+        internal_get_transparent_address_from_ufvk(&ufvk_str, &network_str)
             .map_err(|e| Error::new(Status::GenericFailure, e))
     }
 

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     name: SESSION_COOKIE_NAME,
     value: '',
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'strict',
     path: '/',
     maxAge: 0,
   });

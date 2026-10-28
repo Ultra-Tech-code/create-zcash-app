@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient, getUpgradeName, getExpectedBranchId } from '@zcash-app/sdk';
-import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../endpoints';
+import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
 
 function inferChainInfo(info: any): { chain: 'regtest' | 'testnet' | 'mainnet' | 'unknown'; signal: string } {
   const chain = (info.chainName || '').toLowerCase().trim();
@@ -38,17 +38,14 @@ export async function GET(request: Request) {
 
   const network: Network = preset ? preset.network : ((searchParams.get('network') || 'regtest') as Network);
   const queryEndpoint = searchParams.get('endpoint');
+  const customEndpoint = searchParams.get('customEndpoint');
 
-  let endpoint = preset ? preset.endpoint : (queryEndpoint || '127.0.0.1:28137');
-  if (queryEndpoint) {
-    const isAllowed =
-      queryEndpoint.startsWith('127.0.0.1:') ||
-      queryEndpoint.startsWith('localhost:') ||
-      ALLOWED_ENDPOINTS.includes(queryEndpoint);
-    if (isAllowed) {
-      endpoint = queryEndpoint;
-    }
-  }
+  const endpoint = resolveAllowedEndpoint({
+    presetParam,
+    network,
+    queryEndpoint,
+    customEndpoint,
+  });
 
   try {
     const client = createClient({ endpoint, network });
