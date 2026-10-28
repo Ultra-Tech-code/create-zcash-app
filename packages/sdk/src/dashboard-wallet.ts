@@ -27,8 +27,15 @@ const walletCache = new Map<string, WalletHandle>();
 const syncStatusMap = new Map<string, DashboardSyncStatus>();
 const syncPromiseMap = new Map<string, Promise<void>>();
 
+export function clearDashboardWalletCache(): void {
+  walletCache.clear();
+  syncStatusMap.clear();
+  syncPromiseMap.clear();
+}
+
 export function getDashboardWalletDir(): string {
-  const dir = path.join(os.homedir(), '.zcash-app', 'dashboard');
+  const baseHome = process.env.ZCASH_APP_HOME || os.homedir();
+  const dir = path.join(baseHome, '.zcash-app', 'dashboard');
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   }

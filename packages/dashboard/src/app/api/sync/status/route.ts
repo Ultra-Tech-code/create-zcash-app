@@ -7,6 +7,13 @@ import {
   startDashboardSync,
 } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../../endpoints';
+import {
+  getSession,
+  getSessionIdFromRequest,
+  setSession,
+  createSessionId,
+  SESSION_COOKIE_NAME,
+} from '../../../session';
 
 /**
  * SECURITY NOTICE:
@@ -15,13 +22,24 @@ import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../../
  * and database files to 0600 under ~/.zcash-app/dashboard/.
  */
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const presetParam = searchParams.get('preset') as PresetId | null;
+async function handleSyncRequest(request: Request, isPost = false) {
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
+
+  let body: any = {};
+  if (isPost) {
+    try {
+      body = await request.json();
+    } catch (_) {}
+  }
+
+  const presetParam = (body.preset || searchParams.get('preset')) as PresetId | null;
   const preset = presetParam && NETWORK_PRESETS[presetParam] ? NETWORK_PRESETS[presetParam] : null;
 
-  const network: Network = preset ? preset.network : ((searchParams.get('network') || 'regtest') as Network);
-  const queryEndpoint = searchParams.get('endpoint');
+  const network: Network = preset
+    ? preset.network
+    : ((body.network || searchParams.get('network') || 'regtest') as Network);
+  const queryEndpoint = body.endpoint || searchParams.get('endpoint');
 
   let endpoint = preset ? preset.endpoint : (queryEndpoint || '127.0.0.1:28137');
   if (queryEndpoint) {
@@ -34,12 +52,46 @@ export async function GET(request: Request) {
     }
   }
 
-  const accountId = searchParams.get('account') || 'account0';
-  const rawBirthday = searchParams.get('birthday');
-  const birthday = rawBirthday ? parseInt(rawBirthday, 10) : undefined;
-  const shouldStart = searchParams.get('start') !== 'false';
+  const accountId = body.account || searchParams.get('account') || 'account0';
+  const rawBirthday = body.birthday !== undefined ? body.birthday : searchParams.get('birthday');
+  let birthday = rawBirthday !== undefined && rawBirthday !== null ? parseInt(String(rawBirthday), 10) : undefined;
+  const shouldStart = body.start !== undefined ? body.start !== false : searchParams.get('start') !== 'false';
+  const targetHeight =
+    body.targetHeight !== undefined
+      ? parseInt(String(body.targetHeight), 10)
+      : searchParams.get('targetHeight')
+      ? parseInt(searchParams.get('targetHeight')!, 10)
+      : undefined;
+  const batchSize =
+    body.batchSize !== undefined
+      ? parseInt(String(body.batchSize), 10)
+      : searchParams.get('batchSize')
+      ? parseInt(searchParams.get('batchSize')!, 10)
+      : 50;
 
-  let ufvk = searchParams.get('ufvk') || undefined;
+  let ufvk = body.ufvk || searchParams.get('ufvk') || undefined;
+
+  // Check server session if ufvk not provided directly
+  const sessionId = getSessionIdFromRequest(request);
+  let sessionData = sessionId ? getSession(sessionId) : undefined;
+  if (!ufvk && sessionData && sessionData.network === network) {
+    ufvk = sessionData.ufvk;
+    if (birthday === undefined) {
+      birthday = sessionData.birthday;
+    }
+  }
+
+  // If POST provided ufvk & birthday, store in session
+  let newSessionId: string | null = null;
+  if (isPost && ufvk && birthday !== undefined) {
+    newSessionId = sessionId || createSessionId();
+    setSession(newSessionId, {
+      ufvk,
+      birthday,
+      network,
+      accountId,
+    });
+  }
 
   // On regtest, default to the fixture account if ufvk is not provided
   if (!ufvk && network === 'regtest') {
@@ -73,12 +125,14 @@ export async function GET(request: Request) {
         network,
         birthday,
         ufvk,
+        targetHeight,
+        batchSize,
       });
     }
 
     const syncStatus = getDashboardSyncStatus(network, accountId, wallet);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       status: syncStatus.status,
       scanned: syncStatus.scanned,
@@ -89,6 +143,19 @@ export async function GET(request: Request) {
       error: syncStatus.error,
       lastSyncedAt: syncStatus.lastSyncedAt,
     });
+
+    if (newSessionId && !sessionId) {
+      response.cookies.set({
+        name: SESSION_COOKIE_NAME,
+        value: newSessionId,
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: false,
+      });
+    }
+
+    return response;
   } catch (err: any) {
     return NextResponse.json(
       {
@@ -106,7 +173,10 @@ export async function GET(request: Request) {
   }
 }
 
+export async function GET(request: Request) {
+  return handleSyncRequest(request, false);
+}
+
 export async function POST(request: Request) {
-  // Support POST as well for body-based configuration
-  return GET(request);
+  return handleSyncRequest(request, true);
 }

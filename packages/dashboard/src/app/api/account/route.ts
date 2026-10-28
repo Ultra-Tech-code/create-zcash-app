@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient, dev, getBalance, detectIncoming } from '@zcash-app/sdk';
+import { createClient, dev, getBalance, detectIncoming, accountFromUfvk } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, ALLOWED_ENDPOINTS } from '../../endpoints';
+import { getSession, getSessionIdFromRequest } from '../../session';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -24,13 +25,39 @@ export async function GET(request: Request) {
   const fixtureIndex = parseInt(searchParams.get('index') || '0', 10);
 
   try {
+    const sessionId = getSessionIdFromRequest(request);
+    const sessionData = sessionId ? getSession(sessionId) : undefined;
+    const sessionUfvk = sessionData && sessionData.network === network ? sessionData.ufvk : null;
+
     // Safety guard: Fixture mnemonic derivation is only permitted on regtest.
     // On mainnet and testnet, public test mnemonics are strictly prohibited; accounts are watch-only.
     if (network === 'mainnet' || network === 'testnet') {
+      if (sessionUfvk) {
+        const watchAcct = accountFromUfvk(sessionUfvk, network);
+        const ua = watchAcct.getUnifiedAddress();
+        return NextResponse.json({
+          success: true,
+          status: 'ready',
+          message: `Watch-only account active on ${network}`,
+          accountIndex: fixtureIndex,
+          preset: presetParam || undefined,
+          network,
+          endpoint,
+          unifiedAddress: ua,
+          transparentAddress: null,
+          ufvk: sessionUfvk,
+          isWatchOnly: true,
+          hasImportedKey: true,
+          birthday: sessionData?.birthday,
+          balances: null,
+          notes: [],
+        });
+      }
+
       return NextResponse.json({
         success: true,
         status: 'ready',
-        message: `${network === 'mainnet' ? 'Mainnet' : 'Testnet'} is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.`,
+        message: `${network === 'mainnet' ? 'Mainnet' : 'Testnet'} is watch-only in this dashboard. Public fixture mnemonics are refused. Import a Unified Full Viewing Key (UFVK) to view account history.`,
         accountIndex: fixtureIndex,
         preset: presetParam || undefined,
         network,
@@ -39,6 +66,7 @@ export async function GET(request: Request) {
         transparentAddress: null,
         ufvk: null,
         isWatchOnly: true,
+        hasImportedKey: false,
         balances: null,
         notes: [],
       });

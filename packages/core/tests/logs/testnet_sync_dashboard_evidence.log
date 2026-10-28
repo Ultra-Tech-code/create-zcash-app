@@ -1,0 +1,68 @@
+========================================================================
+STAGE 2b: DASHBOARD TESTNET SYNC & TRANSACTION API EVIDENCE
+========================================================================
+Execution Time:   2026-10-28T08:45:27.438Z
+Live Endpoint:    testnet.zec.rocks:443
+Expected TxID:    8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+Birthday Height:  4542200
+
+[Keys & Addresses] Watch-Only Derivation for Wallet B:
+  Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+  UFVK: loaded in server memory by code only (never printed or leaked)
+
+[Environment Isolation]
+  Temporary Home Directory: <TEMP_HOME> (permissions: 0700)
+
+[Tree Seeding] Seeding commitment tree frontier up to birthday height 4542200...
+
+[Dashboard Server] Starting Next.js standalone process on port 3058...
+  [Server] ▲ Next.js 16.4.2
+  [Server] ✓ Running next.config.ts took 17ms
+  Dashboard server ready and responding to health queries.
+
+[Sync Initialization] POSTing UFVK and birthday to /api/sync/status:
+  POST /api/sync/status: HTTP 200 in 14ms
+  Initial Status: status=syncing, scanned=4542200, target=4542241
+
+[Sync Polling] Polling /api/sync/status every second (verifying < 5s response time):
+  [Server] [Sync] (https://testnet.zec.rocks:443) (third-party server) Starting sync from height 4542201 to target 4542241 (tip: 4550366, batch size: 50, throttle: 50ms)...
+  Poll #01: HTTP 200 in   4ms | status=syncing | scanned=4542200 | target=4542241 | notesFound=0 | pendingFetches=0 | failedFetches=0
+  [Server] [Sync] (https://testnet.zec.rocks:443) (third-party server) Height: 4542241/4542241 (100.0%) | Req: 3 | Speed: 76.8 blocks/s
+  Poll #02: HTTP 200 in   6ms | status=synced | scanned=4542241 | target=4550366 | notesFound=1 | pendingFetches=0 | failedFetches=0
+  Background sync completed successfully.
+
+[Transaction History API] Querying GET /api/transactions:
+  GET /api/transactions: HTTP 200 in 4ms (1 transactions returned)
+  Transactions payload: [
+  {
+    "id": 1,
+    "txid": "8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a",
+    "actionIndex": 1,
+    "height": 4542240,
+    "direction": "in",
+    "value": 1000000,
+    "pool": "ironwood",
+    "createdAt": 1793177129,
+    "fee": 10000,
+    "memo": "Phase 5 Controlled Live Send"
+  }
+]
+
+[Verification Success]
+  Found Expected 'in' Row:
+    TxID:         8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+    Direction:    in
+    Value (zat):  1000000 (1,000,000 zatoshis = 0.01 ZEC)
+    Height:       4542240
+    Action Index: 1
+    Pool:         ironwood
+    Fee:          10000 zat
+    Memo:         Phase 5 Controlled Live Send
+
+[Security Permissions Check]
+  Dashboard Directory: <TEMP_HOME>/.zcash-app/dashboard (mode: 0700, expected: 0700)
+  Database File:       <TEMP_HOME>/.zcash-app/dashboard/testnet_account0.db (mode: 0600, expected: 0600)
+
+========================================================================
+STAGE 2b VERIFICATION COMPLETE: ALL CHECKS PASSED
+========================================================================
