@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {
   createClient,
@@ -26,13 +27,28 @@ function findFixturePath(filename: string): string | null {
   return null;
 }
 
-function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
-  if (process.env.ZEBRA_RPC_URL) {
-    return process.env.ZEBRA_RPC_URL;
+function getZebraCookieRpcUrl(port = 18232): string | null {
+  const possiblePaths = [
+    path.join(os.homedir(), 'Library', 'Caches', 'zebra', '.cookie'),
+    path.join(process.env.XDG_CACHE_HOME || path.join(os.homedir(), '.cache'), 'zebra', '.cookie'),
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        const raw = fs.readFileSync(p, 'utf8').trim();
+        const colonIdx = raw.indexOf(':');
+        if (colonIdx > 0) {
+          const user = raw.slice(0, colonIdx);
+          const pass = raw.slice(colonIdx + 1);
+          return `http://${user}:${encodeURIComponent(pass)}@127.0.0.1:${port}`;
+        }
+      } catch (_) {}
+    }
   }
-  if (presetParam && NETWORK_PRESETS[presetParam]?.miningRpcUrl) {
-    return NETWORK_PRESETS[presetParam].miningRpcUrl!;
-  }
+  return null;
+}
+
+function getQuickNodeFallbackUrl(): string | null {
   if (process.env.QUICKNODE_ZEC_TESTNET_URL) {
     return process.env.QUICKNODE_ZEC_TESTNET_URL;
   }
@@ -42,6 +58,7 @@ function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
   try {
     const envPaths = [
       path.resolve(process.cwd(), '.env'),
+      path.resolve(process.cwd(), '../.env'),
       path.resolve(process.cwd(), '../../.env'),
     ];
     for (const ep of envPaths) {
@@ -53,6 +70,20 @@ function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
     }
   } catch (_) {}
   return null;
+}
+
+function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
+  if (process.env.ZEBRA_RPC_URL) {
+    return process.env.ZEBRA_RPC_URL;
+  }
+  if (presetParam && NETWORK_PRESETS[presetParam]?.miningRpcUrl) {
+    return NETWORK_PRESETS[presetParam].miningRpcUrl!;
+  }
+  if (presetParam === 'testnet-local') {
+    const localZebra = getZebraCookieRpcUrl(18232) || 'http://127.0.0.1:18232';
+    if (localZebra) return localZebra;
+  }
+  return getQuickNodeFallbackUrl();
 }
 
 export async function GET(request: Request) {
@@ -72,6 +103,10 @@ export async function GET(request: Request) {
   });
 
   const secondaryRpcUrl = getSecondaryRpcUrl(presetParam);
+  const fallbackRpcUrl =
+    presetParam === 'testnet-local' && secondaryRpcUrl !== getQuickNodeFallbackUrl()
+      ? getQuickNodeFallbackUrl()
+      : null;
 
   // 1. Classification & Format Validation
   const classified = classifyExplorerQuery(qParam || '');
@@ -132,35 +167,46 @@ export async function GET(request: Request) {
       }
 
       // Fallback to secondary JSON-RPC if lightwalletd returned null
-      if (!compactBlock && secondaryRpcUrl) {
+      const tryRpcHeight = async (url: string) => {
         try {
-          const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+          const verifier = new JsonRpcVerifier(url);
           const blockHash = await verifier.getBlockHash(height);
           const rpcBlock = await verifier.call<any>('getblock', [blockHash, 1]);
           if (rpcBlock) {
-            await client.close().catch(() => {});
-            return Response.json({
-              success: true,
-              matchType: 'block',
-              data: {
-                height: rpcBlock.height,
-                hash: rpcBlock.hash,
-                previousBlockHash: rpcBlock.previousblockhash || null,
-                time: rpcBlock.time,
-                txCount: (rpcBlock.tx || []).length,
-                txList: (rpcBlock.tx || []).map((txid: string, idx: number) => ({
-                  index: idx,
-                  txid,
-                })),
-                chainMetadata: {
-                  ironwoodCommitmentTreeSize: 0,
-                  orchardCommitmentTreeSize: 0,
-                  saplingCommitmentTreeSize: 0,
-                },
+            return {
+              height: rpcBlock.height,
+              hash: rpcBlock.hash,
+              previousBlockHash: rpcBlock.previousblockhash || null,
+              time: rpcBlock.time,
+              txCount: (rpcBlock.tx || []).length,
+              txList: (rpcBlock.tx || []).map((txid: string, idx: number) => ({
+                index: idx,
+                txid,
+              })),
+              chainMetadata: {
+                ironwoodCommitmentTreeSize: Number(rpcBlock.trees?.ironwood?.size || 0),
+                orchardCommitmentTreeSize: Number(rpcBlock.trees?.orchard?.size || 0),
+                saplingCommitmentTreeSize: Number(rpcBlock.trees?.sapling?.size || 0),
               },
-            });
+            };
           }
         } catch (_) {}
+        return null;
+      };
+
+      if (!compactBlock && secondaryRpcUrl) {
+        let rpcData = await tryRpcHeight(secondaryRpcUrl);
+        if (!rpcData && fallbackRpcUrl) {
+          rpcData = await tryRpcHeight(fallbackRpcUrl);
+        }
+        if (rpcData) {
+          await client.close().catch(() => {});
+          return Response.json({
+            success: true,
+            matchType: 'block',
+            data: rpcData,
+          });
+        }
       }
 
       if (lightwalletdUnreachable && !compactBlock) {
@@ -286,21 +332,30 @@ export async function GET(request: Request) {
     }
 
     // If lightwalletd did not find tx, try secondary JSON-RPC getrawtransaction
-    if (!rawTxBuf && secondaryRpcUrl) {
+    const tryRpcTx = async (url: string) => {
       try {
-        const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+        const verifier = new JsonRpcVerifier(url);
         const rpcTx = await verifier.getRawTransaction(queryHex, 1);
         if (rpcTx && rpcTx.hex) {
           rawTxBuf = Buffer.from(rpcTx.hex, 'hex');
           txHeight = Number(rpcTx.height || 0);
           txBlockHash = rpcTx.blockhash || null;
           txTime = Number(rpcTx.blocktime || rpcTx.time || 0) || null;
+          return true;
         }
       } catch (err: any) {
         const msg = String(err?.message || '').toLowerCase();
         if (msg.includes('connection refused') || msg.includes('fetch failed') || msg.includes('econnrefused')) {
           secondaryFailed = true;
         }
+      }
+      return false;
+    };
+
+    if (!rawTxBuf && secondaryRpcUrl) {
+      const found = await tryRpcTx(secondaryRpcUrl);
+      if (!found && fallbackRpcUrl) {
+        await tryRpcTx(fallbackRpcUrl);
       }
     }
 
@@ -438,15 +493,15 @@ export async function GET(request: Request) {
     // Step 2: Tx not found; Try Block by Hash
     let blockData: any = null;
 
-    if (secondaryRpcUrl) {
+    const tryRpcBlock = async (url: string) => {
       try {
-        const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+        const verifier = new JsonRpcVerifier(url);
         const rpcBlock = await verifier.call<any>('getblock', [queryHex, 1]);
         if (rpcBlock && rpcBlock.hash) {
           let treeMetadata = {
-            ironwoodCommitmentTreeSize: 0,
-            orchardCommitmentTreeSize: 0,
-            saplingCommitmentTreeSize: 0,
+            ironwoodCommitmentTreeSize: Number(rpcBlock.trees?.ironwood?.size || 0),
+            orchardCommitmentTreeSize: Number(rpcBlock.trees?.orchard?.size || 0),
+            saplingCommitmentTreeSize: Number(rpcBlock.trees?.sapling?.size || 0),
           };
           if (rpcBlock.height) {
             try {
@@ -458,7 +513,27 @@ export async function GET(request: Request) {
                   saplingCommitmentTreeSize: Number(compactBlk.chainMetadata.saplingCommitmentTreeSize || 0),
                 };
               }
-            } catch (_) {}
+            } catch (_) {
+              if (
+                network === 'testnet' &&
+                treeMetadata.ironwoodCommitmentTreeSize === 0 &&
+                treeMetadata.orchardCommitmentTreeSize === 0 &&
+                treeMetadata.saplingCommitmentTreeSize === 0
+              ) {
+                try {
+                  const fallbackClient = createClient({ endpoint: 'testnet.zec.rocks:443', network: 'testnet' });
+                  const compactBlk = await fallbackClient.getBlock(Number(rpcBlock.height));
+                  if (compactBlk && compactBlk.chainMetadata) {
+                    treeMetadata = {
+                      ironwoodCommitmentTreeSize: Number(compactBlk.chainMetadata.ironwoodCommitmentTreeSize || 0),
+                      orchardCommitmentTreeSize: Number(compactBlk.chainMetadata.orchardCommitmentTreeSize || 0),
+                      saplingCommitmentTreeSize: Number(compactBlk.chainMetadata.saplingCommitmentTreeSize || 0),
+                    };
+                  }
+                  await fallbackClient.close().catch(() => {});
+                } catch (_) {}
+              }
+            }
           }
           blockData = {
             height: rpcBlock.height,
@@ -472,12 +547,21 @@ export async function GET(request: Request) {
             })),
             chainMetadata: treeMetadata,
           };
+          return true;
         }
       } catch (err: any) {
         const msg = String(err?.message || '').toLowerCase();
         if (msg.includes('connection refused') || msg.includes('fetch failed') || msg.includes('econnrefused')) {
           secondaryFailed = true;
         }
+      }
+      return false;
+    };
+
+    if (secondaryRpcUrl) {
+      const found = await tryRpcBlock(secondaryRpcUrl);
+      if (!found && fallbackRpcUrl) {
+        await tryRpcBlock(fallbackRpcUrl);
       }
     }
 

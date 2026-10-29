@@ -85,10 +85,18 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
     [network, preset]
   );
 
+  const lastInitialQueryRef = React.useRef<string>('');
+
   useEffect(() => {
-    if (initialQuery && initialQuery.trim()) {
-      setSearchInput(initialQuery.trim());
-      handleSearch(initialQuery.trim());
+    const trimmed = (initialQuery || '').trim();
+    if (!trimmed) {
+      lastInitialQueryRef.current = '';
+      return;
+    }
+    if (trimmed !== lastInitialQueryRef.current) {
+      lastInitialQueryRef.current = trimmed;
+      setSearchInput(trimmed);
+      handleSearch(trimmed);
     }
   }, [initialQuery, handleSearch]);
 

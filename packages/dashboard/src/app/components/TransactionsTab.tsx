@@ -51,7 +51,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
   const fetchActivity = useCallback(async () => {
     try {
       // 1. Fetch transactions (uses server-side session cookie automatically)
-      const txRes = await fetch(`/api/transactions?network=${network}&account=${account}&limit=100`);
+      const txRes = await fetch(`/api/transactions?network=${network}&preset=${preset}&account=${account}&limit=100`);
       const txData = await txRes.json();
       if (txData.success) {
         setTransactions(txData.transactions || []);

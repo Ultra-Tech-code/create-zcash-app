@@ -56,7 +56,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    const wallet = getDashboardWallet(network, accountId, ufvk);
+    const effectiveAccountId =
+      presetParam === 'regtest-z3' && accountId === 'account0'
+        ? 'account0_z3'
+        : accountId;
+    const wallet = getDashboardWallet(network, effectiveAccountId, ufvk);
     const transactions = wallet.getWalletTransactions(limit, offset);
 
     return NextResponse.json({

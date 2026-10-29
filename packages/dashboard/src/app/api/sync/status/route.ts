@@ -123,13 +123,17 @@ async function handleSyncRequest(request: Request, isPost = false) {
   }
 
   try {
-    const wallet = getDashboardWallet(network, accountId, ufvk, birthday);
+    const effectiveAccountId =
+      presetParam === 'regtest-z3' && accountId === 'account0'
+        ? 'account0_z3'
+        : accountId;
+    const wallet = getDashboardWallet(network, effectiveAccountId, ufvk, birthday);
 
     if (shouldStart) {
       const client = createClient({ endpoint, network });
       startDashboardSync(client, wallet, {
         network,
-        accountId,
+        accountId: effectiveAccountId,
         birthday,
         ufvk,
         targetHeight,
@@ -137,7 +141,7 @@ async function handleSyncRequest(request: Request, isPost = false) {
       });
     }
 
-    const syncStatus = getDashboardSyncStatus(network, accountId, wallet);
+    const syncStatus = getDashboardSyncStatus(network, effectiveAccountId, wallet);
 
     const response = NextResponse.json({
       success: true,
