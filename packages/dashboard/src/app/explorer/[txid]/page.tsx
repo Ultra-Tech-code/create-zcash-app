@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { ExplorerTab } from '../../components/ExplorerTab';
+import { NetworkSelector } from '../../components/NetworkSelector';
 import { NETWORK_PRESETS, PresetId } from '../../endpoints';
 
 export default function ExplorerTxPage() {
@@ -11,25 +12,51 @@ export default function ExplorerTxPage() {
   const searchParams = useSearchParams();
   const txid = typeof params?.txid === 'string' ? params.txid : Array.isArray(params?.txid) ? params.txid[0] : '';
 
-  const [activePreset, setActivePreset] = useState<PresetId>('testnet');
+  const qPreset = searchParams.get('preset') as PresetId | null;
+  const qNetwork = searchParams.get('network');
+
+  // Synchronously initialize preset if available in query params, or default to regtest-nu7
+  const [activePreset, setActivePreset] = useState<PresetId>(() => {
+    if (qPreset && NETWORK_PRESETS[qPreset]) return qPreset;
+    if (qNetwork === 'regtest') return 'regtest-nu7';
+    if (qNetwork === 'testnet') return 'testnet';
+    if (qNetwork === 'mainnet') return 'mainnet';
+    return 'regtest-nu7';
+  });
 
   useEffect(() => {
-    const qPreset = searchParams.get('preset') as PresetId | null;
-    if (qPreset && NETWORK_PRESETS[qPreset]) {
-      setActivePreset(qPreset);
+    const p = searchParams.get('preset') as PresetId | null;
+    if (p && NETWORK_PRESETS[p]) {
+      setActivePreset(p);
       return;
     }
     fetch('/api/config')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.config?.preset && NETWORK_PRESETS[data.config.preset as PresetId]) {
-          setActivePreset(data.config.preset as PresetId);
+        if (data.success && data.config) {
+          const cfgPreset = data.config.preset as PresetId | undefined;
+          if (cfgPreset && NETWORK_PRESETS[cfgPreset]) {
+            setActivePreset(cfgPreset);
+            return;
+          }
+          if (data.config.network === 'testnet') {
+            setActivePreset('testnet');
+            return;
+          }
+          if (data.config.network === 'mainnet') {
+            setActivePreset('mainnet');
+            return;
+          }
+          if (data.config.network === 'regtest') {
+            setActivePreset(data.config.endpoint?.includes('28137') ? 'regtest-z3' : 'regtest-nu7');
+            return;
+          }
         }
       })
       .catch(() => {});
   }, [searchParams]);
 
-  const presetObj = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['testnet'];
+  const presetObj = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-nu7'];
   const network = presetObj.network;
 
   return (
@@ -54,6 +81,13 @@ export default function ExplorerTxPage() {
             <span style={{ color: 'var(--accent-gold)' }}>🔍</span> Transaction & Block Explorer
           </h1>
         </div>
+
+        <NetworkSelector
+          activePreset={activePreset}
+          onSelectPreset={(p) => setActivePreset(p)}
+          isConnected={true}
+          endpoint={presetObj.endpoint}
+        />
 
         {/* Backward compatibility anchor */}
         <span id="explorer-txid" style={{ display: 'none' }}>

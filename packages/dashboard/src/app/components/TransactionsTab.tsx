@@ -8,6 +8,7 @@ interface TransactionsTabProps {
   network?: string;
   preset?: string;
   account?: string;
+  onNavigateTx?: (txid: string) => void;
 }
 
 export interface WalletTx {
@@ -40,6 +41,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
   network = 'regtest',
   preset = 'regtest-nu7',
   account = 'account0',
+  onNavigateTx,
 }) => {
   const [transactions, setTransactions] = useState<WalletTx[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
@@ -369,7 +371,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                       {/* TxID linked to Explorer */}
                       <td style={{ padding: '0.75rem 0.6rem' }} className="mono-text">
                         <Link
-                          href={`/explorer/${tx.txid}`}
+                          href={`/explorer/${tx.txid}?preset=${encodeURIComponent(preset)}&network=${encodeURIComponent(network)}`}
                           className="txid-link"
                           style={{
                             color: 'var(--accent-gold)',
@@ -378,6 +380,12 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                             fontSize: '0.75rem',
                           }}
                           title={`Inspect ${tx.txid} in Explorer`}
+                          onClick={(e) => {
+                            if (onNavigateTx && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+                              e.preventDefault();
+                              onNavigateTx(tx.txid);
+                            }
+                          }}
                         >
                           {tx.txid.slice(0, 8)}...{tx.txid.slice(-8)}
                         </Link>

@@ -258,6 +258,10 @@ export default function Dashboard() {
             network={network}
             preset={activePreset}
             account="account0"
+            onNavigateTx={(txid) => {
+              setExplorerInitialQuery(txid);
+              setActiveTab('explorer');
+            }}
           />
         )}
 

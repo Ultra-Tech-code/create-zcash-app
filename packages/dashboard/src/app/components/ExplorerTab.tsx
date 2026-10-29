@@ -37,9 +37,12 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
     }
   };
 
+  const searchInputRef = React.useRef(searchInput);
+  searchInputRef.current = searchInput;
+
   const handleSearch = useCallback(
     async (queryToSearch?: string) => {
-      const q = (typeof queryToSearch === 'string' ? queryToSearch : searchInput).trim();
+      const q = (typeof queryToSearch === 'string' ? queryToSearch : searchInputRef.current).trim();
       if (!q) {
         setError('Please enter a transaction ID, block hash, or block height');
         setResultData(null);
@@ -79,7 +82,7 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
         setLoading(false);
       }
     },
-    [searchInput, network, preset]
+    [network, preset]
   );
 
   useEffect(() => {

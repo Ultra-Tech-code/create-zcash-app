@@ -157,7 +157,21 @@ export const SendTab: React.FC<SendTabProps> = ({
             ✓ Transaction Confirmed
           </h3>
           <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            <div>TxID: <code className="mono-text">{sendReceipt.txid}</code></div>
+            <div>
+              TxID:{' '}
+              <a
+                href={`/explorer/${sendReceipt.txid}?preset=${encodeURIComponent(preset)}&network=${encodeURIComponent(network)}`}
+                className="mono-text"
+                style={{
+                  color: 'var(--accent-gold)',
+                  textDecoration: 'none',
+                  borderBottom: '1px dotted var(--accent-gold)',
+                }}
+                title="Inspect in Explorer"
+              >
+                {sendReceipt.txid}
+              </a>
+            </div>
             <div>Amount: <strong>{sendReceipt.amount} ZEC</strong></div>
             <div>Fee: <span className="mono-text">{sendReceipt.fee} zatoshis</span></div>
           </div>
