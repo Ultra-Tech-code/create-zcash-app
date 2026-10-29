@@ -1,6 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
+import { GET } from '../../dashboard/src/app/api/explorer/route.js';
+import {
+  setSession,
+  deleteSession,
+  createSessionId,
+  SESSION_COOKIE_NAME,
+} from '../../dashboard/src/app/session.js';
 import {
   decodeTransaction,
   classifyExplorerQuery,
@@ -24,6 +33,136 @@ describe('Phase 3 Explorer Offline Tests', () => {
   const getBlockData = JSON.parse(fs.readFileSync(getBlockJsonPath, 'utf8'));
 
   const rawTxBytes = Buffer.from(getTxData.data_hex, 'hex');
+
+  let fakeServer: http.Server;
+  let fakeRpcUrl: string;
+  const rpcCallCounts = {
+    getrawtransaction: 0,
+    getblock: 0,
+    getblockhash: 0,
+  };
+
+  beforeAll(async () => {
+    fakeServer = http.createServer((req, res) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => {
+        try {
+          const parsed = JSON.parse(body);
+          const { method, params, id } = parsed;
+
+          if (method === 'getrawtransaction') {
+            rpcCallCounts.getrawtransaction++;
+            const [txid] = params;
+            if (txid === summary.verified_txid_explorer_order) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(
+                JSON.stringify({
+                  jsonrpc: '2.0',
+                  id,
+                  result: {
+                    hex: getTxData.data_hex,
+                    height: summary.mined_height,
+                    blockhash: summary.checks.block_hashes_equal.quicknode_getblockhash,
+                    time: 1792976987,
+                  },
+                })
+              );
+              return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                error: { code: -5, message: 'No such mempool or blockchain transaction' },
+              })
+            );
+            return;
+          }
+
+          if (method === 'getblock') {
+            rpcCallCounts.getblock++;
+            const [hashOrHeight] = params;
+            if (
+              hashOrHeight === summary.checks.block_hashes_equal.quicknode_getblockhash ||
+              hashOrHeight === String(summary.mined_height)
+            ) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(
+                JSON.stringify({
+                  jsonrpc: '2.0',
+                  id,
+                  result: {
+                    hash: summary.checks.block_hashes_equal.quicknode_getblockhash,
+                    height: summary.mined_height,
+                    previousblockhash: getBlockData.prev_hash_explorer_order,
+                    time: 1792976987,
+                    tx: [summary.verified_txid_explorer_order],
+                  },
+                })
+              );
+              return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                error: { code: -5, message: 'Block not found' },
+              })
+            );
+            return;
+          }
+
+          if (method === 'getblockhash') {
+            rpcCallCounts.getblockhash++;
+            const [height] = params;
+            if (height === summary.mined_height) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(
+                JSON.stringify({
+                  jsonrpc: '2.0',
+                  id,
+                  result: summary.checks.block_hashes_equal.quicknode_getblockhash,
+                })
+              );
+              return;
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                error: { code: -8, message: 'Block height out of range' },
+              })
+            );
+            return;
+          }
+
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Method not found' }));
+        } catch (e: any) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e?.message }));
+        }
+      });
+    });
+
+    await new Promise<void>((resolve) => {
+      fakeServer.listen(0, '127.0.0.1', () => {
+        const addr = fakeServer.address() as AddressInfo;
+        fakeRpcUrl = `http://127.0.0.1:${addr.port}`;
+        resolve();
+      });
+    });
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => fakeServer.close(() => resolve()));
+  });
 
   it('Requirement 1: classifyExplorerQuery auto-detects height, txid, block hash, and rejects bad input', () => {
     // Digits -> block height
@@ -168,72 +307,176 @@ describe('Phase 3 Explorer Offline Tests', () => {
     expect(strangerDec.outgoing.length).toBe(0);
   });
 
-  it('Optional Zebra-RPC path: fetches and decodes transaction and block via JSON-RPC fallback', async () => {
-    // Test that when JSON-RPC getrawtransaction returns hex, decodeTransaction decodes it
-    const rpcTx = {
-      hex: getTxData.data_hex,
-      height: 4542240,
-      blockhash: summary.checks.block_hashes_equal.quicknode_getblockhash,
-    };
-    const rawBuf = Buffer.from(rpcTx.hex, 'hex');
-    const decodedFromRpc = decodeTransaction(rawBuf, 'testnet', rpcTx.height);
+  it('Requirement 2 & Phase 3 Follow-up #2 (1): exercises real server route handler with stubbed JSON-RPC transport for getrawtransaction + getblock', async () => {
+    rpcCallCounts.getrawtransaction = 0;
+    rpcCallCounts.getblock = 0;
 
-    expect(decodedFromRpc.txid).toBe(summary.verified_txid_explorer_order);
-    expect(decodedFromRpc.fee).toBe(10000n);
-    expect(decodedFromRpc.anchors.ironwood?.walletOrchardOrder).toBe(
-      '92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f'
+    // 1. Transaction lookup via real server route handler using Zebra-RPC transport
+    // Point customEndpoint to an unused port to ensure lightwalletd is bypassed/fails and secondary JSON-RPC is exercised
+    const txReq = new Request(
+      `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`
     );
-    expect(decodedFromRpc.anchors.ironwood?.zebraRpcOrder).toBe(
-      '3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892'
-    );
+    const txRes = await GET(txReq);
+    expect(txRes.status).toBe(200);
 
-    // Test that getblock RPC response format is properly mapped to explorer block view
-    const rpcBlock = {
-      height: 4542240,
-      hash: summary.checks.block_hashes_equal.quicknode_getblockhash,
-      previousblockhash: getBlockData.prev_hash_explorer_order,
-      time: 1792976987,
-      tx: [summary.verified_txid_explorer_order],
-    };
-    expect(rpcBlock.hash).toBe('00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e');
-    expect(rpcBlock.tx).toContain('8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a');
+    const txJson = await txRes.json();
+    expect(txJson.success).toBe(true);
+    expect(txJson.matchType).toBe('tx');
+    expect(txJson.data.txid).toBe(summary.verified_txid_explorer_order);
+    expect(txJson.data.height).toBe(summary.mined_height);
+    expect(txJson.data.blockHash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
+    expect(txJson.data.version).toBe(6);
+    expect(txJson.data.consensusBranchId).toBe('77190ad9');
+    expect(txJson.data.upgradeName).toBe('NU7');
+    expect(txJson.data.expiryHeight).toBe(summary.checks.expiry_height_equals_4542278.expected_expiry);
+    expect(txJson.data.fee).toBe(10000);
+    expect(txJson.data.feeUnknown).toBe(false);
+    expect(txJson.data.pools).toEqual(['ironwood']);
+    expect(txJson.data.actionCounts.ironwoodActions).toBe(2);
+    expect(txJson.data.anchors.ironwood.walletOrchardOrder).toBe(
+      summary.checks.tx_anchor_matches_send_run_root.computed_reversed_anchor
+    );
+    expect(txJson.data.anchors.ironwood.zebraRpcOrder).toBe(
+      summary.checks.tx_anchor_matches_send_run_root.raw_anchor_on_chain_zebra_order
+    );
+    expect(txJson.data.nullifiers.length).toBe(2);
+    expect(txJson.data.noteCommitments.length).toBe(2);
+    expect(txJson.data.size).toBe(getTxData.data_length_bytes);
+
+    // Verify the server actually invoked getrawtransaction on our transport stub
+    expect(rpcCallCounts.getrawtransaction).toBeGreaterThan(0);
+
+    // 2. Block lookup via real server route handler using Zebra-RPC transport
+    const blockReq = new Request(
+      `http://localhost:3050/api/explorer?q=${summary.checks.block_hashes_equal.quicknode_getblockhash}&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`
+    );
+    const blockRes = await GET(blockReq);
+    expect(blockRes.status).toBe(200);
+
+    const blockJson = await blockRes.json();
+    expect(blockJson.success).toBe(true);
+    expect(blockJson.matchType).toBe('block');
+    expect(blockJson.data.height).toBe(summary.mined_height);
+    expect(blockJson.data.hash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
+    expect(blockJson.data.previousBlockHash).toBe(getBlockData.prev_hash_explorer_order);
+    expect(blockJson.data.txCount).toBe(1);
+    expect(blockJson.data.txList[0].txid).toBe(summary.verified_txid_explorer_order);
+
+    // Verify the server actually invoked getblock on our transport stub
+    expect(rpcCallCounts.getblock).toBeGreaterThan(0);
   });
 
-  it('Security & Confidentiality: /api/explorer response payloads never leak endpoint URLs, tokens, or UFVK credentials', () => {
-    const decoded = decodeTransaction(rawTxBytes, 'testnet', getTxData.height);
-    const mockApiResponse = {
-      success: true,
-      matchType: 'tx',
-      data: {
-        txid: decoded.txid,
-        height: getTxData.height,
-        version: decoded.version,
-        consensusBranchId: decoded.consensusBranchId,
-        upgradeName: decoded.upgradeName,
-        expiryHeight: decoded.expiryHeight,
-        fee: decoded.fee !== null ? Number(decoded.fee) : null,
-        feeUnknown: decoded.feeUnknown,
-        pools: decoded.pools,
-        actionCounts: decoded.actionCounts,
-        anchors: decoded.anchors,
-        nullifiers: decoded.nullifiers,
-        noteCommitments: decoded.noteCommitments,
-        size: decoded.size,
-      },
-    };
+  it('Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers', async () => {
+    // Sensitive credentials that must never appear in any response body or headers
+    const fakeToken = 'secret-token-xyz-987654321';
+    const fakeUser = 'sensitive-rpc-username';
+    const fakePass = 'super-secret-auth-password-999';
+    const fakeHost = 'node.protected-network.internal.test:8232';
+    const fakeEndpointUrl = `https://${fakeUser}:${fakePass}@${fakeHost}/rpc?token=${fakeToken}`;
+    const fakeUfvk =
+      'uviewtest1qvqqqqqq987654321abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef';
 
-    const serialized = JSON.stringify(mockApiResponse);
+    // Configure secret URLs in environment
+    const prevZebraRpc = process.env.ZEBRA_RPC_URL;
+    const prevSecondary = process.env.ZCASH_SECONDARY_ENDPOINT;
+    const prevQuicknode = process.env.QUICKNODE_ZEC_TESTNET_URL;
 
-    // Negative assertions: responses must never contain URL schemes, internal hostnames, tokens, or UFVKs
-    expect(serialized).not.toContain('http://');
-    expect(serialized).not.toContain('https://');
-    expect(serialized).not.toContain('testnet.zec.rocks');
-    expect(serialized).not.toContain('127.0.0.1');
-    expect(serialized).not.toContain('quicknode');
-    expect(serialized).not.toContain('uview');
-    expect(serialized).not.toContain('secret');
-    expect(serialized).not.toContain('password');
-    expect(serialized).not.toContain('token');
+    process.env.ZEBRA_RPC_URL = fakeEndpointUrl;
+    process.env.ZCASH_SECONDARY_ENDPOINT = fakeEndpointUrl;
+    process.env.QUICKNODE_ZEC_TESTNET_URL = fakeEndpointUrl;
+
+    // Create an active UFVK session
+    const sessionId = createSessionId();
+    setSession(sessionId, {
+      ufvk: fakeUfvk,
+      birthday: 4542200,
+      network: 'testnet',
+    });
+
+    const cookieHeader = `${SESSION_COOKIE_NAME}=${sessionId}`;
+
+    const sensitiveStrings = [
+      fakeToken,
+      fakeUser,
+      fakePass,
+      fakeHost,
+      fakeEndpointUrl,
+      fakeUfvk,
+    ];
+
+    try {
+      // 1. Tx hit
+      const txReq = new Request(
+        `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}`,
+        { headers: { cookie: cookieHeader } }
+      );
+      const txRes = await GET(txReq);
+      expect(txRes.status).toBe(200);
+      const txBody = await txRes.text();
+      const txHeaders = Array.from(txRes.headers.entries())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      for (const s of sensitiveStrings) {
+        expect(txBody).not.toContain(s);
+        expect(txHeaders).not.toContain(s);
+      }
+
+      // 2. Block hit
+      const blockReq = new Request(
+        `http://localhost:3050/api/explorer?q=${summary.mined_height}`,
+        { headers: { cookie: cookieHeader } }
+      );
+      const blockRes = await GET(blockReq);
+      expect(blockRes.status).toBe(200);
+      const blockBody = await blockRes.text();
+      const blockHeaders = Array.from(blockRes.headers.entries())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      for (const s of sensitiveStrings) {
+        expect(blockBody).not.toContain(s);
+        expect(blockHeaders).not.toContain(s);
+      }
+
+      // 3. Not found (query for non-existent 64-hex hash via working fake transport that returns not found)
+      const notFoundReq = new Request(
+        `http://localhost:3050/api/explorer?q=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`,
+        { headers: { cookie: cookieHeader } }
+      );
+      const notFoundRes = await GET(notFoundReq);
+      expect(notFoundRes.status).toBe(404);
+      const notFoundBody = await notFoundRes.text();
+      const notFoundHeaders = Array.from(notFoundRes.headers.entries())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      for (const s of sensitiveStrings) {
+        expect(notFoundBody).not.toContain(s);
+        expect(notFoundHeaders).not.toContain(s);
+      }
+
+      // 4. Node unreachable (error path where URLs and network error messages often leak)
+      const unreachableReq = new Request(
+        `http://localhost:3050/api/explorer?q=99999999&customEndpoint=127.0.0.1:59999&zebraRpc=http://127.0.0.1:59999`,
+        { headers: { cookie: cookieHeader } }
+      );
+      const unreachableRes = await GET(unreachableReq);
+      expect(unreachableRes.status).toBe(502);
+      const unreachableBody = await unreachableRes.text();
+      const unreachableHeaders = Array.from(unreachableRes.headers.entries())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      for (const s of sensitiveStrings) {
+        expect(unreachableBody).not.toContain(s);
+        expect(unreachableHeaders).not.toContain(s);
+      }
+      expect(unreachableBody).toContain('NODE_UNREACHABLE');
+    } finally {
+      deleteSession(sessionId);
+      if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
+      else delete process.env.ZEBRA_RPC_URL;
+      if (prevSecondary !== undefined) process.env.ZCASH_SECONDARY_ENDPOINT = prevSecondary;
+      else delete process.env.ZCASH_SECONDARY_ENDPOINT;
+      if (prevQuicknode !== undefined) process.env.QUICKNODE_ZEC_TESTNET_URL = prevQuicknode;
+      else delete process.env.QUICKNODE_ZEC_TESTNET_URL;
+    }
   });
 });
-

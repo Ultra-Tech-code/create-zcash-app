@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -27,7 +26,13 @@ function findFixturePath(filename: string): string | null {
   return null;
 }
 
-function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
+function getSecondaryRpcUrl(presetParam?: PresetId | null, explicitRpc?: string | null): string | null {
+  if (explicitRpc && typeof explicitRpc === 'string' && explicitRpc.trim()) {
+    return explicitRpc.trim();
+  }
+  if (process.env.ZEBRA_RPC_URL) {
+    return process.env.ZEBRA_RPC_URL;
+  }
   if (presetParam && NETWORK_PRESETS[presetParam]?.miningRpcUrl) {
     return NETWORK_PRESETS[presetParam].miningRpcUrl!;
   }
@@ -36,9 +41,6 @@ function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
   }
   if (process.env.ZCASH_SECONDARY_ENDPOINT) {
     return process.env.ZCASH_SECONDARY_ENDPOINT;
-  }
-  if (process.env.ZEBRA_RPC_URL) {
-    return process.env.ZEBRA_RPC_URL;
   }
   try {
     const envPaths = [
@@ -72,12 +74,15 @@ export async function GET(request: Request) {
     customEndpoint,
   });
 
-  const secondaryRpcUrl = getSecondaryRpcUrl(presetParam);
+  const secondaryRpcUrl = getSecondaryRpcUrl(
+    presetParam,
+    searchParams.get('secondaryRpc') || searchParams.get('zebraRpc')
+  );
 
   // 1. Classification & Format Validation
   const classified = classifyExplorerQuery(qParam || '');
   if (classified.kind === 'empty' || classified.kind === 'invalid') {
-    return NextResponse.json(
+    return Response.json(
       {
         success: false,
         error: classified.error || 'Invalid format: Enter a 64-character transaction ID / block hash or a block height',
@@ -99,25 +104,29 @@ export async function GET(request: Request) {
     if (classified.kind === 'height') {
       const height = parseInt(classified.cleanQuery, 10);
       let compactBlock: any = null;
+      let lightwalletdUnreachable = false;
 
       try {
         compactBlock = await client.getBlock(height);
       } catch (err: any) {
         const msg = String(err?.message || '').toLowerCase();
         if (msg.includes('connection refused') || msg.includes('unavailable') || msg.includes('dns')) {
-          await client.close().catch(() => {});
-          return NextResponse.json(
-            {
-              success: false,
-              error: 'Node unreachable: Unable to connect to indexer or node',
-              code: 'NODE_UNREACHABLE',
-            },
-            { status: 502 }
-          );
+          lightwalletdUnreachable = true;
+          if (!secondaryRpcUrl) {
+            await client.close().catch(() => {});
+            return Response.json(
+              {
+                success: false,
+                error: 'Node unreachable: Unable to connect to indexer or node',
+                code: 'NODE_UNREACHABLE',
+              },
+              { status: 502 }
+            );
+          }
         }
         if (msg.includes('pruned')) {
           await client.close().catch(() => {});
-          return NextResponse.json(
+          return Response.json(
             {
               success: false,
               error: 'Data unavailable (pruned by node)',
@@ -136,7 +145,7 @@ export async function GET(request: Request) {
           const rpcBlock = await verifier.call<any>('getblock', [blockHash, 1]);
           if (rpcBlock) {
             await client.close().catch(() => {});
-            return NextResponse.json({
+            return Response.json({
               success: true,
               matchType: 'block',
               data: {
@@ -160,13 +169,25 @@ export async function GET(request: Request) {
         } catch (_) {}
       }
 
+      if (lightwalletdUnreachable && !compactBlock) {
+        await client.close().catch(() => {});
+        return Response.json(
+          {
+            success: false,
+            error: 'Node unreachable: Unable to connect to indexer or node',
+            code: 'NODE_UNREACHABLE',
+          },
+          { status: 502 }
+        );
+      }
+
       // Check captured fixture fallback if offline/disconnected
       if (!compactBlock && height === 4542240) {
         const fixturePath = findFixturePath('lightwalletd_getblock.json');
         if (fixturePath && fs.existsSync(fixturePath)) {
           const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
           await client.close().catch(() => {});
-          return NextResponse.json({
+          return Response.json({
             success: true,
             matchType: 'block',
             data: {
@@ -191,7 +212,7 @@ export async function GET(request: Request) {
 
       if (!compactBlock) {
         await client.close().catch(() => {});
-        return NextResponse.json(
+        return Response.json(
           {
             success: false,
             error: 'Transaction or block not found',
@@ -213,7 +234,7 @@ export async function GET(request: Request) {
       });
 
       await client.close().catch(() => {});
-      return NextResponse.json({
+      return Response.json({
         success: true,
         matchType: 'block',
         data: {
@@ -241,6 +262,8 @@ export async function GET(request: Request) {
     let txHeight: number = 0;
     let txBlockHash: string | null = null;
     let txTime: number | null = null;
+    let lightwalletdUnreachable = false;
+    let secondaryFailed = false;
 
     try {
       const wireTxidHex = reverseTxid(queryHex);
@@ -253,15 +276,18 @@ export async function GET(request: Request) {
     } catch (err: any) {
       const msg = String(err?.message || '').toLowerCase();
       if (msg.includes('connection refused') || msg.includes('unavailable') || msg.includes('dns')) {
-        await client.close().catch(() => {});
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Node unreachable: Unable to connect to indexer or node',
-            code: 'NODE_UNREACHABLE',
-          },
-          { status: 502 }
-        );
+        lightwalletdUnreachable = true;
+        if (!secondaryRpcUrl) {
+          await client.close().catch(() => {});
+          return Response.json(
+            {
+              success: false,
+              error: 'Node unreachable: Unable to connect to indexer or node',
+              code: 'NODE_UNREACHABLE',
+            },
+            { status: 502 }
+          );
+        }
       }
     }
 
@@ -276,7 +302,12 @@ export async function GET(request: Request) {
           txBlockHash = rpcTx.blockhash || null;
           txTime = Number(rpcTx.blocktime || rpcTx.time || 0) || null;
         }
-      } catch (_) {}
+      } catch (err: any) {
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('connection refused') || msg.includes('fetch failed') || msg.includes('econnrefused')) {
+          secondaryFailed = true;
+        }
+      }
     }
 
     // Check captured testnet tx fixture if matches known txid 8ca516ab...
@@ -385,7 +416,7 @@ export async function GET(request: Request) {
       }
 
       await client.close().catch(() => {});
-      return NextResponse.json({
+      return Response.json({
         success: true,
         matchType: 'tx',
         data: {
@@ -448,7 +479,12 @@ export async function GET(request: Request) {
             chainMetadata: treeMetadata,
           };
         }
-      } catch (_) {}
+      } catch (err: any) {
+        const msg = String(err?.message || '').toLowerCase();
+        if (msg.includes('connection refused') || msg.includes('fetch failed') || msg.includes('econnrefused')) {
+          secondaryFailed = true;
+        }
+      }
     }
 
     // Check captured block fixture if query matches block hash 00005c49b2e5...
@@ -478,15 +514,26 @@ export async function GET(request: Request) {
     await client.close().catch(() => {});
 
     if (blockData) {
-      return NextResponse.json({
+      return Response.json({
         success: true,
         matchType: 'block',
         data: blockData,
       });
     }
 
+    if (lightwalletdUnreachable && (secondaryFailed || !secondaryRpcUrl)) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Node unreachable: Unable to connect to indexer or node',
+          code: 'NODE_UNREACHABLE',
+        },
+        { status: 502 }
+      );
+    }
+
     // Neither tx nor block was found
-    return NextResponse.json(
+    return Response.json(
       {
         success: false,
         error: 'Transaction or block not found',
@@ -498,7 +545,7 @@ export async function GET(request: Request) {
     await client.close().catch(() => {});
     const msg = String(err?.message || '').toLowerCase();
     if (msg.includes('connection refused') || msg.includes('unavailable') || msg.includes('dns')) {
-      return NextResponse.json(
+      return Response.json(
         {
           success: false,
           error: 'Node unreachable: Unable to connect to indexer or node',
@@ -507,7 +554,7 @@ export async function GET(request: Request) {
         { status: 502 }
       );
     }
-    return NextResponse.json(
+    return Response.json(
       {
         success: false,
         error: 'Transaction or block not found',
