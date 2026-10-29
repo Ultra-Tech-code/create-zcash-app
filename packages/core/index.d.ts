@@ -152,10 +152,15 @@ export interface JsDecodedActionCounts {
   ironwoodActions: number
 }
 
+export interface JsDecodedAnchorPair {
+  walletOrchardOrder: string
+  zebraRpcOrder: string
+}
+
 export interface JsDecodedAnchors {
-  sapling?: string
-  orchard?: string
-  ironwood?: string
+  sapling?: JsDecodedAnchorPair
+  orchard?: JsDecodedAnchorPair
+  ironwood?: JsDecodedAnchorPair
 }
 
 export interface JsDecodedTransaction {

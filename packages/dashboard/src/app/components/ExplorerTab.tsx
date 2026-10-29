@@ -531,36 +531,92 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
 
           {/* Anchors Section */}
           <div style={{ marginBottom: '1.5rem' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--text-secondary)' }}>
               SHIELDED MERKLE ANCHOR(S)
             </h3>
             {resultData.anchors.ironwood && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Ironwood Root: </span>
-                <span
-                  id="explorer-ironwood-anchor"
-                  data-testid="explorer-ironwood-anchor"
-                  className="mono-text"
-                  style={{ fontSize: '0.8rem', color: 'var(--accent-gold)', wordBreak: 'break-all' }}
-                >
-                  {resultData.anchors.ironwood}
-                </span>
+              <div id="explorer-ironwood-anchor" data-testid="explorer-ironwood-anchor" style={{ marginBottom: '1rem', background: 'rgba(0, 0, 0, 0.2)', padding: '0.75rem', borderRadius: '6px', border: '1px solid rgba(234, 179, 8, 0.25)' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-gold)', marginBottom: '0.35rem' }}>
+                  🌳 Ironwood Anchor
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>wallet/Orchard order: </span>
+                    <span
+                      id="explorer-ironwood-anchor-wallet"
+                      data-testid="explorer-ironwood-anchor-wallet"
+                      className="mono-text"
+                      style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}
+                    >
+                      {typeof resultData.anchors.ironwood === 'object'
+                        ? resultData.anchors.ironwood.walletOrchardOrder
+                        : resultData.anchors.ironwood}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>Zebra RPC order: </span>
+                    <span
+                      id="explorer-ironwood-anchor-zebra"
+                      data-testid="explorer-ironwood-anchor-zebra"
+                      className="mono-text"
+                      style={{ color: 'var(--accent-gold)', wordBreak: 'break-all' }}
+                    >
+                      {typeof resultData.anchors.ironwood === 'object'
+                        ? resultData.anchors.ironwood.zebraRpcOrder
+                        : ''}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {resultData.anchors.orchard && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Orchard Root: </span>
-                <span className="mono-text" style={{ fontSize: '0.8rem', wordBreak: 'break-all' }}>
-                  {resultData.anchors.orchard}
-                </span>
+              <div id="explorer-orchard-anchor" data-testid="explorer-orchard-anchor" style={{ marginBottom: '1rem', background: 'rgba(0, 0, 0, 0.2)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+                  🌿 Orchard Anchor
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>wallet/Orchard order: </span>
+                    <span className="mono-text" style={{ wordBreak: 'break-all' }}>
+                      {typeof resultData.anchors.orchard === 'object'
+                        ? resultData.anchors.orchard.walletOrchardOrder
+                        : resultData.anchors.orchard}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>Zebra RPC order: </span>
+                    <span className="mono-text" style={{ wordBreak: 'break-all' }}>
+                      {typeof resultData.anchors.orchard === 'object'
+                        ? resultData.anchors.orchard.zebraRpcOrder
+                        : ''}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {resultData.anchors.sapling && (
-              <div style={{ marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sapling Root: </span>
-                <span className="mono-text" style={{ fontSize: '0.8rem', wordBreak: 'break-all' }}>
-                  {resultData.anchors.sapling}
-                </span>
+              <div id="explorer-sapling-anchor" data-testid="explorer-sapling-anchor" style={{ marginBottom: '1rem', background: 'rgba(0, 0, 0, 0.2)', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+                  🌲 Sapling Anchor
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>wallet/Orchard order: </span>
+                    <span className="mono-text" style={{ wordBreak: 'break-all' }}>
+                      {typeof resultData.anchors.sapling === 'object'
+                        ? resultData.anchors.sapling.walletOrchardOrder
+                        : resultData.anchors.sapling}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-secondary)', display: 'inline-block', minWidth: '150px' }}>Zebra RPC order: </span>
+                    <span className="mono-text" style={{ wordBreak: 'break-all' }}>
+                      {typeof resultData.anchors.sapling === 'object'
+                        ? resultData.anchors.sapling.zebraRpcOrder
+                        : ''}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {!resultData.anchors.ironwood && !resultData.anchors.orchard && !resultData.anchors.sapling && (

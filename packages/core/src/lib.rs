@@ -498,10 +498,16 @@ mod napi_bindings {
     }
 
     #[napi(object)]
+    pub struct JsDecodedAnchorPair {
+        pub wallet_orchard_order: String,
+        pub zebra_rpc_order: String,
+    }
+
+    #[napi(object)]
     pub struct JsDecodedAnchors {
-        pub sapling: Option<String>,
-        pub orchard: Option<String>,
-        pub ironwood: Option<String>,
+        pub sapling: Option<JsDecodedAnchorPair>,
+        pub orchard: Option<JsDecodedAnchorPair>,
+        pub ironwood: Option<JsDecodedAnchorPair>,
     }
 
     #[napi(object)]
@@ -548,9 +554,18 @@ mod napi_bindings {
                 ironwood_actions: res.action_counts.ironwood_actions,
             },
             anchors: JsDecodedAnchors {
-                sapling: res.anchors.sapling,
-                orchard: res.anchors.orchard,
-                ironwood: res.anchors.ironwood,
+                sapling: res.anchors.sapling.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
+                orchard: res.anchors.orchard.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
+                ironwood: res.anchors.ironwood.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
             },
             nullifiers: res.nullifiers,
             note_commitments: res.note_commitments,

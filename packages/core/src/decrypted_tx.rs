@@ -57,10 +57,16 @@ pub struct DecodedActionCounts {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DecodedAnchorPair {
+    pub wallet_orchard_order: String,
+    pub zebra_rpc_order: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DecodedAnchors {
-    pub sapling: Option<String>,
-    pub orchard: Option<String>,
-    pub ironwood: Option<String>,
+    pub sapling: Option<DecodedAnchorPair>,
+    pub orchard: Option<DecodedAnchorPair>,
+    pub ironwood: Option<DecodedAnchorPair>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -247,6 +253,17 @@ fn determine_branch_id_from_bytes(
     Ok(BranchId::for_height(params, BlockHeight::from_u32(5_000_000)))
 }
 
+fn make_anchor_pair(bytes: &[u8; 32]) -> DecodedAnchorPair {
+    let wallet_orchard_order = hex::encode(bytes);
+    let mut reversed = *bytes;
+    reversed.reverse();
+    let zebra_rpc_order = hex::encode(reversed);
+    DecodedAnchorPair {
+        wallet_orchard_order,
+        zebra_rpc_order,
+    }
+}
+
 pub fn internal_decode_transaction(
     raw_tx_bytes: &[u8],
     network_str: Option<&str>,
@@ -311,7 +328,7 @@ pub fn internal_decode_transaction(
         for s in spends {
             nullifiers.push(hex::encode(s.nullifier().0));
             if sapling_anchor.is_none() {
-                sapling_anchor = Some(hex::encode(s.anchor().to_bytes()));
+                sapling_anchor = Some(make_anchor_pair(&s.anchor().to_bytes()));
             }
         }
         for o in outputs {
@@ -326,7 +343,7 @@ pub fn internal_decode_transaction(
         let acts = ob.actions();
         if !acts.is_empty() {
             pools.push("orchard".to_string());
-            orchard_anchor = Some(hex::encode(ob.anchor().to_bytes()));
+            orchard_anchor = Some(make_anchor_pair(&ob.anchor().to_bytes()));
         }
         for a in acts {
             nullifiers.push(hex::encode(a.nullifier().to_bytes()));
@@ -341,7 +358,7 @@ pub fn internal_decode_transaction(
         let acts = ib.actions();
         if !acts.is_empty() {
             pools.push("ironwood".to_string());
-            ironwood_anchor = Some(hex::encode(ib.anchor().to_bytes()));
+            ironwood_anchor = Some(make_anchor_pair(&ib.anchor().to_bytes()));
         }
         for a in acts {
             nullifiers.push(hex::encode(a.nullifier().to_bytes()));

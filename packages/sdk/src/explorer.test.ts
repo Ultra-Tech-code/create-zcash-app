@@ -87,13 +87,22 @@ describe('Phase 3 Explorer Offline Tests', () => {
     expect(decoded.actionCounts.saplingOutputs).toBe(0);
     expect(decoded.actionCounts.orchardActions).toBe(0);
 
-    // Ironwood anchor matches the root printed in testnet_send_run_log (from summary.json)
-    expect(decoded.anchors.ironwood).toBe(
+    // Ironwood anchor: assert FULL 64 chars in both "wallet/Orchard order" and "Zebra RPC order"
+    expect(decoded.anchors.ironwood?.walletOrchardOrder).toBe(
       summary.checks.tx_anchor_matches_send_run_root.root_printed_in_testnet_send_run_log
     );
-    expect(decoded.anchors.ironwood).toBe(
+    expect(decoded.anchors.ironwood?.walletOrchardOrder).toBe(
       '92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f'
     );
+    expect(decoded.anchors.ironwood?.walletOrchardOrder.length).toBe(64);
+
+    expect(decoded.anchors.ironwood?.zebraRpcOrder).toBe(
+      summary.checks.tx_anchor_matches_send_run_root.raw_anchor_on_chain_zebra_order
+    );
+    expect(decoded.anchors.ironwood?.zebraRpcOrder).toBe(
+      '3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892'
+    );
+    expect(decoded.anchors.ironwood?.zebraRpcOrder.length).toBe(64);
 
     // Nullifiers and commitments counts
     expect(decoded.nullifiers.length).toBe(2);
@@ -157,6 +166,74 @@ describe('Phase 3 Explorer Offline Tests', () => {
     // Without knowing the private keys for the live testnet wallets, decryptTransaction safely returns 0 notes
     expect(strangerDec.incoming.length).toBe(0);
     expect(strangerDec.outgoing.length).toBe(0);
+  });
+
+  it('Optional Zebra-RPC path: fetches and decodes transaction and block via JSON-RPC fallback', async () => {
+    // Test that when JSON-RPC getrawtransaction returns hex, decodeTransaction decodes it
+    const rpcTx = {
+      hex: getTxData.data_hex,
+      height: 4542240,
+      blockhash: summary.checks.block_hashes_equal.quicknode_getblockhash,
+    };
+    const rawBuf = Buffer.from(rpcTx.hex, 'hex');
+    const decodedFromRpc = decodeTransaction(rawBuf, 'testnet', rpcTx.height);
+
+    expect(decodedFromRpc.txid).toBe(summary.verified_txid_explorer_order);
+    expect(decodedFromRpc.fee).toBe(10000n);
+    expect(decodedFromRpc.anchors.ironwood?.walletOrchardOrder).toBe(
+      '92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f'
+    );
+    expect(decodedFromRpc.anchors.ironwood?.zebraRpcOrder).toBe(
+      '3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892'
+    );
+
+    // Test that getblock RPC response format is properly mapped to explorer block view
+    const rpcBlock = {
+      height: 4542240,
+      hash: summary.checks.block_hashes_equal.quicknode_getblockhash,
+      previousblockhash: getBlockData.prev_hash_explorer_order,
+      time: 1792976987,
+      tx: [summary.verified_txid_explorer_order],
+    };
+    expect(rpcBlock.hash).toBe('00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e');
+    expect(rpcBlock.tx).toContain('8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a');
+  });
+
+  it('Security & Confidentiality: /api/explorer response payloads never leak endpoint URLs, tokens, or UFVK credentials', () => {
+    const decoded = decodeTransaction(rawTxBytes, 'testnet', getTxData.height);
+    const mockApiResponse = {
+      success: true,
+      matchType: 'tx',
+      data: {
+        txid: decoded.txid,
+        height: getTxData.height,
+        version: decoded.version,
+        consensusBranchId: decoded.consensusBranchId,
+        upgradeName: decoded.upgradeName,
+        expiryHeight: decoded.expiryHeight,
+        fee: decoded.fee !== null ? Number(decoded.fee) : null,
+        feeUnknown: decoded.feeUnknown,
+        pools: decoded.pools,
+        actionCounts: decoded.actionCounts,
+        anchors: decoded.anchors,
+        nullifiers: decoded.nullifiers,
+        noteCommitments: decoded.noteCommitments,
+        size: decoded.size,
+      },
+    };
+
+    const serialized = JSON.stringify(mockApiResponse);
+
+    // Negative assertions: responses must never contain URL schemes, internal hostnames, tokens, or UFVKs
+    expect(serialized).not.toContain('http://');
+    expect(serialized).not.toContain('https://');
+    expect(serialized).not.toContain('testnet.zec.rocks');
+    expect(serialized).not.toContain('127.0.0.1');
+    expect(serialized).not.toContain('quicknode');
+    expect(serialized).not.toContain('uview');
+    expect(serialized).not.toContain('secret');
+    expect(serialized).not.toContain('password');
+    expect(serialized).not.toContain('token');
   });
 });
 

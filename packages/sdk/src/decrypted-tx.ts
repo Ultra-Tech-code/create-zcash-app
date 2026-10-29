@@ -90,9 +90,24 @@ export function decodeTransaction(
       ironwoodActions: res.actionCounts.ironwoodActions,
     },
     anchors: {
-      sapling: res.anchors.sapling || undefined,
-      orchard: res.anchors.orchard || undefined,
-      ironwood: res.anchors.ironwood || undefined,
+      sapling: res.anchors.sapling
+        ? {
+            walletOrchardOrder: res.anchors.sapling.walletOrchardOrder,
+            zebraRpcOrder: res.anchors.sapling.zebraRpcOrder,
+          }
+        : undefined,
+      orchard: res.anchors.orchard
+        ? {
+            walletOrchardOrder: res.anchors.orchard.walletOrchardOrder,
+            zebraRpcOrder: res.anchors.orchard.zebraRpcOrder,
+          }
+        : undefined,
+      ironwood: res.anchors.ironwood
+        ? {
+            walletOrchardOrder: res.anchors.ironwood.walletOrchardOrder,
+            zebraRpcOrder: res.anchors.ironwood.zebraRpcOrder,
+          }
+        : undefined,
     },
     nullifiers: res.nullifiers,
     noteCommitments: res.noteCommitments,
