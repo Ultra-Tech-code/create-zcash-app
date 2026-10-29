@@ -10,10 +10,12 @@ import { TransactionsTab } from './components/TransactionsTab';
 import { FaucetTab } from './components/FaucetTab';
 import { SendTab } from './components/SendTab';
 import { HealthTab } from './components/HealthTab';
+import { ExplorerTab } from './components/ExplorerTab';
 
 export default function Dashboard() {
   const [activePreset, setActivePreset] = useState<PresetId>('regtest-nu7');
-  const [activeTab, setActiveTab] = useState<'overview' | 'addresses' | 'transactions' | 'faucet' | 'send' | 'health'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'addresses' | 'transactions' | 'faucet' | 'send' | 'health' | 'explorer'>('overview');
+  const [explorerInitialQuery, setExplorerInitialQuery] = useState<string>('');
   const [activeAccountIndex, setActiveAccountIndex] = useState<number>(0);
   const [nodeInfo, setNodeInfo] = useState<any>(null);
   const [accountData, setAccountData] = useState<any>(null);
@@ -202,6 +204,7 @@ export default function Dashboard() {
           { id: 'faucet', label: 'Faucet / Mine' },
           { id: 'send', label: 'Send' },
           { id: 'health', label: 'Health' },
+          { id: 'explorer', label: 'Explorer' },
         ].map(({ id, aliasId, label }) => (
           <React.Fragment key={id}>
             <button
@@ -292,6 +295,18 @@ export default function Dashboard() {
             nodeInfo={nodeInfo}
             isConnected={Boolean(nodeInfo)}
             endpoint={endpoint}
+          />
+        )}
+
+        {activeTab === 'explorer' && (
+          <ExplorerTab
+            preset={activePreset}
+            network={network}
+            initialQuery={explorerInitialQuery}
+            onNavigateTx={(txid) => {
+              setExplorerInitialQuery(txid);
+              setActiveTab('explorer');
+            }}
           />
         )}
       </main>
