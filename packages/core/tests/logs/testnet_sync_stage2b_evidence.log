@@ -1,0 +1,54 @@
+========================================================================
+STAGE 2b: LIVE TESTNET SYNC & TRANSACTION UPSERT EVIDENCE
+========================================================================
+Execution Time: 2026-10-27T23:52:11.847Z
+Live Endpoint:  https://testnet.zec.rocks:443
+Target Block:   4542240 (TxID: 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a)
+
+[Keys & Addresses] Watch-Only Derivation:
+  Wallet A Unified Address: utest1ltxnvpwqcpfxzc...wu4jawsqywxk
+  Wallet B Unified Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+  UFVKs loaded in memory only (confidentiality enforced: never printed)
+
+[Databases] Initializing fresh temporary databases:
+  Wallet A: /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/zcash_sync_a_heBzh4/wallet.db
+  Wallet B: /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/zcash_sync_b_rnUqKG/wallet.db
+
+[Tree Seeding] Cloning tree state from /Users/0xblackadam/.zcash-app-testnet/wallet_a_nu7.db up to height 4542233...
+  Seeding complete. Both wallets set to last scanned height 4542233.
+
+[Live Sync] Synchronizing Wallet A from 4542234 to 4542241 (with full tx fetch)...
+(node:25499) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[Sync] (https://testnet.zec.rocks:443) (third-party server) Starting sync from height 4542234 to target 4542241 (tip: 4549073, batch size: 1000, throttle: 50ms)...
+[Sync] (https://testnet.zec.rocks:443) (third-party server) Height: 4542241/4542241 (100.0%) | Req: 3 | Speed: 19.9 blocks/s
+  Wallet A sync finished: scanned up to 4542241
+  Blocks fetched: 8 | Total requests: 3
+  Pending tx fetches: 0 | Failed tx fetches: 0
+
+[Live Sync] Synchronizing Wallet B from 4542234 to 4542241 (with full tx fetch)...
+[Sync] (https://testnet.zec.rocks:443) (third-party server) Starting sync from height 4542234 to target 4542241 (tip: 4549073, batch size: 1000, throttle: 50ms)...
+[Sync] (https://testnet.zec.rocks:443) (third-party server) Height: 4542241/4542241 (100.0%) | Req: 3 | Speed: 19.4 blocks/s
+  Wallet B sync finished: scanned up to 4542241
+  Blocks fetched: 8 | Total requests: 3
+  Pending tx fetches: 0 | Failed tx fetches: 0
+
+========================================================================
+VERIFYING PERSISTED DATABASE RECORDS IN wallet_transactions
+========================================================================
+
+Wallet A Database Transactions (2 rows):
+  Row: id=2 txid=8ca516abc441e6b9... act=0 dir=internal val=   8990000 fee=10000 counterparty=null
+  Row: id=1 txid=8ca516abc441e6b9... act=1 dir=out      val=   1000000 fee=10000 counterparty=utest10aygs70glm55j5...
+
+Wallet B Database Transactions (1 rows):
+  Row: id=1 txid=8ca516abc441e6b9... act=1 dir=in       val=   1000000 fee=10000 counterparty=null
+
+========================================================================
+VERIFICATION RESULT: SUCCESS!
+  Wallet A has 'out' row of 1,000,000 zatoshis matching tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Wallet A has change row of 8,990,000 zatoshis matching tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Wallet B has 'in' row of 1,000,000 zatoshis matching tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Transactions fetched, decrypted, and upserted automatically by syncWallet
+  Clean temporary databases in /tmp verified
+========================================================================

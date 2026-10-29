@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# @zcash-app/dashboard
+
+Developer dashboard and real-time explorer for shielded Zcash applications on the Z3 stack.
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3050](http://localhost:3050) with your browser to view the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Security & Storage Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> [!WARNING]
+> **Plaintext Memo & Counterparty Storage**:
+> Decrypted transaction memos and counterparties are stored in **plaintext** in the SQLite wallet database (`wallet_transactions` table) to support local search, history inspection, and accounting.
+> 
+> To protect user privacy:
+> - Persisted databases are stored under `~/.zcash-app/dashboard/`.
+> - Directory permissions are strictly enforced to `0700` (read, write, execute by owner only).
+> - SQLite database files are strictly enforced to `0600` (read and write by owner only).
+> - Spending keys are never persisted in the dashboard database; only view keys and public metadata are stored.
 
-## Learn More
+## Background Synchronization & API
 
-To learn more about Next.js, take a look at the following resources:
+The dashboard uses non-blocking background synchronization with the indexer via `@zcash-app/sdk`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **`/api/sync/status`**: Returns immediate sync status without blocking (`status`, `scanned`, `target`, `notesFound`, `pendingFetches`, `failedFetches`). Responses always return in under 5 seconds (typically < 50ms).
+- **Batch Transaction Fetching**: For each transaction touching the wallet (new note or spent nullifier), the full transaction is fetched, decrypted, and upserted idempotently into `wallet_transactions` (keyed by `txid + action_index + direction`).
+- **Chain Reorganization**: On reorg detection, `resolveReorg` rolls back commitment trees and deletes orphaned rows in `wallet_transactions` at `height >= fromHeight`.

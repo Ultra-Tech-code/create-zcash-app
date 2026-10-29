@@ -3,7 +3,7 @@
 use rusqlite::{Connection, OptionalExtension, Transaction};
 use thiserror::Error;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 2;
+pub const CURRENT_SCHEMA_VERSION: u32 = 3;
 
 pub mod metadata_keys {
     pub const NETWORK: &str = "network";
@@ -48,6 +48,9 @@ pub fn initialize_schema(conn: &mut Connection) -> Result<(), SchemaError> {
     }
     if version < 2 {
         apply_migration_v2(&tx)?;
+    }
+    if version < 3 {
+        apply_migration_v3(&tx)?;
     }
 
     tx.commit()?;
@@ -186,3 +189,48 @@ fn apply_migration_v2(tx: &Transaction) -> Result<(), SchemaError> {
     )?;
     Ok(())
 }
+
+fn apply_migration_v3(tx: &Transaction) -> Result<(), SchemaError> {
+    tx.execute_batch(
+        "
+        -- Migration v3: Add wallet_transactions table for full transaction history
+        CREATE TABLE IF NOT EXISTS wallet_transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            txid TEXT NOT NULL,
+            action_index INTEGER NOT NULL DEFAULT 0,
+            height INTEGER NOT NULL,
+            direction TEXT NOT NULL CHECK(direction IN ('in', 'out', 'internal')),
+            value INTEGER NOT NULL,
+            fee INTEGER,
+            memo TEXT,
+            counterparty TEXT,
+            pool TEXT NOT NULL CHECK(pool = 'ironwood'),
+            created_at INTEGER NOT NULL,
+            UNIQUE(txid, action_index, direction)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_wallet_transactions_txid ON wallet_transactions(txid);
+        CREATE INDEX IF NOT EXISTS idx_wallet_transactions_height ON wallet_transactions(height);
+        CREATE INDEX IF NOT EXISTS idx_wallet_transactions_direction ON wallet_transactions(direction);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_wallet_transactions_upsert ON wallet_transactions(txid, action_index, direction);
+
+        CREATE TABLE IF NOT EXISTS tx_fetch_queue (
+            txid TEXT PRIMARY KEY,
+            height INTEGER NOT NULL,
+            status TEXT NOT NULL CHECK(status IN ('pending', 'failed', 'done')),
+            attempts INTEGER NOT NULL DEFAULT 0,
+            last_error TEXT,
+            updated_at INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_tx_fetch_queue_status ON tx_fetch_queue(status);
+
+        INSERT INTO schema_migrations (version, applied_at)
+        VALUES (3, unixepoch());
+
+        INSERT OR REPLACE INTO wallet_metadata (key, value)
+        VALUES ('schema_version', '3');
+        ",
+    )?;
+    Ok(())
+}
+

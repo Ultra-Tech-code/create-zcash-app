@@ -38,13 +38,21 @@ export interface TreeState {
   ironwoodTree: string;
 }
 
+export interface ChainMetadata {
+  saplingCommitmentTreeSize?: number;
+  orchardCommitmentTreeSize?: number;
+  ironwoodCommitmentTreeSize?: number;
+}
+
 export interface CompactBlock {
-  protoVersion: number;
+  protoVersion?: number;
   height: string | number;
   hash: Buffer;
   prevHash: Buffer;
   time: number;
+  header?: Buffer;
   vtx: CompactTx[];
+  chainMetadata?: ChainMetadata;
 }
 
 export interface CompactTx {
@@ -184,6 +192,28 @@ export class ZcashClient {
     return stream as unknown as AsyncIterable<CompactBlock>;
   }
 
+  public getBlock(height: number): Promise<CompactBlock> {
+    return new Promise((resolve, reject) => {
+      this.client.GetBlock({ height }, (err: any, response: CompactBlock) => {
+        if (err) {
+          // Fallback to getBlockRange if GetBlock is not supported
+          (async () => {
+            try {
+              for await (const b of this.getBlockRange(height, height)) {
+                return resolve(b);
+              }
+              reject(err);
+            } catch (_) {
+              reject(err);
+            }
+          })();
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+
   public getAddressUtxos(addresses: string[], startHeight = 0, maxEntries = 0): Promise<any[]> {
     return new Promise((resolve, reject) => {
       this.client.GetAddressUtxos(
@@ -246,6 +276,21 @@ export class ZcashClient {
           resolve({
             errorCode: response?.errorCode ?? 0,
             errorMessage: response?.errorMessage ?? '',
+          });
+        }
+      });
+    });
+  }
+
+  public getTransaction(txHash: Buffer): Promise<{ data: Buffer; height: number }> {
+    return new Promise((resolve, reject) => {
+      this.client.GetTransaction({ hash: txHash }, (err: any, response: any) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            data: Buffer.from(response?.data || []),
+            height: Number(response?.height || 0),
           });
         }
       });

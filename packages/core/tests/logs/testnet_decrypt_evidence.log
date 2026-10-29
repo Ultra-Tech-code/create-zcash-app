@@ -1,0 +1,73 @@
+========================================================================
+STAGE 2a: LIVE TESTNET FULL-TRANSACTION DECRYPTION EVIDENCE
+========================================================================
+Execution Time: 2026-10-27T23:02:55.938Z
+Loaded Raw Transaction:
+  Mined Height: 4542240
+  Raw Bytes:    9166 bytes (hex: 18332 chars)
+
+Derived Testnet Watch-Only Accounts (UFVK in memory only; secret keys never displayed):
+  Wallet A Address: utest1ltxnvpwqcpfxzc...wu4jawsqywxk
+  Wallet B Address: utest1lgyzll5vyzyhdra2x8atn4n6zye3c5yd4k20e8ly43y7qqk5ls347nc0h8089cw6fe9feyx5ldgxnf4xqq2aa3q3xz3jjfy9mmhat0xv6eh4qmjz69tuav8jq4jr6p08t7lrf9fal4y2sl443fg9zq23uulu2tm8aypky56cskphv5gvq8qz4mvxayq822su9t3ttcz7j3hlgk0h5f0
+
+Initializing Fresh Databases in /tmp:
+  Wallet A DB: /tmp/zcash_wallet_a_yxQDnl/wallet.db
+  Wallet B DB: /tmp/zcash_wallet_b_1gZij4/wallet.db
+  Database A Schema Version: 3
+  Database B Schema Version: 3
+
+------------------------------------------------------------------------
+[Wallet A] DECRYPTING TRANSACTION WITH SENDER UFVK
+------------------------------------------------------------------------
+Decryption Results for Wallet A:
+  TxID:                 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Transaction Fee:      10,000 zatoshis
+  Expiry Height:        4542278
+  Consensus Branch ID:  0x77190ad9
+  Outgoing Actions:     1
+  Incoming/Change:      1
+
+  >> Action 1: OUTGOING 1,000,000 zat to Wallet B
+     Recipient:    utest10aygs70glm55j5a6vfu0wmt7lp0nyh7xra3wakyzanapcr2pd29jzy3ujvw5qcpwrf9vgqjc29dv7dwdwv3ct4m4s699qw59euzfqs5z
+     Net Fee:      10,000 zat
+     Memo Text:    Phase 5 Controlled Live Send
+     Memo Hex:     5068617365203520436f6e74726f6c6c6564204c6976652053656e64
+
+  >> Action 0: INTERNAL CHANGE 8,990,000 zat (isChange: true)
+     Recipient:    utest1f69k9r6ynqt786gxm499a89ug0zuu5dd8sl02qpr79y0h40g7dwxnssyhcyvevlnwcp5h83af6s8k7x3jm4dpqz4fsqze3l67cpnggyf
+
+------------------------------------------------------------------------
+[Wallet B] DECRYPTING TRANSACTION WITH RECIPIENT UFVK
+------------------------------------------------------------------------
+Decryption Results for Wallet B:
+  TxID:                 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  Transaction Fee:      10,000 zatoshis
+  Expiry Height:        4542278
+  Consensus Branch ID:  0x77190ad9
+  Outgoing Actions:     0
+  Incoming Actions:     1
+
+  >> Action 1: INCOMING 1,000,000 zat
+     Recipient:    utest10aygs70glm55j5a6vfu0wmt7lp0nyh7xra3wakyzanapcr2pd29jzy3ujvw5qcpwrf9vgqjc29dv7dwdwv3ct4m4s699qw59euzfqs5z
+     isChange:     false
+     Memo Text:    Phase 5 Controlled Live Send
+     Memo Hex:     5068617365203520436f6e74726f6c6c6564204c6976652053656e64
+
+------------------------------------------------------------------------
+VERIFYING PERSISTED DATABASE RECORDS IN wallet_transactions
+------------------------------------------------------------------------
+Wallet A Database Rows:
+  Row 1: direction=out      value=   1000000 fee=10000 counterparty=utest10aygs70glm55j5a6vfu0wmt7lp0nyh7xra3wakyzanapcr2pd29jzy3ujvw5qcpwrf9vgqjc29dv7dwdwv3ct4m4s699qw59euzfqs5z
+  Row 2: direction=internal value=   8990000 fee=10000 counterparty=null
+Wallet B Database Rows:
+  Row 1: direction=in       value=   1000000 fee=10000 counterparty=null
+
+========================================================================
+VERIFICATION RESULT: SUCCESS!
+  Wallet A shows OUTGOING 1,000,000 zat to Wallet B with fee 10,000 zat
+  Wallet B shows INCOMING 1,000,000 zat
+  UFVK-only watch mode enforced: no mnemonic or spending key logged
+  Schema v3 wallet_transactions verified in clean SQLite DBs in /tmp
+========================================================================
+(node:19221) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)

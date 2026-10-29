@@ -148,6 +148,25 @@ pub fn internal_get_address_from_ufvk(
     Ok(ua.encode(&params))
 }
 
+pub fn internal_get_transparent_address_from_ufvk(
+    ufvk_str: &str,
+    network_str: &str,
+) -> Result<Option<String>, String> {
+    let params = get_params_for_network(network_str);
+    let ufvk = UnifiedFullViewingKey::decode(&params, ufvk_str)
+        .map_err(|e| format!("Failed to decode UFVK: {:?}", e))?;
+
+    let (ua, _) = ufvk
+        .default_address(UnifiedAddressRequest::AllAvailableKeys)
+        .map_err(|e| format!("Failed to derive default address: {:?}", e))?;
+
+    if let Some(t_addr) = ua.transparent() {
+        let addr = zcash_keys::address::Address::from(*t_addr);
+        return Ok(Some(addr.encode(&params)));
+    }
+    Ok(None)
+}
+
 #[derive(Debug, Clone)]
 pub struct DecryptedNoteInfo {
     pub pool: String,
@@ -326,6 +345,15 @@ mod napi_bindings {
     }
 
     #[napi]
+    pub fn get_transparent_address_from_ufvk(
+        ufvk_str: String,
+        network_str: String,
+    ) -> Result<Option<String>> {
+        internal_get_transparent_address_from_ufvk(&ufvk_str, &network_str)
+            .map_err(|e| Error::new(Status::GenericFailure, e))
+    }
+
+    #[napi]
     #[allow(clippy::too_many_arguments)]
     pub fn try_decrypt_action(
         ufvk_str: String,
@@ -372,6 +400,177 @@ mod napi_bindings {
         let network = get_params_for_network(&network_str);
         let branch_id = zcash_protocol::consensus::BranchId::for_height(&network, BlockHeight::from_u32(height));
         Ok(zcash_primitives::transaction::builder::default_tx_expiry_delta(branch_id))
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedMemo {
+        pub text: Option<String>,
+        pub hex: String,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedActionIncoming {
+        pub action_index: u32,
+        pub value: i64,
+        pub memo: JsDecryptedMemo,
+        pub recipient: String,
+        pub is_change: bool,
+        pub is_internal: bool,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedActionOutgoing {
+        pub action_index: u32,
+        pub value: i64,
+        pub memo: JsDecryptedMemo,
+        pub recipient: String,
+    }
+
+    #[napi(object)]
+    pub struct JsDecryptedTransactionResult {
+        pub txid: String,
+        pub fee: Option<i64>,
+        pub expiry_height: u32,
+        pub consensus_branch_id: String,
+        pub incoming: Vec<JsDecryptedActionIncoming>,
+        pub outgoing: Vec<JsDecryptedActionOutgoing>,
+    }
+
+    #[napi]
+    pub fn decrypt_transaction(
+        ufvk_str: String,
+        network_str: String,
+        raw_tx_bytes: Buffer,
+        height: u32,
+    ) -> Result<JsDecryptedTransactionResult> {
+        let res = crate::decrypted_tx::internal_decrypt_transaction(
+            &ufvk_str,
+            &network_str,
+            &raw_tx_bytes,
+            height,
+        )
+        .map_err(|e| Error::new(Status::GenericFailure, e))?;
+
+        Ok(JsDecryptedTransactionResult {
+            txid: res.txid,
+            fee: res.fee,
+            expiry_height: res.expiry_height,
+            consensus_branch_id: res.consensus_branch_id,
+            incoming: res
+                .incoming
+                .into_iter()
+                .map(|inc| JsDecryptedActionIncoming {
+                    action_index: inc.action_index,
+                    value: inc.value,
+                    memo: JsDecryptedMemo {
+                        text: inc.memo.text,
+                        hex: inc.memo.hex,
+                    },
+                    recipient: inc.recipient,
+                    is_change: inc.is_change,
+                    is_internal: inc.is_internal,
+                })
+                .collect(),
+            outgoing: res
+                .outgoing
+                .into_iter()
+                .map(|out| JsDecryptedActionOutgoing {
+                    action_index: out.action_index,
+                    value: out.value,
+                    memo: JsDecryptedMemo {
+                        text: out.memo.text,
+                        hex: out.memo.hex,
+                    },
+                    recipient: out.recipient,
+                })
+                .collect(),
+        })
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedActionCounts {
+        pub transparent_inputs: u32,
+        pub transparent_outputs: u32,
+        pub sapling_spends: u32,
+        pub sapling_outputs: u32,
+        pub orchard_actions: u32,
+        pub ironwood_actions: u32,
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedAnchorPair {
+        pub wallet_orchard_order: String,
+        pub zebra_rpc_order: String,
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedAnchors {
+        pub sapling: Option<JsDecodedAnchorPair>,
+        pub orchard: Option<JsDecodedAnchorPair>,
+        pub ironwood: Option<JsDecodedAnchorPair>,
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedTransaction {
+        pub txid: String,
+        pub version: u32,
+        pub consensus_branch_id: String,
+        pub expiry_height: u32,
+        pub fee: Option<i64>,
+        pub pools: Vec<String>,
+        pub action_counts: JsDecodedActionCounts,
+        pub anchors: JsDecodedAnchors,
+        pub nullifiers: Vec<String>,
+        pub note_commitments: Vec<String>,
+        pub size: u32,
+    }
+
+    #[napi]
+    pub fn decode_transaction(
+        raw_tx_bytes: Buffer,
+        network_str: Option<String>,
+        height: Option<u32>,
+    ) -> Result<JsDecodedTransaction> {
+        let res = crate::decrypted_tx::internal_decode_transaction(
+            &raw_tx_bytes,
+            network_str.as_deref(),
+            height,
+        )
+        .map_err(|e| Error::new(Status::GenericFailure, e))?;
+
+        Ok(JsDecodedTransaction {
+            txid: res.txid,
+            version: res.version,
+            consensus_branch_id: res.consensus_branch_id,
+            expiry_height: res.expiry_height,
+            fee: res.fee,
+            pools: res.pools,
+            action_counts: JsDecodedActionCounts {
+                transparent_inputs: res.action_counts.transparent_inputs,
+                transparent_outputs: res.action_counts.transparent_outputs,
+                sapling_spends: res.action_counts.sapling_spends,
+                sapling_outputs: res.action_counts.sapling_outputs,
+                orchard_actions: res.action_counts.orchard_actions,
+                ironwood_actions: res.action_counts.ironwood_actions,
+            },
+            anchors: JsDecodedAnchors {
+                sapling: res.anchors.sapling.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
+                orchard: res.anchors.orchard.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
+                ironwood: res.anchors.ironwood.map(|p| JsDecodedAnchorPair {
+                    wallet_orchard_order: p.wallet_orchard_order,
+                    zebra_rpc_order: p.zebra_rpc_order,
+                }),
+            },
+            nullifiers: res.nullifiers,
+            note_commitments: res.note_commitments,
+            size: res.size as u32,
+        })
     }
 }
 
@@ -520,6 +719,7 @@ mod tests {
 }
 
 pub mod consensus;
+pub mod decrypted_tx;
 pub mod pending_spends;
 pub mod scanner;
 pub mod schema;
@@ -532,6 +732,11 @@ pub mod wallet_handle;
 pub use consensus::{
     get_consensus_branch_id_for_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
     ConsensusError,
+};
+pub use decrypted_tx::{
+    internal_decode_transaction, internal_decrypt_transaction, parse_decrypted_memo,
+    DecodedActionCounts, DecodedAnchors, DecodedTransactionResult, DecryptedActionIncoming,
+    DecryptedActionOutgoing, DecryptedMemo, DecryptedTransactionResult,
 };
 pub use pending_spends::PendingSpendsManager;
 pub use scanner::{
@@ -556,5 +761,6 @@ pub use transaction::{
 pub use wallet_db::{WalletDb, WalletDbError};
 pub use wallet_handle::{
     decode_ironwood_frontier_root, ironwood_empty_tree_root, JsScanResult, JsSpendableNote,
-    WalletHandle, WalletSummary,
+    JsTreeFrontierInitResult, WalletHandle, WalletSummary,
 };
+

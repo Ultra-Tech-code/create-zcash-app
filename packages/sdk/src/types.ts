@@ -18,7 +18,7 @@ export type Ufvk = string;
 export interface Account {
   getUnifiedAddress(diversifierIndex?: number): string;
   getUnifiedFullViewingKey(): Ufvk;
-  getTransparentAddress?(): string;
+  getTransparentAddress?(): string | undefined;
   birthdayHeight?: number;
   network: Network;
   readonly spendHandle: number;
@@ -27,7 +27,7 @@ export interface Account {
 export interface WatchOnlyAccount {
   getUnifiedFullViewingKey(): Ufvk;
   getUnifiedAddress(diversifierIndex?: number): string;
-  getTransparentAddress?(): string;
+  getTransparentAddress?(): string | undefined;
   birthdayHeight?: number;
   network: Network;
 }
@@ -79,4 +79,70 @@ export interface SendRequest {
 export interface TxResult {
   txid: string;
   fee: bigint;
+}
+
+export interface DecryptedMemo {
+  text?: string;
+  hex: string;
+}
+
+export interface DecryptedActionIncoming {
+  actionIndex: number;
+  value: bigint;
+  memo: DecryptedMemo;
+  recipient: string;
+  isChange: boolean;
+  isInternal: boolean;
+}
+
+export interface DecryptedActionOutgoing {
+  actionIndex: number;
+  value: bigint;
+  memo: DecryptedMemo;
+  recipient: string;
+}
+
+export interface DecryptedTransaction {
+  txid: string;
+  fee: bigint | null;
+  expiryHeight: number;
+  consensusBranchId: string;
+  incoming: DecryptedActionIncoming[];
+  outgoing: DecryptedActionOutgoing[];
+}
+
+export interface DecodedActionCounts {
+  transparentInputs: number;
+  transparentOutputs: number;
+  saplingSpends: number;
+  saplingOutputs: number;
+  orchardActions: number;
+  ironwoodActions: number;
+}
+
+export interface DecodedAnchorPair {
+  walletOrchardOrder: string;
+  zebraRpcOrder: string;
+}
+
+export interface DecodedAnchors {
+  sapling?: DecodedAnchorPair;
+  orchard?: DecodedAnchorPair;
+  ironwood?: DecodedAnchorPair;
+}
+
+export interface DecodedTransaction {
+  txid: string;
+  version: number;
+  consensusBranchId: string;
+  upgradeName: string;
+  expiryHeight: number;
+  fee: bigint | null;
+  feeUnknown: boolean;
+  pools: string[];
+  actionCounts: DecodedActionCounts;
+  anchors: DecodedAnchors;
+  nullifiers: string[];
+  noteCommitments: string[];
+  size: number;
 }

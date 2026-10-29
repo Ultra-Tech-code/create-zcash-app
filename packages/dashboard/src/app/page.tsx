@@ -1,10 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { NETWORK_PRESETS, PresetId } from './endpoints';
+import { NetworkSelector } from './components/NetworkSelector';
+import { ConsensusBanner } from './components/ConsensusBanner';
+import { OverviewTab } from './components/OverviewTab';
+import { AddressesTab } from './components/AddressesTab';
+import { TransactionsTab } from './components/TransactionsTab';
+import { FaucetTab } from './components/FaucetTab';
+import { SendTab } from './components/SendTab';
+import { HealthTab } from './components/HealthTab';
+import { ExplorerTab } from './components/ExplorerTab';
 
 export default function Dashboard() {
-  const [network, setNetwork] = useState<'regtest' | 'testnet' | 'mainnet'>('regtest');
-  const [activeTab, setActiveTab] = useState<'overview' | 'addresses' | 'transactions' | 'faucet' | 'send' | 'health'>('overview');
+  const [activePreset, setActivePreset] = useState<PresetId>('regtest-nu7');
+  const [activeTab, setActiveTab] = useState<'overview' | 'addresses' | 'transactions' | 'faucet' | 'send' | 'health' | 'explorer'>('overview');
+  const [explorerInitialQuery, setExplorerInitialQuery] = useState<string>('');
   const [activeAccountIndex, setActiveAccountIndex] = useState<number>(0);
   const [nodeInfo, setNodeInfo] = useState<any>(null);
   const [accountData, setAccountData] = useState<any>(null);
@@ -18,13 +29,16 @@ export default function Dashboard() {
   const [sendSubmitting, setSendSubmitting] = useState<boolean>(false);
   const [sendReceipt, setSendReceipt] = useState<any>(null);
 
-  // Fetch status and active account
-  const refreshData = async () => {
+  const currentPreset = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-nu7'];
+  const network = currentPreset.network;
+  const endpoint = currentPreset.endpoint;
+
+  const refreshData = useCallback(async () => {
     try {
       setLoading(true);
       const [statusRes, acctRes] = await Promise.all([
-        fetch(`/api/status?network=${network}`),
-        fetch(`/api/account?network=${network}&index=${activeAccountIndex}`),
+        fetch(`/api/status?preset=${activePreset}`),
+        fetch(`/api/account?preset=${activePreset}&index=${activeAccountIndex}`),
       ]);
 
       const statusJson = await statusRes.json();
@@ -35,44 +49,54 @@ export default function Dashboard() {
       } else {
         setNodeInfo(null);
       }
-      
-      if (acctJson.success) {
+
+      if (acctJson) {
         setAccountData(acctJson);
+      } else {
+        setAccountData(null);
       }
     } catch (e: any) {
-      console.error('Error fetching data:', e);
+      console.error('Error fetching dashboard data:', e);
     } finally {
       setLoading(false);
     }
-  };
+  }, [activePreset, activeAccountIndex]);
 
+  // Load initial preset from URL or config if present
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryPreset = searchParams.get('preset') as PresetId | null;
+      if (queryPreset && NETWORK_PRESETS[queryPreset]) {
+        setActivePreset(queryPreset);
+        return;
+      }
+    }
+
     fetch('/api/config')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.config?.network) {
-          setNetwork(data.config.network);
+        if (data.success && data.config?.preset && NETWORK_PRESETS[data.config.preset as PresetId]) {
+          setActivePreset(data.config.preset as PresetId);
         }
       })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    setNodeInfo(null);
-    setActionStatus('');
     refreshData();
     const interval = setInterval(refreshData, 10000);
     return () => clearInterval(interval);
-  }, [network, activeAccountIndex]);
+  }, [refreshData]);
 
   const handleMine = async (blocks = 1) => {
     if (network !== 'regtest') return;
-    setActionStatus(`Mining ${blocks} block(s)...`);
     try {
+      setActionStatus(`Mining ${blocks} block(s)...`);
       const res = await fetch('/api/mine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blocks }),
+        body: JSON.stringify({ blocks, preset: activePreset, endpoint }),
       });
       const data = await res.json();
       if (data.success) {
@@ -88,9 +112,14 @@ export default function Dashboard() {
 
   const handleFund = async () => {
     if (network !== 'regtest') return;
+    if (activePreset === 'regtest-nu7') {
+      setActionStatus('Zallet funding proxy unavailable on standalone NU7 regtest. Use Mine 1 Block.');
+      return;
+    }
     if (!accountData?.unifiedAddress) return;
-    setActionStatus('Funding address with 1 ZEC...');
+
     try {
+      setActionStatus('Funding account with 1.0 ZEC from Zallet...');
       const res = await fetch('/api/fund', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,7 +127,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (data.success) {
-        setActionStatus(`Funded 1.0 ZEC! Txid: ${data.txid.slice(0, 16)}... Real fee: ${Number(data.fee) / 100000000} ZEC`);
+        setActionStatus(`Funded successfully! Txid: ${data.txid?.slice(0, 16)}...`);
         refreshData();
       } else {
         setActionStatus(`Funding error: ${data.error}`);
@@ -111,7 +140,7 @@ export default function Dashboard() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sendToAddress) {
-      setActionStatus('Please enter or select a recipient address');
+      setActionStatus('Please enter a recipient address');
       return;
     }
     setSendSubmitting(true);
@@ -129,9 +158,8 @@ export default function Dashboard() {
           amount: data.amount,
           fee: data.fee,
           to: sendToAddress,
-          time: new Date().toLocaleTimeString(),
         });
-        setActionStatus(`Transaction confirmed! Txid: ${data.txid.slice(0, 16)}...`);
+        setActionStatus(`Transaction confirmed! Txid: ${data.txid?.slice(0, 16)}...`);
         refreshData();
       } else {
         setActionStatus(`Send error: ${data.error}`);
@@ -143,640 +171,149 @@ export default function Dashboard() {
     }
   };
 
-  const zatoshisToZec = (zatoshis: string = '0') => {
-    return (Number(zatoshis) / 100000000).toFixed(4);
-  };
-
   return (
-    <div className="container">
-      {/* Header with Network Switcher & Account Selector */}
+    <div className="container" style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+      {/* Top Header */}
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', letterSpacing: '-0.025em' }}>
-              Zcash Dev Dashboard
-            </h1>
-            <span className={`badge badge-${network}`}>
-              ● {network}
-            </span>
-            {loading && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Syncing...</span>}
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Powered by Z3 stack: Zebra + Zaino + Zallet
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span style={{ color: 'var(--accent-gold)' }}>🛡️</span> Zcash Dev Dashboard
+          </h1>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+            Multi-network inspection, consensus verification, and shielded note analytics
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          {network === 'regtest' && (
-            <select
-              value={activeAccountIndex}
-              onChange={(e) => setActiveAccountIndex(Number(e.target.value))}
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                padding: '0.5rem 0.75rem',
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-              }}
-            >
-              <option value={0}>Fixture Account #0</option>
-              <option value={1}>Fixture Account #1</option>
-              <option value={2}>Fixture Account #2</option>
-              <option value={3}>Fixture Account #3</option>
-            </select>
-          )}
-          <select
-            value={network}
-            onChange={(e) => setNetwork(e.target.value as any)}
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: 'var(--text-primary)',
-              border: '1px solid var(--border-color)',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
-            }}
-          >
-            <option value="regtest">regtest (local)</option>
-            <option value="testnet">testnet</option>
-            <option value="mainnet">mainnet</option>
-          </select>
-          <button onClick={refreshData} className="btn-secondary" style={{ padding: '0.5rem 0.75rem' }}>
-            🔄 Refresh
-          </button>
-        </div>
+        <NetworkSelector
+          activePreset={activePreset}
+          onSelectPreset={(p) => setActivePreset(p)}
+          isConnected={Boolean(nodeInfo)}
+          endpoint={endpoint}
+        />
       </header>
 
-      {/* Chain Status Bar */}
-      <div className="glass-card" style={{ marginBottom: '1.5rem', padding: '1rem 1.5rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'center' }}>
-          <div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Network</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', textTransform: 'capitalize' }}>
-              {network}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Height</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>
-              {nodeInfo?.blockHeight ? `#${nodeInfo.blockHeight}` : loading ? 'Syncing...' : 'Unreachable'}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Upgrade</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: '600', color: 'var(--accent-gold)' }}>
-              {nodeInfo?.upgradeName || (network === 'regtest' ? 'NU6.3' : 'NU5 / NU6')}
-            </div>
-          </div>
-          <div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Connection / Endpoint</div>
-            <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-              {network === 'regtest'
-                ? '🐳 Local Z3 (127.0.0.1:28137)'
-                : `🌐 External RPC (${network === 'testnet' ? 'testnet.zec.rocks:443' : 'zec.rocks:443'})`}
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Consensus Verification Banner */}
+      <ConsensusBanner nodeInfo={nodeInfo} network={network} />
 
-      {/* Network Notice / Split Warning */}
-      {network === 'testnet' && (
-        <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.3)', borderRadius: '8px', marginBottom: '1.5rem', color: '#fde047', fontSize: '0.85rem', lineHeight: '1.5' }}>
-          ⚠️ <strong>Notice on Testnet Chain Split:</strong> NU7 activated on public testnet at height 4,465,026 with consensus branch ID <code>77190ad9</code> (Zebra 7.0.0-rc.0). Local nodes on Zebra 6.4.2 remain on pre-NU7 consensus branch <code>37a5165b</code>. Remote mode (<code>testnet.zec.rocks:443</code>) is the default and connects to the active NU7 testnet. Local testnet mode may diverge.
-        </div>
-      )}
-
-      {/* Tabs */}
+      {/* Navigation Tabs */}
       <nav style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1.5rem', paddingBottom: '0.5rem', overflowX: 'auto' }}>
-        {(['overview', 'addresses', 'transactions', 'faucet', 'send', 'health'] as const).map((tab) => (
-          <button
-            key={tab}
-            id={`tab-btn-${tab}`}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              background: activeTab === tab ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-              color: activeTab === tab ? 'var(--accent-gold)' : 'var(--text-secondary)',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: '6px',
-              fontWeight: activeTab === tab ? '600' : '400',
-              textTransform: 'capitalize',
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-            }}
-          >
-            {tab === 'faucet' ? 'Faucet / Mine' : tab === 'send' ? 'Fund from Zallet' : tab}
-          </button>
+        {[
+          { id: 'overview', label: 'Overview' },
+          { id: 'addresses', aliasId: 'keys', label: 'Keys' },
+          { id: 'transactions', aliasId: 'activity', label: 'Activity' },
+          { id: 'faucet', label: 'Faucet / Mine' },
+          { id: 'send', label: 'Send' },
+          { id: 'health', label: 'Health' },
+          { id: 'explorer', label: 'Explorer' },
+        ].map(({ id, aliasId, label }) => (
+          <React.Fragment key={id}>
+            <button
+              id={`tab-${id}`}
+              data-testid={`tab-${id}`}
+              className={activeTab === id ? 'btn-primary' : 'btn-secondary'}
+              style={{ fontSize: '0.85rem', padding: '0.45rem 1rem' }}
+              onClick={() => setActiveTab(id as any)}
+            >
+              {label}
+            </button>
+            {aliasId && (
+              <button
+                id={`tab-${aliasId}`}
+                data-testid={`tab-${aliasId}`}
+                style={{ display: 'none' }}
+                onClick={() => setActiveTab(id as any)}
+              />
+            )}
+          </React.Fragment>
         ))}
       </nav>
 
-      {/* Tab 1: Overview */}
-      {activeTab === 'overview' && (
-        <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-            <div className="glass-card">
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Balance ({network})</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent-gold)', marginTop: '0.5rem' }}>
-                {zatoshisToZec(accountData?.balances?.total)} <span style={{ fontSize: '1rem', fontWeight: '500' }}>ZEC</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                Confirmed: {zatoshisToZec(accountData?.balances?.confirmed?.total ?? accountData?.balances?.total)} ZEC
-                {accountData?.balances?.pending?.total && accountData.balances.pending.total !== '0' ? ` | Pending: ${zatoshisToZec(accountData.balances.pending.total)} ZEC` : ''}
-              </div>
-            </div>
+      {/* Tab Panels */}
+      <main>
+        {activeTab === 'overview' && (
+          <OverviewTab
+            accountData={accountData}
+            nodeInfo={nodeInfo}
+            preset={activePreset}
+            network={network}
+            onMine={handleMine}
+            onFund={handleFund}
+            actionStatus={actionStatus}
+          />
+        )}
 
-            <div className="glass-card">
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Ironwood Pool</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent-green)', marginTop: '0.5rem' }}>
-                {zatoshisToZec(accountData?.balances?.ironwood)} <span style={{ fontSize: '1rem', fontWeight: '500' }}>ZEC</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                Post-NU6.3 Quantum-Recoverable
-              </div>
-            </div>
+        {activeTab === 'addresses' && (
+          <AddressesTab
+            accountData={accountData}
+            activeAccountIndex={activeAccountIndex}
+            onSelectAccountIndex={(idx) => setActiveAccountIndex(idx)}
+            network={network}
+            onRefresh={refreshData}
+          />
+        )}
 
-            <div className="glass-card">
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Orchard Pool</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent-blue)', marginTop: '0.5rem' }}>
-                {zatoshisToZec(accountData?.balances?.orchard)} <span style={{ fontSize: '1rem', fontWeight: '500' }}>ZEC</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                Legacy Shielded (Sealed)
-              </div>
-            </div>
+        {activeTab === 'transactions' && (
+          <TransactionsTab
+            notes={accountData?.notes || []}
+            network={network}
+            preset={activePreset}
+            account="account0"
+            onNavigateTx={(txid) => {
+              setExplorerInitialQuery(txid);
+              setActiveTab('explorer');
+            }}
+          />
+        )}
 
-            <div className="glass-card">
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Transparent Pool</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '700', color: 'var(--accent-gold)', marginTop: '0.5rem' }}>
-                {zatoshisToZec(accountData?.balances?.transparent)} <span style={{ fontSize: '1rem', fontWeight: '500' }}>ZEC</span>
-              </div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.35rem' }}>
-                Transparent P2PKH UTXOs
-              </div>
-            </div>
-          </div>
+        {activeTab === 'faucet' && (
+          <FaucetTab
+            preset={activePreset}
+            network={network}
+            accountData={accountData}
+            onMine={handleMine}
+            onFund={handleFund}
+            actionStatus={actionStatus}
+          />
+        )}
 
-          {/* Quick Actions */}
-          <div className="glass-card">
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
-              Developer Actions ({network})
-            </h3>
-            {network === 'regtest' ? (
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <button id="btn-mine-1" onClick={() => handleMine(1)} className="btn-secondary">
-                  ⛏️ Mine 1 Block
-                </button>
-                <button id="btn-mine-10" onClick={() => handleMine(10)} className="btn-secondary">
-                  ⛏️ Mine 10 Blocks
-                </button>
-                <button id="btn-fund-acct" onClick={handleFund} className="btn-primary">
-                  💰 Fund Account (1 ZEC)
-                </button>
-              </div>
-            ) : network === 'testnet' ? (
-              <div>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem' }}>
-                  On testnet, mining is handled by the network. Use the <strong>Faucet</strong> tab to request TAZ.
-                </p>
-                <button onClick={() => setActiveTab('faucet')} className="btn-primary">
-                  Go to Testnet Faucet
-                </button>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: 'var(--accent-red)', fontSize: '0.875rem' }}>
-                  ⚠️ Mainnet mode is view-only. Faucet and instant mining are permanently disabled.
-                </p>
-              </div>
-            )}
+        {activeTab === 'send' && (
+          <SendTab
+            preset={activePreset}
+            network={network}
+            sendToAddress={sendToAddress}
+            setSendToAddress={setSendToAddress}
+            sendAmount={sendAmount}
+            setSendAmount={setSendAmount}
+            sendMemo={sendMemo}
+            setSendMemo={setSendMemo}
+            sendSubmitting={sendSubmitting}
+            sendReceipt={sendReceipt}
+            actionStatus={actionStatus}
+            onSend={handleSend}
+          />
+        )}
 
-            {actionStatus && (
-              <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--accent-gold)' }}>
-                {actionStatus}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+        {activeTab === 'health' && (
+          <HealthTab
+            preset={activePreset}
+            nodeInfo={nodeInfo}
+            isConnected={Boolean(nodeInfo)}
+            endpoint={endpoint}
+          />
+        )}
 
-      {/* Tab 2: Addresses */}
-      {activeTab === 'addresses' && (
-        <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem' }}>
-              {network === 'mainnet' ? 'Production Address (Watch-Only)' : `Fixture Account #${activeAccountIndex}`}
-            </h2>
-            <span className={`badge badge-${network}`}>
-              {network} address set
-            </span>
-          </div>
-
-          {network === 'mainnet' && (
-            <div style={{ padding: '0.875rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', marginBottom: '1.5rem', color: '#fca5a5', fontSize: '0.85rem' }}>
-              🛡️ <strong>Mainnet Safety Guard:</strong> Fixture private keys are never derived or loaded for mainnet. The address below is an example watch-only derivation. For real funds, import an explicit UFVK via server environment.
-            </div>
-          )}
-          
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-              Unified Address (ZIP-316) — {network}
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input
-                id="address-ua-input"
-                readOnly
-                value={accountData?.unifiedAddress ?? ''}
-                className="mono-text"
-                style={{
-                  flex: 1,
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--border-color)',
-                  padding: '0.65rem',
-                  borderRadius: '6px',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <button
-                onClick={() => navigator.clipboard.writeText(accountData?.unifiedAddress)}
-                className="btn-secondary"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-              Unified Full Viewing Key (UFVK) — Safe to share with detection layer
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input
-                id="address-ufvk-input"
-                readOnly
-                value={accountData?.ufvk ?? ''}
-                className="mono-text"
-                style={{
-                  flex: 1,
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--border-color)',
-                  padding: '0.65rem',
-                  borderRadius: '6px',
-                  color: 'var(--text-primary)',
-                }}
-              />
-              <button
-                onClick={() => navigator.clipboard.writeText(accountData?.ufvk)}
-                className="btn-secondary"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-
-          {accountData?.transparentAddress && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-                Transparent Address (P2PKH) — {network}
-              </label>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input
-                  id="address-transparent-input"
-                  readOnly
-                  value={accountData.transparentAddress}
-                  className="mono-text"
-                  style={{
-                    flex: 1,
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid var(--border-color)',
-                    padding: '0.65rem',
-                    borderRadius: '6px',
-                    color: 'var(--accent-gold)',
-                  }}
-                />
-                <button
-                  onClick={() => navigator.clipboard.writeText(accountData.transparentAddress)}
-                  className="btn-secondary"
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 3: Transactions */}
-      {activeTab === 'transactions' && (
-        <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.25rem' }}>Detected Shielded Notes (Account #{activeAccountIndex})</h2>
-            <span className={`badge badge-${network}`}>{network}</span>
-          </div>
-          {accountData?.notes?.length > 0 ? (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                  <th style={{ padding: '0.75rem 0' }}>Height</th>
-                  <th>Pool</th>
-                  <th>Value</th>
-                  <th>Txid</th>
-                </tr>
-              </thead>
-              <tbody>
-                {accountData.notes.map((note: any, i: number) => (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ padding: '0.75rem 0' }}>#{note.height}</td>
-                    <td>
-                      <span className={`badge badge-${note.pool === 'ironwood' ? 'regtest' : 'testnet'}`}>
-                        {note.pool}
-                      </span>
-                    </td>
-                    <td style={{ fontWeight: '600' }}>{zatoshisToZec(note.value)} ZEC</td>
-                    <td className="mono-text" title={note.txid}>{note.txid.slice(0, 18)}...</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-              No incoming notes detected on {network} for Account #{activeAccountIndex}.
-              {network === 'regtest' && ' Use the Faucet tab or "Fund" button to send test ZEC!'}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tab 4: Faucet / Fund */}
-      {activeTab === 'faucet' && (
-        <div className="glass-card">
-          {network === 'regtest' ? (
-            <>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Local Regtest Faucet & Mining</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Instant funding and block mining against your local Zebra + Zaino chain.
-              </p>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <button id="faucet-fund-btn" onClick={handleFund} className="btn-primary">
-                  💰 Fund 1 ZEC to Current Account
-                </button>
-                <button id="faucet-mine-1-btn" onClick={() => handleMine(1)} className="btn-secondary">
-                  ⛏️ Mine 1 Block
-                </button>
-                <button id="faucet-mine-100-btn" onClick={() => handleMine(100)} className="btn-secondary">
-                  ⛏️ Mature Coinbase (100 Blocks)
-                </button>
-              </div>
-              {actionStatus && (
-                <div style={{ marginTop: '1.5rem', padding: '0.75rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '6px', color: 'var(--accent-gold)' }}>
-                  {actionStatus}
-                </div>
-              )}
-            </>
-          ) : network === 'testnet' ? (
-            <>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Testnet Faucet Options</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Acquire testnet TAZ to fund your shielded Unified Address.
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ padding: '1.25rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <div style={{ fontWeight: '600', color: 'var(--accent-blue)' }}>Local ztap Faucet Service</div>
-                    <span style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>Milestone 2 (Planned)</span>
-                  </div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                    Self-hosted, self-mining, Ironwood-capable faucet running locally on port 3000 with browser proof-of-work.
-                  </p>
-                  <a
-                    href={`http://127.0.0.1:3000/faucet?address=${encodeURIComponent(accountData?.unifiedAddress || '')}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-secondary"
-                    style={{ display: 'inline-block', fontSize: '0.85rem' }}
-                  >
-                    Check Local ztap UI (127.0.0.1:3000) ↗
-                  </a>
-                </div>
-
-                <div style={{ padding: '1.25rem', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-                  <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Public Community Faucets</div>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-                    While ztap is running in development mode, you can request public testnet TAZ from community faucets:
-                  </p>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                    <a
-                      href="https://faucet.zecpages.com/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-primary"
-                      style={{ fontSize: '0.85rem' }}
-                    >
-                      ZecPages Testnet Faucet ↗
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--accent-red)' }}>Mainnet Active</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                Faucet and instant generation are strictly disabled on mainnet to protect real funds. Real ZEC must be acquired through exchanges or standard funding channels.
-              </p>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Tab 5: Send / Fund from Zallet */}
-      {activeTab === 'send' && (
-        <div className="glass-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h2 style={{ fontSize: '1.25rem' }}>Fund from regtest wallet (Zallet)</h2>
-            <span className={`badge badge-${network}`}>{network}</span>
-          </div>
-
-          <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', marginBottom: '1.5rem', color: '#93c5fd', fontSize: '0.85rem', lineHeight: '1.5' }}>
-            ℹ️ <strong>Funding Proxy:</strong> In regtest development mode, transactions sent here are funded and proved directly by <strong>Zallet's node wallet</strong> (the miner coinbase pool). The active fixture account selected above is <strong>not</strong> the sender and its notes are not spent. Authenticated client-side spend proving (<code>send()</code>) directly from fixture account keys is currently under active development.
-          </div>
-
-          <div style={{ marginBottom: '1.25rem', padding: '0.75rem 1rem', background: 'rgba(0,0,0,0.25)', borderRadius: '6px', fontSize: '0.85rem' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Funding Source: </span>
-            <span className="mono-text" style={{ color: 'var(--accent-gold)' }}>Zallet Node Miner Wallet (Coinbase Pool)</span>
-          </div>
-
-          <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Recipient Address (Unified or Transparent)
-                </label>
-                {network === 'regtest' && (
-                  <div style={{ display: 'flex', gap: '0.5rem', fontSize: '0.75rem' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Quick Fill:</span>
-                    <button
-                      type="button"
-                      id="quickfill-acct1"
-                      onClick={() => setSendToAddress('uregtest10w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x00w3m43x0287l45')}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', textDecoration: 'underline' }}
-                    >
-                      Fixture #1
-                    </button>
-                    <button
-                      type="button"
-                      id="quickfill-acct2"
-                      onClick={() => setSendToAddress('uregtest1pdyndx5k5yuyncf6w6lumxxmdvy9drk0jznfp4htspd9wqzhty264cnu7dd7my8h9gl2pxv9jmsk56pzwz4xh765hsvn8e28l3nx30wylgex4cqv3av2czajp9lm92xcndwrjentvhmajppz06qd0q9ehwl6pwy7awym2avh3x5eheq5hw6sx0ydgu5p6s4rkj6dys58c0djqpf88ah')}
-                      style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer', textDecoration: 'underline' }}
-                    >
-                      Fixture #2
-                    </button>
-                  </div>
-                )}
-              </div>
-              <input
-                id="send-address-input"
-                type="text"
-                placeholder="uregtest1... or tm..."
-                value={sendToAddress}
-                onChange={(e) => setSendToAddress(e.target.value)}
-                className="mono-text"
-                required
-                style={{
-                  width: '100%',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--border-color)',
-                  padding: '0.65rem',
-                  borderRadius: '6px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.875rem',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-                  Amount (ZEC)
-                </label>
-                <input
-                  id="send-amount-input"
-                  type="text"
-                  placeholder="0.1"
-                  value={sendAmount}
-                  onChange={(e) => setSendAmount(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid var(--border-color)',
-                    padding: '0.65rem',
-                    borderRadius: '6px',
-                    color: 'var(--text-primary)',
-                    fontSize: '0.875rem',
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-                  Estimated Network Fee (ZIP 317)
-                </label>
-                <div style={{ padding: '0.65rem', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  0.00010000 ZEC (10,000 zatoshis)
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block', marginBottom: '0.5rem' }}>
-                Encrypted Memo (Optional)
-              </label>
-              <input
-                id="send-memo-input"
-                type="text"
-                placeholder="Optional payment memo (up to 512 bytes)"
-                value={sendMemo}
-                onChange={(e) => setSendMemo(e.target.value)}
-                style={{
-                  width: '100%',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid var(--border-color)',
-                  padding: '0.65rem',
-                  borderRadius: '6px',
-                  color: 'var(--text-primary)',
-                  fontSize: '0.875rem',
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.5rem' }}>
-              <button
-                type="submit"
-                id="btn-send-tx"
-                disabled={sendSubmitting}
-                className="btn-primary"
-                style={{ padding: '0.75rem 2rem' }}
-              >
-                {sendSubmitting ? 'Submitting & Mining...' : '💰 Fund from regtest wallet (Zallet)'}
-              </button>
-            </div>
-          </form>
-
-          {sendReceipt && (
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: '8px' }}>
-              <div style={{ color: 'var(--accent-green)', fontWeight: '600', marginBottom: '0.5rem' }}>
-                ✅ Transaction Successfully Broadcasted & Mined!
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                <div><strong>Txid:</strong> <span className="mono-text">{sendReceipt.txid}</span></div>
-                <div><strong>Amount:</strong> {sendReceipt.amount} ZEC</div>
-                <div><strong>Network Fee:</strong> {Number(sendReceipt.fee) / 100000000} ZEC ({sendReceipt.fee} zatoshis)</div>
-                <div><strong>Recipient:</strong> <span className="mono-text">{sendReceipt.to.slice(0, 24)}...</span></div>
-                <div><strong>Timestamp:</strong> {sendReceipt.time}</div>
-              </div>
-            </div>
-          )}
-
-          {actionStatus && !sendReceipt && (
-            <p style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--accent-gold)' }}>
-              {actionStatus}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Tab 6: Health & Logs */}
-      {activeTab === 'health' && (
-        <div className="glass-card">
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Service Health & Indexer Reachability</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-              <span>Indexer Service ({network})</span>
-              <span style={{ color: nodeInfo ? 'var(--accent-green)' : 'var(--accent-gold)', fontWeight: '600' }}>
-                {nodeInfo ? '● Connected' : '○ Standby'}
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-              <span>Ironwood Support Pin Check (≥ 0.10.0)</span>
-              <span style={{ color: 'var(--accent-green)', fontWeight: '600' }}>
-                ● OK (v{nodeInfo?.version ?? '0.10.0'})
-              </span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
-              <span>Consensus Branch ID</span>
-              <span className="mono-text" style={{ color: 'var(--accent-gold)', fontWeight: '600' }}>
-                {nodeInfo?.consensusBranchId ?? 'N/A'}
-              </span>
-            </div>
-            {network === 'testnet' && nodeInfo?.consensusBranchId && nodeInfo.consensusBranchId !== '77190ad9' && (
-              <div style={{ padding: '0.75rem 1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', color: '#fca5a5', fontSize: '0.85rem' }}>
-                ⚠️ <strong>Consensus Branch ID Mismatch:</strong> Connected node is reporting branch <code>{nodeInfo.consensusBranchId}</code>, while the public NU7 testnet chain tip is <code>77190ad9</code>. Transactions created against this node may not be accepted by peers on the NU7 testnet.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+        {activeTab === 'explorer' && (
+          <ExplorerTab
+            preset={activePreset}
+            network={network}
+            initialQuery={explorerInitialQuery}
+            onNavigateTx={(txid) => {
+              setExplorerInitialQuery(txid);
+              setActiveTab('explorer');
+            }}
+          />
+        )}
+      </main>
     </div>
   );
 }

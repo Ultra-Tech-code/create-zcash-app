@@ -5,6 +5,7 @@ e520115935d7dc1fd25b2b96a6e9a0e1df3b5a56ecaa3ec6a67332e4814a841d  chain_queries/
 f199985e5f74385d902cbe8515a6b380036fd90cf338f5c468af948348ffdb0e  chain_queries/quicknode_getrawtransaction.json  |  node scripts/testnet_chain_queries.mjs
 9d2f11e4f561553f976a9beb53b1fc5378c7ab2718f33a7b07928235be3daadc  chain_queries/run.log  |  node scripts/testnet_chain_queries.mjs 2>&1 | tee packages/core/tests/logs/chain_queries/run.log
 3b50f4acedc06c4d2389388739af48e847352ef1a3759059828da8775f2ae89e  chain_queries/summary.json  |  node scripts/testnet_chain_queries.mjs
+c0892ed300a1bf3b6c8abd1267a2b5cede65bf0e9fb23d99a9c3222d1c5761b4  cargo_test_stage2c.log  |  cargo test --manifest-path packages/core/Cargo.toml 2>&1 | tee packages/core/tests/logs/cargo_test_stage2c.log
 a038582550dbf3282a52eeeb6b11c45a0ab1a42f20671f9bc4f6e534ff1064e6  ci_fresh_clone_after.log  |  bash scripts/test-fresh-clone.sh after
 ede5023b6d4dc6280c26e397d41d2f9dee8d9f6b9126631eb7504844c916f4f0  ci_fresh_clone_before.log  |  bash scripts/test-fresh-clone.sh before
 f1a411b04f31f97e86d368987893b5d9755301adaa7c37bfab5a3606aae9e4ec  fee_acceptance_regtest.log  |  node packages/dev/dist/cli.js test fee-acceptance
@@ -27,6 +28,7 @@ d8ca5ea5e8d2444d770a8717acfd9388f8b7fd94fcc807d81d8469a6732d7898  p3_zebra7_nu6_
 f2707a2676718ced7084d2612a5b0fbcfc3fcc3ac1fb5942667dc4ad3f39d46f  p5_send_tests.log  |  cargo test --package zcash-core p5_send
 e903eb47d427b76fab96ba20bed9dabf50866c4c09bd57b5ae25899e693b29b9  p6_fee_check.log  |  node packages/dev/dist/cli.js test p6-fee
 c5be3dd2fb4c6fc6091f71e1a609b391ec1cc770c8131fd771a72bf63c6d2dc9  p6_fee_grep.log  |  rg -n "fee" packages/
+7000682b74f8e83182b6a745d8b16f7b176a67ea127ac9a0d6f2b256d719c419  phase1_nu7_awareness.log  |  node scripts/test_phase1_nu7_awareness.mjs
 2e5583c0cd06bac30aaa3b753038499a82d47e5dc1bcc0a3561a8b493566b606  proto_diff.log  |  git diff --no-index proto/ proto_upstream/
 90915ff13df1713b682bf762c66fa7edc160294ed40c7dbd4bce7814ab9e9e03  step1_schema.log  |  cargo test --package zcash-core step1_schema
 3840b57307d319295928ddbec5b2af61558d0d43ddf20a8c2110032aa334b4dd  step2_shard_store.log  |  cargo test --package zcash-core step2_shard_store
@@ -36,12 +38,15 @@ eeb691a704af45c2c2dd7dbaa43019a7f4babf9f8cc6ff5cbe88b7a31ddb0c0e  step5_pending_
 3f0b9ac99179be3475e0953fcf8018aa1d9f6c25a02b8d6b88885dda90c17309  step6_spendable.log  |  cargo test --package zcash-core step6_spendable
 ce42adddbd0971fa326f8bab861cdc51decf9eadfb437210827f31d5cd30d543  step7_wallet_handle.log  |  cargo test --package zcash-core step7_wallet_handle
 a1ed24eb71a37dfa66624c5cc1353b7e0e78dca74c3681b7f8ba59f711f0cb57  step8_full_suite.log  |  cargo test --package zcash-core step8_full_suite
+a8fb4449e24c32b1e87ea3ba6c8dfe1ada4b2a2e218b050331a54e44a5797925  testnet_decrypt_evidence.log  |  node scripts/testnet_tx_decrypt_evidence.mjs
 3683b56a5491896548c645b9d3b9f951fd8a8d3bfd3d3eebc7902fab4389e29c  testnet_detect_nu7.log  |  node scripts/diagnose_nu7.mjs
 b669e849e503b0a29fc8098e21bb43b91c68e684d6ea9cbe5f4a4dfc357aa306  testnet_nu7_diagnosis.log  |  node scripts/diagnose_nu7.mjs --verbose
 bde350e2602755d0431733a40fdfd22c91e8a7c37483f1a663aa10312df71fdf  testnet_postcheck.log  |  node scripts/testnet_postcheck.mjs
 6fa1a22a7faa5d7616e587646dd026a13db65766943991a97174951b3c9d225d  testnet_public_rpc.log  |  node scripts/testnet_public_rpc.mjs
 d498a1eb4efe165d8595e48095937bb58b1299cb9abc6ee59d3950308062d200  testnet_readonly.log  |  node scripts/probe_testnet_endpoints.mjs
 8801f6debecb7996ad96b462a21f9154a42c0dc9884b3e8b6d45bc6597d7cf93  testnet_send_run.log  |  node scripts/testnet_send.mjs
+fad5d9467a7131cef1b458d0341430d6b4e0b3c297cfc57f9ee58eaa214930bb  testnet_sync_dashboard_evidence.log  |  node scripts/testnet_stage2b_dashboard_sync_evidence.mjs 2>&1 | tee packages/core/tests/logs/testnet_sync_dashboard_evidence.log
+cd01e5a948c7da29933b22a9d510e225342cd7cc7a3b7ec534b06d55dc91bee0  testnet_sync_stage2b_evidence.log  |  node scripts/testnet_stage2b_sync_evidence.mjs 2>&1 | tee packages/core/tests/logs/testnet_sync_stage2b_evidence.log
 0ddb6a7d408ecf1a2ac2e94e483139c646eab6817a62def5419544916bc9b260  verify_baseline.log  |  bash scripts/verify.sh
 5236d84898ac335b3a7885db4a2b14a7e49019661aa54d1470fc7d77807a8652  verify_c1_anchor_failclosed.log  |  bash scripts/verify.sh
 964966e13174e529ade6da8cd4466d0565dc14382fc6885ab6953c544747c156  verify_c1_empty_root.log  |  cargo test --package zcash-core verify_c1_empty_root
@@ -52,3 +57,30 @@ d498a1eb4efe165d8595e48095937bb58b1299cb9abc6ee59d3950308062d200  testnet_readon
 a34c43de70d487af8d330519e62e725b9e5807c588644d1a7c03b82d3d41093d  verify_p5_p3_p4_review.log  |  bash scripts/verify.sh
 faf5c0187ff76ed8f1e16e5a13e1a2eed207486903af1ff379f12767b1907f46  verify_squashed_head.log  |  bash scripts/verify.sh
 a53204edfbf9c30fff78424049c7d9f4d9c0a3496f01cc13a34fdb599fdcfd62  wallet_b_first_sync.log  |  node scripts/testnet_wallet_b_full_sync.mjs
+433c9b3bea0ba63ea68cc8ce4b7ebfb33c8ea42a16f3123fa5e3dbdcf8aed87c  stage2c_api_security.log  |  node scripts/test_api_security.mjs 2>&1 | tee packages/core/tests/logs/stage2c_api_security.log
+5e9a745f466d60748ac906c266fbf4be48ec5f8b402aebcabf27969b9875e644  testnet_cold_sync_evidence.log  |  node scripts/testnet_cold_sync_no_tree_seeding.mjs 2>&1 | tee packages/core/tests/logs/testnet_cold_sync_evidence.log
+ad97430e73d5f1d7b32b7e96913ecf33a3d2d5ef45394264f8e0f2158b47163f  testnet_stage2c_playwright.log  |  node scripts/testnet_stage2c_ui_playwright.mjs 2>&1 | tee packages/core/tests/logs/testnet_stage2c_playwright.log
+ad97430e73d5f1d7b32b7e96913ecf33a3d2d5ef45394264f8e0f2158b47163f  testnet_stage2d_playwright.log  |  node scripts/testnet_stage2c_ui_playwright.mjs 2>&1 | tee packages/core/tests/logs/testnet_stage2d_playwright.log
+09da897566e6bad1b05297c06a5c888fbbe12325a33ad020f40d15d755e7e2c9  testnet_cold_sync_real_birthday.log  |  node scripts/testnet_cold_sync_real_birthday.mjs 2>&1 | tee packages/core/tests/logs/testnet_cold_sync_real_birthday.log
+dc0a7fe8cbb988f6edf3c9e657aea609af6e15ea6e492dab6bdc85d6e971d32f  screenshots/stage2c_01_wallet_a_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+242fed6cbe4e38e193a1ecac843114ba3683a9d27f08dcd89b67070c51c8628a  screenshots/stage2c_02_wallet_a_activity_out.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+f485f08c45cdf5d719ac0bb01adb54c6a79e54cd772ae86763b4115bb51d2119  screenshots/stage2c_03_keys_forgotten.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+98f98a360338720c1772a06ea9f80ac26ef93748bde39bb66580d2748324653c  screenshots/stage2c_04_wallet_b_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+eb7f0bcbe1ed1f0a1140be204e9d1c33fa897d7a74499edc9979f9941bb83e25  screenshots/stage2c_05_wallet_b_activity_in.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+dc0a7fe8cbb988f6edf3c9e657aea609af6e15ea6e492dab6bdc85d6e971d32f  screenshots/stage2d_01_wallet_a_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+242fed6cbe4e38e193a1ecac843114ba3683a9d27f08dcd89b67070c51c8628a  screenshots/stage2d_02_wallet_a_activity_out.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+f485f08c45cdf5d719ac0bb01adb54c6a79e54cd772ae86763b4115bb51d2119  screenshots/stage2d_03_keys_forgotten.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+98f98a360338720c1772a06ea9f80ac26ef93748bde39bb66580d2748324653c  screenshots/stage2d_04_wallet_b_keys.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+eb7f0bcbe1ed1f0a1140be204e9d1c33fa897d7a74499edc9979f9941bb83e25  screenshots/stage2d_05_wallet_b_activity_in.png  |  node scripts/testnet_stage2c_ui_playwright.mjs
+8c57ff32eefdbe2f4c16fddd650b0c48846903f4d06a9bcdf1b1dc3eb7c9f8b4  testnet_stage3_explorer.log  |  node scripts/testnet_stage3_explorer_playwright.mjs 2>&1 | tee packages/core/tests/logs/testnet_stage3_explorer.log
+0357359161c6ff6a0c749bd9587cb8908cd0c62a74f7be59d1788e78982de04f  screenshots/stage3_01_bad_input.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+4af4d0670d1fa3706b0a8ffff7fea593f4b317a9f96e1d2f276cfe742b655d3a  screenshots/stage3_02_not_found.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+5477823f014ff972978c473bfaacf714595b7b5a8a95c943bc58143a1a8e72c8  screenshots/stage3_03_tx_by_id.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/stage3_04_block_by_height.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+9a7fb0d7182f2beaedbedb954c9fc85552e60a374a4897b266131d36595fcd56  screenshots/stage3_05_block_by_hash.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+457ec2029638892bb51d684c7bdb5f4e6d9c7814609b4bbd66355e7264a23e9c  screenshots/stage3_06_wallet_a_annotated_out.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+805498088610844b1d2591e5322bf649a9f3f616e9df45f052a8879fdbcae0c7  screenshots/stage3_07_wallet_b_annotated_in.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+76abb0dde0dd04706ae69d7cd682b97d76327d091f3ff5f0f7950d09f40d5c73  screenshots/stage3_08_direct_route_txid.png  |  node scripts/testnet_stage3_explorer_playwright.mjs
+
+
+

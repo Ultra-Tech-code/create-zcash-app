@@ -3,8 +3,22 @@ import { Command } from 'commander';
 import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { spawn, execSync } from 'child_process';
 import { createClient, dev, accountFromMnemonic, KNOWN_TEST_MNEMONICS } from '@zcash-app/sdk';
+import {
+  readZebraCookie,
+  buildTestnetLightwalletdArgs,
+  redactLightwalletdArgs,
+  TestnetLightwalletdOptions,
+} from './testnet-lightwalletd';
+
+export {
+  readZebraCookie,
+  buildTestnetLightwalletdArgs,
+  redactLightwalletdArgs,
+  TestnetLightwalletdOptions,
+};
 
 export function getRegtestAccount0MinerAddress(network: string = 'regtest-nu7'): string {
   if (network !== 'regtest' && network !== 'regtest-nu7') {
@@ -245,6 +259,64 @@ program
 
     child.on('exit', (code) => {
       process.exit(code ?? 0);
+    });
+  });
+
+const testnetCmd = program
+  .command('testnet')
+  .description('Testnet developer helper tools');
+
+testnetCmd
+  .command('lightwalletd')
+  .description('Start local testnet lightwalletd connected to local Zebra testnet node')
+  .option('--cookie-path <path>', 'Path to Zebra .cookie file', path.join(os.homedir(), 'Library/Caches/zebra/.cookie'))
+  .option('--binary <path>', 'Path to lightwalletd binary', process.env.LIGHTWALLETD_PATH || '/tmp/lightwalletd')
+  .option('--rpchost <host>', 'Zebra testnet RPC host', '127.0.0.1')
+  .option('--rpcport <port>', 'Zebra testnet RPC port', '18232')
+  .option('--grpc-bind-addr <addr>', 'gRPC bind address', '127.0.0.1:39167')
+  .option('--http-bind-addr <addr>', 'HTTP bind address', '127.0.0.1:39168')
+  .option('--data-dir <dir>', 'Lightwalletd cache/data dir', path.join(os.homedir(), '.zcash-app-testnet/lightwalletd-data'))
+  .option('--dry-run', 'Validate configuration and build arguments without launching process')
+  .action(async (options) => {
+    const cookieDisplay = options.cookiePath.replace(os.homedir(), '~');
+    console.log(`Reading Zebra RPC cookie from ${cookieDisplay}...`);
+    const { user, token } = readZebraCookie(options.cookiePath);
+    console.log(`Loaded RPC credentials for user '${user}'.`);
+    console.log('Notice: The cookie token changes whenever your Zebra node restarts.');
+
+    const args = buildTestnetLightwalletdArgs({
+      rpcHost: options.rpchost,
+      rpcPort: options.rpcport,
+      cookieUser: user,
+      cookieToken: token,
+      grpcBind: options.grpcBindAddr,
+      httpBind: options.httpBindAddr,
+      dataDir: options.dataDir,
+    });
+
+    const redacted = redactLightwalletdArgs(args, token);
+    console.log('Lightwalletd v0.6.0 command arguments (token redacted):');
+    console.log(`  ${redacted.join(' ')}`);
+
+    if (options.dryRun) {
+      console.log('Dry-run complete. Lightwalletd process was not started.');
+      return;
+    }
+
+    const binary = options.binary;
+    if (!fs.existsSync(binary)) {
+      console.error(`Error: lightwalletd binary not found at ${binary}`);
+      process.exit(1);
+    }
+
+    if (!fs.existsSync(options.dataDir)) {
+      fs.mkdirSync(options.dataDir, { recursive: true });
+    }
+
+    console.log(`Starting lightwalletd from ${binary}...`);
+    const child = spawn(binary, args, { stdio: 'inherit' });
+    child.on('exit', (code) => {
+      console.log(`Lightwalletd exited with code ${code}`);
     });
   });
 

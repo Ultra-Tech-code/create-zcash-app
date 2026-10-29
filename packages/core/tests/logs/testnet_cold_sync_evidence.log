@@ -1,0 +1,32 @@
+========================================================================
+COLD SYNC MEASUREMENT FROM REAL BIRTHDAY (NO TREE SEEDING)
+========================================================================
+Execution Time:  2026-10-28T09:34:55.462Z
+Live Endpoint:   https://testnet.zec.rocks:443
+Birthday Height: 4542200
+Target Height:   4542241
+Block Range:     42 blocks (4542200 to 4542241)
+Tree Seeding:    DISABLED (Completely unseeded fresh database)
+========================================================================
+
+Initialized fresh unseeded database: /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/zcash_cold_sync_B3aWd8/wallet_cold.db
+Starting cold sync from height 4542200 to target 4542241...
+[Sync] (https://testnet.zec.rocks:443) (third-party server) Starting sync from height 4542200 to target 4542241 (tip: 4550469, batch size: 50, throttle: 50ms)...
+
+========================================================================
+COLD SYNC RESULTS & DURATION REPORT
+========================================================================
+Elapsed Duration:    0.85s (853 ms)
+Blocks Requested:    42
+Outcome:             FAILED / BLOCKED
+Failure Reason:      Tree size gap at height 4542200: expected 0, actual 758992
+
+Honest Architectural Analysis:
+  The Zebra / lightwalletd ShardTree scanner verifies commitment tree size continuity.
+  At testnet block 4542200, the Orchard/Ironwood tree has 758,992 commitments.
+  A cold, unseeded database starts with tree size 0, triggering an expected tree size gap
+  ("expected 0, actual 758992") unless commitments are scanned continuously from activation
+  (block 2) or the tree state is initialized via GetTreeState.
+  Scanning from activation (4.5M blocks) at public lightwalletd rates (~20 blocks/s)
+  would require ~225,000 seconds (over 62 hours), which is prohibitively slow for dashboard cold start.
+========================================================================

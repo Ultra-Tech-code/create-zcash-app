@@ -15,7 +15,11 @@ export declare class WalletHandle {
    * Opens or initializes a wallet database file with strict 0700/0600 permissions,
    * WAL mode, busy_timeout=5000ms, and starts background proving key warm-up.
    */
-  static open(dbPath: string, networkStr: string, ufvkStr: string, accountId?: string | undefined | null): WalletHandle
+  static open(dbPath: string, networkStr: string, ufvkStr: string, accountId?: string | undefined | null, birthday?: number | undefined | null): WalletHandle
+  /** Returns the Unified Full Viewing Key string for this wallet. */
+  get ufvk(): string
+  /** Returns the network string for this wallet. */
+  get network(): string
   /** Asynchronously scans a batch of raw CompactBlock protobuf buffers off the main Node.js event loop. */
   scanBlocks(rawBlocks: Array<Buffer>): Promise<unknown>
   /** Returns a comprehensive balance and sync status summary. */
@@ -44,6 +48,30 @@ export declare class WalletHandle {
   getTreeRoot(depth?: number | undefined | null): Buffer | null
   /** Looks up a received note by its 32-byte commitment hex (cmx). */
   getNoteByCmx(cmxHex: string): JsSpendableNote | null
+  /** Upserts a decrypted transaction record into wallet_transactions idempotently. */
+  upsertWalletTransaction(txid: string, actionIndex: number, height: number, direction: string, value: number, fee: number | undefined | null, memo: string | undefined | null, counterparty: string | undefined | null, pool: string): void
+  /** Queries persisted wallet_transactions ordered by block height descending. */
+  getWalletTransactions(limit?: number | undefined | null, offset?: number | undefined | null): Array<JsPersistedTransaction>
+  /** Returns all distinct transaction IDs (and their heights) that touched the wallet in the given block range. */
+  getTouchedTransactions(minHeight: number, maxHeight: number): Array<JsTouchedTx>
+  /** Records a transaction fetch attempt in the persistent retry queue. */
+  recordTxFetchAttempt(txid: string, height: number, status: string, error?: string | undefined | null): void
+  /** Returns counts of pending and failed transaction fetches. */
+  getTxFetchCounts(): JsTxFetchStatus
+  /** Deletes wallet_transactions rows at height >= from_height (e.g. on chain reorganization). */
+  deleteWalletTransactionsFromHeight(fromHeight: number): number
+  /** Checks whether the wallet's commitment tree is empty (no checkpoints and no scanned blocks). */
+  isTreeEmpty(): boolean
+  /**
+   * Initializes the commitment tree frontier from a machine-captured or lightwalletd GetTreeState
+   * frontier hex at height B - 1, and verifies that the parsed tree size equals expected_tree_size
+   * (the CompactBlock ironwoodCommitmentTreeSize at B - 1).
+   *
+   * Inserts the starting checkpoint into ShardTree and records the checkpoint block in scanned_blocks.
+   * This operation is idempotent: if the tree is already initialized at this height with the matching
+   * tree size and root, it returns Ok with `already_initialized: true`.
+   */
+  initTreeFrontier(height: number, frontierHex: string, expectedTreeSize: number, blockHash?: Buffer | undefined | null): JsTreeFrontierInitResult
 }
 
 /**
@@ -51,6 +79,8 @@ export declare class WalletHandle {
  * and returns its 32-byte Merkle root hex.
  */
 export declare function decodeIronwoodFrontierRoot(frontierHex: string): string
+
+export declare function decodeTransaction(rawTxBytes: Buffer, networkStr?: string | undefined | null, height?: number | undefined | null): JsDecodedTransaction
 
 export interface DecryptedNote {
   pool: string
@@ -61,6 +91,8 @@ export interface DecryptedNote {
   rho: string
   rseed: string
 }
+
+export declare function decryptTransaction(ufvkStr: string, networkStr: string, rawTxBytes: Buffer, height: number): JsDecryptedTransactionResult
 
 export declare function deriveAccountFromMnemonic(mnemonicStr: string, accountIndex: number, networkStr: string): DerivedAccount
 
@@ -78,6 +110,8 @@ export declare function getAddressFromUfvk(ufvkStr: string, networkStr: string, 
 export declare function getDefaultTxExpiryDelta(networkStr: string, height: number): number
 
 export declare function getExpectedBranchId(networkStr: string, height: number): string
+
+export declare function getTransparentAddressFromUfvk(ufvkStr: string, networkStr: string): string | null
 
 /**
  * Returns the 32-byte Merkle root hex of the empty Ironwood commitment tree.
@@ -109,6 +143,84 @@ export interface JsBuiltTransaction {
   expiryHeight: number
 }
 
+export interface JsDecodedActionCounts {
+  transparentInputs: number
+  transparentOutputs: number
+  saplingSpends: number
+  saplingOutputs: number
+  orchardActions: number
+  ironwoodActions: number
+}
+
+export interface JsDecodedAnchorPair {
+  walletOrchardOrder: string
+  zebraRpcOrder: string
+}
+
+export interface JsDecodedAnchors {
+  sapling?: JsDecodedAnchorPair
+  orchard?: JsDecodedAnchorPair
+  ironwood?: JsDecodedAnchorPair
+}
+
+export interface JsDecodedTransaction {
+  txid: string
+  version: number
+  consensusBranchId: string
+  expiryHeight: number
+  fee?: number
+  pools: Array<string>
+  actionCounts: JsDecodedActionCounts
+  anchors: JsDecodedAnchors
+  nullifiers: Array<string>
+  noteCommitments: Array<string>
+  size: number
+}
+
+export interface JsDecryptedActionIncoming {
+  actionIndex: number
+  value: number
+  memo: JsDecryptedMemo
+  recipient: string
+  isChange: boolean
+  isInternal: boolean
+}
+
+export interface JsDecryptedActionOutgoing {
+  actionIndex: number
+  value: number
+  memo: JsDecryptedMemo
+  recipient: string
+}
+
+export interface JsDecryptedMemo {
+  text?: string
+  hex: string
+}
+
+export interface JsDecryptedTransactionResult {
+  txid: string
+  fee?: number
+  expiryHeight: number
+  consensusBranchId: string
+  incoming: Array<JsDecryptedActionIncoming>
+  outgoing: Array<JsDecryptedActionOutgoing>
+}
+
+export interface JsPersistedTransaction {
+  id: number
+  txid: string
+  actionIndex: number
+  height: number
+  direction: string
+  value: number
+  fee?: number
+  memo?: string
+  counterparty?: string
+  pool: string
+  createdAt: number
+}
+
 export interface JsScanResult {
   status: string
   lastScannedHeight: number
@@ -124,6 +236,23 @@ export interface JsSpendableNote {
   nullifier: string
   height: number
   treePosition: number
+}
+
+export interface JsTouchedTx {
+  txidBytes: Buffer
+  height: number
+}
+
+export interface JsTreeFrontierInitResult {
+  height: number
+  treeSize: number
+  rootHex: string
+  alreadyInitialized: boolean
+}
+
+export interface JsTxFetchStatus {
+  pendingCount: number
+  failedCount: number
 }
 
 /** Returns the conventional ZIP 317 fee for a transaction with the given number of actions. */

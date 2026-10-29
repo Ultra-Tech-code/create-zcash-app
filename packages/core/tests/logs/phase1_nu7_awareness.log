@@ -1,0 +1,88 @@
+================================================================
+ PHASE 1.1 - NU7 AWARENESS, GUARDS & DASHBOARD FIXES TEST SUITE
+================================================================
+Timestamp: 2026-10-27T22:37:48.927Z
+Base URL:  http://127.0.0.1:3050
+
+--- 1. SDK Consensus Helper Tests ---
+[PASS] NU7 branch ID mapping -> 77190ad9 -> NU7
+[PASS] NU7 with 0x prefix -> 0x77190ad9 -> NU7
+[PASS] NU7 uppercase -> 0X77190AD9 -> NU7
+[PASS] NU7 numeric form -> 0x77190ad9 -> NU7
+[PASS] NU6.3 branch ID mapping -> 37a5165b -> NU6.3
+[PASS] NU6.3 with 0x prefix -> 0x37a5165b -> NU6.3
+[PASS] NU6 branch ID mapping -> c8e71055 -> NU6
+[PASS] NU5 branch ID mapping -> c2d6d0b4 -> NU5
+[PASS] Canopy branch ID mapping -> e9ff75a6 -> Canopy
+[PASS] Heartwood branch ID mapping -> f5b9230b -> Heartwood
+[PASS] Blossom branch ID mapping -> 2bb40e60 -> Blossom
+[PASS] Sapling branch ID mapping -> 76b809bb -> Sapling
+[PASS] Overwinter branch ID mapping -> 5ba81b19 -> Overwinter
+[PASS] Sprout branch ID mapping -> 00000000 -> Sprout
+[PASS] Unknown branch ID fallback -> deadbeef -> Unknown (0xdeadbeef)
+[PASS] Unknown branch ID with 0x prefix -> 0x12345678 -> Unknown (0x12345678)
+[PASS] Empty / null branch ID handling
+
+--- 2. Dashboard /api/status Preset Tests ---
+[PASS] Preset 'regtest-nu7' status success -> status: 200, endpoint: 127.0.0.1:39067
+[PASS] Preset 'regtest-nu7' network matches -> network: regtest
+[PASS] Preset 'regtest-nu7' consensus branch matches -> branch: 0x77190ad9
+[PASS] Preset 'regtest-nu7' upgradeName matches node -> upgradeName: NU7
+[PASS] Preset 'regtest-nu7' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'regtest-z3' status success -> status: 200, endpoint: 127.0.0.1:28137
+[PASS] Preset 'regtest-z3' network matches -> network: regtest
+[PASS] Preset 'regtest-z3' consensus branch matches -> branch: 0x37a5165b
+[PASS] Preset 'regtest-z3' upgradeName matches node -> upgradeName: NU6.3
+[PASS] Preset 'regtest-z3' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'testnet' status success -> status: 200, endpoint: testnet.zec.rocks:443
+[PASS] Preset 'testnet' network matches -> network: testnet
+[PASS] Preset 'testnet' consensus branch matches -> branch: 0x77190ad9
+[PASS] Preset 'testnet' upgradeName matches node -> upgradeName: NU7
+[PASS] Preset 'testnet' branchMatches verification flag -> branchMatches: true
+[PASS] Preset 'testnet-local' response handled gracefully -> Offline or unreachable: 14 UNAVAILABLE: No connection established. Last error: null. Resolution note: 
+[PASS] Preset 'mainnet' status success -> status: 200, endpoint: zec.rocks:443
+[PASS] Preset 'mainnet' network matches -> network: mainnet
+
+--- 3. Chain Name Guard Tests (regtest-vs-testnet) ---
+[PASS] Chain Guard: Detects regtest node when testnet selected
+[PASS] Chain Guard: Sets branchMatches to false on chain mismatch
+[PASS] Chain Guard: Formats mismatch message with detection signal for regtest node -> You selected testnet but this node reports chain 'test' (height 113). Sapling activates at height 1, so this is a regtest node. Pick the matching preset.
+[PASS] Chain Guard: Detects testnet node when regtest selected
+[PASS] Chain Guard: Sets branchMatches to false on testnet node mismatch
+[PASS] Chain Guard: Formats mismatch message with detection signal for testnet node -> You selected regtest but this node reports chain 'test' (height 4548906). Sapling activates at height 280000, so this is a testnet node. Pick the matching preset.
+
+--- 4. Watch-Only Fixture Refusal Tests ---
+[PASS] SDK Refusal: dev.fixtures.account strictly refuses testnet
+[PASS] SDK Refusal: dev.fixtures.account strictly refuses mainnet
+[PASS] /api/account: Testnet is marked isWatchOnly
+[PASS] /api/account: Testnet fixture UA is refused (null)
+[PASS] /api/account: Testnet fixture UFVK is refused (null)
+[PASS] /api/account: Testnet status is ready (watch-only)
+[PASS] /api/account: Testnet message explains watch-only & fixture refusal -> Testnet is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.
+[PASS] /api/account: Mainnet is marked isWatchOnly
+[PASS] /api/account: Mainnet fixture UA is refused (null)
+[PASS] /api/account: Mainnet fixture UFVK is refused (null)
+[PASS] /api/account: Mainnet message explains watch-only & fixture refusal -> Mainnet is watch-only in this dashboard. Public fixture mnemonics are refused. Paste a Unified Full Viewing Key (UFVK) to view account history.
+
+--- 5. /api/account Error Surfacing (No Silent Zeros) ---
+[PASS] /api/account: Offline node returns status "error" -> status: error
+[PASS] /api/account: Offline node returns success false
+[PASS] /api/account: Offline node message describes connection failure -> Failed to query node on 127.0.0.1:59999: 14 UNAVAILABLE: No connection established. Last error: null. Resolution note: 
+[PASS] /api/account: Balances are null on error (NO silent zeros) -> balances: null
+
+--- 6. Regtest NU7 Faucet Mining Test ---
+[PASS] NU7 Regtest mine 1 block call -> rpcUrl: http://127.0.0.1:39232
+[PASS] NU7 Regtest mine RPC targeted 39232 -> Targeted port 39232
+[PASS] NU7 Regtest block hash returned -> block: 56f1ad3448f4b780...
+
+--- 7. Local Testnet Lightwalletd Helper Checks ---
+[PASS] Helper: Builds 39167 gRPC port default
+[PASS] Helper: Builds 39168 HTTP port default
+[PASS] Helper: Builds 18232 RPC port default
+[PASS] Helper: Includes --no-tls-very-insecure flag
+[PASS] Helper: Redaction removes cookie token completely
+
+================================================================
+ Summary: 64 / 64 checks passed.
+================================================================
+

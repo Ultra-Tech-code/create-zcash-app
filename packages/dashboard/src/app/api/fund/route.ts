@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient, dev } from '@zcash-app/sdk';
+import { verifySameOrigin } from '../../security';
 
 export async function POST(request: Request) {
+  const originError = verifySameOrigin(request);
+  if (originError) return originError;
+
   try {
     const body = await request.json();
     const { address, amount = '1.0', endpoint = '127.0.0.1:28137' } = body;

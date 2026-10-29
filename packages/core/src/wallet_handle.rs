@@ -18,6 +18,9 @@ use zcash_primitives::transaction::fees::transparent::InputSize;
 use zcash_primitives::transaction::fees::zip317::FeeRule;
 use zcash_primitives::transaction::fees::FeeRule as _;
 
+use rusqlite::OptionalExtension;
+use zcash_protocol::consensus::BlockHeight;
+
 static GLOBAL_PROVING_KEY: OnceLock<ProvingKey> = OnceLock::new();
 
 /// Returns the shared Orchard circuit proving key, initializing it if not already built.
@@ -53,6 +56,14 @@ pub struct WalletSummary {
 }
 
 #[napi(object)]
+pub struct JsTreeFrontierInitResult {
+    pub height: u32,
+    pub tree_size: u32,
+    pub root_hex: String,
+    pub already_initialized: bool,
+}
+
+#[napi(object)]
 pub struct JsSpendableNote {
     pub id: i64,
     pub recipient: String,
@@ -60,6 +71,33 @@ pub struct JsSpendableNote {
     pub nullifier: String,
     pub height: u32,
     pub tree_position: i64,
+}
+
+#[napi(object)]
+pub struct JsPersistedTransaction {
+    pub id: i64,
+    pub txid: String,
+    pub action_index: u32,
+    pub height: u32,
+    pub direction: String,
+    pub value: i64,
+    pub fee: Option<i64>,
+    pub memo: Option<String>,
+    pub counterparty: Option<String>,
+    pub pool: String,
+    pub created_at: i64,
+}
+
+#[napi(object)]
+pub struct JsTouchedTx {
+    pub txid_bytes: Buffer,
+    pub height: u32,
+}
+
+#[napi(object)]
+pub struct JsTxFetchStatus {
+    pub pending_count: u32,
+    pub failed_count: u32,
 }
 
 pub struct ScanTask {
@@ -312,6 +350,8 @@ pub struct WalletHandle {
     account_id: String,
     fvk: FullViewingKey,
     network: DynamicNetwork,
+    ufvk_str: String,
+    network_str: String,
 }
 
 #[napi]
@@ -324,6 +364,7 @@ impl WalletHandle {
         network_str: String,
         ufvk_str: String,
         account_id: Option<String>,
+        birthday: Option<u32>,
     ) -> Result<Self> {
         let network = match network_str.to_lowercase().as_str() {
             "main" | "mainnet" => DynamicNetwork::Main(zcash_protocol::consensus::Network::MainNetwork),
@@ -343,12 +384,13 @@ impl WalletHandle {
         let ufvk_fingerprint = hex::encode(fvk.to_bytes());
         let activation_h = get_nu6_3_activation_height(&network_str)
             .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        let birthday_h = birthday.unwrap_or(activation_h);
 
         let db = WalletDb::open_or_create(
             Path::new(&db_path),
             &network_str,
             &ufvk_fingerprint,
-            Some(activation_h),
+            Some(birthday_h),
         )
         .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
 
@@ -362,7 +404,21 @@ impl WalletHandle {
             account_id: acct,
             fvk,
             network,
+            ufvk_str,
+            network_str,
         })
+    }
+
+    /// Returns the Unified Full Viewing Key string for this wallet.
+    #[napi(getter)]
+    pub fn ufvk(&self) -> String {
+        self.ufvk_str.clone()
+    }
+
+    /// Returns the network string for this wallet.
+    #[napi(getter)]
+    pub fn network(&self) -> String {
+        self.network_str.clone()
     }
 
     /// Asynchronously scans a batch of raw CompactBlock protobuf buffers off the main Node.js event loop.
@@ -711,6 +767,321 @@ impl WalletHandle {
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
             Err(e) => Err(Error::new(Status::GenericFailure, e.to_string())),
         }
+    }
+
+    /// Upserts a decrypted transaction record into wallet_transactions idempotently.
+    #[napi]
+    #[allow(clippy::too_many_arguments)]
+    pub fn upsert_wallet_transaction(
+        &self,
+        txid: String,
+        action_index: u32,
+        height: u32,
+        direction: String,
+        value: i64,
+        fee: Option<i64>,
+        memo: Option<String>,
+        counterparty: Option<String>,
+        pool: String,
+    ) -> Result<()> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn();
+        conn.execute(
+            "INSERT INTO wallet_transactions (
+                txid, action_index, height, direction, value, fee, memo, counterparty, pool, created_at
+            ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, unixepoch())
+            ON CONFLICT(txid, action_index, direction) DO UPDATE SET
+                height = excluded.height,
+                value = excluded.value,
+                fee = excluded.fee,
+                memo = excluded.memo,
+                counterparty = excluded.counterparty,
+                pool = excluded.pool",
+            rusqlite::params![
+                txid,
+                action_index,
+                height,
+                direction,
+                value,
+                fee,
+                memo,
+                counterparty,
+                pool,
+            ],
+        ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to upsert wallet transaction: {}", e)))?;
+        Ok(())
+    }
+
+    /// Queries persisted wallet_transactions ordered by block height descending.
+    #[napi]
+    pub fn get_wallet_transactions(
+        &self,
+        limit: Option<u32>,
+        offset: Option<u32>,
+    ) -> Result<Vec<JsPersistedTransaction>> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn();
+        let lim = limit.unwrap_or(100);
+        let off = offset.unwrap_or(0);
+
+        let mut stmt = conn.prepare(
+            "SELECT id, txid, action_index, height, direction, value, fee, memo, counterparty, pool, created_at
+             FROM wallet_transactions
+             ORDER BY height DESC, id DESC
+             LIMIT ?1 OFFSET ?2"
+        ).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+        let rows = stmt.query_map(rusqlite::params![lim, off], |row| {
+            Ok(JsPersistedTransaction {
+                id: row.get(0)?,
+                txid: row.get(1)?,
+                action_index: row.get(2)?,
+                height: row.get(3)?,
+                direction: row.get(4)?,
+                value: row.get(5)?,
+                fee: row.get(6)?,
+                memo: row.get(7)?,
+                counterparty: row.get(8)?,
+                pool: row.get(9)?,
+                created_at: row.get(10)?,
+            })
+        }).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+        let mut txs = Vec::new();
+        for r in rows {
+            txs.push(r.map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?);
+        }
+        Ok(txs)
+    }
+
+    /// Returns all distinct transaction IDs (and their heights) that touched the wallet in the given block range.
+    #[napi]
+    pub fn get_touched_transactions(&self, min_height: u32, max_height: u32) -> Result<Vec<JsTouchedTx>> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn();
+
+        let mut stmt = conn.prepare(
+            "SELECT DISTINCT txid, height FROM (
+                SELECT txid, height FROM received_notes WHERE height >= ?1 AND height <= ?2
+                UNION
+                SELECT spent_in_txid AS txid, spent_at_height AS height FROM received_notes 
+                WHERE spent_at_height >= ?1 AND spent_at_height <= ?2 AND spent_in_txid IS NOT NULL
+             ) WHERE txid IS NOT NULL"
+        ).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+        let rows = stmt.query_map(rusqlite::params![min_height, max_height], |row| {
+            let txid_bytes: Vec<u8> = row.get(0)?;
+            let height: u32 = row.get(1)?;
+            Ok(JsTouchedTx {
+                txid_bytes: Buffer::from(txid_bytes),
+                height,
+            })
+        }).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+
+        let mut touched = Vec::new();
+        for r in rows {
+            touched.push(r.map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?);
+        }
+        Ok(touched)
+    }
+
+    /// Records a transaction fetch attempt in the persistent retry queue.
+    #[napi]
+    pub fn record_tx_fetch_attempt(&self, txid: String, height: u32, status: String, error: Option<String>) -> Result<()> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn();
+        conn.execute(
+            "INSERT INTO tx_fetch_queue (txid, height, status, attempts, last_error, updated_at)
+             VALUES (?1, ?2, ?3, 1, ?4, unixepoch())
+             ON CONFLICT(txid) DO UPDATE SET
+                 status = excluded.status,
+                 attempts = tx_fetch_queue.attempts + 1,
+                 last_error = excluded.last_error,
+                 updated_at = excluded.updated_at",
+            rusqlite::params![txid, height, status, error],
+        ).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        Ok(())
+    }
+
+    /// Returns counts of pending and failed transaction fetches.
+    #[napi]
+    pub fn get_tx_fetch_counts(&self) -> Result<JsTxFetchStatus> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let conn = db_guard.conn();
+        let pending: u32 = conn.query_row(
+            "SELECT COUNT(*) FROM tx_fetch_queue WHERE status = 'pending'",
+            [],
+            |r| r.get(0),
+        ).unwrap_or(0);
+        let failed: u32 = conn.query_row(
+            "SELECT COUNT(*) FROM tx_fetch_queue WHERE status = 'failed'",
+            [],
+            |r| r.get(0),
+        ).unwrap_or(0);
+        Ok(JsTxFetchStatus {
+            pending_count: pending,
+            failed_count: failed,
+        })
+    }
+
+    /// Deletes wallet_transactions rows at height >= from_height (e.g. on chain reorganization).
+    #[napi]
+    pub fn delete_wallet_transactions_from_height(&self, from_height: u32) -> Result<u32> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let count = db_guard.conn().execute(
+            "DELETE FROM wallet_transactions WHERE height >= ?1",
+            rusqlite::params![from_height as i64],
+        ).map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?;
+        Ok(count as u32)
+    }
+
+    /// Checks whether the wallet's commitment tree is empty (no checkpoints and no scanned blocks).
+    #[napi]
+    pub fn is_tree_empty(&self) -> Result<bool> {
+        let db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {}", e)))?;
+        let count: i64 = db_guard.conn()
+            .query_row("SELECT COUNT(*) FROM ironwood_tree_checkpoints", [], |r| r.get(0))
+            .unwrap_or(0);
+        let scanned_count: i64 = db_guard.conn()
+            .query_row("SELECT COUNT(*) FROM scanned_blocks", [], |r| r.get(0))
+            .unwrap_or(0);
+        Ok(count == 0 && scanned_count == 0)
+    }
+
+    /// Initializes the commitment tree frontier from a machine-captured or lightwalletd GetTreeState
+    /// frontier hex at height B - 1, and verifies that the parsed tree size equals expected_tree_size
+    /// (the CompactBlock ironwoodCommitmentTreeSize at B - 1).
+    ///
+    /// Inserts the starting checkpoint into ShardTree and records the checkpoint block in scanned_blocks.
+    /// This operation is idempotent: if the tree is already initialized at this height with the matching
+    /// tree size and root, it returns Ok with `already_initialized: true`.
+    #[napi]
+    pub fn init_tree_frontier(
+        &self,
+        height: u32,
+        frontier_hex: String,
+        expected_tree_size: u32,
+        block_hash: Option<Buffer>,
+    ) -> Result<JsTreeFrontierInitResult> {
+        let trimmed_hex = frontier_hex.trim();
+        if trimmed_hex.is_empty() {
+            return Err(Error::new(
+                Status::InvalidArg,
+                format!("Ironwood frontier field is empty or missing at height {height}"),
+            ));
+        }
+
+        let mut db_guard = self.db.lock()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("DB lock error: {e}")))?;
+
+        // Idempotency check: see if scanned_blocks already has a record at this height
+        let existing: Option<(i64, Vec<u8>)> = db_guard.conn().query_row(
+            "SELECT tree_size, block_hash FROM scanned_blocks WHERE height = ?1",
+            rusqlite::params![height as i64],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        ).optional().map_err(|e| Error::new(Status::GenericFailure, format!("DB query error: {e}")))?;
+
+        if let Some((existing_sz, _)) = existing {
+            if existing_sz as u32 == expected_tree_size {
+                let store = crate::shard_store::SqliteShardStore::new(db_guard.conn(), "ironwood_tree");
+                let shard_tree = crate::IronwoodShardTree::new(store, 100);
+                if let Ok(Some(root)) = shard_tree.root_at_checkpoint_id(&BlockHeight::from_u32(height)) {
+                    return Ok(JsTreeFrontierInitResult {
+                        height,
+                        tree_size: expected_tree_size,
+                        root_hex: hex::encode(root.to_bytes()),
+                        already_initialized: true,
+                    });
+                }
+            }
+        }
+
+        // Parse frontier bytes
+        let bytes = hex::decode(trimmed_hex)
+            .map_err(|e| Error::new(Status::InvalidArg, format!("Invalid frontier hex encoding at height {height}: {e}")))?;
+
+        let (parsed_size, frontier, root_hex) = if bytes.is_empty() || trimmed_hex == "000000" {
+            if expected_tree_size > 0 {
+                return Err(Error::new(
+                    Status::InvalidArg,
+                    format!("Ironwood frontier is empty (zero bytes) but expected tree size is {expected_tree_size} at height {height}"),
+                ));
+            }
+            (0u32, incrementalmerkletree::frontier::Frontier::empty(), hex::encode(orchard::Anchor::empty_tree().to_bytes()))
+        } else {
+            let tree = zcash_primitives::merkle_tree::read_commitment_tree::<orchard::tree::MerkleHashOrchard, _, 32>(&bytes[..])
+                .map_err(|e| Error::new(Status::InvalidArg, format!("Failed to parse Ironwood commitment tree frontier at height {height}: {e}")))?;
+            let size = tree.size() as u32;
+            if size != expected_tree_size {
+                return Err(Error::new(
+                    Status::InvalidArg,
+                    format!(
+                        "Tree size mismatch at height {height}: parsed frontier size {size} does not equal CompactBlock ironwoodCommitmentTreeSize {expected_tree_size}"
+                    ),
+                ));
+            }
+            let root_anchor: orchard::Anchor = tree.root().into();
+            (size, tree.to_frontier(), hex::encode(root_anchor.to_bytes()))
+        };
+
+        // Insert into ShardTree and scanned_blocks atomically
+        let tx = db_guard.conn_mut().transaction()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to start transaction: {e}")))?;
+
+        {
+            let store = crate::shard_store::SqliteShardStore::new(&tx, "ironwood_tree");
+            let mut shard_tree = crate::IronwoodShardTree::new(store, 100);
+            shard_tree.insert_frontier(
+                frontier,
+                incrementalmerkletree::Retention::Checkpoint {
+                    id: BlockHeight::from_u32(height),
+                    marking: incrementalmerkletree::Marking::None,
+                },
+            ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to insert frontier into ShardTree: {e:?}")))?;
+        }
+
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))?
+            .as_secs() as i64;
+        let hash_bytes = match block_hash {
+            Some(ref buf) => buf.to_vec(),
+            None => vec![0u8; 32],
+        };
+
+        tx.execute(
+            "INSERT OR REPLACE INTO scanned_blocks (height, block_hash, prev_hash, tree_size, scanned_at)
+             VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![
+                height as i64,
+                &hash_bytes,
+                &vec![0u8; 32],
+                parsed_size as i64,
+                now,
+            ],
+        ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to insert scanned_block checkpoint: {e}")))?;
+
+        tx.execute(
+            "INSERT OR IGNORE INTO wallet_metadata (key, value) VALUES ('first_scanned_height', ?1)",
+            rusqlite::params![(height + 1).to_string()],
+        ).map_err(|e| Error::new(Status::GenericFailure, format!("Failed to update wallet_metadata: {e}")))?;
+
+        tx.commit()
+            .map_err(|e| Error::new(Status::GenericFailure, format!("Failed to commit frontier transaction: {e}")))?;
+
+        Ok(JsTreeFrontierInitResult {
+            height,
+            tree_size: parsed_size,
+            root_hex,
+            already_initialized: false,
+        })
     }
 }
 

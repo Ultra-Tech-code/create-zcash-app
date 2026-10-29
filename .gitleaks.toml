@@ -10,6 +10,13 @@ description = "QuickNode RPC URL with secret endpoint token"
 regex = '''https://[a-zA-Z0-9.-]+\.(?:quiknode\.pro|discover\.quiknode\.pro|quicknode\.com)/[a-zA-Z0-9_-]{8,}'''
 secretGroup = 0
 
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+paths = [
+    '''packages/dev/test/testnet-lightwalletd\.test\.mjs'''
+]
+
 [allowlist]
 description = "Ignore test fixtures, test log traces, and mock commitment roots in test suites"
 paths = [
@@ -18,3 +25,4 @@ paths = [
     '''packages/core/tests/fixtures/.*''',
     '''packages/core/tests/logs/.*'''
 ]
+

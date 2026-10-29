@@ -30,4 +30,12 @@ describe('Mainnet Guard & Shared Fixture Mnemonics', () => {
       }).toThrow(/Test fixture mnemonics are publicly known and strictly prohibited on mainnet/);
     }
   });
+
+  it('rejects fixture accounts on testnet via dev.fixtures.account (watch-only policy)', () => {
+    for (let i = 0; i < KNOWN_TEST_MNEMONICS.length; i++) {
+      expect(() => {
+        dev.fixtures.account(i, 'testnet');
+      }).toThrow(/Test fixture mnemonics are publicly known and strictly prohibited on testnet/);
+    }
+  });
 });

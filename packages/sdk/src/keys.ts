@@ -26,6 +26,10 @@ export function accountFromMnemonic(
     getUnifiedAddress(diversifierIndex?: number): string {
       return core.getAddressFromUfvk(derived.ufvk, network, diversifierIndex);
     },
+    getTransparentAddress(): string | undefined {
+      const t = (core as any).getTransparentAddressFromUfvk(derived.ufvk, network);
+      return t || undefined;
+    },
     getUnifiedFullViewingKey(): Ufvk {
       return derived.ufvk;
     },
@@ -44,6 +48,10 @@ export function accountFromUfvk(
     },
     getUnifiedAddress(diversifierIndex?: number): string {
       return core.getAddressFromUfvk(ufvk, network, diversifierIndex);
+    },
+    getTransparentAddress(): string | undefined {
+      const t = (core as any).getTransparentAddressFromUfvk(ufvk, network);
+      return t || undefined;
     },
     network,
   };

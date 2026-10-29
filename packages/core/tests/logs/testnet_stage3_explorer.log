@@ -1,0 +1,89 @@
+========================================================================
+PHASE 3: PLAYWRIGHT TEST SUITE — BLOCKCHAIN EXPLORER
+========================================================================
+Execution Time:  2026-10-29T16:20:55.964Z
+Dashboard URL:   http://127.0.0.1:3050
+Target TxID:     8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+Target Block:    Height 4542240 | Hash 00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e
+Screenshots Dir: packages/core/tests/logs/screenshots/
+========================================================================
+
+[0/8] Loading testnet account keys into memory (unlogged)...
+  ✓ Keys derived into memory. UFVKs are strictly guarded and never output.
+
+  ✓ Existing dashboard server detected and responding.
+
+[1/8] Launching headless browser (Google Chrome)...
+[2/8] Navigating to dashboard: http://127.0.0.1:3050/?preset=testnet...
+  Navigating to Explorer Tab...
+  ✓ Explorer tab open and input ready.
+
+[3/8] Scenario 1: Bad input validation...
+  ✓ Error correctly displayed: "⚠️
+Invalid format: Enter a 64-character transaction ID / block hash or a block height"
+  📸 Screenshot saved: stage3_01_bad_input.png
+
+[4/8] Scenario 2: Not found query...
+  ✓ Error correctly displayed: "⚠️
+Transaction or block not found"
+  📸 Screenshot saved: stage3_02_not_found.png
+
+[5/8] Scenario 3: Transaction by ID (Explorer Order)...
+  Match Feedback:                        ✓ MATCHED: TRANSACTION
+  Network Upgrade:                       NU7
+  Consensus Branch:                      0x77190ad9 (NU7)
+  Expiry Height:                         #4542278
+  Ironwood Actions:                      2
+  Ironwood Anchor (wallet/Orchard order): 92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f
+  Ironwood Anchor (Zebra RPC order):     3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892
+  Transaction Fee:                       0.00010000 ZEC (10000 zat)
+  ✓ Verified: Transaction decoded locally via Core NAPI matching summary.json evidence.
+  ✓ Verified: Anchors displayed in both wallet/Orchard (64-hex) and Zebra RPC (64-hex) byte orders.
+  ✓ Verified: Shielded fee computed as 10,000 zatoshis (0.00010000 ZEC), feeUnknown: false.
+  📸 Screenshot saved: stage3_03_tx_by_id.png
+
+[6/8] Scenario 4: Block by height (4542240)...
+  Match Feedback:     ✓ MATCHED: BLOCK
+  Block Height:       #4542240
+  Block Hash:         00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e
+  Ironwood Tree Size: 759043
+  ✓ Block contains tx 8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
+  📸 Screenshot saved: stage3_04_block_by_height.png
+
+[7/8] Scenario 5: Block by hash (00005c49b2e5...)...
+  Match Feedback:     ✓ MATCHED: BLOCK
+  Resolved Height:    #4542240
+  ✓ Ambiguous 64-hex starting with 0000 correctly resolved to Block.
+  📸 Screenshot saved: stage3_05_block_by_hash.png
+
+[8/8] Scenario 6: UFVK-annotated view for Wallet A (OUT)...
+  ✓ Wallet A key imported into session.
+  Ownership Badge:    🛡️ BELONGS TO YOU (OUTGOING)
+  Ownership Amount:   -0.01 ZEC
+  ✓ Confidentiality verified: Wallet A UFVK is NOT revealed in UI or DOM.
+  📸 Screenshot saved: stage3_06_wallet_a_annotated_out.png
+
+Scenario 7: UFVK-annotated view for Wallet B (IN)...
+  ✓ Wallet B key imported into session.
+  Ownership Badge:    🛡️ BELONGS TO YOU (INCOMING)
+  Ownership Amount:   +0.01 ZEC
+  ✓ Confidentiality verified: Wallet B UFVK is NOT revealed in UI or DOM.
+  📸 Screenshot saved: stage3_07_wallet_b_annotated_in.png
+
+Scenario 8: Direct route /explorer/[txid]...
+  ✓ Direct route loaded decoded tx view for 8ca516abc441e6b9...
+  📸 Screenshot saved: stage3_08_direct_route_txid.png
+
+========================================================================
+ALL 8 PLAYWRIGHT SCENARIOS COMPLETED AND VERIFIED SUCCESSFULLY!
+========================================================================
+
+Checksums for generated artifacts:
+  0357359161c6ff6a0c749bd9587cb8908cd0c62a74f7be59d1788e78982de04f  screenshots/stage3_01_bad_input.png
+  4af4d0670d1fa3706b0a8ffff7fea593f4b317a9f96e1d2f276cfe742b655d3a  screenshots/stage3_02_not_found.png
+  5477823f014ff972978c473bfaacf714595b7b5a8a95c943bc58143a1a8e72c8  screenshots/stage3_03_tx_by_id.png
+  b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/stage3_04_block_by_height.png
+  9a7fb0d7182f2beaedbedb954c9fc85552e60a374a4897b266131d36595fcd56  screenshots/stage3_05_block_by_hash.png
+  457ec2029638892bb51d684c7bdb5f4e6d9c7814609b4bbd66355e7264a23e9c  screenshots/stage3_06_wallet_a_annotated_out.png
+  805498088610844b1d2591e5322bf649a9f3f616e9df45f052a8879fdbcae0c7  screenshots/stage3_07_wallet_b_annotated_in.png
+  76abb0dde0dd04706ae69d7cd682b97d76327d091f3ff5f0f7950d09f40d5c73  screenshots/stage3_08_direct_route_txid.png

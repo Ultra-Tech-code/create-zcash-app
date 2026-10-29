@@ -70,6 +70,7 @@ fn test_wallet_handle_lifecycle_and_async_scan() {
         "regtest".to_string(),
         ufvk_str,
         Some("account0".to_string()),
+        None,
     ).expect("open wallet handle");
 
     let summary0 = wallet.get_wallet_summary().expect("summary0");

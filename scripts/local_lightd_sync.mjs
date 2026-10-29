@@ -31,8 +31,8 @@ const projectRoot = path.resolve(__dirname, '..');
 const COOKIE_PATH = path.join(os.homedir(), 'Library/Caches/zebra/.cookie');
 const ACCOUNTS_FILE = path.join(os.homedir(), '.zcash-app-testnet/accounts.json');
 const LOCAL_ZEBRA_RPC = 'http://127.0.0.1:18232';
-const LWD_GRPC_PORT = 39067;
-const LWD_HTTP_PORT = 39068;
+const LWD_GRPC_PORT = 39167;
+const LWD_HTTP_PORT = 39168;
 const LWD_GRPC_URL = `http://127.0.0.1:${LWD_GRPC_PORT}`;
 const LWD_BINARY = '/tmp/lightwalletd';
 const LWD_DATA_DIR = '/tmp/local_lwd_data';
@@ -195,7 +195,7 @@ async function main() {
   });
 
   // Poll for gRPC readiness
-  log('Waiting for local lightwalletd gRPC server readiness on port 39067...');
+  log(`Waiting for local lightwalletd gRPC server readiness on port ${LWD_GRPC_PORT}...`);
   const client = new ZcashClient({ endpoint: LWD_GRPC_URL, network: 'testnet' });
   let info = null;
   const startWait = Date.now();
