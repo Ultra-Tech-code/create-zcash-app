@@ -192,14 +192,18 @@ async function runStage3ExplorerPlaywright() {
     const branchId = await page.innerText('#explorer-branch-id');
     const expiryHeight = await page.innerText('#explorer-expiry-height');
     const ironwoodActions = await page.innerText('#explorer-ironwood-actions');
-    const anchorText = await page.innerText('#explorer-ironwood-anchor');
+    const anchorWallet = await page.innerText('#explorer-ironwood-anchor-wallet');
+    const anchorZebra = await page.innerText('#explorer-ironwood-anchor-zebra');
+    const feeDisplay = await page.innerText('#explorer-fee-display');
 
-    log(`  Match Feedback:     ${matchBadgeText.trim()}`);
-    log(`  Network Upgrade:    ${upgradeName.trim()}`);
-    log(`  Consensus Branch:   ${branchId.trim()}`);
-    log(`  Expiry Height:      ${expiryHeight.trim()}`);
-    log(`  Ironwood Actions:   ${ironwoodActions.trim()}`);
-    log(`  Ironwood Anchor:    ${anchorText.trim().slice(0, 16)}...`);
+    log(`  Match Feedback:                        ${matchBadgeText.trim()}`);
+    log(`  Network Upgrade:                       ${upgradeName.trim()}`);
+    log(`  Consensus Branch:                      ${branchId.trim()}`);
+    log(`  Expiry Height:                         ${expiryHeight.trim()}`);
+    log(`  Ironwood Actions:                      ${ironwoodActions.trim()}`);
+    log(`  Ironwood Anchor (wallet/Orchard order): ${anchorWallet.trim()}`);
+    log(`  Ironwood Anchor (Zebra RPC order):     ${anchorZebra.trim()}`);
+    log(`  Transaction Fee:                       ${feeDisplay.trim()}`);
 
     if (!matchBadgeText.toUpperCase().includes('TRANSACTION')) {
       throw new Error(`Expected match Transaction, got: ${matchBadgeText}`);
@@ -216,7 +220,32 @@ async function runStage3ExplorerPlaywright() {
     if (!ironwoodActions.includes('2')) {
       throw new Error(`Expected 2 actions, got: ${ironwoodActions}`);
     }
+
+    // Assert full 64 chars of both anchor forms
+    const expectedWalletAnchor = '92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f';
+    const expectedZebraAnchor = '3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892';
+
+    if (anchorWallet.trim() !== expectedWalletAnchor) {
+      throw new Error(`Expected wallet anchor ${expectedWalletAnchor}, got: ${anchorWallet.trim()}`);
+    }
+    if (anchorZebra.trim() !== expectedZebraAnchor) {
+      throw new Error(`Expected Zebra anchor ${expectedZebraAnchor}, got: ${anchorZebra.trim()}`);
+    }
+    if (anchorWallet.trim().length !== 64 || anchorZebra.trim().length !== 64) {
+      throw new Error(`Anchor hex must be exactly 64 characters`);
+    }
+
+    // Assert fee is computed as 10000 zat and not unknown
+    if (!feeDisplay.includes('10000 zat')) {
+      throw new Error(`Expected fee 10000 zat, got: ${feeDisplay.trim()}`);
+    }
+    if (feeDisplay.toLowerCase().includes('unknown')) {
+      throw new Error(`Fee should be known (10000 zat), but was marked unknown`);
+    }
+
     log('  ✓ Verified: Transaction decoded locally via Core NAPI matching summary.json evidence.');
+    log('  ✓ Verified: Anchors displayed in both wallet/Orchard (64-hex) and Zebra RPC (64-hex) byte orders.');
+    log('  ✓ Verified: Shielded fee computed as 10,000 zatoshis (0.00010000 ZEC), feeUnknown: false.');
 
     const shot3Path = path.join(screenshotsDir, 'stage3_03_tx_by_id.png');
     await page.screenshot({ path: shot3Path, fullPage: false });

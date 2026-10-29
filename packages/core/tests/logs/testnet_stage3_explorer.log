@@ -1,7 +1,7 @@
 ========================================================================
 PHASE 3: PLAYWRIGHT TEST SUITE — BLOCKCHAIN EXPLORER
 ========================================================================
-Execution Time:  2026-10-29T15:48:52.280Z
+Execution Time:  2026-10-29T16:20:55.964Z
 Dashboard URL:   http://127.0.0.1:3050
 Target TxID:     8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a
 Target Block:    Height 4542240 | Hash 00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e
@@ -29,13 +29,17 @@ Transaction or block not found"
   📸 Screenshot saved: stage3_02_not_found.png
 
 [5/8] Scenario 3: Transaction by ID (Explorer Order)...
-  Match Feedback:     ✓ MATCHED: TRANSACTION
-  Network Upgrade:    NU7
-  Consensus Branch:   0x77190ad9 (NU7)
-  Expiry Height:      #4542278
-  Ironwood Actions:   2
-  Ironwood Anchor:    92b8796c8a14d071...
+  Match Feedback:                        ✓ MATCHED: TRANSACTION
+  Network Upgrade:                       NU7
+  Consensus Branch:                      0x77190ad9 (NU7)
+  Expiry Height:                         #4542278
+  Ironwood Actions:                      2
+  Ironwood Anchor (wallet/Orchard order): 92b8796c8a14d0710d61e1775824089d3e8b43b6293bb48c96cf9522699a8e3f
+  Ironwood Anchor (Zebra RPC order):     3f8e9a692295cf968cb43b29b6438b3e9d08245877e1610d71d0148a6c79b892
+  Transaction Fee:                       0.00010000 ZEC (10000 zat)
   ✓ Verified: Transaction decoded locally via Core NAPI matching summary.json evidence.
+  ✓ Verified: Anchors displayed in both wallet/Orchard (64-hex) and Zebra RPC (64-hex) byte orders.
+  ✓ Verified: Shielded fee computed as 10,000 zatoshis (0.00010000 ZEC), feeUnknown: false.
   📸 Screenshot saved: stage3_03_tx_by_id.png
 
 [6/8] Scenario 4: Block by height (4542240)...
@@ -75,11 +79,11 @@ ALL 8 PLAYWRIGHT SCENARIOS COMPLETED AND VERIFIED SUCCESSFULLY!
 ========================================================================
 
 Checksums for generated artifacts:
-  543322063f85a9db279a0f39a840f7c860047333143d4e35159fcb686c6508e1  screenshots/stage3_01_bad_input.png
-  d6a26875fd9f1b66f9b8e2acea28ed0d23a839693e1d711b851f18db633e9fb6  screenshots/stage3_02_not_found.png
-  4ab490f5d5c4de01a88359e64832e43ddf75e68180caf4f8d59f2a112337a49d  screenshots/stage3_03_tx_by_id.png
-  87271a944f2e75b30040adc0f8d102f636cc9edba9910e263cf808819581b9f2  screenshots/stage3_04_block_by_height.png
-  ea47554d5a592226e44579b7ae047eb529aab7f533c0b2d2f3da0f36e5546ae9  screenshots/stage3_05_block_by_hash.png
-  9c13ec8f9b38b280b937f5cf6a2f393b5de82dece6491722bf194a8aa6f091fe  screenshots/stage3_06_wallet_a_annotated_out.png
-  eb1da77e4a4c954c5386a791cfbe05d79195d362da69682e91fbfa287e5b03f5  screenshots/stage3_07_wallet_b_annotated_in.png
-  39b041cbc45472ec7ecd979759b3a37daed4520418feaeee65b9886656fb4705  screenshots/stage3_08_direct_route_txid.png
+  0357359161c6ff6a0c749bd9587cb8908cd0c62a74f7be59d1788e78982de04f  screenshots/stage3_01_bad_input.png
+  4af4d0670d1fa3706b0a8ffff7fea593f4b317a9f96e1d2f276cfe742b655d3a  screenshots/stage3_02_not_found.png
+  5477823f014ff972978c473bfaacf714595b7b5a8a95c943bc58143a1a8e72c8  screenshots/stage3_03_tx_by_id.png
+  b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/stage3_04_block_by_height.png
+  9a7fb0d7182f2beaedbedb954c9fc85552e60a374a4897b266131d36595fcd56  screenshots/stage3_05_block_by_hash.png
+  457ec2029638892bb51d684c7bdb5f4e6d9c7814609b4bbd66355e7264a23e9c  screenshots/stage3_06_wallet_a_annotated_out.png
+  805498088610844b1d2591e5322bf649a9f3f616e9df45f052a8879fdbcae0c7  screenshots/stage3_07_wallet_b_annotated_in.png
+  76abb0dde0dd04706ae69d7cd682b97d76327d091f3ff5f0f7950d09f40d5c73  screenshots/stage3_08_direct_route_txid.png
