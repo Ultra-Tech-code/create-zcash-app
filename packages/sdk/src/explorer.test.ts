@@ -311,59 +311,108 @@ describe('Phase 3 Explorer Offline Tests', () => {
     rpcCallCounts.getrawtransaction = 0;
     rpcCallCounts.getblock = 0;
 
-    // 1. Transaction lookup via real server route handler using Zebra-RPC transport
-    // Point customEndpoint to an unused port to ensure lightwalletd is bypassed/fails and secondary JSON-RPC is exercised
-    const txReq = new Request(
-      `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`
-    );
-    const txRes = await GET(txReq);
-    expect(txRes.status).toBe(200);
+    const prevZebraRpc = process.env.ZEBRA_RPC_URL;
+    process.env.ZEBRA_RPC_URL = fakeRpcUrl;
 
-    const txJson = await txRes.json();
-    expect(txJson.success).toBe(true);
-    expect(txJson.matchType).toBe('tx');
-    expect(txJson.data.txid).toBe(summary.verified_txid_explorer_order);
-    expect(txJson.data.height).toBe(summary.mined_height);
-    expect(txJson.data.blockHash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
-    expect(txJson.data.version).toBe(6);
-    expect(txJson.data.consensusBranchId).toBe('77190ad9');
-    expect(txJson.data.upgradeName).toBe('NU7');
-    expect(txJson.data.expiryHeight).toBe(summary.checks.expiry_height_equals_4542278.expected_expiry);
-    expect(txJson.data.fee).toBe(10000);
-    expect(txJson.data.feeUnknown).toBe(false);
-    expect(txJson.data.pools).toEqual(['ironwood']);
-    expect(txJson.data.actionCounts.ironwoodActions).toBe(2);
-    expect(txJson.data.anchors.ironwood.walletOrchardOrder).toBe(
-      summary.checks.tx_anchor_matches_send_run_root.computed_reversed_anchor
-    );
-    expect(txJson.data.anchors.ironwood.zebraRpcOrder).toBe(
-      summary.checks.tx_anchor_matches_send_run_root.raw_anchor_on_chain_zebra_order
-    );
-    expect(txJson.data.nullifiers.length).toBe(2);
-    expect(txJson.data.noteCommitments.length).toBe(2);
-    expect(txJson.data.size).toBe(getTxData.data_length_bytes);
+    try {
+      // 1. Transaction lookup via real server route handler using Zebra-RPC transport
+      // Point customEndpoint to an unused port to ensure lightwalletd is bypassed/fails and secondary JSON-RPC is exercised
+      const txReq = new Request(
+        `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}&customEndpoint=127.0.0.1:59998`
+      );
+      const txRes = await GET(txReq);
+      expect(txRes.status).toBe(200);
 
-    // Verify the server actually invoked getrawtransaction on our transport stub
-    expect(rpcCallCounts.getrawtransaction).toBeGreaterThan(0);
+      const txJson = await txRes.json();
+      expect(txJson.success).toBe(true);
+      expect(txJson.matchType).toBe('tx');
+      expect(txJson.data.txid).toBe(summary.verified_txid_explorer_order);
+      expect(txJson.data.height).toBe(summary.mined_height);
+      expect(txJson.data.blockHash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
+      expect(txJson.data.version).toBe(6);
+      expect(txJson.data.consensusBranchId).toBe('77190ad9');
+      expect(txJson.data.upgradeName).toBe('NU7');
+      expect(txJson.data.expiryHeight).toBe(summary.checks.expiry_height_equals_4542278.expected_expiry);
+      expect(txJson.data.fee).toBe(10000);
+      expect(txJson.data.feeUnknown).toBe(false);
+      expect(txJson.data.pools).toEqual(['ironwood']);
+      expect(txJson.data.actionCounts.ironwoodActions).toBe(2);
+      expect(txJson.data.anchors.ironwood.walletOrchardOrder).toBe(
+        summary.checks.tx_anchor_matches_send_run_root.computed_reversed_anchor
+      );
+      expect(txJson.data.anchors.ironwood.zebraRpcOrder).toBe(
+        summary.checks.tx_anchor_matches_send_run_root.raw_anchor_on_chain_zebra_order
+      );
+      expect(txJson.data.nullifiers.length).toBe(2);
+      expect(txJson.data.noteCommitments.length).toBe(2);
+      expect(txJson.data.size).toBe(getTxData.data_length_bytes);
 
-    // 2. Block lookup via real server route handler using Zebra-RPC transport
-    const blockReq = new Request(
-      `http://localhost:3050/api/explorer?q=${summary.checks.block_hashes_equal.quicknode_getblockhash}&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`
-    );
-    const blockRes = await GET(blockReq);
-    expect(blockRes.status).toBe(200);
+      // Verify the server actually invoked getrawtransaction on our transport stub
+      expect(rpcCallCounts.getrawtransaction).toBeGreaterThan(0);
 
-    const blockJson = await blockRes.json();
-    expect(blockJson.success).toBe(true);
-    expect(blockJson.matchType).toBe('block');
-    expect(blockJson.data.height).toBe(summary.mined_height);
-    expect(blockJson.data.hash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
-    expect(blockJson.data.previousBlockHash).toBe(getBlockData.prev_hash_explorer_order);
-    expect(blockJson.data.txCount).toBe(1);
-    expect(blockJson.data.txList[0].txid).toBe(summary.verified_txid_explorer_order);
+      // 2. Block lookup via real server route handler using Zebra-RPC transport
+      const blockReq = new Request(
+        `http://localhost:3050/api/explorer?q=${summary.checks.block_hashes_equal.quicknode_getblockhash}&customEndpoint=127.0.0.1:59998`
+      );
+      const blockRes = await GET(blockReq);
+      expect(blockRes.status).toBe(200);
 
-    // Verify the server actually invoked getblock on our transport stub
-    expect(rpcCallCounts.getblock).toBeGreaterThan(0);
+      const blockJson = await blockRes.json();
+      expect(blockJson.success).toBe(true);
+      expect(blockJson.matchType).toBe('block');
+      expect(blockJson.data.height).toBe(summary.mined_height);
+      expect(blockJson.data.hash).toBe(summary.checks.block_hashes_equal.quicknode_getblockhash);
+      expect(blockJson.data.previousBlockHash).toBe(getBlockData.prev_hash_explorer_order);
+      expect(blockJson.data.txCount).toBe(1);
+      expect(blockJson.data.txList[0].txid).toBe(summary.verified_txid_explorer_order);
+
+      // Verify the server actually invoked getblock on our transport stub
+      expect(rpcCallCounts.getblock).toBeGreaterThan(0);
+    } finally {
+      if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
+      else delete process.env.ZEBRA_RPC_URL;
+    }
+  });
+
+  it('Security: request with ?zebraRpc=... query param must NOT cause any call to that listener', async () => {
+    let canaryCallCount = 0;
+    const canaryServer = http.createServer((req, res) => {
+      canaryCallCount++;
+      res.writeHead(500);
+      res.end();
+    });
+
+    let canaryUrl: string;
+    await new Promise<void>((resolve) => {
+      canaryServer.listen(0, '127.0.0.1', () => {
+        const addr = canaryServer.address() as AddressInfo;
+        canaryUrl = `http://127.0.0.1:${addr.port}`;
+        resolve();
+      });
+    });
+
+    const prevZebraRpc = process.env.ZEBRA_RPC_URL;
+    delete process.env.ZEBRA_RPC_URL;
+
+    try {
+      // Send requests attempting to pass an outbound listener URL via query parameter
+      const txReq = new Request(
+        `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}&zebraRpc=${canaryUrl}&secondaryRpc=${canaryUrl}`
+      );
+      await GET(txReq);
+
+      const blockReq = new Request(
+        `http://localhost:3050/api/explorer?q=4542240&zebraRpc=${canaryUrl}&secondaryRpc=${canaryUrl}`
+      );
+      await GET(blockReq);
+
+      // Assert canary listener call count remains strictly 0
+      expect(canaryCallCount).toBe(0);
+    } finally {
+      await new Promise<void>((resolve) => canaryServer.close(() => resolve()));
+      if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
+      else delete process.env.ZEBRA_RPC_URL;
+    }
   });
 
   it('Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers', async () => {
@@ -438,8 +487,9 @@ describe('Phase 3 Explorer Offline Tests', () => {
       }
 
       // 3. Not found (query for non-existent 64-hex hash via working fake transport that returns not found)
+      process.env.ZEBRA_RPC_URL = fakeRpcUrl;
       const notFoundReq = new Request(
-        `http://localhost:3050/api/explorer?q=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff&customEndpoint=127.0.0.1:59998&zebraRpc=${fakeRpcUrl}`,
+        `http://localhost:3050/api/explorer?q=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff&customEndpoint=127.0.0.1:59998`,
         { headers: { cookie: cookieHeader } }
       );
       const notFoundRes = await GET(notFoundReq);
@@ -454,8 +504,9 @@ describe('Phase 3 Explorer Offline Tests', () => {
       }
 
       // 4. Node unreachable (error path where URLs and network error messages often leak)
+      process.env.ZEBRA_RPC_URL = 'http://127.0.0.1:59999';
       const unreachableReq = new Request(
-        `http://localhost:3050/api/explorer?q=99999999&customEndpoint=127.0.0.1:59999&zebraRpc=http://127.0.0.1:59999`,
+        `http://localhost:3050/api/explorer?q=99999999&customEndpoint=127.0.0.1:59999`,
         { headers: { cookie: cookieHeader } }
       );
       const unreachableRes = await GET(unreachableReq);

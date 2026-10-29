@@ -26,10 +26,7 @@ function findFixturePath(filename: string): string | null {
   return null;
 }
 
-function getSecondaryRpcUrl(presetParam?: PresetId | null, explicitRpc?: string | null): string | null {
-  if (explicitRpc && typeof explicitRpc === 'string' && explicitRpc.trim()) {
-    return explicitRpc.trim();
-  }
+function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
   if (process.env.ZEBRA_RPC_URL) {
     return process.env.ZEBRA_RPC_URL;
   }
@@ -74,10 +71,7 @@ export async function GET(request: Request) {
     customEndpoint,
   });
 
-  const secondaryRpcUrl = getSecondaryRpcUrl(
-    presetParam,
-    searchParams.get('secondaryRpc') || searchParams.get('zebraRpc')
-  );
+  const secondaryRpcUrl = getSecondaryRpcUrl(presetParam);
 
   // 1. Classification & Format Validation
   const classified = classifyExplorerQuery(qParam || '');
