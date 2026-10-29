@@ -82,6 +82,15 @@ export const NETWORK_ENDPOINTS: Record<Network, string> = {
   mainnet: 'zec.rocks:443',
 };
 
+export function isAllowedEndpoint(endpointStr: string): boolean {
+  const trimmed = endpointStr.trim();
+  if (ALLOWED_ENDPOINTS.includes(trimmed)) return true;
+  for (const preset of Object.values(NETWORK_PRESETS)) {
+    if (preset.endpoint === trimmed) return true;
+  }
+  return false;
+}
+
 export function resolveAllowedEndpoint(options: {
   presetParam?: PresetId | null;
   network?: Network;
@@ -90,9 +99,16 @@ export function resolveAllowedEndpoint(options: {
 }): string {
   const { presetParam, network = 'regtest', queryEndpoint, customEndpoint } = options;
 
-  // 1. Explicit custom endpoint field is accepted
+  // 1. Custom endpoint is accepted only if:
+  //    (a) it equals a NETWORK_PRESETS or ALLOWED_ENDPOINTS entry, OR
+  //    (b) server explicitly opts in via process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT === '1' (dev opt-in).
+  // Never accept an arbitrary custom endpoint from requests unless (a) or (b) holds.
   if (customEndpoint && typeof customEndpoint === 'string' && customEndpoint.trim()) {
-    return customEndpoint.trim();
+    const trimmed = customEndpoint.trim();
+    const isAllowCustom = process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT === '1';
+    if (isAllowedEndpoint(trimmed) || isAllowCustom) {
+      return trimmed;
+    }
   }
 
   // 2. Preset endpoint takes precedence if preset is specified
@@ -101,9 +117,8 @@ export function resolveAllowedEndpoint(options: {
   }
 
   // 3. Accept queryEndpoint only if it is explicitly in ALLOWED_ENDPOINTS (matching a preset endpoint)
-  // Do NOT accept arbitrary 127.0.0.1:* from the query string
-  if (queryEndpoint && ALLOWED_ENDPOINTS.includes(queryEndpoint)) {
-    return queryEndpoint;
+  if (queryEndpoint && isAllowedEndpoint(queryEndpoint)) {
+    return queryEndpoint.trim();
   }
 
   // 4. Fall back to network default endpoint

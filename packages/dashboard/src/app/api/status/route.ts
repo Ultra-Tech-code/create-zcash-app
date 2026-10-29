@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createClient, getUpgradeName, getExpectedBranchId } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
 
@@ -79,7 +78,7 @@ export async function GET(request: Request) {
       actualBranchId === expectedBranchId.toLowerCase()
     );
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       preset: presetParam || undefined,
       network,
@@ -96,7 +95,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err: any) {
-    return NextResponse.json(
+    return Response.json(
       {
         success: false,
         preset: presetParam || undefined,

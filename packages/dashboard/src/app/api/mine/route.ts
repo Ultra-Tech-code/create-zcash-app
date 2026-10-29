@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
+import { verifySameOrigin } from '../../security';
 
 export async function POST(request: Request) {
+  const originError = verifySameOrigin(request);
+  if (originError) return originError;
+
   try {
     const body = await request.json();
     const { blocks = 1, endpoint = '127.0.0.1:28137', preset = 'regtest-z3' } = body;

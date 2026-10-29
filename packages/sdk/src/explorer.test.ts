@@ -4,6 +4,12 @@ import * as path from 'path';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { GET } from '../../dashboard/src/app/api/explorer/route.js';
+import { GET as getStatus } from '../../dashboard/src/app/api/status/route.js';
+import { GET as getAccount } from '../../dashboard/src/app/api/account/route.js';
+import { POST as postMine } from '../../dashboard/src/app/api/mine/route.js';
+import { POST as postImportKey } from '../../dashboard/src/app/api/account/import-key/route.js';
+import { POST as postForgetKey } from '../../dashboard/src/app/api/account/forget-key/route.js';
+import { POST as postSyncStatus } from '../../dashboard/src/app/api/sync/status/route.js';
 import {
   setSession,
   deleteSession,
@@ -312,7 +318,9 @@ describe('Phase 3 Explorer Offline Tests', () => {
     rpcCallCounts.getblock = 0;
 
     const prevZebraRpc = process.env.ZEBRA_RPC_URL;
+    const prevAllowCustom = process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     process.env.ZEBRA_RPC_URL = fakeRpcUrl;
+    process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = '1';
 
     try {
       // 1. Transaction lookup via real server route handler using Zebra-RPC transport
@@ -371,6 +379,8 @@ describe('Phase 3 Explorer Offline Tests', () => {
     } finally {
       if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
       else delete process.env.ZEBRA_RPC_URL;
+      if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
+      else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     }
   });
 
@@ -415,6 +425,113 @@ describe('Phase 3 Explorer Offline Tests', () => {
     }
   });
 
+  it('Security: without ZCASH_ALLOW_CUSTOM_ENDPOINT=1, ?customEndpoint=... causes zero connections to a canary listener for /api/explorer, /api/status, and /api/account', async () => {
+    let canaryConnCount = 0;
+    const canaryServer = http.createServer((req, res) => {
+      res.writeHead(500);
+      res.end();
+    });
+    canaryServer.on('connection', () => {
+      canaryConnCount++;
+    });
+
+    let canaryEndpoint: string;
+    await new Promise<void>((resolve) => {
+      canaryServer.listen(0, '127.0.0.1', () => {
+        const addr = canaryServer.address() as AddressInfo;
+        canaryEndpoint = `127.0.0.1:${addr.port}`;
+        resolve();
+      });
+    });
+
+    const prevAllowCustom = process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
+    delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
+
+    try {
+      // 1. /api/explorer
+      const explorerReq = new Request(
+        `http://localhost:3050/api/explorer?q=4542240&customEndpoint=${canaryEndpoint}`
+      );
+      await GET(explorerReq);
+
+      // 2. /api/status
+      const statusReq = new Request(
+        `http://localhost:3050/api/status?customEndpoint=${canaryEndpoint}`
+      );
+      await getStatus(statusReq);
+
+      // 3. /api/account
+      const accountReq = new Request(
+        `http://localhost:3050/api/account?customEndpoint=${canaryEndpoint}`
+      );
+      await getAccount(accountReq);
+
+      // Assert canary listener on canaryEndpoint received ZERO connections
+      expect(canaryConnCount).toBe(0);
+    } finally {
+      await new Promise<void>((resolve) => canaryServer.close(() => resolve()));
+      if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
+      else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
+    }
+  });
+
+  it('Security: state-changing POST routes reject cross-site requests with 403 Forbidden', async () => {
+    const postRoutes = [
+      { name: '/api/mine', handler: postMine, url: 'http://localhost:3050/api/mine' },
+      { name: '/api/account/import-key', handler: postImportKey, url: 'http://localhost:3050/api/account/import-key' },
+      { name: '/api/account/forget-key', handler: postForgetKey, url: 'http://localhost:3050/api/account/forget-key' },
+      { name: '/api/sync/status', handler: postSyncStatus, url: 'http://localhost:3050/api/sync/status' },
+    ];
+
+    for (const route of postRoutes) {
+      // Case 1: Sec-Fetch-Site: cross-site must be rejected with 403
+      const crossSiteReq = new Request(route.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'sec-fetch-site': 'cross-site',
+        },
+        body: JSON.stringify({ blocks: 1, ufvk: 'test', start: true }),
+      });
+      const crossSiteRes = await route.handler(crossSiteReq);
+      expect(crossSiteRes.status).toBe(403);
+      const crossSiteJson = await crossSiteRes.json();
+      expect(crossSiteJson.success).toBe(false);
+      expect(crossSiteJson.code).toBe('CROSS_SITE_FORBIDDEN');
+
+      // Case 2: Untrusted Origin header must be rejected with 403
+      const crossOriginReq = new Request(route.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          host: 'localhost:3050',
+          origin: 'https://evil-attacker.example',
+        },
+        body: JSON.stringify({ blocks: 1, ufvk: 'test', start: true }),
+      });
+      const crossOriginRes = await route.handler(crossOriginReq);
+      expect(crossOriginRes.status).toBe(403);
+      const crossOriginJson = await crossOriginRes.json();
+      expect(crossOriginJson.success).toBe(false);
+      expect(crossOriginJson.code).toBe('CROSS_ORIGIN_FORBIDDEN');
+
+      // Case 3: Legitimate same-origin request is NOT rejected with 403
+      const sameOriginReq = new Request(route.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          host: 'localhost:3050',
+          origin: 'http://localhost:3050',
+          'sec-fetch-site': 'same-origin',
+        },
+        body: JSON.stringify({ blocks: 1 }),
+      });
+      const sameOriginRes = await route.handler(sameOriginReq);
+      // Status must NOT be 403 Forbidden
+      expect(sameOriginRes.status).not.toBe(403);
+    }
+  });
+
   it('Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers', async () => {
     // Sensitive credentials that must never appear in any response body or headers
     const fakeToken = 'secret-token-xyz-987654321';
@@ -429,10 +546,12 @@ describe('Phase 3 Explorer Offline Tests', () => {
     const prevZebraRpc = process.env.ZEBRA_RPC_URL;
     const prevSecondary = process.env.ZCASH_SECONDARY_ENDPOINT;
     const prevQuicknode = process.env.QUICKNODE_ZEC_TESTNET_URL;
+    const prevAllowCustom = process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
 
     process.env.ZEBRA_RPC_URL = fakeEndpointUrl;
     process.env.ZCASH_SECONDARY_ENDPOINT = fakeEndpointUrl;
     process.env.QUICKNODE_ZEC_TESTNET_URL = fakeEndpointUrl;
+    process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = '1';
 
     // Create an active UFVK session
     const sessionId = createSessionId();
@@ -528,6 +647,8 @@ describe('Phase 3 Explorer Offline Tests', () => {
       else delete process.env.ZCASH_SECONDARY_ENDPOINT;
       if (prevQuicknode !== undefined) process.env.QUICKNODE_ZEC_TESTNET_URL = prevQuicknode;
       else delete process.env.QUICKNODE_ZEC_TESTNET_URL;
+      if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
+      else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     }
   });
 });

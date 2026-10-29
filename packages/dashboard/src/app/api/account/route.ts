@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { createClient, dev, getBalance, detectIncoming, accountFromUfvk } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
 import { getSession, getSessionIdFromRequest } from '../../session';
@@ -33,7 +32,7 @@ export async function GET(request: Request) {
         const watchAcct = accountFromUfvk(sessionUfvk, network);
         const ua = watchAcct.getUnifiedAddress();
         const transparentAddress = watchAcct.getTransparentAddress ? watchAcct.getTransparentAddress() : null;
-        return NextResponse.json({
+        return Response.json({
           success: true,
           status: 'ready',
           message: `Watch-only account active on ${network}`,
@@ -52,7 +51,7 @@ export async function GET(request: Request) {
         });
       }
 
-      return NextResponse.json({
+      return Response.json({
         success: true,
         status: 'ready',
         message: `${network === 'mainnet' ? 'Mainnet' : 'Testnet'} is watch-only in this dashboard. Public fixture mnemonics are refused. Import a Unified Full Viewing Key (UFVK) to view account history.`,
@@ -127,7 +126,7 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({
+    return Response.json({
       success: status !== 'error',
       status,
       message,
@@ -143,7 +142,7 @@ export async function GET(request: Request) {
       notes: incomingNotes,
     });
   } catch (err: any) {
-    return NextResponse.json(
+    return Response.json(
       {
         success: false,
         status: 'error',

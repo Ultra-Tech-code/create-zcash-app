@@ -14,6 +14,7 @@ import {
   createSessionId,
   SESSION_COOKIE_NAME,
 } from '../../../session';
+import { verifySameOrigin } from '../../../security';
 
 /**
  * SECURITY NOTICE:
@@ -184,5 +185,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const originError = verifySameOrigin(request);
+  if (originError) return originError;
   return handleSyncRequest(request, true);
 }

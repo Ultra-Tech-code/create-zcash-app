@@ -7,6 +7,7 @@ import {
   validateUfvkPrefix,
   SESSION_COOKIE_NAME,
 } from '../../../session';
+import { verifySameOrigin } from '../../../security';
 
 export async function GET() {
   return NextResponse.json(
@@ -16,6 +17,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const originError = verifySameOrigin(request);
+  if (originError) return originError;
+
   try {
     const body = await request.json().catch(() => ({}));
     const { ufvk, birthday, network = 'testnet', accountId = 'account0' } = body;

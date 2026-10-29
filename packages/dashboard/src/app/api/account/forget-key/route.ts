@@ -4,8 +4,12 @@ import {
   deleteSession,
   SESSION_COOKIE_NAME,
 } from '../../../session';
+import { verifySameOrigin } from '../../../security';
 
 export async function POST(request: Request) {
+  const originError = verifySameOrigin(request);
+  if (originError) return originError;
+
   const sessionId = getSessionIdFromRequest(request);
   if (sessionId) {
     deleteSession(sessionId);
