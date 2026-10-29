@@ -80,6 +80,8 @@ export declare class WalletHandle {
  */
 export declare function decodeIronwoodFrontierRoot(frontierHex: string): string
 
+export declare function decodeTransaction(rawTxBytes: Buffer, networkStr?: string | undefined | null, height?: number | undefined | null): JsDecodedTransaction
+
 export interface DecryptedNote {
   pool: string
   valueZatoshis: number
@@ -139,6 +141,35 @@ export interface JsBuiltTransaction {
   fee: number
   numActions: number
   expiryHeight: number
+}
+
+export interface JsDecodedActionCounts {
+  transparentInputs: number
+  transparentOutputs: number
+  saplingSpends: number
+  saplingOutputs: number
+  orchardActions: number
+  ironwoodActions: number
+}
+
+export interface JsDecodedAnchors {
+  sapling?: string
+  orchard?: string
+  ironwood?: string
+}
+
+export interface JsDecodedTransaction {
+  txid: string
+  version: number
+  consensusBranchId: string
+  expiryHeight: number
+  fee?: number
+  pools: Array<string>
+  actionCounts: JsDecodedActionCounts
+  anchors: JsDecodedAnchors
+  nullifiers: Array<string>
+  noteCommitments: Array<string>
+  size: number
 }
 
 export interface JsDecryptedActionIncoming {

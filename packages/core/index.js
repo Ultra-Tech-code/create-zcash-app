@@ -780,6 +780,7 @@ module.exports.__napiBindingTarget = __napiStampBindingTarget(nativeBinding, __n
 module.exports = nativeBinding
 module.exports.WalletHandle = nativeBinding.WalletHandle
 module.exports.decodeIronwoodFrontierRoot = nativeBinding.decodeIronwoodFrontierRoot
+module.exports.decodeTransaction = nativeBinding.decodeTransaction
 module.exports.decryptTransaction = nativeBinding.decryptTransaction
 module.exports.deriveAccountFromMnemonic = nativeBinding.deriveAccountFromMnemonic
 module.exports.generateMnemonic = nativeBinding.generateMnemonic

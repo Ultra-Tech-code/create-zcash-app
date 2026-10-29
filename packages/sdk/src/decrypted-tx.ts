@@ -1,5 +1,9 @@
-import { decryptTransaction as coreDecryptTransaction } from '@zcash-app/core';
-import type { DecryptedTransaction } from './types.js';
+import {
+  decryptTransaction as coreDecryptTransaction,
+  decodeTransaction as coreDecodeTransaction,
+} from '@zcash-app/core';
+import type { DecryptedTransaction, DecodedTransaction } from './types.js';
+import { getUpgradeName } from './consensus.js';
 
 /**
  * Decrypts an Ironwood transaction wire serialization using a Unified Full Viewing Key.
@@ -47,5 +51,51 @@ export function decryptTransaction(
       },
       recipient: out.recipient,
     })),
+  };
+}
+
+/**
+ * Parses and decodes raw transaction bytes locally using core crypto parsers.
+ * Does not trust or rely on remote node's decoded JSON representation.
+ *
+ * @param rawTxBytes Serialized transaction bytes as Buffer or Uint8Array.
+ * @param network Network name (optional, defaults to 'testnet').
+ * @param height Confirmed block height if known (optional).
+ * @returns Fully decoded transaction structure with upgrade name, pool action counts,
+ *          anchors, nullifiers, commitments, and ZIP 317 fee calculation.
+ */
+export function decodeTransaction(
+  rawTxBytes: Uint8Array | Buffer,
+  network?: string,
+  height?: number,
+): DecodedTransaction {
+  const buf = Buffer.isBuffer(rawTxBytes) ? rawTxBytes : Buffer.from(rawTxBytes);
+  const res = coreDecodeTransaction(buf, network, height);
+  const upgradeName = getUpgradeName(res.consensusBranchId);
+  return {
+    txid: res.txid,
+    version: res.version,
+    consensusBranchId: res.consensusBranchId,
+    upgradeName,
+    expiryHeight: res.expiryHeight,
+    fee: res.fee !== null && res.fee !== undefined ? BigInt(res.fee) : null,
+    feeUnknown: res.fee === null || res.fee === undefined,
+    pools: res.pools,
+    actionCounts: {
+      transparentInputs: res.actionCounts.transparentInputs,
+      transparentOutputs: res.actionCounts.transparentOutputs,
+      saplingSpends: res.actionCounts.saplingSpends,
+      saplingOutputs: res.actionCounts.saplingOutputs,
+      orchardActions: res.actionCounts.orchardActions,
+      ironwoodActions: res.actionCounts.ironwoodActions,
+    },
+    anchors: {
+      sapling: res.anchors.sapling || undefined,
+      orchard: res.anchors.orchard || undefined,
+      ironwood: res.anchors.ironwood || undefined,
+    },
+    nullifiers: res.nullifiers,
+    noteCommitments: res.noteCommitments,
+    size: res.size,
   };
 }

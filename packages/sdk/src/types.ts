@@ -110,3 +110,34 @@ export interface DecryptedTransaction {
   incoming: DecryptedActionIncoming[];
   outgoing: DecryptedActionOutgoing[];
 }
+
+export interface DecodedActionCounts {
+  transparentInputs: number;
+  transparentOutputs: number;
+  saplingSpends: number;
+  saplingOutputs: number;
+  orchardActions: number;
+  ironwoodActions: number;
+}
+
+export interface DecodedAnchors {
+  sapling?: string;
+  orchard?: string;
+  ironwood?: string;
+}
+
+export interface DecodedTransaction {
+  txid: string;
+  version: number;
+  consensusBranchId: string;
+  upgradeName: string;
+  expiryHeight: number;
+  fee: bigint | null;
+  feeUnknown: boolean;
+  pools: string[];
+  actionCounts: DecodedActionCounts;
+  anchors: DecodedAnchors;
+  nullifiers: string[];
+  noteCommitments: string[];
+  size: number;
+}

@@ -486,6 +486,77 @@ mod napi_bindings {
                 .collect(),
         })
     }
+
+    #[napi(object)]
+    pub struct JsDecodedActionCounts {
+        pub transparent_inputs: u32,
+        pub transparent_outputs: u32,
+        pub sapling_spends: u32,
+        pub sapling_outputs: u32,
+        pub orchard_actions: u32,
+        pub ironwood_actions: u32,
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedAnchors {
+        pub sapling: Option<String>,
+        pub orchard: Option<String>,
+        pub ironwood: Option<String>,
+    }
+
+    #[napi(object)]
+    pub struct JsDecodedTransaction {
+        pub txid: String,
+        pub version: u32,
+        pub consensus_branch_id: String,
+        pub expiry_height: u32,
+        pub fee: Option<i64>,
+        pub pools: Vec<String>,
+        pub action_counts: JsDecodedActionCounts,
+        pub anchors: JsDecodedAnchors,
+        pub nullifiers: Vec<String>,
+        pub note_commitments: Vec<String>,
+        pub size: u32,
+    }
+
+    #[napi]
+    pub fn decode_transaction(
+        raw_tx_bytes: Buffer,
+        network_str: Option<String>,
+        height: Option<u32>,
+    ) -> Result<JsDecodedTransaction> {
+        let res = crate::decrypted_tx::internal_decode_transaction(
+            &raw_tx_bytes,
+            network_str.as_deref(),
+            height,
+        )
+        .map_err(|e| Error::new(Status::GenericFailure, e))?;
+
+        Ok(JsDecodedTransaction {
+            txid: res.txid,
+            version: res.version,
+            consensus_branch_id: res.consensus_branch_id,
+            expiry_height: res.expiry_height,
+            fee: res.fee,
+            pools: res.pools,
+            action_counts: JsDecodedActionCounts {
+                transparent_inputs: res.action_counts.transparent_inputs,
+                transparent_outputs: res.action_counts.transparent_outputs,
+                sapling_spends: res.action_counts.sapling_spends,
+                sapling_outputs: res.action_counts.sapling_outputs,
+                orchard_actions: res.action_counts.orchard_actions,
+                ironwood_actions: res.action_counts.ironwood_actions,
+            },
+            anchors: JsDecodedAnchors {
+                sapling: res.anchors.sapling,
+                orchard: res.anchors.orchard,
+                ironwood: res.anchors.ironwood,
+            },
+            nullifiers: res.nullifiers,
+            note_commitments: res.note_commitments,
+            size: res.size as u32,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -648,7 +719,8 @@ pub use consensus::{
     ConsensusError,
 };
 pub use decrypted_tx::{
-    internal_decrypt_transaction, parse_decrypted_memo, DecryptedActionIncoming,
+    internal_decode_transaction, internal_decrypt_transaction, parse_decrypted_memo,
+    DecodedActionCounts, DecodedAnchors, DecodedTransactionResult, DecryptedActionIncoming,
     DecryptedActionOutgoing, DecryptedMemo, DecryptedTransactionResult,
 };
 pub use pending_spends::PendingSpendsManager;

@@ -10,6 +10,7 @@ export * from './send.js';
 export * from './jsonrpc.js';
 export * from './consensus.js';
 export * from './decrypted-tx.js';
+export * from './explorer.js';
 export * from './dashboard-wallet.js';
 export { WalletHandle } from '@zcash-app/core';
 
