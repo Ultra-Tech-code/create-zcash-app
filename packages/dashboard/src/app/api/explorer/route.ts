@@ -11,6 +11,16 @@ import {
 } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
 import { getSession, getSessionIdFromRequest } from '../../session';
+import {
+  ExplorerSource,
+  explorerError,
+  fixturesEnabled,
+  getFallbackLightwalletdEndpoint,
+  getSecondaryRpcUrl,
+  getThirdPartyRpcFallbackUrl,
+  sourceForLightwalletd,
+  sourceForRpc,
+} from './backend';
 
 function findFixturePath(filename: string): string | null {
   const candidates = [
@@ -23,35 +33,6 @@ function findFixturePath(filename: string): string | null {
   for (const c of candidates) {
     if (fs.existsSync(c)) return c;
   }
-  return null;
-}
-
-function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
-  if (process.env.ZEBRA_RPC_URL) {
-    return process.env.ZEBRA_RPC_URL;
-  }
-  if (presetParam && NETWORK_PRESETS[presetParam]?.miningRpcUrl) {
-    return NETWORK_PRESETS[presetParam].miningRpcUrl!;
-  }
-  if (process.env.QUICKNODE_ZEC_TESTNET_URL) {
-    return process.env.QUICKNODE_ZEC_TESTNET_URL;
-  }
-  if (process.env.ZCASH_SECONDARY_ENDPOINT) {
-    return process.env.ZCASH_SECONDARY_ENDPOINT;
-  }
-  try {
-    const envPaths = [
-      path.resolve(process.cwd(), '.env'),
-      path.resolve(process.cwd(), '../../.env'),
-    ];
-    for (const ep of envPaths) {
-      if (fs.existsSync(ep)) {
-        const content = fs.readFileSync(ep, 'utf8');
-        const m = content.match(/QUICKNODE_.*=(.*)/) || content.match(/ZCASH_SECONDARY_ENDPOINT=(.*)/);
-        if (m && m[1]) return m[1].trim();
-      }
-    }
-  } catch (_) {}
   return null;
 }
 
@@ -72,17 +53,20 @@ export async function GET(request: Request) {
   });
 
   const secondaryRpcUrl = getSecondaryRpcUrl(presetParam);
+  const thirdPartyRpcFallbackUrl = (() => {
+    const fallback = getThirdPartyRpcFallbackUrl();
+    if (!fallback || fallback === secondaryRpcUrl) return null;
+    return fallback;
+  })();
+  let source: ExplorerSource | null = null;
 
   // 1. Classification & Format Validation
   const classified = classifyExplorerQuery(qParam || '');
   if (classified.kind === 'empty' || classified.kind === 'invalid') {
-    return Response.json(
-      {
-        success: false,
-        error: classified.error || 'Invalid format: Enter a 64-character transaction ID / block hash or a block height',
-        code: 'INVALID_FORMAT',
-      },
-      { status: 400 }
+    return explorerError(
+      400,
+      classified.error || 'Invalid format: Enter a 64-character transaction ID / block hash or a block height',
+      'INVALID_FORMAT'
     );
   }
 
@@ -108,81 +92,75 @@ export async function GET(request: Request) {
           lightwalletdUnreachable = true;
           if (!secondaryRpcUrl) {
             await client.close().catch(() => {});
-            return Response.json(
-              {
-                success: false,
-                error: 'Node unreachable: Unable to connect to indexer or node',
-                code: 'NODE_UNREACHABLE',
-              },
-              { status: 502 }
-            );
+            return explorerError(502, 'Node unreachable: Unable to connect to indexer or node', 'NODE_UNREACHABLE');
           }
         }
         if (msg.includes('pruned')) {
           await client.close().catch(() => {});
-          return Response.json(
-            {
-              success: false,
-              error: 'Data unavailable (pruned by node)',
-              code: 'PRUNED',
-            },
-            { status: 404 }
-          );
+          return explorerError(404, 'Data unavailable (pruned by node)', 'PRUNED');
         }
       }
 
       // Fallback to secondary JSON-RPC if lightwalletd returned null
-      if (!compactBlock && secondaryRpcUrl) {
+      const tryRpcHeight = async (url: string) => {
         try {
-          const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+          const verifier = new JsonRpcVerifier(url);
           const blockHash = await verifier.getBlockHash(height);
           const rpcBlock = await verifier.call<any>('getblock', [blockHash, 1]);
           if (rpcBlock) {
-            await client.close().catch(() => {});
-            return Response.json({
-              success: true,
-              matchType: 'block',
-              data: {
-                height: rpcBlock.height,
-                hash: rpcBlock.hash,
-                previousBlockHash: rpcBlock.previousblockhash || null,
-                time: rpcBlock.time,
-                txCount: (rpcBlock.tx || []).length,
-                txList: (rpcBlock.tx || []).map((txid: string, idx: number) => ({
-                  index: idx,
-                  txid,
-                })),
-                chainMetadata: {
-                  ironwoodCommitmentTreeSize: 0,
-                  orchardCommitmentTreeSize: 0,
-                  saplingCommitmentTreeSize: 0,
-                },
+            return {
+              height: rpcBlock.height,
+              hash: rpcBlock.hash,
+              previousBlockHash: rpcBlock.previousblockhash || null,
+              time: rpcBlock.time,
+              txCount: (rpcBlock.tx || []).length,
+              txList: (rpcBlock.tx || []).map((txid: string, idx: number) => ({
+                index: idx,
+                txid,
+              })),
+              chainMetadata: {
+                ironwoodCommitmentTreeSize: Number(rpcBlock.trees?.ironwood?.size || 0),
+                orchardCommitmentTreeSize: Number(rpcBlock.trees?.orchard?.size || 0),
+                saplingCommitmentTreeSize: Number(rpcBlock.trees?.sapling?.size || 0),
               },
-            });
+            };
           }
         } catch (_) {}
+        return null;
+      };
+
+      if (!compactBlock && secondaryRpcUrl) {
+        let rpcData = await tryRpcHeight(secondaryRpcUrl);
+        if (rpcData) source = sourceForRpc(secondaryRpcUrl);
+        if (!rpcData && thirdPartyRpcFallbackUrl) {
+          rpcData = await tryRpcHeight(thirdPartyRpcFallbackUrl);
+          if (rpcData) source = sourceForRpc(thirdPartyRpcFallbackUrl);
+        }
+        if (rpcData) {
+          await client.close().catch(() => {});
+          return Response.json({
+            success: true,
+            source,
+            matchType: 'block',
+            data: rpcData,
+          });
+        }
       }
 
       if (lightwalletdUnreachable && !compactBlock) {
         await client.close().catch(() => {});
-        return Response.json(
-          {
-            success: false,
-            error: 'Node unreachable: Unable to connect to indexer or node',
-            code: 'NODE_UNREACHABLE',
-          },
-          { status: 502 }
-        );
+        return explorerError(502, 'Node unreachable: Unable to connect to indexer or node', 'NODE_UNREACHABLE');
       }
 
-      // Check captured fixture fallback if offline/disconnected
-      if (!compactBlock && height === 4542240) {
+      // Captured fixture fallback, only when explicitly enabled
+      if (fixturesEnabled() && !compactBlock && height === 4542240) {
         const fixturePath = findFixturePath('lightwalletd_getblock.json');
         if (fixturePath && fs.existsSync(fixturePath)) {
           const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
           await client.close().catch(() => {});
           return Response.json({
             success: true,
+            source: 'fixture',
             matchType: 'block',
             data: {
               height: fixture.height,
@@ -206,14 +184,7 @@ export async function GET(request: Request) {
 
       if (!compactBlock) {
         await client.close().catch(() => {});
-        return Response.json(
-          {
-            success: false,
-            error: 'Transaction or block not found',
-            code: 'NOT_FOUND',
-          },
-          { status: 404 }
-        );
+        return explorerError(404, 'Transaction or block not found', 'NOT_FOUND');
       }
 
       const hashExplorer = Buffer.from(compactBlock.hash).reverse().toString('hex');
@@ -230,6 +201,7 @@ export async function GET(request: Request) {
       await client.close().catch(() => {});
       return Response.json({
         success: true,
+        source: sourceForLightwalletd(endpoint),
         matchType: 'block',
         data: {
           height: Number(compactBlock.height),
@@ -266,6 +238,7 @@ export async function GET(request: Request) {
       if (txRes && txRes.data && txRes.data.length > 0) {
         rawTxBuf = txRes.data;
         txHeight = txRes.height;
+        source = sourceForLightwalletd(endpoint);
       }
     } catch (err: any) {
       const msg = String(err?.message || '').toLowerCase();
@@ -273,28 +246,22 @@ export async function GET(request: Request) {
         lightwalletdUnreachable = true;
         if (!secondaryRpcUrl) {
           await client.close().catch(() => {});
-          return Response.json(
-            {
-              success: false,
-              error: 'Node unreachable: Unable to connect to indexer or node',
-              code: 'NODE_UNREACHABLE',
-            },
-            { status: 502 }
-          );
+          return explorerError(502, 'Node unreachable: Unable to connect to indexer or node', 'NODE_UNREACHABLE');
         }
       }
     }
 
     // If lightwalletd did not find tx, try secondary JSON-RPC getrawtransaction
-    if (!rawTxBuf && secondaryRpcUrl) {
+    const tryRpcTx = async (url: string) => {
       try {
-        const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+        const verifier = new JsonRpcVerifier(url);
         const rpcTx = await verifier.getRawTransaction(queryHex, 1);
         if (rpcTx && rpcTx.hex) {
           rawTxBuf = Buffer.from(rpcTx.hex, 'hex');
           txHeight = Number(rpcTx.height || 0);
           txBlockHash = rpcTx.blockhash || null;
           txTime = Number(rpcTx.blocktime || rpcTx.time || 0) || null;
+          return true;
         }
       } catch (err: any) {
         const msg = String(err?.message || '').toLowerCase();
@@ -302,10 +269,24 @@ export async function GET(request: Request) {
           secondaryFailed = true;
         }
       }
+      return false;
+    };
+
+    if (!rawTxBuf && secondaryRpcUrl) {
+      const found = await tryRpcTx(secondaryRpcUrl);
+      if (found) source = sourceForRpc(secondaryRpcUrl);
+      if (!found && thirdPartyRpcFallbackUrl) {
+        const fallbackFound = await tryRpcTx(thirdPartyRpcFallbackUrl);
+        if (fallbackFound) source = sourceForRpc(thirdPartyRpcFallbackUrl);
+      }
     }
 
-    // Check captured testnet tx fixture if matches known txid 8ca516ab...
-    if (!rawTxBuf && queryHex === '8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a') {
+    // Captured testnet tx fixture, only when explicitly enabled
+    if (
+      fixturesEnabled() &&
+      !rawTxBuf &&
+      queryHex === '8ca516abc441e6b95783eb4d733e091dc7312fc1f9e42de43273ed906a65095a'
+    ) {
       const fixtureTxPath = findFixturePath('lightwalletd_gettransaction.json');
       if (fixtureTxPath && fs.existsSync(fixtureTxPath)) {
         const fixture = JSON.parse(fs.readFileSync(fixtureTxPath, 'utf8'));
@@ -313,6 +294,7 @@ export async function GET(request: Request) {
         txHeight = fixture.height;
         txBlockHash = '00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e';
         txTime = 1792976987;
+        source = 'fixture';
       }
     }
 
@@ -412,6 +394,7 @@ export async function GET(request: Request) {
       await client.close().catch(() => {});
       return Response.json({
         success: true,
+        source,
         matchType: 'tx',
         data: {
           txid: decoded.txid,
@@ -438,15 +421,15 @@ export async function GET(request: Request) {
     // Step 2: Tx not found; Try Block by Hash
     let blockData: any = null;
 
-    if (secondaryRpcUrl) {
+    const tryRpcBlock = async (url: string) => {
       try {
-        const verifier = new JsonRpcVerifier(secondaryRpcUrl);
+        const verifier = new JsonRpcVerifier(url);
         const rpcBlock = await verifier.call<any>('getblock', [queryHex, 1]);
         if (rpcBlock && rpcBlock.hash) {
           let treeMetadata = {
-            ironwoodCommitmentTreeSize: 0,
-            orchardCommitmentTreeSize: 0,
-            saplingCommitmentTreeSize: 0,
+            ironwoodCommitmentTreeSize: Number(rpcBlock.trees?.ironwood?.size || 0),
+            orchardCommitmentTreeSize: Number(rpcBlock.trees?.orchard?.size || 0),
+            saplingCommitmentTreeSize: Number(rpcBlock.trees?.sapling?.size || 0),
           };
           if (rpcBlock.height) {
             try {
@@ -458,7 +441,29 @@ export async function GET(request: Request) {
                   saplingCommitmentTreeSize: Number(compactBlk.chainMetadata.saplingCommitmentTreeSize || 0),
                 };
               }
-            } catch (_) {}
+            } catch {
+              const fallbackLightwalletd = getFallbackLightwalletdEndpoint(network);
+              if (
+                fallbackLightwalletd &&
+                fallbackLightwalletd !== endpoint &&
+                treeMetadata.ironwoodCommitmentTreeSize === 0 &&
+                treeMetadata.orchardCommitmentTreeSize === 0 &&
+                treeMetadata.saplingCommitmentTreeSize === 0
+              ) {
+                try {
+                  const fallbackClient = createClient({ endpoint: fallbackLightwalletd, network });
+                  const compactBlk = await fallbackClient.getBlock(Number(rpcBlock.height));
+                  if (compactBlk && compactBlk.chainMetadata) {
+                    treeMetadata = {
+                      ironwoodCommitmentTreeSize: Number(compactBlk.chainMetadata.ironwoodCommitmentTreeSize || 0),
+                      orchardCommitmentTreeSize: Number(compactBlk.chainMetadata.orchardCommitmentTreeSize || 0),
+                      saplingCommitmentTreeSize: Number(compactBlk.chainMetadata.saplingCommitmentTreeSize || 0),
+                    };
+                  }
+                  await fallbackClient.close().catch(() => {});
+                } catch (_) {}
+              }
+            }
           }
           blockData = {
             height: rpcBlock.height,
@@ -472,6 +477,7 @@ export async function GET(request: Request) {
             })),
             chainMetadata: treeMetadata,
           };
+          return true;
         }
       } catch (err: any) {
         const msg = String(err?.message || '').toLowerCase();
@@ -479,10 +485,24 @@ export async function GET(request: Request) {
           secondaryFailed = true;
         }
       }
+      return false;
+    };
+
+    if (secondaryRpcUrl) {
+      const found = await tryRpcBlock(secondaryRpcUrl);
+      if (found) source = sourceForRpc(secondaryRpcUrl);
+      if (!found && thirdPartyRpcFallbackUrl) {
+        const fallbackFound = await tryRpcBlock(thirdPartyRpcFallbackUrl);
+        if (fallbackFound) source = sourceForRpc(thirdPartyRpcFallbackUrl);
+      }
     }
 
-    // Check captured block fixture if query matches block hash 00005c49b2e5...
-    if (!blockData && queryHex === '00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e') {
+    // Captured block fixture, only when explicitly enabled
+    if (
+      fixturesEnabled() &&
+      !blockData &&
+      queryHex === '00005c49b2e52450226473f8bbc77411705f7e104835bb12909ed217f16fa92e'
+    ) {
       const fixtureBlockPath = findFixturePath('lightwalletd_getblock.json');
       if (fixtureBlockPath && fs.existsSync(fixtureBlockPath)) {
         const fixture = JSON.parse(fs.readFileSync(fixtureBlockPath, 'utf8'));
@@ -502,6 +522,7 @@ export async function GET(request: Request) {
             saplingCommitmentTreeSize: 0,
           },
         };
+        source = 'fixture';
       }
     }
 
@@ -510,51 +531,24 @@ export async function GET(request: Request) {
     if (blockData) {
       return Response.json({
         success: true,
+        source,
         matchType: 'block',
         data: blockData,
       });
     }
 
     if (lightwalletdUnreachable && (secondaryFailed || !secondaryRpcUrl)) {
-      return Response.json(
-        {
-          success: false,
-          error: 'Node unreachable: Unable to connect to indexer or node',
-          code: 'NODE_UNREACHABLE',
-        },
-        { status: 502 }
-      );
+      return explorerError(502, 'Node unreachable: Unable to connect to indexer or node', 'NODE_UNREACHABLE');
     }
 
     // Neither tx nor block was found
-    return Response.json(
-      {
-        success: false,
-        error: 'Transaction or block not found',
-        code: 'NOT_FOUND',
-      },
-      { status: 404 }
-    );
+    return explorerError(404, 'Transaction or block not found', 'NOT_FOUND');
   } catch (err: any) {
     await client.close().catch(() => {});
     const msg = String(err?.message || '').toLowerCase();
     if (msg.includes('connection refused') || msg.includes('unavailable') || msg.includes('dns')) {
-      return Response.json(
-        {
-          success: false,
-          error: 'Node unreachable: Unable to connect to indexer or node',
-          code: 'NODE_UNREACHABLE',
-        },
-        { status: 502 }
-      );
+      return explorerError(502, 'Node unreachable: Unable to connect to indexer or node', 'NODE_UNREACHABLE');
     }
-    return Response.json(
-      {
-        success: false,
-        error: 'Transaction or block not found',
-        code: 'NOT_FOUND',
-      },
-      { status: 404 }
-    );
+    return explorerError(404, 'Transaction or block not found', 'NOT_FOUND');
   }
 }

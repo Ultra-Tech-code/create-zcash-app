@@ -30,6 +30,9 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             build: pnpm --filter @zcash-app/core run build --target x86_64-unknown-linux-gnu
+          - host: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            build: pnpm --filter @zcash-app/core run build --target aarch64-unknown-linux-gnu
           - host: windows-latest
             target: x86_64-pc-windows-msvc
             build: pnpm --filter @zcash-app/core run build --target x86_64-pc-windows-msvc

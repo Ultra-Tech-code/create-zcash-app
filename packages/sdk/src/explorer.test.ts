@@ -1,9 +1,22 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import os from 'node:os';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { GET } from '../../dashboard/src/app/api/explorer/route.js';
+import {
+  parseZebraCookie,
+  buildZebraRpcUrl,
+  getZebraCookieRpcUrl,
+  getSecondaryRpcUrl,
+  getThirdPartyRpcFallbackUrl,
+  getFallbackLightwalletdEndpoint,
+  sourceForLightwalletd,
+  sourceForRpc,
+  isLoopbackEndpoint,
+} from '../../dashboard/src/app/api/explorer/backend.js';
+import { NETWORK_PRESETS } from '../../dashboard/src/app/endpoints.js';
 import { GET as getStatus } from '../../dashboard/src/app/api/status/route.js';
 import { GET as getAccount } from '../../dashboard/src/app/api/account/route.js';
 import { POST as postMine } from '../../dashboard/src/app/api/mine/route.js';
@@ -542,6 +555,18 @@ describe('Phase 3 Explorer Offline Tests', () => {
     const fakeUfvk =
       'uviewtest1qvqqqqqq987654321abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef';
 
+    // A fake Zebra .cookie used only to prove its credentials never reach a response.
+    const fakeCookieUser = 'cookie-local-user-4242';
+    const fakeCookiePass = 'cookie-local-pass-4242';
+    const cookieDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-cookie-leak-'));
+    const cookieFile = path.join(cookieDir, '.cookie');
+    fs.writeFileSync(cookieFile, `${fakeCookieUser}:${fakeCookiePass}\n`);
+    const prevCookiePath = process.env.ZCASH_ZEBRA_COOKIE_PATH;
+    const prevFixtures = process.env.ZCASH_EXPLORER_FIXTURES;
+    process.env.ZCASH_ZEBRA_COOKIE_PATH = cookieFile;
+    // Fixture serving is opt-in; this test asserted fixture-backed hits before that gate existed.
+    process.env.ZCASH_EXPLORER_FIXTURES = '1';
+
     // Configure secret URLs in environment
     const prevZebraRpc = process.env.ZEBRA_RPC_URL;
     const prevSecondary = process.env.ZCASH_SECONDARY_ENDPOINT;
@@ -570,6 +595,8 @@ describe('Phase 3 Explorer Offline Tests', () => {
       fakeHost,
       fakeEndpointUrl,
       fakeUfvk,
+      fakeCookieUser,
+      fakeCookiePass,
     ];
 
     try {
@@ -639,8 +666,34 @@ describe('Phase 3 Explorer Offline Tests', () => {
         expect(unreachableHeaders).not.toContain(s);
       }
       expect(unreachableBody).toContain('NODE_UNREACHABLE');
+
+      // 5. Cookie-derived local Zebra RPC path: preset=testnet-local builds its secondary URL from
+      //    the .cookie file. The credentials in it must not appear in the response either.
+      delete process.env.ZEBRA_RPC_URL;
+      const cookieReq = new Request(
+        `http://localhost:3050/api/explorer?q=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff&preset=testnet-local&customEndpoint=127.0.0.1:59998`,
+        { headers: { cookie: cookieHeader } }
+      );
+      const cookieRes = await GET(cookieReq);
+      const cookieBody = await cookieRes.text();
+      const cookieHeaders = Array.from(cookieRes.headers.entries())
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\n');
+      for (const s of sensitiveStrings) {
+        expect(cookieBody).not.toContain(s);
+        expect(cookieHeaders).not.toContain(s);
+      }
+      expect(cookieBody).not.toContain('18232');
+      expect([404, 502]).toContain(cookieRes.status);
+      const cookieJson = JSON.parse(cookieBody);
+      expect(cookieJson.source).toBeNull();
     } finally {
       deleteSession(sessionId);
+      fs.rmSync(cookieDir, { recursive: true, force: true });
+      if (prevCookiePath !== undefined) process.env.ZCASH_ZEBRA_COOKIE_PATH = prevCookiePath;
+      else delete process.env.ZCASH_ZEBRA_COOKIE_PATH;
+      if (prevFixtures !== undefined) process.env.ZCASH_EXPLORER_FIXTURES = prevFixtures;
+      else delete process.env.ZCASH_EXPLORER_FIXTURES;
       if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
       else delete process.env.ZEBRA_RPC_URL;
       if (prevSecondary !== undefined) process.env.ZCASH_SECONDARY_ENDPOINT = prevSecondary;
@@ -650,5 +703,299 @@ describe('Phase 3 Explorer Offline Tests', () => {
       if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
       else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     }
+  });
+
+  describe('Explorer source attribution, cookie handling and third-party opt-in', () => {
+    let tmpDir: string;
+    let cookiePath: string;
+
+    beforeEach(() => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-explorer-cookie-'));
+      cookiePath = path.join(tmpDir, '.cookie');
+    });
+
+    afterEach(() => {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    async function withEnv<T>(
+      vars: Record<string, string | undefined>,
+      fn: () => Promise<T> | T
+    ): Promise<T> {
+      const saved = new Map<string, string | undefined>();
+      for (const [key, value] of Object.entries(vars)) {
+        saved.set(key, process.env[key]);
+        if (value === undefined) delete process.env[key];
+        else process.env[key] = value;
+      }
+      try {
+        return await fn();
+      } finally {
+        for (const [key, value] of saved) {
+          if (value === undefined) delete process.env[key];
+          else process.env[key] = value;
+        }
+      }
+    }
+
+    it('parses a Zebra .cookie file and builds the local RPC URL from it', async () => {
+      fs.writeFileSync(cookiePath, 'zebra:sup3r:s3cret\n');
+
+      const parsed = parseZebraCookie(fs.readFileSync(cookiePath, 'utf8'));
+      expect(parsed).toEqual({ user: 'zebra', password: 'sup3r:s3cret' });
+      expect(buildZebraRpcUrl(parsed!, 18232)).toBe('http://zebra:sup3r%3As3cret@127.0.0.1:18232');
+
+      const url = await withEnv({ ZCASH_ZEBRA_COOKIE_PATH: cookiePath }, () =>
+        getZebraCookieRpcUrl(18232)
+      );
+      expect(url).toBe('http://zebra:sup3r%3As3cret@127.0.0.1:18232');
+      expect(url).toContain('@127.0.0.1:18232');
+    });
+
+    it('rejects malformed cookie contents and missing cookie files', async () => {
+      expect(parseZebraCookie('')).toBeNull();
+      expect(parseZebraCookie('   \n')).toBeNull();
+      expect(parseZebraCookie('no-colon-here')).toBeNull();
+      expect(parseZebraCookie(':password-only')).toBeNull();
+      expect(parseZebraCookie('user-only:')).toBeNull();
+
+      fs.writeFileSync(cookiePath, 'garbage-without-separator\n');
+      const malformed = await withEnv({ ZCASH_ZEBRA_COOKIE_PATH: cookiePath }, () =>
+        getZebraCookieRpcUrl()
+      );
+      expect(malformed).toBeNull();
+
+      const missing = path.join(tmpDir, 'absent', '.cookie');
+      const absent = await withEnv({ ZCASH_ZEBRA_COOKIE_PATH: missing }, () =>
+        getZebraCookieRpcUrl()
+      );
+      expect(absent).toBeNull();
+    });
+
+    it('reports one of the five source values per backend', () => {
+      expect(isLoopbackEndpoint('127.0.0.1:28137')).toBe(true);
+      expect(isLoopbackEndpoint('http://localhost:3050')).toBe(true);
+      expect(isLoopbackEndpoint('http://user:pass@127.0.0.1:8181')).toBe(true);
+      expect(isLoopbackEndpoint('testnet.zec.rocks:443')).toBe(false);
+      expect(isLoopbackEndpoint('https://quicknode.example.com/x?token=1')).toBe(false);
+
+      expect(sourceForLightwalletd('127.0.0.1:28137')).toBe('local-lightwalletd');
+      expect(sourceForLightwalletd('testnet.zec.rocks:443')).toBe('third-party-lightwalletd');
+      expect(sourceForRpc('http://127.0.0.1:8181')).toBe('local-zebra-rpc');
+      expect(sourceForRpc('https://quicknode.example.com')).toBe('third-party-rpc');
+    });
+
+    it('prefers a local secondary RPC and only exposes the third-party fallback when opted in', async () => {
+      fs.writeFileSync(cookiePath, 'zebra:cookiesecret\n');
+      const localRpc = 'http://127.0.0.1:59998';
+
+      const off = await withEnv(
+        {
+          ZCASH_ZEBRA_COOKIE_PATH: cookiePath,
+          ZEBRA_RPC_URL: undefined,
+          QUICKNODE_ZEC_TESTNET_URL: 'https://quicknode.example.com/token',
+          ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: undefined,
+        },
+        () => ({
+          secondary: getSecondaryRpcUrl('testnet-local'),
+          fallback: getThirdPartyRpcFallbackUrl(),
+          lightwalletd: getFallbackLightwalletdEndpoint('testnet'),
+        })
+      );
+      expect(off.secondary).toBe('http://zebra:cookiesecret@127.0.0.1:18232');
+      expect(off.fallback).toBeNull();
+      expect(off.lightwalletd).toBeNull();
+
+      const on = await withEnv(
+        {
+          ZCASH_ZEBRA_COOKIE_PATH: cookiePath,
+          ZEBRA_RPC_URL: localRpc,
+          QUICKNODE_ZEC_TESTNET_URL: 'https://quicknode.example.com/token',
+          ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: '1',
+        },
+        () => ({
+          secondary: getSecondaryRpcUrl('testnet-local'),
+          fallback: getThirdPartyRpcFallbackUrl(),
+          lightwalletd: getFallbackLightwalletdEndpoint('testnet'),
+          regtestLightwalletd: getFallbackLightwalletdEndpoint('regtest'),
+        })
+      );
+      expect(on.secondary).toBe(localRpc);
+      expect(on.fallback).toBe('https://quicknode.example.com/token');
+      expect(on.lightwalletd).toBe(NETWORK_PRESETS.testnet.endpoint);
+      expect(on.regtestLightwalletd).toBeNull();
+    });
+
+    it('queries the third-party RPC fallback only behind the flag and labels the answering backend', async () => {
+      let fallbackCalls = 0;
+      const fallbackServer = http.createServer((req, res) => {
+        let body = '';
+        req.on('data', (chunk) => {
+          body += chunk;
+        });
+        req.on('end', () => {
+          fallbackCalls++;
+          let id: unknown = 1;
+          let method = '';
+          try {
+            const parsed = JSON.parse(body);
+            id = parsed.id;
+            method = parsed.method;
+          } catch {
+            // keep defaults
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          if (method === 'getrawtransaction') {
+            res.end(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                id,
+                result: {
+                  hex: getTxData.data_hex,
+                  height: summary.mined_height,
+                  blockhash: summary.checks.block_hashes_equal.quicknode_getblockhash,
+                  time: 1792976987,
+                },
+              })
+            );
+            return;
+          }
+          res.end(JSON.stringify({ jsonrpc: '2.0', id, error: { code: -5, message: 'Not found' } }));
+        });
+      });
+
+      await new Promise<void>((resolve) => {
+        fallbackServer.listen(0, '127.0.0.1', () => resolve());
+      });
+      const fallbackAddr = fallbackServer.address() as AddressInfo;
+      const fallbackUrl = `http://127.0.0.1:${fallbackAddr.port}`;
+
+      const unknownTxid = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+      const request = () =>
+        new Request(
+          `http://localhost:3050/api/explorer?q=${unknownTxid}&customEndpoint=127.0.0.1:59998`
+        );
+
+      try {
+        const off = await withEnv(
+          {
+            ZEBRA_RPC_URL: fakeRpcUrl,
+            QUICKNODE_ZEC_TESTNET_URL: fallbackUrl,
+            ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: undefined,
+            ZCASH_EXPLORER_FIXTURES: undefined,
+            ZCASH_ALLOW_CUSTOM_ENDPOINT: '1',
+          },
+          async () => {
+            const res = await GET(request());
+            return { status: res.status, json: await res.json() };
+          }
+        );
+        expect(off.status).toBe(404);
+        expect(off.json.success).toBe(false);
+        expect(off.json.source).toBeNull();
+        expect(fallbackCalls).toBe(0);
+
+        fallbackCalls = 0;
+        rpcCallCounts.getrawtransaction = 0;
+        const on = await withEnv(
+          {
+            ZEBRA_RPC_URL: fakeRpcUrl,
+            QUICKNODE_ZEC_TESTNET_URL: fallbackUrl,
+            ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: '1',
+            ZCASH_EXPLORER_FIXTURES: undefined,
+            ZCASH_ALLOW_CUSTOM_ENDPOINT: '1',
+          },
+          async () => {
+            const res = await GET(request());
+            return { status: res.status, json: await res.json() };
+          }
+        );
+        expect(on.status).toBe(200);
+        expect(on.json.success).toBe(true);
+        // The fallback stub is loopback, so the label follows the host rule.
+        expect(on.json.source).toBe(sourceForRpc(fallbackUrl));
+        expect(on.json.data.txid).toBe(summary.verified_txid_explorer_order);
+        expect(rpcCallCounts.getrawtransaction).toBeGreaterThan(0);
+        expect(fallbackCalls).toBeGreaterThan(0);
+      } finally {
+        await new Promise<void>((resolve) => fallbackServer.close(() => resolve()));
+      }
+    });
+
+    it('labels a local Zebra RPC block hit as local-zebra-rpc', async () => {
+      const result = await withEnv(
+        {
+          ZEBRA_RPC_URL: fakeRpcUrl,
+          QUICKNODE_ZEC_TESTNET_URL: undefined,
+          ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: undefined,
+          ZCASH_EXPLORER_FIXTURES: undefined,
+          ZCASH_ALLOW_CUSTOM_ENDPOINT: '1',
+        },
+        async () => {
+          const res = await GET(
+            new Request(
+              `http://localhost:3050/api/explorer?q=${summary.mined_height}&customEndpoint=127.0.0.1:59998`
+            )
+          );
+          return { status: res.status, json: await res.json() };
+        }
+      );
+      expect(result.status).toBe(200);
+      expect(result.json.matchType).toBe('block');
+      expect(result.json.source).toBe('local-zebra-rpc');
+    });
+
+    it('serves captured fixtures only with ZCASH_EXPLORER_FIXTURES=1 and labels them as fixture', async () => {
+      // Offline shape: no reachable indexer and no reachable secondary RPC, so only the captured
+      // transaction fixture could answer.
+      const request = () =>
+        new Request(
+          `http://localhost:3050/api/explorer?q=${summary.verified_txid_explorer_order}&customEndpoint=127.0.0.1:59998`
+        );
+
+      const off = await withEnv(
+        {
+          ZEBRA_RPC_URL: 'http://127.0.0.1:59999',
+          QUICKNODE_ZEC_TESTNET_URL: undefined,
+          ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: undefined,
+          ZCASH_EXPLORER_FIXTURES: undefined,
+          ZCASH_ALLOW_CUSTOM_ENDPOINT: '1',
+        },
+        async () => {
+          const res = await GET(request());
+          return { status: res.status, json: await res.json() };
+        }
+      );
+      expect(off.status).toBe(502);
+      expect(off.json.success).toBe(false);
+      expect(off.json.source).toBeNull();
+
+      const on = await withEnv(
+        {
+          ZEBRA_RPC_URL: 'http://127.0.0.1:59999',
+          QUICKNODE_ZEC_TESTNET_URL: undefined,
+          ZCASH_EXPLORER_THIRD_PARTY_FALLBACK: undefined,
+          ZCASH_EXPLORER_FIXTURES: '1',
+          ZCASH_ALLOW_CUSTOM_ENDPOINT: '1',
+        },
+        async () => {
+          const res = await GET(request());
+          return { status: res.status, json: await res.json() };
+        }
+      );
+      expect(on.status).toBe(200);
+      expect(on.json.matchType).toBe('tx');
+      expect(on.json.source).toBe('fixture');
+      expect(on.json.data.txid).toBe(summary.verified_txid_explorer_order);
+    });
+
+    it('includes a null source on responses that served no data', async () => {
+      const res = await GET(new Request('http://localhost:3050/api/explorer?q=not-a-valid-query'));
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.success).toBe(false);
+      expect(json.code).toBe('INVALID_FORMAT');
+      expect(json.source).toBeNull();
+    });
   });
 });

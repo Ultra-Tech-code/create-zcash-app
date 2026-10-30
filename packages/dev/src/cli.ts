@@ -239,11 +239,25 @@ program
 
     // Look for dashboard directory in monorepo packages or locally installed package
     const monorepoDashboard = path.resolve(__dirname, '../../dashboard');
-    let dashboardCwd = process.cwd();
 
-    if (fs.existsSync(monorepoDashboard) && fs.existsSync(path.join(monorepoDashboard, 'package.json'))) {
-      dashboardCwd = monorepoDashboard;
+    if (!fs.existsSync(monorepoDashboard) || !fs.existsSync(path.join(monorepoDashboard, 'package.json'))) {
+      console.error(
+        `\n⚠️  The Zcash Developer Dashboard is a full Next.js App Router application maintained in the repository.\n` +
+        `Running the dashboard from a standalone npm package outside the monorepo clone is unsupported.\n\n` +
+        `To launch the Developer Dashboard:\n` +
+        `  1. Clone the repository:\n` +
+        `     git clone https://github.com/Ultra-Tech-code/create-zcash-app.git\n` +
+        `     cd create-zcash-app\n` +
+        `  2. Install dependencies & build:\n` +
+        `     pnpm install && pnpm build\n` +
+        `  3. Run the dashboard:\n` +
+        `     pnpm --filter dashboard run dev\n` +
+        `     # or: cd packages/dashboard && pnpm dev\n`
+      );
+      process.exit(1);
     }
+
+    const dashboardCwd = monorepoDashboard;
 
     const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
     const child = spawn(npx, ['next', 'dev', '-p', port], {

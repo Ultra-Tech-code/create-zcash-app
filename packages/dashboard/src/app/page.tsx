@@ -186,7 +186,10 @@ export default function Dashboard() {
 
         <NetworkSelector
           activePreset={activePreset}
-          onSelectPreset={(p) => setActivePreset(p)}
+          onSelectPreset={(p) => {
+            setActivePreset(p);
+            setExplorerInitialQuery('');
+          }}
           isConnected={Boolean(nodeInfo)}
           endpoint={endpoint}
         />

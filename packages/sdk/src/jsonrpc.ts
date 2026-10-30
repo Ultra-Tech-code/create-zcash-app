@@ -89,11 +89,24 @@ export class JsonRpcVerifier {
       params,
     });
 
-    const res = await fetch(this.rawUrl, {
+    const u = new URL(this.rawUrl);
+    const fetchHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (u.username || u.password) {
+      const auth = `${decodeURIComponent(u.username)}:${decodeURIComponent(u.password)}`;
+      const encoded =
+        typeof Buffer !== 'undefined'
+          ? Buffer.from(auth).toString('base64')
+          : btoa(auth);
+      fetchHeaders['Authorization'] = `Basic ${encoded}`;
+      u.username = '';
+      u.password = '';
+    }
+
+    const res = await fetch(u.toString(), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: fetchHeaders,
       body,
     });
 
