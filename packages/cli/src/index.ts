@@ -9,6 +9,75 @@ export const REMOTE_ENDPOINTS = {
   mainnet: 'zec.rocks:443',
 };
 
+/**
+ * The scaffolder and the packages it depends on are released together, so the ranges written into
+ * a new project are derived from this package's own version instead of a hard-coded literal.
+ */
+export function readCliVersion(): string {
+  const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
+  const parsed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
+  if (typeof parsed.version !== 'string' || parsed.version.length === 0) {
+    throw new Error(`Could not read create-zcash-app's version from ${packageJsonPath}`);
+  }
+  return parsed.version;
+}
+
+function toPackageName(projectName: string): string {
+  const cleaned = projectName
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^[-._]+|[-._]+$/g, '');
+  return cleaned || 'my-zcash-app';
+}
+
+function renderTemplate(content: string, replacements: Record<string, string>): string {
+  let rendered = content;
+  for (const [token, value] of Object.entries(replacements)) {
+    rendered = rendered.split(token).join(value);
+  }
+  return rendered;
+}
+
+/**
+ * Copies packages/cli/template into the new project, renaming `*.tmpl` files (so `package.json`
+ * does not act as a package manifest inside this repo) and substituting the placeholders.
+ */
+export function scaffoldTemplate(
+  targetDir: string,
+  replacements: Record<string, string>
+): string[] {
+  const templateDir = path.resolve(__dirname, '..', 'template');
+  if (!fs.existsSync(templateDir)) {
+    throw new Error(`Template directory missing: ${templateDir}`);
+  }
+
+  const written: string[] = [];
+
+  const walk = (srcDir: string, destDir: string) => {
+    fs.mkdirSync(destDir, { recursive: true });
+    for (const entry of fs.readdirSync(srcDir, { withFileTypes: true })) {
+      const src = path.join(srcDir, entry.name);
+      if (entry.isDirectory()) {
+        walk(src, path.join(destDir, entry.name));
+        continue;
+      }
+      const destName =
+        entry.name === 'gitignore.tmpl'
+          ? '.gitignore'
+          : entry.name.endsWith('.tmpl')
+            ? entry.name.slice(0, -'.tmpl'.length)
+            : entry.name;
+      const dest = path.join(destDir, destName);
+      fs.writeFileSync(dest, renderTemplate(fs.readFileSync(src, 'utf8'), replacements));
+      written.push(path.relative(targetDir, dest));
+    }
+  };
+
+  walk(templateDir, targetDir);
+  return written;
+}
+
 const program = new Command();
 
 program
@@ -123,39 +192,14 @@ program
     }
 
     console.log(`\n🚀 Scaffolding shielded Zcash app in ${targetDir}...`);
-    fs.mkdirSync(targetDir, { recursive: true });
 
-    // 5. Create scaffolded package.json
-    const packageJson = {
-      name: projectName,
-      version: '0.1.0',
-      private: true,
-      scripts: {
-        dev: 'next dev',
-        build: 'next build',
-        start: 'next start',
-        dashboard: 'zcash-dev dashboard',
-        mine: 'zcash-dev mine',
-        fund: 'zcash-dev fund',
-        switch: 'zcash-dev switch',
-      },
-      dependencies: {
-        '@zcash-app/sdk': '^0.1.0',
-        next: '^14.2.0',
-        react: '^18.3.1',
-        'react-dom': '^18.3.1',
-      },
-      devDependencies: {
-        'zcash-dev': '^0.1.0',
-        typescript: '^5.6.3',
-        '@types/node': '^20.0.0',
-        '@types/react': '^18.3.0',
-      },
-    };
-    fs.writeFileSync(
-      path.join(targetDir, 'package.json'),
-      JSON.stringify(packageJson, null, 2)
-    );
+    // 5. Copy the Next.js template, substituting the project name and the released versions
+    const cliVersion = readCliVersion();
+    const sdkRange = `^${cliVersion}`;
+    const writtenFiles = scaffoldTemplate(targetDir, {
+      __PROJECT_NAME__: toPackageName(projectName),
+      __SDK_RANGE__: sdkRange,
+    });
 
     // 6. Write zcash.config.json
     const configData = {
@@ -168,14 +212,21 @@ program
       path.join(targetDir, 'zcash.config.json'),
       JSON.stringify(configData, null, 2)
     );
+    writtenFiles.push('zcash.config.json');
 
     // 7. Write .env.local
     const envContent = `# create-zcash-app environment config
 ZCASH_NETWORK=${network}
 ZCASH_CONNECTION_MODE=${connectionMode}
 ZCASH_ENDPOINT=${endpoint}
+# Set a BIP-39 mnemonic to keep a stable account across server restarts. Without it the app
+# derives an address from a mnemonic generated in memory on each server start.
+# ZCASH_MNEMONIC=
+# First height to scan when reading a balance. Omit to scan from the pool activation height.
+# ZCASH_BIRTHDAY=
 `;
     fs.writeFileSync(path.join(targetDir, '.env.local'), envContent);
+    writtenFiles.push('.env.local');
 
     // 8. Optionally generate docker-compose.yml for local Z3
     if (generateDockerCompose) {
@@ -200,12 +251,22 @@ ZCASH_ENDPOINT=${endpoint}
       - ZAINO_ZEBRA_RPC=http://zebra:18232
 `;
       fs.writeFileSync(path.join(targetDir, 'docker-compose.yml'), composeContent);
+      writtenFiles.push('docker-compose.yml');
     }
 
     // 9. Write README.md with instructions
     const readmeContent = `# ${projectName}
 
 Shielded Zcash application configured for **${network}** (${connectionMode} indexer).
+Built on \`@zcash-app/sdk@${sdkRange}\` and \`zcash-dev@${sdkRange}\`.
+
+## What is in the project
+
+- \`app/page.tsx\` — home page that shows the account's Unified Address and balance.
+- \`app/api/account/route.ts\` — server route using \`@zcash-app/sdk\`: \`accountFromMnemonic\`,
+  \`createClient\` and \`getBalance\`.
+- \`zcash.config.json\` — the network, connection mode and indexer endpoint you selected.
+- \`.env.local\` — the same settings as environment variables, read by the server route.
 
 ## Getting Started
 
@@ -219,16 +280,16 @@ ${
     : `1. **Connected to ${connectionMode} indexer**: \`${endpoint}\`
 `
 }
-2. **Run your development app**:
+2. **Install and run your development app**:
    \`\`\`bash
-   npm run dev
-   # or pnpm dev
+   pnpm install
+   pnpm dev
    \`\`\`
 
 3. **Open the Developer Dashboard**:
    Inspect real-time balances, diversified Unified Addresses, and incoming notes:
    \`\`\`bash
-   npm run dashboard
+   pnpm dashboard
    \`\`\`
 
 4. **Switch networks anytime**:
@@ -238,19 +299,29 @@ ${
    # or
    npx zcash-dev switch mainnet --remote
    \`\`\`
+
+## Notes
+
+- Without \`ZCASH_MNEMONIC\` the server route derives an address from a mnemonic generated in
+  memory, so the address changes when the server restarts.
+- Without \`ZCASH_BIRTHDAY\` the balance scan starts at the pool activation height, which is slow on
+  a public chain. Set a birthday to scan only recent blocks.
 `;
     fs.writeFileSync(path.join(targetDir, 'README.md'), readmeContent);
+    writtenFiles.push('README.md');
 
     console.log(`\n🎉 Success! Created ${projectName} at ${targetDir}`);
     console.log(`   Configured Network: ${network} (${connectionMode})`);
     console.log(`   Indexer Endpoint:   ${endpoint}`);
+    console.log(`   Package range:      @zcash-app/sdk@${sdkRange}, zcash-dev@${sdkRange}`);
+    console.log(`   Files written:      ${writtenFiles.length}`);
     console.log(`\nNext steps:`);
     console.log(`   cd ${projectName}`);
-    console.log(`   npm install`);
+    console.log(`   pnpm install`);
     if (generateDockerCompose) {
       console.log(`   docker compose up -d`);
     }
-    console.log(`   npm run dev\n`);
+    console.log(`   pnpm dev\n`);
   });
 
 program.parse(process.argv);

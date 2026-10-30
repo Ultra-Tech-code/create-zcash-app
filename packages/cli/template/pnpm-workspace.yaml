@@ -1,0 +1,5 @@
+# pnpm 11 reads project settings from this file instead of package.json.
+# protobufjs (pulled in by @grpc/proto-loader through @zcash-app/sdk) needs its postinstall
+# script; pnpm refuses the whole install when a dependency's build script is ignored.
+allowBuilds:
+  protobufjs: true

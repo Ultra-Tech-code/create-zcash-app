@@ -20,6 +20,16 @@ export {
   TestnetLightwalletdOptions,
 };
 
+/** Reads this package's own version so `zcash-dev --version` cannot drift from package.json. */
+export function readOwnVersion(): string {
+  const packageJsonPath = path.resolve(__dirname, '..', 'package.json');
+  const parsed = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: unknown };
+  if (typeof parsed.version !== 'string' || parsed.version.length === 0) {
+    throw new Error(`Could not read zcash-dev's version from ${packageJsonPath}`);
+  }
+  return parsed.version;
+}
+
 export function getRegtestAccount0MinerAddress(network: string = 'regtest-nu7'): string {
   if (network !== 'regtest' && network !== 'regtest-nu7') {
     throw new Error(
@@ -41,7 +51,7 @@ const program = new Command();
 program
   .name('zcash-dev')
   .description('Developer harness & regtest helper CLI for shielded Zcash apps')
-  .version('0.1.0');
+  .version(readOwnVersion());
 
 program
   .command('info')

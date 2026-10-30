@@ -133,6 +133,26 @@ npx zcash-dev regtest setup
 
 ---
 
+## Supported Platforms
+
+`@zcash-app/core` ships a prebuilt native addon for each target below. They are published as
+platform packages and pulled in through `optionalDependencies`, so a normal install needs no Rust
+toolchain. The list matches the `napi.targets` in `packages/core/package.json`.
+
+| Rust target | Host requirement | npm package |
+| :--- | :--- | :--- |
+| `aarch64-apple-darwin` | macOS on Apple silicon | `@zcash-app/core-darwin-arm64` |
+| `x86_64-apple-darwin` | macOS on Intel | `@zcash-app/core-darwin-x64` |
+| `x86_64-unknown-linux-gnu` | Linux x64 with glibc | `@zcash-app/core-linux-x64-gnu` |
+| `aarch64-unknown-linux-gnu` | Linux arm64 with glibc | `@zcash-app/core-linux-arm64-gnu` |
+| `x86_64-pc-windows-msvc` | Windows x64 | `@zcash-app/core-win32-x64-msvc` |
+
+Not supported: musl/Alpine Linux (no `-musl` target is built), 32-bit targets, and
+`aarch64-pc-windows-msvc`. On an unsupported platform no optional dependency matches, so loading
+the native addon fails instead of silently falling back to a slower implementation.
+
+---
+
 ## Prerequisites
 
 1. **Rust / Cargo**: `1.85+` (verified with `cargo 1.95.0`).

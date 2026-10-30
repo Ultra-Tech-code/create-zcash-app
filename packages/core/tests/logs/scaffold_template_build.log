@@ -1,0 +1,259 @@
+=== create-zcash-app template release proof ===
+date:        2026-10-30T08:54:21Z
+repo:        /Users/0xblackadam/Downloads/zcash_scafolder
+work dir:    /tmp/cza-release-proof
+node:        v22.22.2
+pnpm:        11.5.3
+
+--- step 1: build the TypeScript packages the tarballs are made from ---
+$ tsc
+$ tsc
+$ tsc
+
+--- step 2: put the host-built addon in its per-platform package ---
+ INFO  @zcash-app/core -darwin-arm64 created
+ INFO  @zcash-app/core -darwin-x64 created
+ INFO  @zcash-app/core -linux-x64-gnu created
+ INFO  @zcash-app/core -linux-arm64-gnu created
+ INFO  @zcash-app/core -win32-x64-msvc created
+placed packages/core/zcash-core.darwin-arm64.node in packages/core/npm/darwin-arm64/
+
+per-platform addon check (exactly one .node per packages/core/npm/<platform>/):
+  ok   darwin-arm64: zcash-core.darwin-arm64.node
+  no addon built for: darwin-x64, linux-x64-gnu, linux-arm64-gnu, win32-x64-msvc — not built on this host; the every-target assertion is CI-only
+       (locally skipped; CI runs this script with PROVE_PER_PLATFORM_ADDONS=1)
+
+--- step 3: pack tarballs ---
+@zcash-app/core optionalDependency: @zcash-app/core-darwin-arm64 0.1.0-alpha.0
+package: @zcash-app/core@0.1.0-alpha.0
+Tarball Contents
+index.d.ts
+index.js
+package.json
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-app-core-0.1.0-alpha.0.tgz
+package: @zcash-app/sdk@0.1.0-alpha.0
+Tarball Contents
+dist/client.d.ts
+dist/client.js
+dist/consensus.d.ts
+dist/consensus.js
+dist/constants.d.ts
+dist/constants.js
+dist/dashboard-wallet.d.ts
+dist/dashboard-wallet.js
+dist/decrypted-tx.d.ts
+dist/decrypted-tx.js
+dist/detection.d.ts
+dist/detection.js
+dist/dev.d.ts
+dist/dev.js
+dist/explorer.d.ts
+dist/explorer.js
+dist/index.d.ts
+dist/index.js
+dist/jsonrpc.d.ts
+dist/jsonrpc.js
+dist/keys.d.ts
+dist/keys.js
+dist/payment.d.ts
+dist/payment.js
+dist/send.d.ts
+dist/send.js
+dist/sync.d.ts
+dist/sync.js
+dist/types.d.ts
+dist/types.js
+package.json
+proto/compact_formats.proto
+proto/service.proto
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-app-sdk-0.1.0-alpha.0.tgz
+package: zcash-dev@0.1.0-alpha.0
+Tarball Contents
+dist/cli.d.ts
+dist/cli.js
+dist/index.d.ts
+dist/index.js
+dist/testnet-lightwalletd.d.ts
+dist/testnet-lightwalletd.js
+docker/regtest-nu7/docker-compose.yml
+docker/regtest-nu7/regtest-init.sh
+docker/regtest-nu7/zebra.toml
+docker/regtest/.env.regtest
+docker/regtest/docker-compose.yml
+docker/regtest/regtest-init.sh
+docker/regtest/zaino.toml
+docker/regtest/zallet.toml
+docker/regtest/zebra.toml
+package.json
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-dev-0.1.0-alpha.0.tgz
+package: create-zcash-app@0.1.0-alpha.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+package.json
+template/app/api/account/route.ts
+template/app/layout.tsx
+template/app/page.tsx
+template/gitignore.tmpl
+template/next.config.mjs
+template/package.json.tmpl
+template/pnpm-workspace.yaml
+template/tsconfig.json
+Tarball Details
+/tmp/cza-release-proof/tarballs/create-zcash-app-0.1.0-alpha.0.tgz
+npm notice
+npm notice package: @zcash-app/core-darwin-arm64@0.1.0-alpha.0
+npm notice Tarball Contents
+npm notice 100B README.md
+npm notice 331B package.json
+npm notice 7.2MB zcash-core.darwin-arm64.node
+npm notice Tarball Details
+npm notice name: @zcash-app/core-darwin-arm64
+npm notice version: 0.1.0-alpha.0
+npm notice filename: zcash-app-core-darwin-arm64-0.1.0-alpha.0.tgz
+npm notice package size: 4.1 MB
+npm notice unpacked size: 7.2 MB
+npm notice shasum: 9e44a8afce787cac9425e879e9e47e90179f4e05
+npm notice integrity: sha512-H37S9wjiDfruQ[...]aIYEoX1Xd4dbQ==
+npm notice total files: 3
+npm notice
+packed the platform package in packages/core/npm/darwin-arm64/
+
+tarballs:
+create-zcash-app-0.1.0-alpha.0.tgz
+zcash-app-core-0.1.0-alpha.0.tgz
+zcash-app-core-darwin-arm64-0.1.0-alpha.0.tgz
+zcash-app-sdk-0.1.0-alpha.0.tgz
+zcash-dev-0.1.0-alpha.0.tgz
+
+sha256:
+6baa505bf2c5b19e887ca41770b601206ed04113e51e383794129cc5da27f638  create-zcash-app-0.1.0-alpha.0.tgz
+83d8339f5fd6a0580a1db05aec6f8d24bdefdc6a34d36d8d02fae0bda76b44c0  zcash-app-core-0.1.0-alpha.0.tgz
+3b8613529c3e606fd0da9c3523f72bd75c6153c5c9422ce23b5719a6cfa32c1d  zcash-app-core-darwin-arm64-0.1.0-alpha.0.tgz
+58fded8f8041c681f7671fdc38cfc794d05bebcf6371b7996435d6731154c780  zcash-app-sdk-0.1.0-alpha.0.tgz
+3d9c4da6b6a58922a4cf1cb002ff188a07bd0e681eda51669ef3445889fd54ea  zcash-dev-0.1.0-alpha.0.tgz
+
+payload and manifest checks (everything a consumer receives):
+zcash-app-core-darwin-arm64-0.1.0-alpha.0.tgz: platform addon package/zcash-core.darwin-arm64.node
+  optionalDependencies: @zcash-app/core-darwin-arm64
+zcash-app-core-0.1.0-alpha.0.tgz: @zcash-app/core@0.1.0-alpha.0, 4 entries, 2 declared deps, workspace ranges: 0
+  @zcash-app/core-darwin-arm64 -> 0.1.0-alpha.0
+zcash-app-sdk-0.1.0-alpha.0.tgz: @zcash-app/sdk@0.1.0-alpha.0, 34 entries, 6 declared deps, workspace ranges: 0
+  @zcash-app/core -> 0.1.0-alpha.0
+zcash-dev-0.1.0-alpha.0.tgz: zcash-dev@0.1.0-alpha.0, 17 entries, 6 declared deps, workspace ranges: 0
+  @zcash-app/sdk -> 0.1.0-alpha.0
+create-zcash-app-0.1.0-alpha.0.tgz: create-zcash-app@0.1.0-alpha.0, 12 entries, 5 declared deps, workspace ranges: 0
+
+--- step 4: run the packed scaffolder non-interactively ---
+
+added 4 packages in 458ms
+
+🚀 Scaffolding shielded Zcash app in /private/tmp/cza-release-proof/my-app...
+
+🎉 Success! Created my-app at /private/tmp/cza-release-proof/my-app
+   Configured Network: testnet (remote)
+   Indexer Endpoint:   testnet.zec.rocks:443
+   Package range:      @zcash-app/sdk@^0.1.0-alpha.0, zcash-dev@^0.1.0-alpha.0
+   Files written:      11
+
+Next steps:
+   cd my-app
+   pnpm install
+   pnpm dev
+
+
+files written by the scaffolder:
+./.env.local
+./.gitignore
+./README.md
+./app/api/account/route.ts
+./app/layout.tsx
+./app/page.tsx
+./next.config.mjs
+./package.json
+./pnpm-workspace.yaml
+./tsconfig.json
+./zcash.config.json
+
+--- step 5: point the scaffolded dependencies at the packed tarballs ---
+scaffolder declared @zcash-app/sdk ^0.1.0-alpha.0 and zcash-dev ^0.1.0-alpha.0
+installing from file:../tarballs/zcash-app-sdk-0.1.0-alpha.0.tgz
+
+--- step 6: pnpm install ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 7, reused 7, downloaded 0, added 0
+Progress: resolved 60, reused 30, downloaded 0, added 0
+Progress: resolved 95, reused 65, downloaded 0, added 0
+Packages: +68
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 100, reused 70, downloaded 0, added 67
+Progress: resolved 100, reused 70, downloaded 0, added 68
+Progress: resolved 100, reused 70, downloaded 0, added 68, done
+.../node_modules/protobufjs postinstall$ node scripts/postinstall
+.../node_modules/protobufjs postinstall: Done
+
+dependencies:
++ @zcash-app/sdk 0.1.0-alpha.0
++ next 16.4.2
++ react 19.3.0 (19.3.1 is available)
++ react-dom 19.3.0 (19.3.1 is available)
+
+devDependencies:
++ @types/node 20.19.43 (26.6.6 is available)
++ @types/react 19.3.0
++ @types/react-dom 19.3.0
++ typescript 5.9.3 (7.0.2 is available)
++ zcash-dev 0.1.0-alpha.0
+
+Done in 5.5s using pnpm v11.5.3
+
+--- step 7: pnpm build ---
+$ next build
+▲ Next.js 16.4.2 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.mjs took 11ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1614ms
+  Running TypeScript ...
+
+  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+  	- allowJs was set to true
+  	- include was updated to add '.next/dev/types/**/*.ts'
+
+  The following mandatory changes were made to your tsconfig.json:
+
+  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+
+  Finished TypeScript in 1379ms ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 348ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+└ ƒ /api/account
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+--- step 8: build output ---
+BUILD_ID: Uh14kkGcmFYRaFbNJfTJG
+installed @zcash-app/sdk   0.1.0-alpha.0
+installed @zcash-app/core  0.1.0-alpha.0 (node_modules/.pnpm/@zcash-app+core@file+..+tarballs+zcash-app-core-0.1.0-alpha.0.tgz/node_modules/@zcash-app/core/package.json)
+installed zcash-dev        0.1.0-alpha.0
+
+--- step 9: the installed SDK loads its native addon at runtime ---
+mnemonic words: 12
+regtest unified address prefix: uregtest1002… (length 220)
+
+RESULT: the scaffolded project installed from tarballs and built successfully
