@@ -15,7 +15,7 @@ program
   .name('create-zcash-app')
   .description('Scaffold a shielded Zcash application powered by Z3 and @zcash-app/sdk')
   .argument('[project-name]', 'Name of the project directory')
-  .option('-t, --template <template>', 'Template to use (nextjs-fullstack | express-api | scanner)', 'nextjs-fullstack')
+  .option('-t, --template <template>', 'Template to use (nextjs-fullstack)', 'nextjs-fullstack')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)')
   .option('--remote', 'Use remote public RPC indexer without local node')
   .action(async (projectNameArg, options) => {
@@ -52,7 +52,7 @@ program
         message: 'Which Zcash network do you want to start with?',
         choices: [
           {
-            title: '🟢 regtest (Recommended for dev — instant block mining, auto-faucet, 100% offline)',
+            title: '🟢 regtest (Default - NU7 standalone chain, instant mining & faucet)',
             value: 'regtest',
           },
           {
@@ -60,7 +60,7 @@ program
             value: 'testnet',
           },
           {
-            title: '🟠 mainnet (Production with real ZEC)',
+            title: '🟠 mainnet (⚠️ Experimental - production with real ZEC)',
             value: 'mainnet',
           },
         ],
@@ -162,7 +162,6 @@ program
       network,
       connectionMode,
       endpoint,
-      zainoPin: 'zingodevops/zainod:0.10.0-no-tls',
       createdAt: new Date().toISOString(),
     };
     fs.writeFileSync(
@@ -175,9 +174,6 @@ program
 ZCASH_NETWORK=${network}
 ZCASH_CONNECTION_MODE=${connectionMode}
 ZCASH_ENDPOINT=${endpoint}
-
-# Z3 Stack Pin Override: Zaino >= 0.10.0 required for Ironwood support
-Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
 `;
     fs.writeFileSync(path.join(targetDir, '.env.local'), envContent);
 
