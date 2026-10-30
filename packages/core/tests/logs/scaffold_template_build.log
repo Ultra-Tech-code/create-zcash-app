@@ -1,0 +1,215 @@
+=== create-zcash-app template release proof ===
+date:        2026-10-30T01:21:02Z
+repo:        /Users/0xblackadam/Downloads/zcash_scafolder
+work dir:    /tmp/cza-release-proof
+node:        v22.22.2
+pnpm:        11.5.3
+
+--- step 1: build the TypeScript packages the tarballs are made from ---
+$ tsc
+$ tsc
+$ tsc
+
+--- step 2: pack tarballs ---
+package: @zcash-app/core@0.1.0-alpha.0
+Tarball Contents
+index.d.ts
+index.js
+package.json
+zcash-core.darwin-arm64.node
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-app-core-0.1.0-alpha.0.tgz
+package: @zcash-app/sdk@0.1.0-alpha.0
+Tarball Contents
+dist/client.d.ts
+dist/client.js
+dist/consensus.d.ts
+dist/consensus.js
+dist/constants.d.ts
+dist/constants.js
+dist/dashboard-wallet.d.ts
+dist/dashboard-wallet.js
+dist/decrypted-tx.d.ts
+dist/decrypted-tx.js
+dist/detection.d.ts
+dist/detection.js
+dist/dev.d.ts
+dist/dev.js
+dist/explorer.d.ts
+dist/explorer.js
+dist/index.d.ts
+dist/index.js
+dist/jsonrpc.d.ts
+dist/jsonrpc.js
+dist/keys.d.ts
+dist/keys.js
+dist/payment.d.ts
+dist/payment.js
+dist/send.d.ts
+dist/send.js
+dist/sync.d.ts
+dist/sync.js
+dist/types.d.ts
+dist/types.js
+package.json
+proto/compact_formats.proto
+proto/service.proto
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-app-sdk-0.1.0-alpha.0.tgz
+package: zcash-dev@0.1.0-alpha.0
+Tarball Contents
+dist/cli.d.ts
+dist/cli.js
+dist/index.d.ts
+dist/index.js
+dist/testnet-lightwalletd.d.ts
+dist/testnet-lightwalletd.js
+docker/regtest-nu7/docker-compose.yml
+docker/regtest-nu7/regtest-init.sh
+docker/regtest-nu7/zebra.toml
+docker/regtest/.env.regtest
+docker/regtest/docker-compose.yml
+docker/regtest/regtest-init.sh
+docker/regtest/zaino.toml
+docker/regtest/zallet.toml
+docker/regtest/zebra.toml
+package.json
+Tarball Details
+/tmp/cza-release-proof/tarballs/zcash-dev-0.1.0-alpha.0.tgz
+package: create-zcash-app@0.1.0-alpha.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+package.json
+template/app/api/account/route.ts
+template/app/layout.tsx
+template/app/page.tsx
+template/gitignore.tmpl
+template/next.config.mjs
+template/package.json.tmpl
+template/pnpm-workspace.yaml
+template/tsconfig.json
+Tarball Details
+/tmp/cza-release-proof/tarballs/create-zcash-app-0.1.0-alpha.0.tgz
+
+tarballs:
+create-zcash-app-0.1.0-alpha.0.tgz
+zcash-app-core-0.1.0-alpha.0.tgz
+zcash-app-sdk-0.1.0-alpha.0.tgz
+zcash-dev-0.1.0-alpha.0.tgz
+
+sha256:
+6baa505bf2c5b19e887ca41770b601206ed04113e51e383794129cc5da27f638  create-zcash-app-0.1.0-alpha.0.tgz
+9c175362fe07717a4b2c4400e1d58b4727e948831a2ecc78866336b4eb174674  zcash-app-core-0.1.0-alpha.0.tgz
+58fded8f8041c681f7671fdc38cfc794d05bebcf6371b7996435d6731154c780  zcash-app-sdk-0.1.0-alpha.0.tgz
+3d9c4da6b6a58922a4cf1cb002ff188a07bd0e681eda51669ef3445889fd54ea  zcash-dev-0.1.0-alpha.0.tgz
+
+--- step 3: run the packed scaffolder non-interactively ---
+
+added 4 packages in 436ms
+
+🚀 Scaffolding shielded Zcash app in /private/tmp/cza-release-proof/my-app...
+
+🎉 Success! Created my-app at /private/tmp/cza-release-proof/my-app
+   Configured Network: testnet (remote)
+   Indexer Endpoint:   testnet.zec.rocks:443
+   Package range:      @zcash-app/sdk@^0.1.0-alpha.0, zcash-dev@^0.1.0-alpha.0
+   Files written:      11
+
+Next steps:
+   cd my-app
+   pnpm install
+   pnpm dev
+
+
+files written by the scaffolder:
+./.env.local
+./.gitignore
+./README.md
+./app/api/account/route.ts
+./app/layout.tsx
+./app/page.tsx
+./next.config.mjs
+./package.json
+./pnpm-workspace.yaml
+./tsconfig.json
+./zcash.config.json
+
+--- step 4: point the scaffolded dependencies at the packed tarballs ---
+scaffolder declared @zcash-app/sdk ^0.1.0-alpha.0 and zcash-dev ^0.1.0-alpha.0
+installing from file:../tarballs/zcash-app-sdk-0.1.0-alpha.0.tgz
+
+--- step 5: pnpm install ---
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 9, reused 9, downloaded 0, added 0
+Progress: resolved 66, reused 36, downloaded 0, added 0
+Progress: resolved 98, reused 68, downloaded 0, added 0
+Packages: +67
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 99, reused 69, downloaded 0, added 66
+Progress: resolved 99, reused 69, downloaded 0, added 67, done
+.../node_modules/protobufjs postinstall$ node scripts/postinstall
+.../node_modules/protobufjs postinstall: Done
+
+dependencies:
++ @zcash-app/sdk 0.1.0-alpha.0
++ next 16.4.2
++ react 19.3.0 (19.3.1 is available)
++ react-dom 19.3.0 (19.3.1 is available)
+
+devDependencies:
++ @types/node 20.19.43 (26.6.6 is available)
++ @types/react 19.3.0
++ @types/react-dom 19.3.0
++ typescript 5.9.3 (7.0.2 is available)
++ zcash-dev 0.1.0-alpha.0
+
+Done in 4.6s using pnpm v11.5.3
+
+--- step 6: pnpm build ---
+$ next build
+▲ Next.js 16.4.2 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.mjs took 8ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1090ms
+  Running TypeScript ...
+
+  We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+  The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+  	- allowJs was set to true
+  	- include was updated to add '.next/dev/types/**/*.ts'
+
+  The following mandatory changes were made to your tsconfig.json:
+
+  	- jsx was set to react-jsx (next.js uses the React automatic runtime)
+
+  Finished TypeScript in 989ms ...
+  Collecting page data using 5 workers ...
+  Generating static pages using 5 workers (0/3) ...
+✓ Generating static pages using 5 workers (3/3) in 282ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+└ ƒ /api/account
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+--- step 7: build output ---
+BUILD_ID: _S6A2cXubH9KbHmD5fRVm
+installed @zcash-app/sdk   0.1.0-alpha.0
+installed @zcash-app/core  0.1.0-alpha.0 (node_modules/.pnpm/@zcash-app+core@file+..+tarballs+zcash-app-core-0.1.0-alpha.0.tgz/node_modules/@zcash-app/core/package.json)
+installed zcash-dev        0.1.0-alpha.0
+
+--- step 8: the installed SDK loads its native addon at runtime ---
+mnemonic words: 12
+regtest unified address prefix: uregtest1e8g… (length 220)
+
+RESULT: the scaffolded project installed from tarballs and built successfully
