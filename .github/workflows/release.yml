@@ -1,0 +1,187 @@
+name: Release (npm)
+
+# Manual only. Nothing here runs on push or on a tag, so publishing is always a deliberate action.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only run `npm publish --dry-run` (nothing is published)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-npm
+  cancel-in-progress: false
+
+env:
+  # The four published packages are versioned in lockstep; `next` keeps the prerelease off `latest`.
+  NPM_TAG: next
+
+jobs:
+  build:
+    name: build - ${{ matrix.settings.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: pnpm --filter @zcash-app/core run build --target aarch64-apple-darwin
+          - host: macos-15-intel
+            target: x86_64-apple-darwin
+            build: pnpm --filter @zcash-app/core run build --target x86_64-apple-darwin
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            build: pnpm --filter @zcash-app/core run build --target x86_64-unknown-linux-gnu
+          - host: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            build: pnpm --filter @zcash-app/core run build --target aarch64-unknown-linux-gnu
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            build: pnpm --filter @zcash-app/core run build --target x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.settings.target }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Set RUSTFLAGS for deterministic build path remapping
+        shell: bash
+        run: |
+          CARGO_DIR="${CARGO_HOME:-$HOME/.cargo}"
+          echo "RUSTFLAGS=--remap-path-prefix ${{ github.workspace }}=/build --remap-path-prefix ${CARGO_DIR}=/cargo" >> "$GITHUB_ENV"
+
+      - name: Build Rust core addon
+        run: ${{ matrix.settings.build }}
+
+      - name: Upload native addon
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: packages/core/*.node
+          if-no-files-found: error
+
+  publish:
+    name: publish - ${{ inputs.dry_run && 'dry run' || 'npm' }}
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node (with the npm registry token)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Download every native addon
+        uses: actions/download-artifact@v4
+        with:
+          path: packages/core/artifacts
+
+      - name: Create the per-platform npm package directories
+        run: pnpm --filter @zcash-app/core exec napi create-npm-dirs
+
+      - name: Place the addons into the per-platform packages
+        run: |
+          pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
+          ls -la packages/core/npm/*/*.node
+
+      - name: Update package.json and copy addons (napi prepublish)
+        run: pnpm --filter @zcash-app/core exec napi prepublish --tag-style npm
+
+      - name: Check that the four published packages share one version
+        run: |
+          node -e '
+            const fs = require("fs");
+            const names = ["core", "sdk", "dev", "cli"];
+            const versions = names.map((n) => {
+              const p = JSON.parse(fs.readFileSync(`packages/${n}/package.json`, "utf8"));
+              console.log(`${p.name} ${p.version}`);
+              return p.version;
+            });
+            if (new Set(versions).size !== 1) {
+              console.error("::error::Package versions differ: " + versions.join(", "));
+              process.exit(1);
+            }
+            console.log("All publishable packages are at " + versions[0]);
+          '
+
+      - name: Publish the per-platform packages first
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args="--access public --tag $NPM_TAG"
+          if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
+          for dir in packages/core/npm/*/; do
+            echo "::group::npm publish $dir"
+            npm publish "$dir" $args
+            echo "::endgroup::"
+          done
+
+      - name: Publish @zcash-app/core
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args="--access public --tag $NPM_TAG"
+          if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
+          npm publish packages/core $args
+
+      - name: Publish @zcash-app/sdk, zcash-dev and create-zcash-app
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          args="--access public --tag $NPM_TAG"
+          if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
+          for dir in packages/sdk packages/dev packages/cli; do
+            echo "::group::npm publish $dir"
+            npm publish "$dir" $args
+            echo "::endgroup::"
+          done
+
+      - name: Summarise
+        if: always()
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "Dry run: every npm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, zcash-dev and create-zcash-app with dist-tag \`$NPM_TAG\`." >> "$GITHUB_STEP_SUMMARY"
+          fi
