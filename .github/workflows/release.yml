@@ -172,6 +172,12 @@ jobs:
         # "@zcash-app/core": "workspace:*" with npm and "0.1.0-alpha.0" with pnpm), so publishing
         # has to go through pnpm. This step fails before anything is published if a manifest still
         # carries a workspace: range or if a payload file is missing.
+        #
+        # The native addons are NOT in the root @zcash-app/core tarball: `napi artifacts` copies
+        # each zcash-core.<target>.node into packages/core/npm/<platform>/, and those per-platform
+        # packages are what @zcash-app/core lists as optionalDependencies. So check the addon
+        # directories (exactly one .node each) and check that the root core tarball holds none,
+        # which is what would happen if the addon were duplicated into the loader package.
         run: |
           set -euo pipefail
           rm -rf /tmp/release-packs
@@ -184,6 +190,42 @@ jobs:
           const fs = require('fs');
           const path = require('path');
           const { execSync } = require('child_process');
+
+          // Platform addon packages, checked on disk: `napi artifacts` has already copied the
+          // downloaded bindings into these directories.
+          const NPM_PLATFORM = {
+            'aarch64-apple-darwin': 'darwin-arm64',
+            'x86_64-apple-darwin': 'darwin-x64',
+            'x86_64-unknown-linux-gnu': 'linux-x64-gnu',
+            'aarch64-unknown-linux-gnu': 'linux-arm64-gnu',
+            'x86_64-pc-windows-msvc': 'win32-x64-msvc',
+          };
+          const coreManifest = JSON.parse(fs.readFileSync('packages/core/package.json', 'utf8'));
+          const targets = (coreManifest.napi && coreManifest.napi.targets) || [];
+          let platformFailures = 0;
+          for (const target of targets) {
+            const platform = NPM_PLATFORM[target] || target;
+            const dir = path.join('packages/core/npm', platform);
+            if (!fs.existsSync(dir)) {
+              console.error(`MISSING platform package directory: ${dir}`);
+              platformFailures++;
+              continue;
+            }
+            const addons = fs.readdirSync(dir).filter((f) => f.endsWith('.node'));
+            if (addons.length !== 1) {
+              console.error(
+                `EXPECTED exactly one addon in ${dir}, found ${addons.length}: ${addons.join(', ') || '(none)'}`
+              );
+              platformFailures++;
+              continue;
+            }
+            console.log(`platform addon: ${dir}/${addons[0]}`);
+          }
+          if (targets.length === 0) {
+            console.error('MISSING napi targets in packages/core/package.json');
+            platformFailures++;
+          }
+          if (platformFailures > 0) process.exit(1);
 
           const tarballs = fs.readdirSync('/tmp/release-packs').filter((f) => f.endsWith('.tgz'));
           const expected = [
@@ -212,8 +254,11 @@ jobs:
                 failures++;
               }
             }
-            if (tarball === 'zcash-app-core-' && !listing.some((l) => l.endsWith('.node'))) {
-              console.error(`MISSING native addon in ${file}`);
+            if (tarball === 'zcash-app-core-' && listing.some((l) => l.endsWith('.node'))) {
+              console.error(
+                `UNEXPECTED native addon in ${file}: addons belong in the per-platform packages, ` +
+                  'not duplicated into the loader package'
+              );
               failures++;
             }
             const workspaceRanges = Object.entries({

@@ -30,7 +30,7 @@ e903eb47d427b76fab96ba20bed9dabf50866c4c09bd57b5ae25899e693b29b9  p6_fee_check.l
 c5be3dd2fb4c6fc6091f71e1a609b391ec1cc770c8131fd771a72bf63c6d2dc9  p6_fee_grep.log  |  rg -n "fee" packages/
 7000682b74f8e83182b6a745d8b16f7b176a67ea127ac9a0d6f2b256d719c419  phase1_nu7_awareness.log  |  node scripts/test_phase1_nu7_awareness.mjs
 2e5583c0cd06bac30aaa3b753038499a82d47e5dc1bcc0a3561a8b493566b606  proto_diff.log  |  git diff --no-index proto/ proto_upstream/
-c8a8ba49b01dfb872e1a7ec564b59411c5740b96c21ac0e58baecc89772e1af6  scaffold_template_build.log  |  bash scripts/prove-scaffold-template.sh /tmp/cza-release-proof
+2e7f08195e786575404bde264096010b817c9a7397a00c01dee16e9f93f33c39  scaffold_template_build.log  |  bash scripts/prove-scaffold-template.sh /tmp/cza-release-proof
 90915ff13df1713b682bf762c66fa7edc160294ed40c7dbd4bce7814ab9e9e03  step1_schema.log  |  cargo test --package zcash-core step1_schema
 3840b57307d319295928ddbec5b2af61558d0d43ddf20a8c2110032aa334b4dd  step2_shard_store.log  |  cargo test --package zcash-core step2_shard_store
 b43e3d0c7cc3f1b2f74f67e764c01d054492601409c4262c4aafcc2e76fb4930  step3_scanner.log  |  cargo test --package zcash-core step3_scanner
