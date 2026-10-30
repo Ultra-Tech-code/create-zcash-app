@@ -62,6 +62,81 @@ mkdir -p "$TARBALLS"
   (cd "$TARBALLS" && sha256 *.tgz)
   echo
 
+  echo "payload and manifest checks (everything a consumer receives):"
+  node - "$TARBALLS" <<'NODE'
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const tarballDir = process.argv[2];
+const tarballs = fs.readdirSync(tarballDir).filter((f) => f.endsWith('.tgz'));
+
+const expected = [
+  { prefix: 'zcash-app-core-', entries: ['package/index.js', 'package/index.d.ts'], needsAddon: true },
+  { prefix: 'zcash-app-sdk-', entries: ['package/dist/index.js', 'package/dist/index.d.ts'] },
+  { prefix: 'zcash-dev-', entries: ['package/dist/cli.js', 'package/dist/index.js'] },
+  { prefix: 'create-zcash-app-', entries: ['package/dist/index.js', 'package/template/package.json.tmpl'] },
+];
+
+let failures = 0;
+for (const { prefix, entries, needsAddon } of expected) {
+  const file = tarballs.find((f) => f.startsWith(prefix));
+  if (!file) {
+    console.error(`MISSING TARBALL: nothing matching ${prefix}*`);
+    failures++;
+    continue;
+  }
+  const full = path.join(tarballDir, file);
+  const listing = execSync(`tar -tzf ${full}`, { encoding: 'utf8' }).split('\n');
+  const manifest = JSON.parse(
+    execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
+  );
+
+  for (const entry of entries) {
+    if (!listing.includes(entry)) {
+      console.error(`MISSING ${entry} in ${file}`);
+      failures++;
+    }
+  }
+  if (needsAddon && !listing.some((l) => l.endsWith('.node'))) {
+    console.error(`MISSING native addon in ${file}`);
+    failures++;
+  }
+
+  const ranges = {
+    ...(manifest.dependencies || {}),
+    ...(manifest.optionalDependencies || {}),
+    ...(manifest.peerDependencies || {}),
+    ...(manifest.devDependencies || {}),
+  };
+  const workspaceRanges = Object.entries(ranges).filter(([, range]) =>
+    String(range).includes('workspace:')
+  );
+  if (workspaceRanges.length > 0) {
+    console.error(
+      `WORKSPACE RANGE IN ${file}: ` + workspaceRanges.map(([n, r]) => `${n}=${r}`).join(', ')
+    );
+    failures++;
+  }
+
+  console.log(
+    `${file}: ${manifest.name}@${manifest.version}, ${listing.length} entries, ` +
+      `${Object.keys(ranges).length} declared deps, workspace ranges: ${workspaceRanges.length}`
+  );
+  for (const [name, range] of Object.entries(ranges)) {
+    if (name.startsWith('@zcash-app/') || name === 'zcash-dev') {
+      console.log(`  ${name} -> ${range}`);
+    }
+  }
+}
+
+if (failures > 0) {
+  console.error(`FAILED: ${failures} tarball check(s) failed`);
+  process.exit(1);
+}
+NODE
+  echo
+
   CORE_TGZ="$(cd "$TARBALLS" && ls -1 zcash-app-core-*.tgz)"
   SDK_TGZ="$(cd "$TARBALLS" && ls -1 zcash-app-sdk-*.tgz)"
   DEV_TGZ="$(cd "$TARBALLS" && ls -1 zcash-dev-*.tgz)"

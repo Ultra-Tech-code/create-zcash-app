@@ -1,5 +1,5 @@
 === create-zcash-app template release proof ===
-date:        2026-10-30T01:21:02Z
+date:        2026-10-30T01:38:25Z
 repo:        /Users/0xblackadam/Downloads/zcash_scafolder
 work dir:    /tmp/cza-release-proof
 node:        v22.22.2
@@ -100,13 +100,21 @@ zcash-dev-0.1.0-alpha.0.tgz
 
 sha256:
 6baa505bf2c5b19e887ca41770b601206ed04113e51e383794129cc5da27f638  create-zcash-app-0.1.0-alpha.0.tgz
-9c175362fe07717a4b2c4400e1d58b4727e948831a2ecc78866336b4eb174674  zcash-app-core-0.1.0-alpha.0.tgz
+3748911da0fdeb0954d1d4f3d7234a8fadc67703e00b68c8461948c3371a5b32  zcash-app-core-0.1.0-alpha.0.tgz
 58fded8f8041c681f7671fdc38cfc794d05bebcf6371b7996435d6731154c780  zcash-app-sdk-0.1.0-alpha.0.tgz
 3d9c4da6b6a58922a4cf1cb002ff188a07bd0e681eda51669ef3445889fd54ea  zcash-dev-0.1.0-alpha.0.tgz
 
+payload and manifest checks (everything a consumer receives):
+zcash-app-core-0.1.0-alpha.0.tgz: @zcash-app/core@0.1.0-alpha.0, 5 entries, 1 declared deps, workspace ranges: 0
+zcash-app-sdk-0.1.0-alpha.0.tgz: @zcash-app/sdk@0.1.0-alpha.0, 34 entries, 6 declared deps, workspace ranges: 0
+  @zcash-app/core -> 0.1.0-alpha.0
+zcash-dev-0.1.0-alpha.0.tgz: zcash-dev@0.1.0-alpha.0, 17 entries, 6 declared deps, workspace ranges: 0
+  @zcash-app/sdk -> 0.1.0-alpha.0
+create-zcash-app-0.1.0-alpha.0.tgz: create-zcash-app@0.1.0-alpha.0, 12 entries, 5 declared deps, workspace ranges: 0
+
 --- step 3: run the packed scaffolder non-interactively ---
 
-added 4 packages in 436ms
+added 4 packages in 3s
 
 🚀 Scaffolding shielded Zcash app in /private/tmp/cza-release-proof/my-app...
 
@@ -141,13 +149,13 @@ installing from file:../tarballs/zcash-app-sdk-0.1.0-alpha.0.tgz
 
 --- step 5: pnpm install ---
 Progress: resolved 1, reused 0, downloaded 0, added 0
-Progress: resolved 9, reused 9, downloaded 0, added 0
-Progress: resolved 66, reused 36, downloaded 0, added 0
-Progress: resolved 98, reused 68, downloaded 0, added 0
+Progress: resolved 7, reused 7, downloaded 0, added 0
+Progress: resolved 65, reused 34, downloaded 1, added 0
+Progress: resolved 91, reused 60, downloaded 1, added 0
 Packages: +67
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Progress: resolved 99, reused 69, downloaded 0, added 66
-Progress: resolved 99, reused 69, downloaded 0, added 67, done
+Progress: resolved 99, reused 68, downloaded 1, added 66
+Progress: resolved 99, reused 68, downloaded 1, added 67, done
 .../node_modules/protobufjs postinstall$ node scripts/postinstall
 .../node_modules/protobufjs postinstall: Done
 
@@ -164,16 +172,16 @@ devDependencies:
 + typescript 5.9.3 (7.0.2 is available)
 + zcash-dev 0.1.0-alpha.0
 
-Done in 4.6s using pnpm v11.5.3
+Done in 5.3s using pnpm v11.5.3
 
 --- step 6: pnpm build ---
 $ next build
 ▲ Next.js 16.4.2 (Turbopack)
 - Environments: .env.local
-✓ Running next.config.mjs took 8ms
+✓ Running next.config.mjs took 9ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 1090ms
+✓ Compiled successfully in 1221ms
   Running TypeScript ...
 
   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
@@ -186,10 +194,10 @@ $ next build
 
   	- jsx was set to react-jsx (next.js uses the React automatic runtime)
 
-  Finished TypeScript in 989ms ...
+  Finished TypeScript in 1046ms ...
   Collecting page data using 5 workers ...
   Generating static pages using 5 workers (0/3) ...
-✓ Generating static pages using 5 workers (3/3) in 282ms
+✓ Generating static pages using 5 workers (3/3) in 264ms
   Finalizing page optimization ...
 
 Route (app)
@@ -203,13 +211,13 @@ Route (app)
 
 
 --- step 7: build output ---
-BUILD_ID: _S6A2cXubH9KbHmD5fRVm
+BUILD_ID: Vlj1IEf3lyID_Z_ray930
 installed @zcash-app/sdk   0.1.0-alpha.0
 installed @zcash-app/core  0.1.0-alpha.0 (node_modules/.pnpm/@zcash-app+core@file+..+tarballs+zcash-app-core-0.1.0-alpha.0.tgz/node_modules/@zcash-app/core/package.json)
 installed zcash-dev        0.1.0-alpha.0
 
 --- step 8: the installed SDK loads its native addon at runtime ---
 mnemonic words: 12
-regtest unified address prefix: uregtest1e8g… (length 220)
+regtest unified address prefix: uregtest1l94… (length 220)
 
 RESULT: the scaffolded project installed from tarballs and built successfully

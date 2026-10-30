@@ -119,8 +119,122 @@ jobs:
           pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
           ls -la packages/core/npm/*/*.node
 
+      # @napi-rs/cli declares `ghRelease = Option.Boolean("--gh-release", true, ...)`, so creating a
+      # GitHub release and publishing the per-platform packages are BOTH on by default: the
+      # prepublish body wraps `createGhRelease(...)` around `if (!options.skipOptionalPublish)
+      # execSync(`${npmClient} publish`)`. Passing --skip-optional-publish keeps publishing under
+      # this workflow's control (order, --access, --tag), and --no-gh-release stops it from trying
+      # to create a release. Both flags verified against the installed @napi-rs/cli 3.10.8.
       - name: Update package.json and copy addons (napi prepublish)
-        run: pnpm --filter @zcash-app/core exec napi prepublish --tag-style npm
+        run: >-
+          pnpm --filter @zcash-app/core exec napi prepublish --tag-style npm
+          --skip-optional-publish --no-gh-release
+
+      # A silent prepublish failure would publish @zcash-app/core with no platform packages at all,
+      # so check the manifest it is supposed to have rewritten. The manifest path is an argument so
+      # the check can be exercised against a fixture locally.
+      - name: Verify prepublish wired the platform packages into @zcash-app/core
+        run: |
+          set -euo pipefail
+          manifest="${1:-packages/core/package.json}"
+          node - "$manifest" <<'NODE'
+          const fs = require('fs');
+          const manifestPath = process.argv[2];
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const targets = (manifest.napi && manifest.napi.targets) || [];
+          const optional = Object.keys(manifest.optionalDependencies || {});
+          const missing = targets.filter((target) => {
+            const suffix = target
+              .replace('aarch64-apple-darwin', 'darwin-arm64')
+              .replace('x86_64-apple-darwin', 'darwin-x64')
+              .replace('x86_64-unknown-linux-gnu', 'linux-x64-gnu')
+              .replace('aarch64-unknown-linux-gnu', 'linux-arm64-gnu')
+              .replace('x86_64-pc-windows-msvc', 'win32-x64-msvc');
+            return !optional.includes(`${manifest.name}-${suffix}`);
+          });
+          console.log(`napi targets: ${targets.length}, optionalDependencies: ${optional.length}`);
+          optional.forEach((name) => console.log(`  ${name}`));
+          if (targets.length === 0 || missing.length > 0) {
+            console.error(`MISSING platform packages: ${missing.join(', ') || '(no targets)'}`);
+            process.exit(1);
+          }
+          NODE
+
+      - name: Build the TypeScript packages that get published
+        # sdk first: zcash-dev imports @zcash-app/sdk's types from dist/.
+        run: |
+          pnpm --filter @zcash-app/sdk build
+          pnpm --filter zcash-dev build
+          pnpm --filter create-zcash-app build
+
+      - name: Pack every package and check the tarballs
+        # npm pack leaves `workspace:*` in the published manifest (measured: @zcash-app/sdk packs
+        # "@zcash-app/core": "workspace:*" with npm and "0.1.0-alpha.0" with pnpm), so publishing
+        # has to go through pnpm. This step fails before anything is published if a manifest still
+        # carries a workspace: range or if a payload file is missing.
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/release-packs
+          mkdir -p /tmp/release-packs
+          pnpm --filter @zcash-app/core pack --pack-destination /tmp/release-packs
+          pnpm --filter @zcash-app/sdk pack --pack-destination /tmp/release-packs
+          pnpm --filter zcash-dev pack --pack-destination /tmp/release-packs
+          pnpm --filter create-zcash-app pack --pack-destination /tmp/release-packs
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          const tarballs = fs.readdirSync('/tmp/release-packs').filter((f) => f.endsWith('.tgz'));
+          const expected = [
+            { tarball: 'zcash-app-core-', entries: ['package/index.js', 'package/index.d.ts'] },
+            { tarball: 'zcash-app-sdk-', entries: ['package/dist/index.js', 'package/dist/index.d.ts'] },
+            { tarball: 'zcash-dev-', entries: ['package/dist/cli.js', 'package/dist/index.js'] },
+            { tarball: 'create-zcash-app-', entries: ['package/dist/index.js', 'package/template/package.json.tmpl'] },
+          ];
+
+          let failures = 0;
+          for (const { tarball, entries } of expected) {
+            const file = tarballs.find((f) => f.startsWith(tarball));
+            if (!file) {
+              console.error(`MISSING TARBALL: nothing matching ${tarball}*`);
+              failures++;
+              continue;
+            }
+            const full = path.join('/tmp/release-packs', file);
+            const listing = execSync(`tar -tzf ${full}`, { encoding: 'utf8' }).split('\n');
+            const manifest = JSON.parse(
+              execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
+            );
+            for (const entry of entries) {
+              if (!listing.includes(entry)) {
+                console.error(`MISSING ${entry} in ${file}`);
+                failures++;
+              }
+            }
+            if (tarball === 'zcash-app-core-' && !listing.some((l) => l.endsWith('.node'))) {
+              console.error(`MISSING native addon in ${file}`);
+              failures++;
+            }
+            const workspaceRanges = Object.entries({
+              ...(manifest.dependencies || {}),
+              ...(manifest.optionalDependencies || {}),
+              ...(manifest.peerDependencies || {}),
+              ...(manifest.devDependencies || {}),
+            }).filter(([, range]) => String(range).includes('workspace:'));
+            if (workspaceRanges.length > 0) {
+              console.error(
+                `WORKSPACE RANGE IN ${file}: ` + workspaceRanges.map(([n, r]) => `${n}=${r}`).join(', ')
+              );
+              failures++;
+            }
+            console.log(
+              `${file}: ${manifest.name}@${manifest.version}, ${listing.length} entries, ` +
+                `${(manifest.optionalDependencies ? Object.keys(manifest.optionalDependencies).length : 0)} optional deps`
+            );
+          }
+          if (failures > 0) process.exit(1);
+          NODE
 
       - name: Check that the four published packages share one version
         run: |
@@ -139,17 +253,25 @@ jobs:
             console.log("All publishable packages are at " + versions[0]);
           '
 
+      # pnpm, not npm: @zcash-app/sdk and zcash-dev depend on `workspace:*`, and `npm publish`
+      # packs that range verbatim, which no consumer can resolve. pnpm rewrites it to the real
+      # version at pack time. --no-git-checks is required because the checkout is a detached SHA.
+      #
+      # --ignore-scripts: @zcash-app/core still declares a legacy "prepublish" script
+      # (`napi pre-publish --dry-run --tag-style npm`) which pnpm runs on publish. That would
+      # rewrite the manifest a second time without this workflow's flags and aborts when a
+      # platform addon is missing. The addons and manifest are already prepared above.
       - name: Publish the per-platform packages first
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--access public --tag $NPM_TAG"
+          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
           for dir in packages/core/npm/*/; do
-            echo "::group::npm publish $dir"
-            npm publish "$dir" $args
+            echo "::group::pnpm publish $dir"
+            pnpm publish "$dir" $args
             echo "::endgroup::"
           done
 
@@ -159,9 +281,9 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--access public --tag $NPM_TAG"
+          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
-          npm publish packages/core $args
+          pnpm publish packages/core $args
 
       - name: Publish @zcash-app/sdk, zcash-dev and create-zcash-app
         env:
@@ -169,11 +291,11 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--access public --tag $NPM_TAG"
+          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
           for dir in packages/sdk packages/dev packages/cli; do
-            echo "::group::npm publish $dir"
-            npm publish "$dir" $args
+            echo "::group::pnpm publish $dir"
+            pnpm publish "$dir" $args
             echo "::endgroup::"
           done
 
@@ -181,7 +303,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            echo "Dry run: every npm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
+            echo "Dry run: every pnpm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, zcash-dev and create-zcash-app with dist-tag \`$NPM_TAG\`." >> "$GITHUB_STEP_SUMMARY"
           fi
