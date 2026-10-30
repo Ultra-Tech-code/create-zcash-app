@@ -246,7 +246,7 @@ program
         `Running the dashboard from a standalone npm package outside the monorepo clone is unsupported.\n\n` +
         `To launch the Developer Dashboard:\n` +
         `  1. Clone the repository:\n` +
-        `     git clone https://github.com/0xblackadam/create-zcash-app.git\n` +
+        `     git clone https://github.com/Ultra-Tech-code/create-zcash-app.git\n` +
         `     cd create-zcash-app\n` +
         `  2. Install dependencies & build:\n` +
         `     pnpm install && pnpm build\n` +

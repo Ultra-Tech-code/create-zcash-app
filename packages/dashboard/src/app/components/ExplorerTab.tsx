@@ -22,6 +22,7 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [matchType, setMatchType] = useState<'tx' | 'block' | null>(null);
   const [matchFeedback, setMatchFeedback] = useState<string | null>(null);
+  const [resultSource, setResultSource] = useState<string | null>(null);
   const [resultData, setResultData] = useState<any>(null);
 
   const zatoshisToZec = (zatoshis: number | string | bigint = 0) => {
@@ -48,6 +49,7 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
         setResultData(null);
         setMatchType(null);
         setMatchFeedback(null);
+        setResultSource(null);
         return;
       }
 
@@ -56,6 +58,7 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
       setResultData(null);
       setMatchType(null);
       setMatchFeedback(null);
+      setResultSource(null);
 
       try {
         const res = await fetch(
@@ -72,6 +75,7 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
               ? 'Matched: Transaction'
               : 'Matched: Block'
           );
+          setResultSource(typeof data.source === 'string' ? data.source : null);
           setResultData(data.data);
         } else {
           setError(data.error || 'Transaction or block not found');
@@ -248,6 +252,24 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
           >
             ✓ {matchFeedback}
           </span>
+          {resultSource && (
+            <span
+              id="explorer-source-badge"
+              data-testid="explorer-source-badge"
+              className="badge"
+              title="Backend that produced this result"
+              style={{
+                padding: '0.35rem 0.75rem',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                background: 'rgba(59, 130, 246, 0.15)',
+                color: '#60a5fa',
+                border: '1px solid rgba(59, 130, 246, 0.3)',
+              }}
+            >
+              source: {resultSource}
+            </span>
+          )}
         </div>
       )}
 
