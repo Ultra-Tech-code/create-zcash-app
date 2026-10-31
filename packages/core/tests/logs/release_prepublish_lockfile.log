@@ -1,0 +1,256 @@
+repo:      /Users/0xblackadam/Downloads/zcash_scafolder
+head:      0cf7c61
+node:      v22.22.2
+pnpm:      11.5.3
+work copy: /tmp/cza-release-step-order
+host addon: zcash-core.darwin-arm64.node
+
+===== copy the repo into the throwaway work dir (no target/, no .git/) =====
+-> exit=0
+packages/core/package.json optionalDependencies: null
+
+===== pnpm install          # workflow step: Install dependencies =====
+$ env CI=true pnpm install
+Scope: all 6 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+
+Done in 848ms using pnpm v11.5.3
+-> exit=0
+
+===== pnpm --filter @zcash-app/sdk build            # workflow step: Build the TypeScript packages =====
+$ env CI=true pnpm --filter @zcash-app/sdk build
+$ tsc
+-> exit=0
+
+===== pnpm --filter zcash-dev build                 # workflow step: Build the TypeScript packages =====
+$ env CI=true pnpm --filter zcash-dev build
+$ tsc
+-> exit=0
+
+===== pnpm --filter create-zcash-app build          # workflow step: Build the TypeScript packages =====
+$ env CI=true pnpm --filter create-zcash-app build
+$ tsc
+-> exit=0
+
+===== seed the artifact layout the workflow gets from actions/download-artifact =====
+total 14120
+drwxr-xr-x@ 3 0xblackadam  staff       96 Oct 31 00:35 .
+drwxr-xr-x@ 3 0xblackadam  staff       96 Oct 31 00:35 ..
+-rwxr-xr-x@ 1 0xblackadam  staff  7227600 Oct 31 00:35 zcash-core.darwin-arm64.node
+placeholder: packages/core/artifacts/bindings-x86_64-apple-darwin/zcash-core.darwin-x64.node
+placeholder: packages/core/artifacts/bindings-x86_64-unknown-linux-gnu/zcash-core.linux-x64-gnu.node
+placeholder: packages/core/artifacts/bindings-aarch64-unknown-linux-gnu/zcash-core.linux-arm64-gnu.node
+placeholder: packages/core/artifacts/bindings-x86_64-pc-windows-msvc/zcash-core.win32-x64-msvc.node
+
+===== pnpm --filter @zcash-app/core exec napi create-npm-dirs =====
+$ env CI=true pnpm --filter @zcash-app/core exec napi create-npm-dirs
+ INFO  @zcash-app/core -darwin-arm64 created
+ INFO  @zcash-app/core -darwin-x64 created
+ INFO  @zcash-app/core -linux-x64-gnu created
+ INFO  @zcash-app/core -linux-arm64-gnu created
+ INFO  @zcash-app/core -win32-x64-msvc created
+-> exit=0
+
+===== pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts =====
+$ env CI=true pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-apple-darwin/zcash-core.darwin-x64.node] to [/private/tmp/cza-release-step-order/packages/core/npm/darwin-x64/zcash-core.darwin-x64.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-apple-darwin/zcash-core.darwin-x64.node] to [/private/tmp/cza-release-step-order/packages/core/zcash-core.darwin-x64.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-aarch64-unknown-linux-gnu/zcash-core.linux-arm64-gnu.node] to [/private/tmp/cza-release-step-order/packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-unknown-linux-gnu/zcash-core.linux-x64-gnu.node] to [/private/tmp/cza-release-step-order/packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-unknown-linux-gnu/zcash-core.linux-x64-gnu.node] to [/private/tmp/cza-release-step-order/packages/core/zcash-core.linux-x64-gnu.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-aarch64-unknown-linux-gnu/zcash-core.linux-arm64-gnu.node] to [/private/tmp/cza-release-step-order/packages/core/zcash-core.linux-arm64-gnu.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-pc-windows-msvc/zcash-core.win32-x64-msvc.node] to [/private/tmp/cza-release-step-order/packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-x86_64-pc-windows-msvc/zcash-core.win32-x64-msvc.node] to [/private/tmp/cza-release-step-order/packages/core/zcash-core.win32-x64-msvc.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/index.js] to [/private/tmp/cza-release-step-order/packages/core/index.js]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-aarch64-apple-darwin/zcash-core.darwin-arm64.node] to [/private/tmp/cza-release-step-order/packages/core/npm/darwin-arm64/zcash-core.darwin-arm64.node]
+ INFO  Write [/private/tmp/cza-release-step-order/packages/core/artifacts/bindings-aarch64-apple-darwin/zcash-core.darwin-arm64.node] to [/private/tmp/cza-release-step-order/packages/core/zcash-core.darwin-arm64.node]
+-> exit=0
+-rw-r--r--@ 1 0xblackadam  staff  7227600 Oct 31 00:35 packages/core/npm/darwin-arm64/zcash-core.darwin-arm64.node
+-rw-r--r--@ 1 0xblackadam  staff     1024 Oct 31 00:35 packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
+-rw-r--r--@ 1 0xblackadam  staff     1024 Oct 31 00:35 packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
+-rw-r--r--@ 1 0xblackadam  staff     1024 Oct 31 00:35 packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
+-rw-r--r--@ 1 0xblackadam  staff     1024 Oct 31 00:35 packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
+
+===== pnpm --filter @zcash-app/core exec napi prepublish --tag-style npm --skip-optional-publish --no-gh-release =====
+$ env CI=true pnpm --filter @zcash-app/core exec napi prepublish --tag-style npm --skip-optional-publish --no-gh-release
+-> exit=0
+
+===== manifest after prepublish (the state that broke the old order) =====
+optionalDependencies: {
+  "@zcash-app/core-darwin-arm64": "0.1.0-alpha.0",
+  "@zcash-app/core-darwin-x64": "0.1.0-alpha.0",
+  "@zcash-app/core-linux-x64-gnu": "0.1.0-alpha.0",
+  "@zcash-app/core-linux-arm64-gnu": "0.1.0-alpha.0",
+  "@zcash-app/core-win32-x64-msvc": "0.1.0-alpha.0"
+}
+occurrences of core-darwin-arm64 in pnpm-lock.yaml: 0
+
+===== verify prepublish wired the platform packages (the workflow's own node check, unchanged) =====
+napi targets: 5, optionalDependencies: 5
+  @zcash-app/core-darwin-arm64
+  @zcash-app/core-darwin-x64
+  @zcash-app/core-linux-x64-gnu
+  @zcash-app/core-linux-arm64-gnu
+  @zcash-app/core-win32-x64-msvc
+-> exit=0
+
+===== control: the OLD order put a pnpm run step here, and it fails =====
+$ CI=true pnpm --filter @zcash-app/sdk build   # where this step used to sit
+Scope: all 6 workspace projects
+[ERR_PNPM_OUTDATED_LOCKFILE] Cannot install with "frozen-lockfile" because pnpm-lock.yaml is not up to date with <ROOT>/packages/core/package.json
+* 5 dependencies were added: @zcash-app/core-darwin-arm64@0.1.0-alpha.0, @zcash-app/core-darwin-x64@0.1.0-alpha.0, @zcash-app/core-linux-x64-gnu@0.1.0-alpha.0, @zcash-app/core-linux-arm64-gnu@0.1.0-alpha.0, @zcash-app/core-win32-x64-msvc@0.1.0-alpha.0
+    at runDepsStatusCheck (file:///Users/0xblackadam/.cache/node/corepack/v1/pnpm/11.5.3/dist/pnpm.mjs:246050:7)
+-> exit=1 (expected 1: ERR_PNPM_OUTDATED_LOCKFILE from runDepsStatusCheck)
+
+===== everything after prepublish is node / pnpm pack / pnpm publish only =====
+
+===== pnpm --filter @zcash-app/core pack =====
+$ env CI=true pnpm --filter @zcash-app/core pack --pack-destination /tmp/cza-release-step-order-packs
+package: @zcash-app/core@0.1.0-alpha.0
+Tarball Contents
+index.d.ts
+index.js
+package.json
+Tarball Details
+/tmp/cza-release-step-order-packs/zcash-app-core-0.1.0-alpha.0.tgz
+-> exit=0
+
+===== pnpm --filter @zcash-app/sdk pack =====
+$ env CI=true pnpm --filter @zcash-app/sdk pack --pack-destination /tmp/cza-release-step-order-packs
+package: @zcash-app/sdk@0.1.0-alpha.0
+Tarball Contents
+dist/client.d.ts
+dist/client.js
+dist/consensus.d.ts
+dist/consensus.js
+dist/constants.d.ts
+dist/constants.js
+dist/dashboard-wallet.d.ts
+dist/dashboard-wallet.js
+dist/decrypted-tx.d.ts
+dist/decrypted-tx.js
+dist/detection.d.ts
+dist/detection.js
+dist/dev.d.ts
+dist/dev.js
+dist/explorer.d.ts
+dist/explorer.js
+dist/index.d.ts
+dist/index.js
+dist/jsonrpc.d.ts
+dist/jsonrpc.js
+dist/keys.d.ts
+dist/keys.js
+dist/payment.d.ts
+dist/payment.js
+dist/send.d.ts
+dist/send.js
+dist/sync.d.ts
+dist/sync.js
+dist/types.d.ts
+dist/types.js
+package.json
+proto/compact_formats.proto
+proto/service.proto
+Tarball Details
+/tmp/cza-release-step-order-packs/zcash-app-sdk-0.1.0-alpha.0.tgz
+-> exit=0
+
+===== pnpm --filter zcash-dev pack =====
+$ env CI=true pnpm --filter zcash-dev pack --pack-destination /tmp/cza-release-step-order-packs
+package: zcash-dev@0.1.0-alpha.0
+Tarball Contents
+dist/cli.d.ts
+dist/cli.js
+dist/index.d.ts
+dist/index.js
+dist/testnet-lightwalletd.d.ts
+dist/testnet-lightwalletd.js
+docker/regtest-nu7/docker-compose.yml
+docker/regtest-nu7/regtest-init.sh
+docker/regtest-nu7/zebra.toml
+docker/regtest/.env.regtest
+docker/regtest/docker-compose.yml
+docker/regtest/regtest-init.sh
+docker/regtest/zaino.toml
+docker/regtest/zallet.toml
+docker/regtest/zebra.toml
+package.json
+Tarball Details
+/tmp/cza-release-step-order-packs/zcash-dev-0.1.0-alpha.0.tgz
+-> exit=0
+
+===== pnpm --filter create-zcash-app pack =====
+$ env CI=true pnpm --filter create-zcash-app pack --pack-destination /tmp/cza-release-step-order-packs
+package: create-zcash-app@0.1.0-alpha.0
+Tarball Contents
+dist/index.d.ts
+dist/index.js
+package.json
+template/app/api/account/route.ts
+template/app/layout.tsx
+template/app/page.tsx
+template/gitignore.tmpl
+template/next.config.mjs
+template/package.json.tmpl
+template/pnpm-workspace.yaml
+template/tsconfig.json
+Tarball Details
+/tmp/cza-release-step-order-packs/create-zcash-app-0.1.0-alpha.0.tgz
+-> exit=0
+total 152
+drwxr-xr-x@  6 0xblackadam  wheel    192 Oct 31 00:35 .
+drwxrwxrwt  75 root         wheel   2400 Oct 31 00:35 ..
+-rw-r--r--@  1 0xblackadam  wheel   8205 Oct 31 00:35 create-zcash-app-0.1.0-alpha.0.tgz
+-rw-r--r--@  1 0xblackadam  wheel   8794 Oct 31 00:35 zcash-app-core-0.1.0-alpha.0.tgz
+-rw-r--r--@  1 0xblackadam  wheel  33342 Oct 31 00:35 zcash-app-sdk-0.1.0-alpha.0.tgz
+-rw-r--r--@  1 0xblackadam  wheel  14564 Oct 31 00:35 zcash-dev-0.1.0-alpha.0.tgz
+
+===== pnpm publish packages/core/npm/<host> --dry-run --ignore-scripts --no-git-checks =====
+$ env CI=true pnpm publish packages/core/npm/darwin-arm64 --dry-run --ignore-scripts --no-git-checks --access public --tag next
+📦 @zcash-app/core-darwin-arm64@0.1.0-alpha.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @zcash-app/core-darwin-arm64@0.1.0-alpha.0 (dry run)
+-> exit=0
+
+===== pnpm publish packages/core --dry-run --ignore-scripts --no-git-checks =====
+$ env CI=true pnpm publish packages/core --dry-run --ignore-scripts --no-git-checks --access public --tag next
+📦 @zcash-app/core@0.1.0-alpha.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @zcash-app/core@0.1.0-alpha.0 (dry run)
+-> exit=0
+
+===== pnpm publish packages/sdk --dry-run --ignore-scripts --no-git-checks =====
+$ env CI=true pnpm publish packages/sdk --dry-run --ignore-scripts --no-git-checks --access public --tag next
+📦 @zcash-app/sdk@0.1.0-alpha.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @zcash-app/sdk@0.1.0-alpha.0 (dry run)
+-> exit=0
+
+===== pnpm publish packages/dev --dry-run --ignore-scripts --no-git-checks =====
+$ env CI=true pnpm publish packages/dev --dry-run --ignore-scripts --no-git-checks --access public --tag next
+📦 zcash-dev@0.1.0-alpha.0 → https://registry.npmjs.org/
+[WARN] Skip publishing zcash-dev@0.1.0-alpha.0 (dry run)
+-> exit=0
+
+===== pnpm publish packages/cli --dry-run --ignore-scripts --no-git-checks =====
+$ env CI=true pnpm publish packages/cli --dry-run --ignore-scripts --no-git-checks --access public --tag next
+📦 create-zcash-app@0.1.0-alpha.0 → https://registry.npmjs.org/
+[WARN] Skip publishing create-zcash-app@0.1.0-alpha.0 (dry run)
+-> exit=0
+
+===== packed manifests: no workspace: ranges survive =====
+--- create-zcash-app-0.1.0-alpha.0.tgz
+create-zcash-app@0.1.0-alpha.0 deps: {"commander":"^12.1.0","prompts":"^2.4.2"}
+no workspace: ranges
+--- zcash-app-core-0.1.0-alpha.0.tgz
+@zcash-app/core@0.1.0-alpha.0 deps: {"@zcash-app/core-darwin-arm64":"0.1.0-alpha.0","@zcash-app/core-darwin-x64":"0.1.0-alpha.0","@zcash-app/core-linux-x64-gnu":"0.1.0-alpha.0","@zcash-app/core-linux-arm64-gnu":"0.1.0-alpha.0","@zcash-app/core-win32-x64-msvc":"0.1.0-alpha.0"}
+no workspace: ranges
+--- zcash-app-sdk-0.1.0-alpha.0.tgz
+@zcash-app/sdk@0.1.0-alpha.0 deps: {"@grpc/grpc-js":"^1.14.6","@grpc/proto-loader":"^0.7.15","@zcash-app/core":"0.1.0-alpha.0"}
+no workspace: ranges
+--- zcash-dev-0.1.0-alpha.0.tgz
+zcash-dev@0.1.0-alpha.0 deps: {"commander":"^12.1.0","prompts":"^2.4.2","@zcash-app/sdk":"0.1.0-alpha.0"}
+no workspace: ranges
+
+===== result =====
+the reordered sequence completed with packages/core/package.json already rewritten by prepublish:
+builds before prepublish, and only node / pnpm pack / pnpm publish after it
