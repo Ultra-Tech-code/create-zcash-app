@@ -6,9 +6,12 @@
   "scripts": {
     "build": "pnpm -r run build",
     "test": "pnpm -r run test",
-    "lint": "pnpm -r run lint"
+    "lint": "pnpm -r run lint",
+    "check:workflow-syntax": "node scripts/check-workflow-syntax.mjs"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "js-yaml": "^5.5.0",
     "typescript": "^5.6.3"
   }
 }

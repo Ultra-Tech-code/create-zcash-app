@@ -16,6 +16,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  workflow-syntax:
+    name: Check release & CI workflow syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Validate workflow syntax (bash & node)
+        run: pnpm run check:workflow-syntax
+
   build:
     strategy:
       fail-fast: false
