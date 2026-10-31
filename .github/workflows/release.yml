@@ -1,5 +1,11 @@
 name: Release (npm)
 
+# Action versions are the current majors, all of which run on Node 24 (checked against each
+# action's action.yml and release notes): actions/checkout@v7, actions/setup-node@v7,
+# actions/upload-artifact@v7, actions/download-artifact@v8, pnpm/action-setup@v6. Node 24 actions
+# need runner >= 2.327.1, which GitHub-hosted runners satisfy. download-artifact@v8 fails the run on
+# an artifact digest mismatch by default (previously a warning).
+
 # Manual only. Nothing here runs on push or on a tag, so publishing is always a deliberate action.
 on:
   workflow_dispatch:
@@ -46,15 +52,15 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
         with:
           version: 11.5.3
           run_install: false
@@ -77,7 +83,7 @@ jobs:
         run: ${{ matrix.settings.build }}
 
       - name: Upload native addon
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
           path: packages/core/*.node
@@ -89,16 +95,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup node (with the npm registry token)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v6
         with:
           version: 11.5.3
           run_install: false
@@ -106,8 +112,29 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      # This step MUST stay before the `napi create-npm-dirs` / `napi artifacts` / `napi prepublish`
+      # steps below. `napi prepublish` rewrites packages/core/package.json, adding the five platform
+      # packages as optionalDependencies, which leaves pnpm-lock.yaml out of date. Every later
+      # `pnpm run`/`pnpm exec` then runs pnpm's dependency check first (runDepsStatusCheck), which
+      # in CI installs with --frozen-lockfile and fails with:
+      #
+      #   ERR_PNPM_OUTDATED_LOCKFILE: Cannot install with "frozen-lockfile" because pnpm-lock.yaml
+      #   is not up to date with <ROOT>/packages/core/package.json
+      #   * 5 dependencies were added: @zcash-app/core-darwin-arm64@0.1.0-alpha.0, ...
+      #
+      # (that is exactly how the first dry run failed). `pnpm pack` and `pnpm publish` do not run
+      # that check — measured locally — so every step after prepublish is only `node`, `pnpm pack`
+      # or `pnpm publish`, and no `verify-deps-before-run=false` override is needed. Do not add a
+      # `pnpm run`/`pnpm exec` step after prepublish.
+      - name: Build the TypeScript packages that get published
+        # sdk first: zcash-dev imports @zcash-app/sdk's types from dist/.
+        run: |
+          pnpm --filter @zcash-app/sdk build
+          pnpm --filter zcash-dev build
+          pnpm --filter create-zcash-app build
+
       - name: Download every native addon
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: packages/core/artifacts
 
@@ -159,13 +186,6 @@ jobs:
             process.exit(1);
           }
           NODE
-
-      - name: Build the TypeScript packages that get published
-        # sdk first: zcash-dev imports @zcash-app/sdk's types from dist/.
-        run: |
-          pnpm --filter @zcash-app/sdk build
-          pnpm --filter zcash-dev build
-          pnpm --filter create-zcash-app build
 
       - name: Pack every package and check the tarballs
         # npm pack leaves `workspace:*` in the published manifest (measured: @zcash-app/sdk packs

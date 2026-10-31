@@ -9,33 +9,55 @@ use zcash_core::{
 };
 use zcash_note_encryption::{try_compact_note_decryption, Domain};
 
-/// Drive `scan_block_batch` to completion over `blocks`, re-submitting from
-/// the last scanned height on each time-budget early-return.  This mirrors
-/// what the real sync loop does and lets tests pass the full slice without
-/// caring about internal batch boundaries.
+/// Drive `scan_block_batch` to completion over `blocks`, re-submitting the
+/// unconsumed remainder from the last scanned height on each time-budget
+/// early-return.  This mirrors what the real sync loop does and lets tests pass
+/// the full slice without caring about internal batch boundaries.
+///
+/// Panics on `NeedAncestorHashes` (tests using this helper scan a contiguous
+/// chain) and on any call that makes no forward progress, so a stalled or
+/// mis-wired scan can never be mistaken for a completed one.
 fn scan_all(
     conn: &mut rusqlite::Connection,
     account_id: &str,
     fvk: &FullViewingKey,
     network: &DynamicNetwork,
     blocks: &[CompactBlock],
-) {
+) -> ScanResult {
     let mut remaining = blocks;
+    let mut last_scanned_height = 0u32;
+    let mut notes_detected = 0usize;
+
     while !remaining.is_empty() {
         match Scanner::scan_block_batch(conn, account_id, fvk, network, remaining)
             .expect("scan_all: scan_block_batch failed")
         {
-            ScanResult::Synced { last_scanned_height, .. } => {
-                // Advance past already-scanned blocks
+            ScanResult::Synced { last_scanned_height: h, notes_detected: n } => {
+                notes_detected += n;
+                // Advance past blocks the scanner already consumed.  Heights are
+                // strictly increasing within a contiguous slice.
                 let consumed = remaining
                     .iter()
-                    .position(|b| b.height > last_scanned_height as u64)
+                    .position(|b| b.height > h as u64)
                     .unwrap_or(remaining.len());
+                assert!(
+                    consumed > 0,
+                    "scan_all: no progress: scanner returned height {} but the next unconsumed block is {} (total blocks {})",
+                    h,
+                    remaining[0].height,
+                    blocks.len()
+                );
+                last_scanned_height = h;
                 remaining = &remaining[consumed..];
             }
-            ScanResult::NeedAncestorHashes { .. } => break,
+            ScanResult::NeedAncestorHashes { from_height, count } => panic!(
+                "scan_all: scanner requested {} ancestor hashes from height {} while scanning a contiguous slice",
+                count, from_height
+            ),
         }
     }
+
+    ScanResult::Synced { last_scanned_height, notes_detected }
 }
 
 
@@ -1548,9 +1570,13 @@ fn test_reorg_depth_exceeded_beyond_100_block_window() {
         prev_hash = b_hash;
     }
 
-    // Scan all 150 blocks in batches of 50
-    for chunk in all_blocks.chunks(50) {
-        Scanner::scan_block_batch(db.conn_mut(), "acct0", &fvk, &network, chunk).expect("scan chunk");
+    // Scan all 150 blocks, looping through the scanner's time-bounded batches
+    let scan_res = scan_all(db.conn_mut(), "acct0", &fvk, &network, &all_blocks);
+    match scan_res {
+        ScanResult::Synced { last_scanned_height, .. } => {
+            assert_eq!(last_scanned_height, 151, "scan_all must consume every block through height 151");
+        }
+        other => panic!("Expected ScanResult::Synced, got {:?}", other),
     }
 
     // Verify tip is 151 and sliding window holds exactly 100 blocks (headers below 51 pruned)
