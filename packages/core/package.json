@@ -4,6 +4,26 @@
   "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
   "main": "index.js",
   "types": "index.d.ts",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ultra-Tech-code/create-zcash-app.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/Ultra-Tech-code/create-zcash-app#readme",
+  "bugs": {
+    "url": "https://github.com/Ultra-Tech-code/create-zcash-app/issues"
+  },
+  "keywords": [
+    "zcash",
+    "shielded",
+    "orchard",
+    "ironwood",
+    "nu7",
+    "crypto",
+    "rust",
+    "napi"
+  ],
   "files": [
     "index.js",
     "index.d.ts"

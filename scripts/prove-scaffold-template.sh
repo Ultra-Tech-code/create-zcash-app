@@ -62,6 +62,9 @@ mkdir -p "$TARBALLS"
     cp "$addon" "packages/core/npm/$platform/"
     echo "placed $addon in packages/core/npm/$platform/"
   done
+  for dir in packages/core packages/sdk packages/dev packages/cli packages/core/npm/*/; do
+    cp "$REPO_ROOT/LICENSE" "$dir/"
+  done
   echo
   echo "per-platform addon check (exactly one .node per packages/core/npm/<platform>/):"
   # PROVE_PER_PLATFORM_ADDONS=1 is what CI sets: a release build must have an addon for every
@@ -167,6 +170,37 @@ const { execSync } = require('child_process');
 
 const tarballDir = process.argv[2];
 const tarballs = fs.readdirSync(tarballDir).filter((f) => f.endsWith('.tgz'));
+const expectedUrl = 'git+https://github.com/Ultra-Tech-code/create-zcash-app.git';
+let failures = 0;
+
+if (process.env.PROVE_PER_PLATFORM_ADDONS === '1' && tarballs.length !== 9) {
+  console.error(`EXPECTED exactly 9 tarballs with PROVE_PER_PLATFORM_ADDONS=1, found ${tarballs.length}`);
+  failures++;
+}
+
+// Check every packed tarball for license, repository.url, and LICENSE file
+for (const file of tarballs) {
+  const full = path.join(tarballDir, file);
+  const listing = execSync(`tar -tzf ${full}`, { encoding: 'utf8' }).split('\n').filter(Boolean);
+  const manifest = JSON.parse(
+    execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
+  );
+
+  if (manifest.license !== 'Apache-2.0') {
+    console.error(`INVALID LICENSE in ${file}: expected Apache-2.0, found ${manifest.license}`);
+    failures++;
+  }
+  if (!manifest.repository || manifest.repository.url !== expectedUrl) {
+    console.error(
+      `INVALID REPOSITORY in ${file}: expected ${expectedUrl}, found ${manifest.repository ? manifest.repository.url : undefined}`
+    );
+    failures++;
+  }
+  if (!listing.includes('package/LICENSE')) {
+    console.error(`MISSING package/LICENSE in ${file}`);
+    failures++;
+  }
+}
 
 // Resource cores are matched by the digit that starts their version, so the platform addon
 // tarballs (zcash-app-core-darwin-arm64-…) are not mistaken for @zcash-app/core itself.
@@ -183,7 +217,6 @@ const platformTarballs = tarballs.filter((f) => /^zcash-app-core-[a-z]/.test(f))
 const platformPackageNames = platformTarballs.map(
   (f) => '@zcash-app/' + f.replace(/\.tgz$/, '').replace(/^zcash-app-/, '').replace(/-\d+\.\d+\.\d+.*$/, '')
 );
-let failures = 0;
 if (platformTarballs.length === 0) {
   console.error('MISSING platform addon tarball: no zcash-app-core-<platform>-*.tgz was packed');
   failures++;

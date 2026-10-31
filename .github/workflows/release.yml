@@ -146,6 +146,12 @@ jobs:
           pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
           ls -la packages/core/npm/*/*.node
 
+      - name: Copy LICENSE into all packages
+        run: |
+          for dir in packages/core packages/sdk packages/dev packages/cli packages/core/npm/*/; do
+            cp LICENSE "$dir/"
+          done
+
       # @napi-rs/cli declares `ghRelease = Option.Boolean("--gh-release", true, ...)`, so creating a
       # GitHub release and publishing the per-platform packages are BOTH on by default: the
       # prepublish body wraps `createGhRelease(...)` around `if (!options.skipOptionalPublish)
@@ -206,6 +212,9 @@ jobs:
           pnpm --filter @zcash-app/sdk pack --pack-destination /tmp/release-packs
           pnpm --filter zcash-dev pack --pack-destination /tmp/release-packs
           pnpm --filter create-zcash-app pack --pack-destination /tmp/release-packs
+          for dir in packages/core/npm/*/; do
+            (cd "$dir" && pnpm pack --pack-destination /tmp/release-packs)
+          done
           node - <<'NODE'
           const fs = require('fs');
           const path = require('path');
@@ -248,6 +257,38 @@ jobs:
           if (platformFailures > 0) process.exit(1);
 
           const tarballs = fs.readdirSync('/tmp/release-packs').filter((f) => f.endsWith('.tgz'));
+          if (tarballs.length !== 9) {
+            console.error(`EXPECTED exactly 9 tarballs in /tmp/release-packs, found ${tarballs.length}`);
+            process.exit(1);
+          }
+
+          const expectedUrl = 'git+https://github.com/Ultra-Tech-code/create-zcash-app.git';
+          let failures = 0;
+
+          // Check that every one of the 9 tarballs has license, repository.url, and a LICENSE file
+          for (const file of tarballs) {
+            const full = path.join('/tmp/release-packs', file);
+            const listing = execSync(`tar -tzf ${full}`, { encoding: 'utf8' }).split('\n').filter(Boolean);
+            const manifest = JSON.parse(
+              execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
+            );
+
+            if (manifest.license !== 'Apache-2.0') {
+              console.error(`INVALID LICENSE in ${file}: expected Apache-2.0, found ${manifest.license}`);
+              failures++;
+            }
+            if (!manifest.repository || manifest.repository.url !== expectedUrl) {
+              console.error(
+                `INVALID REPOSITORY in ${file}: expected ${expectedUrl}, found ${manifest.repository ? manifest.repository.url : undefined}`
+              );
+              failures++;
+            }
+            if (!listing.includes('package/LICENSE')) {
+              console.error(`MISSING package/LICENSE in ${file}`);
+              failures++;
+            }
+          }
+
           const expected = [
             { tarball: 'zcash-app-core-', entries: ['package/index.js', 'package/index.d.ts'] },
             { tarball: 'zcash-app-sdk-', entries: ['package/dist/index.js', 'package/dist/index.d.ts'] },
