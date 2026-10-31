@@ -1,0 +1,37 @@
+=== scan timing proof: 2026-10-31T18:47:53Z ===
+host: Darwin 27.0.0 arm64, cores: 12
+stress: 12 concurrent 'dd bs=64k count=64 conv=fsync' loops + 100 'yes > /dev/null' busy loops
+command per run: <binary> --exact test_reorg_depth_exceeded_beyond_100_block_window --nocapture --test-threads=1
+old binary: origin/main tests/full_suite_test.rs (chunks(50), ignores ScanResult)
+new binary: worktree tests/full_suite_test.rs (scan_all loops on last_scanned_height)
+
+--- OLD(origin/main) run 1 (exit=101, elapsed_ms=1155) ---
+thread 'test_reorg_depth_exceeded_beyond_100_block_window' (2349760) panicked at packages/core/tests/full_suite_test.rs:1560:5:
+assertion `left == right` failed: Tip must be 151
+  left: 49
+ right: 151
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 1.12s
+
+--- OLD(origin/main) run 2 (exit=101, elapsed_ms=1510) ---
+thread 'test_reorg_depth_exceeded_beyond_100_block_window' (2351366) panicked at packages/core/tests/full_suite_test.rs:1560:5:
+assertion `left == right` failed: Tip must be 151
+  left: 80
+ right: 151
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 1.39s
+
+--- OLD(origin/main) run 3 (exit=101, elapsed_ms=1645) ---
+thread 'test_reorg_depth_exceeded_beyond_100_block_window' (2353239) panicked at packages/core/tests/full_suite_test.rs:1560:5:
+assertion `left == right` failed: Tip must be 151
+  left: 123
+ right: 151
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 18 filtered out; finished in 1.64s
+
+--- NEW(fix) run 1 (exit=0, elapsed_ms=9670) ---
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 1.92s
+
+--- NEW(fix) run 2 (exit=0, elapsed_ms=2268) ---
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 2.16s
+
+--- NEW(fix) run 3 (exit=0, elapsed_ms=2486) ---
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 18 filtered out; finished in 2.47s
+
