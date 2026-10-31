@@ -4,6 +4,26 @@
   "description": "TypeScript SDK for building shielded Zcash apps on the Z3 stack",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ultra-Tech-code/create-zcash-app.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/Ultra-Tech-code/create-zcash-app#readme",
+  "bugs": {
+    "url": "https://github.com/Ultra-Tech-code/create-zcash-app/issues"
+  },
+  "keywords": [
+    "zcash",
+    "shielded",
+    "orchard",
+    "ironwood",
+    "nu7",
+    "sdk",
+    "typescript",
+    "z3"
+  ],
   "files": [
     "dist",
     "!dist/**/*.test.*",

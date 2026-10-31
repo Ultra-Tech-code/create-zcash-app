@@ -211,4 +211,4 @@ Open [http://localhost:3050](http://localhost:3050) to view chain state, inspect
 
 ## License
 
-MIT
+Apache-2.0
