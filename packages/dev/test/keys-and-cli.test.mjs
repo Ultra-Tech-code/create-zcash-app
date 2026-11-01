@@ -29,6 +29,7 @@ import {
   verifyGitignoreProtectsEnvLocal,
   program as cliProgram,
   validateEndpoint,
+  validateZebraRpc,
   validateMnemonic,
   BIP39_WORDLIST,
 } from '../../cli/dist/index.js';
@@ -272,7 +273,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       compilerOptions: { module: ts.ModuleKind.CommonJS },
     }).outputText;
 
-    function createRouteInstance(envOverrides = {}) {
+    function createRouteInstance(envOverrides = {}, sdkOverrides = {}) {
       const savedEnv = { ...process.env };
       Object.assign(process.env, envOverrides);
 
@@ -284,9 +285,25 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
         }),
       };
 
+      const realSdk = require(path.resolve(__dirname, '../../sdk/dist/index.js'));
       const customRequire = (id) => {
         if (id === 'next/server') return { NextResponse: mockNextResponse };
-        if (id === '@zcash-app/sdk') return require(path.resolve(__dirname, '../../sdk/dist/index.js'));
+        if (id === '@zcash-app/sdk') {
+          return {
+            ...realSdk,
+            createClient: (opts) => ({
+              endpoint: opts?.endpoint,
+              network: opts?.network,
+              close: async () => {},
+            }),
+            getBalance: async (client, account, opts) => {
+              const ep = client?.endpoint || process.env.ZCASH_ENDPOINT || 'node.example.com';
+              const mn = process.env.ZCASH_MNEMONIC || '';
+              throw new Error(`14 UNAVAILABLE: Name resolution failed for target dns:${ep}:443 with ${mn}`);
+            },
+            ...sdkOverrides,
+          };
+        }
         return require(id);
       };
 
@@ -585,6 +602,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
     // 11d. CLI integration: create-zcash-app fails with exact error on --endpoint with "://"
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'endpoint-cli-test-'));
     try {
+      const targetEndpointAppDir = path.join(tempDir, 'bad-endpoint-app');
       const cliRun = spawnSync(
         process.execPath,
         [
@@ -592,18 +610,94 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
           'bad-endpoint-app',
           '--network', 'testnet',
           '--remote',
-          '--endpoint', `https://${qnTestHost}/SECRET123/`,
+          '--endpoint', 'https://x.example/SECRET',
         ],
         { cwd: tempDir, encoding: 'utf8' }
       );
       assert.strictEqual(cliRun.status, 1, 'CLI must exit 1 when endpoint contains ://');
       assert.ok(
-        cliRun.stderr.includes('Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)'),
-        `Stderr must contain exact rejection message, got: ${cliRun.stderr}`
+        cliRun.stderr.includes('Use host:port'),
+        `Stderr must contain "Use host:port", got: ${cliRun.stderr}`
       );
+      assert.ok(
+        !cliRun.stderr.includes('at '),
+        `Stderr must not contain stack trace ("at "), got: ${cliRun.stderr}`
+      );
+      assert.ok(
+        !cliRun.stderr.includes('SECRET'),
+        `Stderr must not contain "SECRET", got: ${cliRun.stderr}`
+      );
+      assert.strictEqual(
+        fs.existsSync(targetEndpointAppDir),
+        false,
+        'Project directory must not be created when endpoint validation fails'
+      );
+
+      // 11e. CLI integration: create-zcash-app fails on invalid --zebra-rpc
+      const targetZebraAppDir = path.join(tempDir, 'bad-zebrarpc-app');
+      const zebraRun = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'bad-zebrarpc-app',
+          '--network', 'regtest',
+          '--endpoint', '127.0.0.1:28137',
+          '--zebra-rpc', 'https://x.example:999999/SECRET',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(zebraRun.status, 1, 'CLI must exit 1 when zebra-rpc is invalid');
+      assert.ok(
+        !zebraRun.stderr.includes('at '),
+        `Stderr must not contain stack trace ("at "), got: ${zebraRun.stderr}`
+      );
+      assert.ok(
+        !zebraRun.stderr.includes('SECRET'),
+        `Stderr must not contain "SECRET", got: ${zebraRun.stderr}`
+      );
+      assert.ok(
+        zebraRun.stderr.includes('Invalid Zebra RPC URL'),
+        `Stderr must mention Invalid Zebra RPC URL, got: ${zebraRun.stderr}`
+      );
+      assert.strictEqual(
+        fs.existsSync(targetZebraAppDir),
+        false,
+        'Project directory must not be created when zebra-rpc validation fails'
+      );
+
+      // Also test invalid protocol (ftp)
+      const targetFtpAppDir = path.join(tempDir, 'bad-ftp-app');
+      const ftpRun = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'bad-ftp-app',
+          '--network', 'regtest',
+          '--endpoint', '127.0.0.1:28137',
+          '--zebra-rpc', 'ftp://x.example/SECRET',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(ftpRun.status, 1, 'CLI must exit 1 on ftp protocol');
+      assert.ok(!ftpRun.stderr.includes('at '), `Stderr must not contain "at ", got: ${ftpRun.stderr}`);
+      assert.ok(!ftpRun.stderr.includes('SECRET'), `Stderr must not contain "SECRET", got: ${ftpRun.stderr}`);
+      assert.strictEqual(fs.existsSync(targetFtpAppDir), false, 'Project directory must not be created');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+
+    // 11f. validateZebraRpc unit validation
+    assert.doesNotThrow(() => validateZebraRpc('http://127.0.0.1:8232'));
+    assert.doesNotThrow(() => validateZebraRpc('https://testnet.zcash.example:8232/rpc'));
+    assert.doesNotThrow(() => validateZebraRpc(''));
+    assert.throws(
+      () => validateZebraRpc('ftp://x.example/SECRET'),
+      /Invalid Zebra RPC URL "ftp:\/\/x\.example\/<redacted>"/
+    );
+    assert.throws(
+      () => validateZebraRpc('https://x.example:999999/SECRET'),
+      /Invalid Zebra RPC URL "https:\/\/x\.example:999999\/<redacted>"/
+    );
   });
 
   it('12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit', () => {

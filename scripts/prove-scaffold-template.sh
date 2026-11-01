@@ -27,6 +27,7 @@ sha256() {
 TARBALLS="$WORK_DIR/tarballs"
 APP_DIR="$WORK_DIR/my-app"
 
+rm -rf "$TARBALLS"
 mkdir -p "$WORK_DIR" "$(dirname "$LOG")"
 mkdir -p "$TARBALLS"
 

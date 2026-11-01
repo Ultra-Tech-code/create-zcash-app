@@ -38,7 +38,10 @@ function redactSecretUrl(rawUrl: string): string {
     }
     return trimmed;
   } catch {
-    return trimmed.replace(/(https?:\/\/)[^@]+@([^\s]+)/, '$1$2/<redacted>');
+    return trimmed
+      .replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/)[^@]+@([^\s/]+)/, '$1<redacted>@$2')
+      .replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s/?]+)\/[^\s]+/, '$1/<redacted>')
+      .replace(/([a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s/?]+)\?[^\s]+/, '$1/<redacted>');
   }
 }
 

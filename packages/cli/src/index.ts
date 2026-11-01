@@ -280,9 +280,18 @@ program
       }
     }
 
-    validateEndpoint(endpoint);
-    if (zebraRpc) {
-      validateZebraRpc(zebraRpc);
+    try {
+      validateEndpoint(endpoint);
+      if (zebraRpc) {
+        validateZebraRpc(zebraRpc);
+      }
+    } catch (err: unknown) {
+      const rawMessage = err instanceof Error ? err.message : String(err);
+      const redacted = rawMessage.replace(/[a-zA-Z][a-zA-Z0-9+.-]*:\/\/[^\s"'<>]+/g, (url) =>
+        redactSecretUrl(url)
+      );
+      console.error(redacted);
+      process.exit(1);
     }
 
     // 4. Prompt for Key Source
