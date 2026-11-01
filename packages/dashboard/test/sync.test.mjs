@@ -217,24 +217,33 @@ describe('Dashboard Node Sync Percentage & Status Calculation', () => {
   });
 
   describe('Local Zebra live RPC integration', () => {
-    it('queries local testnet Zebra if reachable and computes real sync percentage', async () => {
+    it('queries local testnet Zebra if reachable and computes real sync percentage', async (t) => {
       const testnetUrl = getPresetZebraRpcUrl('testnet-local', 'testnet');
       if (!testnetUrl) {
-        // No local Zebra cookie detected; skip live test cleanly
+        if (t && typeof t.skip === 'function') {
+          t.skip('no local Zebra URL configured');
+        }
         return;
       }
 
       try {
-        const info = await fetchZebraBlockchainInfo(testnetUrl, 2000);
-        if (info && info.blocks != null) {
-          const status = calculateSyncStatus(info, 'testnet', Number(info.blocks));
-          assert.ok(status.blocks > 0, 'blocks should be > 0');
-          assert.strictEqual(status.syncState, 'synced');
-          assert.ok(status.syncPercent >= 99.9, 'syncPercent should be >= 99.9%');
-          assert.strictEqual(status.indexerBehind, 0);
+        const info = await fetchZebraBlockchainInfo(testnetUrl, 1000);
+        if (!info || info.blocks == null) {
+          if (t && typeof t.skip === 'function') {
+            t.skip('local Zebra RPC unreachable or not running');
+          }
+          return;
         }
-      } catch {
-        // Node not running or port blocked; pass gracefully
+
+        const status = calculateSyncStatus(info, 'testnet', Number(info.blocks));
+        assert.ok(status.blocks > 0, 'blocks should be > 0');
+        assert.strictEqual(status.syncState, 'synced');
+        assert.ok(status.syncPercent >= 99.9, 'syncPercent should be >= 99.9%');
+        assert.strictEqual(status.indexerBehind, 0);
+      } catch (err) {
+        if (t && typeof t.skip === 'function') {
+          t.skip(`local Zebra RPC query failed: ${err.message}`);
+        }
       }
     });
   });
