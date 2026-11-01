@@ -88,4 +88,4 @@ b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/st
 
 a98dfeb4bbdd996396341b398653ec6aa6dc3d7c910060282b608d4f2fec9f9c  release_pack_check.log  |  bash scripts/prove-release-pack-check.sh
 19744f44c15cc8a9097f6e950435646cae1bc9b6787aaa25c52ff5a1abcd1363  scan_timing_proof.log  |  12x "dd bs=64k count=64 conv=fsync" loops + 100x "yes > /dev/null" busy loops, then <old-binary> 3x and <new-binary> 3x: --exact test_reorg_depth_exceeded_beyond_100_block_window --nocapture --test-threads=1
-5ce535f35d626fd9ed491bfdd96b756321434a35ccf1444684df8b947a1835c1  verify_dashboard_sync_and_theme.log  |  git worktree add /tmp/cza-clean-dashboard HEAD && cd /tmp/cza-clean-dashboard && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_dashboard_sync_and_theme.log
+b1abd8e064050ea7f0b61159b7d04fb70ec96f3eefcc28ff16f18f8504a3fc1d  verify_dashboard_sync_and_theme.log  |  git worktree add /tmp/cza-clean-dashboard HEAD && cd /tmp/cza-clean-dashboard && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_dashboard_sync_and_theme.log
