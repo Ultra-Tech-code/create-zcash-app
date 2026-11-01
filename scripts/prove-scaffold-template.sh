@@ -27,6 +27,7 @@ sha256() {
 TARBALLS="$WORK_DIR/tarballs"
 APP_DIR="$WORK_DIR/my-app"
 
+rm -rf "$TARBALLS"
 mkdir -p "$WORK_DIR" "$(dirname "$LOG")"
 mkdir -p "$TARBALLS"
 
@@ -319,7 +320,7 @@ NODE
   (cd "$WORK_DIR/cli-extract/package" && npm install --omit=dev --no-audit --no-fund --loglevel=error)
   (
     cd "$WORK_DIR"
-    node cli-extract/package/dist/index.js my-app --network testnet --remote
+    node cli-extract/package/dist/index.js my-app --network testnet --remote --key-source none
   )
   echo
   echo "files written by the scaffolder:"
