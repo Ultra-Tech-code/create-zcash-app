@@ -62,6 +62,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const upgradeName = nodeInfo?.upgradeName || 'Unknown';
   const branchId = nodeInfo?.actualBranchId || nodeInfo?.consensusBranchId || 'Unknown';
 
+  // Node sync status
+  const syncState = nodeInfo?.syncState || nodeInfo?.nodeSync?.syncState || (network === 'regtest' ? 'regtest' : 'unknown');
+  const syncPercent = nodeInfo?.syncPercent ?? nodeInfo?.nodeSync?.syncPercent ?? null;
+  const blocks = nodeInfo?.blocks ?? nodeInfo?.nodeSync?.blocks ?? nodeInfo?.blockHeight ?? null;
+  const estimatedHeight = nodeInfo?.estimatedHeight ?? nodeInfo?.nodeSync?.estimatedHeight ?? null;
+  const indexerBehind = nodeInfo?.indexerBehind ?? nodeInfo?.nodeSync?.indexerBehind ?? null;
+  const indexerBehindMessage = nodeInfo?.indexerBehindMessage ?? nodeInfo?.nodeSync?.indexerBehindMessage ?? null;
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
       {/* Account Balances Card */}
@@ -76,10 +84,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             id="account-error-banner"
             style={{
               padding: '0.75rem 1rem',
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
+              background: 'var(--alert-danger-bg)',
+              border: '1px solid var(--alert-danger-border)',
               borderRadius: '8px',
-              color: '#fca5a5',
+              color: 'var(--alert-danger-text)',
               fontSize: '0.85rem',
               lineHeight: '1.5',
               marginBottom: '1rem',
@@ -94,10 +102,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             id="account-syncing-banner"
             style={{
               padding: '0.75rem 1rem',
-              background: 'rgba(59, 130, 246, 0.15)',
-              border: '1px solid rgba(59, 130, 246, 0.4)',
+              background: 'var(--alert-info-bg)',
+              border: '1px solid var(--alert-info-border)',
               borderRadius: '8px',
-              color: '#93c5fd',
+              color: 'var(--alert-info-text)',
               fontSize: '0.85rem',
               lineHeight: '1.5',
               marginBottom: '1rem',
@@ -112,10 +120,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             id="watch-only-banner"
             style={{
               padding: '0.75rem 1rem',
-              background: 'rgba(59, 130, 246, 0.1)',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              background: 'var(--alert-info-bg)',
+              border: '1px solid var(--alert-info-border)',
               borderRadius: '8px',
-              color: '#93c5fd',
+              color: 'var(--alert-info-text)',
               fontSize: '0.85rem',
               lineHeight: '1.5',
               marginBottom: '1rem',
@@ -126,19 +134,19 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         )}
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontSize: '2.25rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--accent-gold)' }}>
+          <div style={{ fontSize: '2.25rem', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--accent-primary)' }}>
             {totalZec} <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>ZEC</span>
           </div>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
             {isError ? (
-              <span style={{ color: '#fca5a5' }}>Balance unavailable (error connecting to node)</span>
+              <span style={{ color: 'var(--alert-danger-text)' }}>Balance unavailable (error connecting to node)</span>
             ) : isWatchOnly && !accountData?.balances ? (
               <span>Import a Unified Full Viewing Key (UFVK) to scan balances</span>
             ) : (
               <>
                 Confirmed: {zatoshisToZec(accountData?.balances?.confirmed?.total || '0')} ZEC
                 {accountData?.balances?.pending?.total && accountData.balances.pending.total !== '0' && (
-                  <span style={{ marginLeft: '0.5rem', color: 'var(--accent-blue)' }}>
+                  <span style={{ marginLeft: '0.5rem', color: 'var(--accent-secondary)' }}>
                     (Pending: {zatoshisToZec(accountData?.balances?.pending?.total || '0')} ZEC)
                   </span>
                 )}
@@ -170,7 +178,118 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
 
       {/* Node Status Card */}
       <div className="glass-card" id="node-status-card">
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem' }}>Connected Node</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Connected Node</h2>
+          <span
+            id="node-sync-badge"
+            className="badge"
+            style={{
+              background:
+                syncState === 'synced'
+                  ? 'var(--badge-regtest-bg)'
+                  : syncState === 'syncing'
+                  ? 'var(--alert-warning-bg)'
+                  : syncState === 'regtest'
+                  ? 'var(--btn-secondary-bg)'
+                  : 'var(--alert-warning-bg)',
+              color:
+                syncState === 'synced'
+                  ? 'var(--color-success)'
+                  : syncState === 'syncing'
+                  ? 'var(--color-warning)'
+                  : syncState === 'regtest'
+                  ? 'var(--text-secondary)'
+                  : 'var(--color-warning)',
+              border: `1px solid ${
+                syncState === 'synced'
+                  ? 'var(--badge-regtest-border)'
+                  : syncState === 'syncing'
+                  ? 'var(--alert-warning-border)'
+                  : syncState === 'regtest'
+                  ? 'var(--border-color)'
+                  : 'var(--alert-warning-border)'
+              }`,
+            }}
+          >
+            {syncState === 'synced'
+              ? 'Synced'
+              : syncState === 'syncing'
+              ? `Syncing${syncPercent !== null ? ` ~${syncPercent}%` : ''}`
+              : syncState === 'regtest'
+              ? 'Regtest'
+              : 'Unknown'}
+          </span>
+        </div>
+
+        {/* Sync Progress Box */}
+        <div
+          id="sync-progress-box"
+          style={{
+            padding: '1rem',
+            background: 'var(--btn-secondary-bg)',
+            borderRadius: '8px',
+            border: '1px solid var(--border-color)',
+            marginBottom: '1.25rem',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Node Sync Progress
+            </span>
+            <span
+              id="sync-percentage-text"
+              style={{
+                fontSize: '1.35rem',
+                fontWeight: 700,
+                color:
+                  syncState === 'synced'
+                    ? 'var(--color-success)'
+                    : syncState === 'syncing'
+                    ? 'var(--color-warning)'
+                    : 'var(--text-secondary)',
+              }}
+            >
+              {syncState === 'regtest'
+                ? 'n/a on regtest'
+                : syncPercent !== null
+                ? `~${syncPercent}%`
+                : 'Sync progress unavailable'}
+            </span>
+          </div>
+
+          {(syncState === 'synced' || syncState === 'syncing') && syncPercent !== null && (
+            <div className="sync-progress-bar">
+              <div
+                className="sync-progress-fill"
+                style={{
+                  width: `${Math.min(100, Math.max(0, syncPercent))}%`,
+                  background:
+                    syncState === 'synced'
+                      ? 'var(--progress-fill-synced)'
+                      : 'var(--progress-fill-syncing)',
+                }}
+              />
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            <span>
+              {syncState === 'regtest' ? (
+                <>Height #{blocks ?? nodeInfo?.blockHeight ?? '0'}</>
+              ) : estimatedHeight ? (
+                <>~{blocks ?? nodeInfo?.blockHeight ?? 0} / ~{estimatedHeight} (estimated tip)</>
+              ) : (
+                <>Height #{blocks ?? nodeInfo?.blockHeight ?? 'N/A'}</>
+              )}
+            </span>
+            {indexerBehindMessage && (
+              <span id="indexer-status-msg" style={{ color: indexerBehind === 0 ? 'var(--color-success)' : 'var(--color-warning)' }}>
+                {indexerBehindMessage}
+              </span>
+            )}
+          </div>
+        </div>
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.85rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Block Height:</span>
@@ -178,7 +297,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Consensus Upgrade:</span>
-            <strong style={{ color: 'var(--accent-gold)' }}>
+            <strong style={{ color: 'var(--accent-primary)' }}>
               {upgradeName} <span className="mono-text" style={{ fontSize: '0.8rem', opacity: 0.8 }}>(0x{branchId})</span>
             </strong>
           </div>
@@ -223,7 +342,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         )}
 
         {actionStatus && (
-          <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--accent-gold)' }}>
+          <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--accent-primary)' }}>
             {actionStatus}
           </div>
         )}

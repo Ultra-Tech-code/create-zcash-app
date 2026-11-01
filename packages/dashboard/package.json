@@ -6,7 +6,8 @@
     "dev": "next dev -p 3050 --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
     "@zcash-app/sdk": "workspace:*",

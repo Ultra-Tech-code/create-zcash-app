@@ -70,10 +70,10 @@ export const FaucetTab: React.FC<FaucetTabProps> = ({
             id="zallet-disabled-banner"
             style={{
               padding: '1rem 1.25rem',
-              background: 'rgba(245, 158, 11, 0.1)',
-              border: '1px solid rgba(245, 158, 11, 0.3)',
+              background: 'var(--alert-warning-bg)',
+              border: '1px solid var(--alert-warning-border)',
               borderRadius: '8px',
-              color: '#fde047',
+              color: 'var(--alert-warning-text)',
               fontSize: '0.85rem',
               lineHeight: '1.5',
             }}

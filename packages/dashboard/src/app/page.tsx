@@ -45,7 +45,17 @@ export default function Dashboard() {
       const acctJson = await acctRes.json();
 
       if (statusJson.success) {
-        setNodeInfo(statusJson.info);
+        setNodeInfo(statusJson.info || statusJson);
+      } else if (statusJson.nodeSync) {
+        setNodeInfo({
+          ...(statusJson.info || {}),
+          nodeSync: statusJson.nodeSync,
+          syncState: statusJson.nodeSync.syncState,
+          syncPercent: statusJson.nodeSync.syncPercent,
+          blocks: statusJson.nodeSync.blocks,
+          headers: statusJson.nodeSync.headers,
+          estimatedHeight: statusJson.nodeSync.estimatedHeight,
+        });
       } else {
         setNodeInfo(null);
       }
@@ -83,11 +93,64 @@ export default function Dashboard() {
       .catch(() => {});
   }, []);
 
+  const nodeSync = nodeInfo?.nodeSync || nodeInfo;
+  const syncState = nodeSync?.syncState || (network === 'regtest' ? 'regtest' : 'unknown');
+  const syncPercent = nodeSync?.syncPercent ?? null;
+
   useEffect(() => {
     refreshData();
-    const interval = setInterval(refreshData, 10000);
-    return () => clearInterval(interval);
   }, [refreshData]);
+
+  useEffect(() => {
+    let timeoutId: any = null;
+    let cancelled = false;
+
+    const scheduleNext = () => {
+      if (cancelled) return;
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
+
+      const currentState = nodeInfo?.syncState || nodeInfo?.nodeSync?.syncState;
+      let delay = 10000;
+      if (currentState === 'syncing') {
+        delay = 5000;
+      } else if (currentState === 'synced') {
+        delay = 30000;
+      }
+
+      timeoutId = setTimeout(async () => {
+        if (!cancelled && (typeof document === 'undefined' || !document.hidden)) {
+          await refreshData();
+          scheduleNext();
+        }
+      }, delay);
+    };
+
+    scheduleNext();
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        refreshData().then(() => {
+          scheduleNext();
+        });
+      } else if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+    };
+  }, [refreshData, nodeInfo?.syncState, nodeInfo?.nodeSync?.syncState]);
 
   const handleMine = async (blocks = 1) => {
     if (network !== 'regtest') return;
@@ -177,22 +240,68 @@ export default function Dashboard() {
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 700, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <span style={{ color: 'var(--accent-gold)' }}>🛡️</span> Zcash Dev Dashboard
+            <span style={{ color: 'var(--accent-primary)' }}>🛡️</span> Zcash Dev Dashboard
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
             Multi-network inspection, consensus verification, and shielded note analytics
           </p>
         </div>
 
-        <NetworkSelector
-          activePreset={activePreset}
-          onSelectPreset={(p) => {
-            setActivePreset(p);
-            setExplorerInitialQuery('');
-          }}
-          isConnected={Boolean(nodeInfo)}
-          endpoint={endpoint}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {/* Header Sync Status Pill */}
+          <div
+            id="header-sync-pill"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '9999px',
+              fontSize: '0.8rem',
+              fontWeight: 500,
+              background: 'var(--btn-secondary-bg)',
+              border: '1px solid var(--border-color)',
+            }}
+          >
+            <span
+              id="header-sync-dot"
+              style={{
+                display: 'inline-block',
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background:
+                  syncState === 'synced'
+                    ? 'var(--color-success)'
+                    : syncState === 'syncing'
+                    ? 'var(--color-warning)'
+                    : syncState === 'regtest'
+                    ? 'var(--text-secondary)'
+                    : 'var(--color-warning)',
+              }}
+              className={syncState === 'syncing' ? 'pulse' : undefined}
+            />
+            <span style={{ color: 'var(--text-primary)' }}>
+              {syncState === 'synced'
+                ? 'synced'
+                : syncState === 'syncing'
+                ? `syncing ${syncPercent !== null ? `${syncPercent}%` : ''}`.trim()
+                : syncState === 'regtest'
+                ? 'regtest'
+                : 'unknown'}
+            </span>
+          </div>
+
+          <NetworkSelector
+            activePreset={activePreset}
+            onSelectPreset={(p) => {
+              setActivePreset(p);
+              setExplorerInitialQuery('');
+            }}
+            isConnected={Boolean(nodeInfo)}
+            endpoint={endpoint}
+          />
+        </div>
       </header>
 
       {/* Consensus Verification Banner */}

@@ -1,5 +1,12 @@
 import { createClient, getUpgradeName, getExpectedBranchId } from '@zcash-app/sdk';
 import { NETWORK_PRESETS, Network, PresetId, resolveAllowedEndpoint } from '../../endpoints';
+import {
+  calculateSyncStatus,
+  getPresetZebraRpcUrl,
+  fetchZebraBlockchainInfo,
+  redactSecretUrl,
+  RawBlockchainInfo,
+} from './sync';
 
 function inferChainInfo(info: any): { chain: 'regtest' | 'testnet' | 'mainnet' | 'unknown'; signal: string } {
   const chain = (info.chainName || '').toLowerCase().trim();
@@ -78,11 +85,34 @@ export async function GET(request: Request) {
       actualBranchId === expectedBranchId.toLowerCase()
     );
 
+    // Query Zebra RPC for sync percentage and node status
+    let nodeSync = calculateSyncStatus(null, network, blockHeight);
+    const zebraRpcUrl = getPresetZebraRpcUrl(presetParam, network);
+    if (zebraRpcUrl) {
+      try {
+        const rawBlockchainInfo = await fetchZebraBlockchainInfo(zebraRpcUrl);
+        if (rawBlockchainInfo) {
+          nodeSync = calculateSyncStatus(rawBlockchainInfo, network, blockHeight);
+        }
+      } catch {
+        // Node RPC failed or unreachable; nodeSync remains 'unknown'
+      }
+      nodeSync.nodeRpcUrl = redactSecretUrl(zebraRpcUrl);
+    }
+
     return Response.json({
       success: true,
       preset: presetParam || undefined,
       network,
       endpoint,
+      blocks: nodeSync.blocks,
+      headers: nodeSync.headers,
+      estimatedHeight: nodeSync.estimatedHeight,
+      verificationProgress: nodeSync.verificationProgress,
+      syncPercent: nodeSync.syncPercent,
+      syncState: nodeSync.syncState,
+      indexerBehind: nodeSync.indexerBehind,
+      indexerBehindMessage: nodeSync.indexerBehindMessage,
       info: {
         ...info,
         upgradeName: actualUpgradeName,
@@ -92,9 +122,33 @@ export async function GET(request: Request) {
         branchMatches,
         chainMismatch,
         chainMismatchMessage,
+        blocks: nodeSync.blocks,
+        headers: nodeSync.headers,
+        estimatedHeight: nodeSync.estimatedHeight,
+        verificationProgress: nodeSync.verificationProgress,
+        syncPercent: nodeSync.syncPercent,
+        syncState: nodeSync.syncState,
+        indexerBehind: nodeSync.indexerBehind,
+        indexerBehindMessage: nodeSync.indexerBehindMessage,
+        nodeSync,
       },
+      nodeSync,
     });
   } catch (err: any) {
+    let nodeSync = calculateSyncStatus(null, network);
+    try {
+      const zebraRpcUrl = getPresetZebraRpcUrl(presetParam, network);
+      if (zebraRpcUrl) {
+        const rawBlockchainInfo = await fetchZebraBlockchainInfo(zebraRpcUrl);
+        if (rawBlockchainInfo) {
+          nodeSync = calculateSyncStatus(rawBlockchainInfo, network, null);
+        }
+        nodeSync.nodeRpcUrl = redactSecretUrl(zebraRpcUrl);
+      }
+    } catch {
+      // Ignored
+    }
+
     return Response.json(
       {
         success: false,
@@ -102,6 +156,15 @@ export async function GET(request: Request) {
         network,
         endpoint,
         error: err.message || 'Failed to connect to indexer',
+        blocks: nodeSync.blocks,
+        headers: nodeSync.headers,
+        estimatedHeight: nodeSync.estimatedHeight,
+        verificationProgress: nodeSync.verificationProgress,
+        syncPercent: nodeSync.syncPercent,
+        syncState: nodeSync.syncState,
+        indexerBehind: nodeSync.indexerBehind,
+        indexerBehindMessage: nodeSync.indexerBehindMessage,
+        nodeSync,
       },
       { status: 502 }
     );
