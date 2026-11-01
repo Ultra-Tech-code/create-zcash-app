@@ -39,11 +39,11 @@ export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, netw
         id="consensus-banner-chain-mismatch"
         style={{
           padding: '0.875rem 1.25rem',
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.4)',
+          background: 'var(--alert-danger-bg)',
+          border: '1px solid var(--alert-danger-border)',
           borderRadius: '10px',
           marginBottom: '1.5rem',
-          color: '#fca5a5',
+          color: 'var(--alert-danger-text)',
           fontSize: '0.85rem',
           lineHeight: '1.5',
           display: 'flex',
@@ -66,11 +66,11 @@ export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, netw
         id="consensus-banner-mismatch"
         style={{
           padding: '0.875rem 1.25rem',
-          background: 'rgba(239, 68, 68, 0.12)',
-          border: '1px solid rgba(239, 68, 68, 0.35)',
+          background: 'var(--alert-danger-bg)',
+          border: '1px solid var(--alert-danger-border)',
           borderRadius: '10px',
           marginBottom: '1.5rem',
-          color: '#fca5a5',
+          color: 'var(--alert-danger-text)',
           fontSize: '0.85rem',
           lineHeight: '1.5',
           display: 'flex',
@@ -96,11 +96,11 @@ export const ConsensusBanner: React.FC<ConsensusBannerProps> = ({ nodeInfo, netw
       id="consensus-banner-verified"
       style={{
         padding: '0.75rem 1.25rem',
-        background: 'rgba(16, 185, 129, 0.08)',
-        border: '1px solid rgba(16, 185, 129, 0.25)',
+        background: 'var(--alert-success-bg)',
+        border: '1px solid var(--alert-success-border)',
         borderRadius: '10px',
         marginBottom: '1.5rem',
-        color: '#6ee7b7',
+        color: 'var(--alert-success-text)',
         fontSize: '0.85rem',
         display: 'flex',
         alignItems: 'center',

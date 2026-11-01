@@ -31,3 +31,20 @@ The dashboard uses non-blocking background synchronization with the indexer via 
 - **`/api/sync/status`**: Returns immediate sync status without blocking (`status`, `scanned`, `target`, `notesFound`, `pendingFetches`, `failedFetches`). Responses always return in under 5 seconds (typically < 50ms).
 - **Batch Transaction Fetching**: For each transaction touching the wallet (new note or spent nullifier), the full transaction is fetched, decrypted, and upserted idempotently into `wallet_transactions` (keyed by `txid + action_index + direction`).
 - **Chain Reorganization**: On reorg detection, `resolveReorg` rolls back commitment trees and deletes orphaned rows in `wallet_transactions` at `height >= fromHeight`.
+
+## Theme Configuration
+
+The dashboard uses a dark cypherpunk-industrial color palette configured entirely via CSS custom properties in `src/app/globals.css` under `:root`. Zero hard-coded hex colors exist in component files.
+
+To change the primary accent (e.g. from teal to electric gold or violet), edit `:root` in `src/app/globals.css`:
+
+```css
+:root {
+  /* Change primary accent */
+  --accent-primary: #f59e0b;       /* e.g. Gold */
+  --btn-primary-bg-start: #f59e0b;
+  --btn-primary-bg-end: #d97706;
+  --btn-primary-text: #1c1917;     /* High contrast text */
+  --progress-fill: #f59e0b;
+}
+```

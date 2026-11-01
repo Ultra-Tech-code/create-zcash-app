@@ -157,6 +157,7 @@ jobs:
           pnpm --filter zcash-dev build
           pnpm --filter create-zcash-app build
           pnpm --filter zcash-dev test
+          pnpm --filter dashboard test
 
   prepublish:
     name: napi prepublish (dry-run)

@@ -1,20 +1,20 @@
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
+  --background: var(--bg-main);
+  --foreground: var(--bg-card);
 
-  --text-primary: #000;
-  --text-secondary: #666;
+  --text-primary-local: var(--text-primary);
+  --text-secondary-local: var(--text-secondary);
 
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
+  --button-primary-hover: var(--border-hover);
+  --button-secondary-hover: var(--btn-secondary-bg-hover);
+  --button-secondary-border: var(--btn-secondary-border);
 
   display: flex;
   flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-geist-sans);
+  font-family: var(--font-sans);
   background-color: var(--background);
 }
 
@@ -45,7 +45,7 @@
   line-height: 48px;
   letter-spacing: -2.4px;
   text-wrap: balance;
-  color: var(--text-primary);
+  color: var(--text-primary-local);
 }
 
 .intro p {
@@ -53,12 +53,12 @@
   font-size: 18px;
   line-height: 32px;
   text-wrap: balance;
-  color: var(--text-secondary);
+  color: var(--text-secondary-local);
 }
 
 .intro a {
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-primary-local);
 }
 
 .ctas {
@@ -85,7 +85,7 @@
 }
 
 a.primary {
-  background: var(--text-primary);
+  background: var(--text-primary-local);
   color: var(--background);
   gap: 8px;
 }
@@ -94,7 +94,6 @@ a.secondary {
   border-color: var(--button-secondary-border);
 }
 
-/* Enable hover only on non-touch devices */
 @media (hover: hover) and (pointer: fine) {
   a.primary:hover {
     background: var(--button-primary-hover);
@@ -123,26 +122,8 @@ a.secondary {
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
-  }
-}
-
 .code {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-mono);
   font-size: 0.9em;
   background: color-mix(in srgb, currentColor 8%, transparent);
   padding: 0.1em 0.4em;

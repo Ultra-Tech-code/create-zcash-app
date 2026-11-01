@@ -97,9 +97,9 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
           <span
             className="badge"
             style={{
-              background: 'rgba(34, 197, 94, 0.2)',
-              color: '#4ade80',
-              border: '1px solid rgba(34, 197, 94, 0.4)',
+              background: 'rgba(52, 211, 153, 0.2)',
+              color: 'var(--tx-in)',
+              border: '1px solid rgba(52, 211, 153, 0.4)',
               fontWeight: 600,
               fontSize: '0.75rem',
               textTransform: 'uppercase',
@@ -113,9 +113,9 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
           <span
             className="badge"
             style={{
-              background: 'rgba(249, 115, 22, 0.2)',
-              color: '#fb923c',
-              border: '1px solid rgba(249, 115, 22, 0.4)',
+              background: 'rgba(251, 191, 36, 0.2)',
+              color: 'var(--tx-out)',
+              border: '1px solid rgba(251, 191, 36, 0.4)',
               fontWeight: 600,
               fontSize: '0.75rem',
               textTransform: 'uppercase',
@@ -130,9 +130,9 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
           <span
             className="badge"
             style={{
-              background: 'rgba(168, 85, 247, 0.2)',
-              color: '#c084fc',
-              border: '1px solid rgba(168, 85, 247, 0.4)',
+              background: 'rgba(56, 189, 248, 0.2)',
+              color: 'var(--tx-internal)',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
               fontWeight: 600,
               fontSize: '0.75rem',
               textTransform: 'uppercase',
@@ -160,28 +160,28 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                 style={{
                   background:
                     syncStatus.status === 'syncing'
-                      ? 'rgba(234, 179, 8, 0.2)'
+                      ? 'var(--alert-warning-bg)'
                       : syncStatus.status === 'synced'
-                      ? 'rgba(34, 197, 94, 0.2)'
+                      ? 'var(--alert-success-bg)'
                       : syncStatus.status === 'error'
-                      ? 'rgba(239, 68, 68, 0.2)'
-                      : 'rgba(148, 163, 184, 0.2)',
+                      ? 'var(--alert-danger-bg)'
+                      : 'var(--btn-secondary-bg)',
                   color:
                     syncStatus.status === 'syncing'
-                      ? '#facc15'
+                      ? 'var(--color-warning)'
                       : syncStatus.status === 'synced'
-                      ? '#4ade80'
+                      ? 'var(--color-success)'
                       : syncStatus.status === 'error'
-                      ? '#f87171'
-                      : '#94a3b8',
+                      ? 'var(--color-danger)'
+                      : 'var(--text-secondary)',
                   border: `1px solid ${
                     syncStatus.status === 'syncing'
-                      ? 'rgba(234, 179, 8, 0.4)'
+                      ? 'var(--alert-warning-border)'
                       : syncStatus.status === 'synced'
-                      ? 'rgba(34, 197, 94, 0.4)'
+                      ? 'var(--alert-success-border)'
                       : syncStatus.status === 'error'
-                      ? 'rgba(239, 68, 68, 0.4)'
-                      : 'rgba(148, 163, 184, 0.4)'
+                      ? 'var(--alert-danger-border)'
+                      : 'var(--border-color)'
                   }`,
                   fontSize: '0.75rem',
                   textTransform: 'uppercase',
@@ -227,10 +227,10 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
           id="activity-error-banner"
           style={{
             padding: '0.75rem 1rem',
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: 'var(--alert-danger-bg)',
+            border: '1px solid var(--alert-danger-border)',
             borderRadius: '8px',
-            color: '#fca5a5',
+            color: 'var(--alert-danger-text)',
             fontSize: '0.85rem',
             lineHeight: '1.5',
           }}
@@ -297,7 +297,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
 
                       {/* Amount: ZEC and zat */}
                       <td style={{ padding: '0.75rem 0.6rem' }} className="mono-text">
-                        <div style={{ fontWeight: 600, color: tx.direction === 'in' ? '#4ade80' : tx.direction === 'out' ? '#fb923c' : 'var(--text-primary)' }}>
+                        <div style={{ fontWeight: 600, color: tx.direction === 'in' ? 'var(--tx-in)' : tx.direction === 'out' ? 'var(--tx-out)' : 'var(--text-primary)' }}>
                           {tx.direction === 'in' ? '+' : tx.direction === 'out' ? '-' : ''}
                           {zatToZec(txValue)} ZEC
                         </div>
@@ -358,7 +358,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
 
                       {/* Confirmations */}
                       <td style={{ padding: '0.75rem 0.6rem' }} className="mono-text">
-                        <span style={{ color: confirmations >= 10 ? '#4ade80' : 'var(--accent-gold)' }}>
+                        <span style={{ color: confirmations >= 10 ? 'var(--color-success)' : 'var(--accent-primary)' }}>
                           {confirmations.toLocaleString()}
                         </span>
                       </td>

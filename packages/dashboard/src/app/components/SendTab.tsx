@@ -40,7 +40,7 @@ export const SendTab: React.FC<SendTabProps> = ({
     return (
       <div className="glass-card">
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Send Shielded Transaction</h2>
-        <div style={{ padding: '1.25rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)', borderRadius: '8px', color: '#93c5fd', fontSize: '0.85rem', lineHeight: '1.5' }}>
+        <div style={{ padding: '1.25rem', background: 'var(--alert-info-bg)', border: '1px solid var(--alert-info-border)', borderRadius: '8px', color: 'var(--alert-info-text)', fontSize: '0.85rem', lineHeight: '1.5' }}>
           🔒 <strong>Watch-Only Mode:</strong> On {network}, the dashboard operates strictly in read-only / watch-only mode using Unified Full Viewing Keys (UFVK). Private spending keys and mnemonics are never held by or exposed in this interface.
         </div>
       </div>
@@ -51,7 +51,7 @@ export const SendTab: React.FC<SendTabProps> = ({
     return (
       <div className="glass-card">
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Send Transaction</h2>
-        <div style={{ padding: '1.25rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', color: '#fde047', fontSize: '0.85rem', lineHeight: '1.5' }}>
+        <div style={{ padding: '1.25rem', background: 'var(--alert-warning-bg)', border: '1px solid var(--alert-warning-border)', borderRadius: '8px', color: 'var(--alert-warning-text)', fontSize: '0.85rem', lineHeight: '1.5' }}>
           ℹ️ <strong>Zallet Funding Proxy Unavailable on NU7 Regtest:</strong>
           <br />
           The standalone NU7 regtest stack productizes Zebra 7.0.0 + Lightwalletd without a Zallet instance. To generate funds on this stack, use the Faucet tab to mine blocks directly to Account 0.

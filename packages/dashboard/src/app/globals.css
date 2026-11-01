@@ -1,14 +1,104 @@
+/*
+ * Dashboard Theme Configuration
+ * NOTE: The theme is configured entirely via the CSS variables defined in the :root block below.
+ * To change or customize the palette, modify only this variables block.
+ */
+
 :root {
-  --bg-main: #0b0f19;
-  --bg-card: rgba(18, 24, 38, 0.7);
+  /* Default Palette */
+  --bg-main: #0a1214;
+  --bg-card: rgba(16, 28, 31, 0.75);
   --border-color: rgba(255, 255, 255, 0.08);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-gold: #f59e0b;
-  --accent-green: #10b981;
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
-  --accent-red: #ef4444;
+  --border-hover: rgba(255, 255, 255, 0.16);
+  --text-primary: #e8f1f2;
+  --text-secondary: #8fa8ac;
+
+  /* Accents */
+  --accent-primary: #2dd4bf;   /* Teal */
+  --accent-secondary: #38bdf8; /* Sky */
+  --accent-teal: #2dd4bf;
+  --accent-sky: #38bdf8;
+  --accent-gold: #2dd4bf;      /* Backwards-compatibility alias (now teal) */
+  --accent-blue: #38bdf8;      /* Backwards-compatibility alias (now sky) */
+
+  /* Status Colors */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --accent-green: #34d399;
+  --accent-red: #f87171;
+
+  /* Button Palette */
+  --btn-primary-bg-start: #2dd4bf;
+  --btn-primary-bg-end: #14b8a6;
+  --btn-primary-text: #042f2e;  /* Deep teal for high contrast (>= 4.5:1 across gradient) */
+  --btn-primary-shadow: rgba(45, 212, 191, 0.35);
+  --btn-primary-shadow-hover: rgba(45, 212, 191, 0.45);
+  --btn-secondary-bg: rgba(255, 255, 255, 0.06);
+  --btn-secondary-bg-hover: rgba(255, 255, 255, 0.1);
+  --btn-secondary-border: var(--border-color);
+  --btn-secondary-border-hover: rgba(255, 255, 255, 0.2);
+
+  /* Alert / Banner Palettes */
+  --alert-danger-bg: rgba(248, 113, 113, 0.15);
+  --alert-danger-border: rgba(248, 113, 113, 0.4);
+  --alert-danger-text: #f87171;
+
+  --alert-warning-bg: rgba(251, 191, 36, 0.15);
+  --alert-warning-border: rgba(251, 191, 36, 0.4);
+  --alert-warning-text: #fbbf24;
+
+  --alert-info-bg: rgba(56, 189, 248, 0.15);
+  --alert-info-border: rgba(56, 189, 248, 0.4);
+  --alert-info-text: #38bdf8;
+
+  --alert-success-bg: rgba(52, 211, 153, 0.15);
+  --alert-success-border: rgba(52, 211, 153, 0.4);
+  --alert-success-text: #34d399;
+
+  /* Badges */
+  --badge-regtest-bg: rgba(52, 211, 153, 0.15);
+  --badge-regtest-border: rgba(52, 211, 153, 0.3);
+  --badge-regtest-color: #34d399;
+
+  --badge-testnet-bg: rgba(56, 189, 248, 0.15);
+  --badge-testnet-border: rgba(56, 189, 248, 0.3);
+  --badge-testnet-color: #38bdf8;
+
+  --badge-mainnet-bg: rgba(248, 113, 113, 0.15);
+  --badge-mainnet-border: rgba(248, 113, 113, 0.3);
+  --badge-mainnet-color: #f87171;
+
+  /* Sync Progress Bar */
+  --progress-track: rgba(255, 255, 255, 0.08);
+  --progress-fill: #2dd4bf;
+  --progress-fill-synced: #34d399;
+  --progress-fill-syncing: #2dd4bf;
+  --progress-fill-regtest: #38bdf8;
+
+  /* Transaction & Directional Colors */
+  --tx-in: #34d399;
+  --tx-out: #fbbf24;
+  --tx-internal: #38bdf8;
+
+  /* Anchor & Tag Colors */
+  --anchor-primary: #34d399;
+  --anchor-secondary: #fbbf24;
+  --anchor-tertiary: #38bdf8;
+  --tag-white: #ffffff;
+  --tag-gray: #8fa8ac;
+
+  /* Ownership Badges (High Contrast >= 4.5:1 with white text) */
+  --ownership-incoming-bg: #047857;
+  --ownership-outgoing-bg: #b45309;
+  --ownership-internal-bg: #1d4ed8;
+  --ownership-text: #ffffff;
+
+  /* Background Glows */
+  --body-glow-primary: rgba(45, 212, 191, 0.08); /* Teal glow */
+  --body-glow-secondary: rgba(56, 189, 248, 0.08); /* Sky glow */
+
+  /* Typography */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
@@ -22,8 +112,8 @@
 body {
   background: var(--bg-main);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, var(--body-glow-primary) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, var(--body-glow-secondary) 0px, transparent 50%);
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -66,7 +156,7 @@ input, select {
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
+  border-color: var(--border-hover);
 }
 
 .badge {
@@ -82,42 +172,42 @@ input, select {
 }
 
 .badge-regtest {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--accent-green);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--badge-regtest-bg);
+  color: var(--badge-regtest-color);
+  border: 1px solid var(--badge-regtest-border);
 }
 
 .badge-testnet {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--accent-blue);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: var(--badge-testnet-bg);
+  color: var(--badge-testnet-color);
+  border: 1px solid var(--badge-testnet-border);
 }
 
 .badge-mainnet {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--accent-red);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--badge-mainnet-bg);
+  color: var(--badge-mainnet-color);
+  border: 1px solid var(--badge-mainnet-border);
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #000;
+  background: linear-gradient(135deg, var(--btn-primary-bg-start) 0%, var(--btn-primary-bg-end) 100%);
+  color: var(--btn-primary-text);
   font-weight: 600;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
-  box-shadow: 0 4px 14px 0 rgba(245, 158, 11, 0.35);
+  box-shadow: 0 4px 14px 0 var(--btn-primary-shadow);
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px 0 rgba(245, 158, 11, 0.45);
+  box-shadow: 0 6px 20px 0 var(--btn-primary-shadow-hover);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--btn-secondary-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--btn-secondary-border);
   font-weight: 500;
   padding: 0.65rem 1.25rem;
   border-radius: 8px;
@@ -125,12 +215,44 @@ input, select {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--btn-secondary-bg-hover);
+  border-color: var(--btn-secondary-border-hover);
 }
 
 .mono-text {
   font-family: var(--font-mono);
   word-break: break-all;
   font-size: 0.85rem;
+}
+
+/* Progress bar */
+.sync-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--progress-track);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0.4rem;
+}
+
+.sync-progress-fill {
+  height: 100%;
+  background: var(--progress-fill);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+@keyframes sync-pulse-anim {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.3);
+  }
+}
+
+.pulse {
+  animation: sync-pulse-anim 1.5s ease-in-out infinite;
 }

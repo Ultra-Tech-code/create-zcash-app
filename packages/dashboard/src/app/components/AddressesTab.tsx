@@ -151,10 +151,10 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
           id="addresses-error-banner"
           style={{
             padding: '0.75rem 1rem',
-            background: 'rgba(239, 68, 68, 0.15)',
-            border: '1px solid rgba(239, 68, 68, 0.4)',
+            background: 'var(--alert-danger-bg)',
+            border: '1px solid var(--alert-danger-border)',
             borderRadius: '8px',
-            color: '#fca5a5',
+            color: 'var(--alert-danger-text)',
             fontSize: '0.85rem',
             lineHeight: '1.5',
           }}
@@ -192,7 +192,7 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
           <button
             id="btn-forget-key"
             className="btn-secondary"
-            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem', borderColor: 'rgba(239, 68, 68, 0.5)', color: '#fca5a5' }}
+            style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem', borderColor: 'var(--alert-danger-border)', color: 'var(--alert-danger-text)' }}
             disabled={forgetSubmitting}
             onClick={handleForgetKey}
           >
@@ -215,10 +215,10 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
             id="import-error-banner"
             style={{
               padding: '0.6rem 0.85rem',
-              background: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
+              background: 'var(--alert-danger-bg)',
+              border: '1px solid var(--alert-danger-border)',
               borderRadius: '6px',
-              color: '#fca5a5',
+              color: 'var(--alert-danger-text)',
               fontSize: '0.8rem',
               marginBottom: '1rem',
             }}
@@ -232,10 +232,10 @@ export const AddressesTab: React.FC<AddressesTabProps> = ({
             id="import-success-banner"
             style={{
               padding: '0.6rem 0.85rem',
-              background: 'rgba(34, 197, 94, 0.15)',
-              border: '1px solid rgba(34, 197, 94, 0.4)',
+              background: 'var(--alert-success-bg)',
+              border: '1px solid var(--alert-success-border)',
               borderRadius: '6px',
-              color: '#86efac',
+              color: 'var(--alert-success-text)',
               fontSize: '0.8rem',
               marginBottom: '1rem',
             }}

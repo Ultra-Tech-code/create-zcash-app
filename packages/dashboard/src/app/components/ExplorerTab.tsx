@@ -220,9 +220,9 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
           className="glass-card"
           style={{
             padding: '1.25rem',
-            background: 'rgba(239, 68, 68, 0.1)',
-            borderColor: 'rgba(239, 68, 68, 0.4)',
-            color: '#f87171',
+            background: 'var(--alert-danger-bg)',
+            borderColor: 'var(--alert-danger-border)',
+            color: 'var(--alert-danger-text)',
             display: 'flex',
             alignItems: 'center',
             gap: '0.75rem',
@@ -245,9 +245,9 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
               padding: '0.35rem 0.75rem',
               fontSize: '0.8rem',
               fontWeight: 600,
-              background: 'rgba(16, 185, 129, 0.15)',
-              color: '#34d399',
-              border: '1px solid rgba(16, 185, 129, 0.3)',
+              background: 'var(--badge-regtest-bg)',
+              color: 'var(--badge-regtest-color)',
+              border: '1px solid var(--badge-regtest-border)',
             }}
           >
             ✓ {matchFeedback}
@@ -262,9 +262,9 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
                 padding: '0.35rem 0.75rem',
                 fontSize: '0.75rem',
                 fontWeight: 600,
-                background: 'rgba(59, 130, 246, 0.15)',
-                color: '#60a5fa',
-                border: '1px solid rgba(59, 130, 246, 0.3)',
+                background: 'var(--badge-testnet-bg)',
+                color: 'var(--badge-testnet-color)',
+                border: '1px solid var(--badge-testnet-border)',
               }}
             >
               source: {resultSource}
@@ -315,11 +315,11 @@ export const ExplorerTab: React.FC<ExplorerTabProps> = ({
                     padding: '0.35rem 0.75rem',
                     background:
                       resultData.userOwnership.direction === 'incoming'
-                        ? '#059669'
+                        ? 'var(--ownership-incoming-bg)'
                         : resultData.userOwnership.direction === 'outgoing'
-                        ? '#d97706'
-                        : '#2563eb',
-                    color: '#ffffff',
+                        ? 'var(--ownership-outgoing-bg)'
+                        : 'var(--ownership-internal-bg)',
+                    color: 'var(--ownership-text)',
                   }}
                 >
                   🛡️ Belongs to you ({resultData.userOwnership.direction.toUpperCase()})
