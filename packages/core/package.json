@@ -1,6 +1,6 @@
 {
   "name": "@zcash-app/core",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Rust crypto core for create-zcash-app: trial-decryption, key derivation, and proving",
   "main": "index.js",
   "types": "index.d.ts",

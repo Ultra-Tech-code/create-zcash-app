@@ -8,6 +8,7 @@
 #   3. Negative control: tarball with wrong repository.url -> exits 1
 #   4. Negative control: tarball with wrong license -> exits 1
 #   5. Negative control: only 8 tarballs present -> exits 1
+#   6. Negative control: workspace range in tarball -> exits 1
 #
 # Output log: packages/core/tests/logs/release_pack_check.log
 set -euo pipefail
@@ -276,7 +277,41 @@ NODE
   echo "PASS: only 8 tarballs correctly triggered exit 1"
   echo
 
-  echo "RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_8=1)"
+  # Restore clean tarballs
+  rm -rf /tmp/release-packs
+  cp -r "$BACKUP_PACKS" /tmp/release-packs
+
+  echo "--- step 9: control test E - workspace range in platform tarball (must exit 1) ---"
+  CORRUPT_DIR="$WORK/corrupt-workspace-range"
+  rm -rf "$CORRUPT_DIR"
+  mkdir -p "$CORRUPT_DIR"
+  PLATFORM_TGZ="$(ls -1 /tmp/release-packs/zcash-app-core-darwin-arm64-*.tgz | head -1)"
+  tar -xzf "$PLATFORM_TGZ" -C "$CORRUPT_DIR"
+  node -e "
+    const fs = require('fs');
+    const p = '$CORRUPT_DIR/package/package.json';
+    const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
+    pkg.dependencies = Object.assign(pkg.dependencies || {}, { '@zcash-app/core': 'workspace:*' });
+    fs.writeFileSync(p, JSON.stringify(pkg, null, 2));
+  "
+  tar -czf "$PLATFORM_TGZ" -C "$CORRUPT_DIR" package
+
+  set +e
+  (
+    cd "$SANDBOX"
+    node "$CHECK_SCRIPT"
+  )
+  ctrl_e_rc=$?
+  set -e
+  echo "-> workspace range in platform package exit code: $ctrl_e_rc"
+  if [ "$ctrl_e_rc" -eq 0 ]; then
+    echo "ERROR: check unexpectedly passed with workspace range in tarball!" >&2
+    exit 1
+  fi
+  echo "PASS: workspace range in tarball correctly triggered exit 1"
+  echo
+
+  echo "RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_8=1, workspace_range=1)"
 } 2>&1 | tee "$LOG"
 
 # Clean up /tmp/release-packs and temp work directory
