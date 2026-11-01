@@ -1,0 +1,93 @@
+name: Deploy Documentation
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'scripts/docs-*'
+      - 'KNOWN_ISSUES.md'
+      - '.github/workflows/docs-pages.yml'
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/docs-*'
+      - 'KNOWN_ISSUES.md'
+      - '.github/workflows/docs-pages.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build mdBook & check drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build TypeScript packages
+        run: |
+          pnpm --filter @zcash-app/sdk run build
+          pnpm --filter zcash-dev run build
+          pnpm --filter create-zcash-app run build
+
+      - name: Install pinned mdBook (v0.5.4) & mdbook-linkcheck (v0.7.7)
+        run: |
+          MDBOOK_VERSION="v0.5.4"
+          curl -sSL "https://github.com/rust-lang/mdBook/releases/download/${MDBOOK_VERSION}/mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | sudo tar -xz -C /usr/local/bin
+          LINKCHECK_VERSION="v0.7.7"
+          curl -sSL "https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/download/${LINKCHECK_VERSION}/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip" -o /tmp/linkcheck.zip
+          sudo unzip -q -o /tmp/linkcheck.zip -d /usr/local/bin
+          sudo chmod +x /usr/local/bin/mdbook-linkcheck /usr/local/bin/mdbook
+          mdbook --version
+          mdbook-linkcheck --version
+
+      - name: Run documentation drift & internal link checks
+        run: pnpm docs:check
+
+      - name: Build documentation book
+        run: pnpm docs:build
+
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/book
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

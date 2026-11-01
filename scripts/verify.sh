@@ -29,11 +29,19 @@ pnpm --filter zcash-dev build
 pnpm --filter create-zcash-app build
 pnpm --filter zcash-dev test
 
-echo "=== [6/7] Running Dashboard Tests ==="
+echo "=== [6/8] Running Dashboard Tests ==="
 # Test dashboard node sync percentage calculation, secret redaction, and status calculation
 pnpm --filter dashboard test
 
-echo "=== [7/7] Running Gitleaks Scan ==="
+echo "=== [7/8] Running Documentation Drift & Link Check ==="
+# Verify that generated reference docs match the codebase, no CLI commands/flags in prose drift,
+# and all internal links are valid. If mdbook is installed, verify the book builds cleanly.
+pnpm docs:check
+if command -v mdbook >/dev/null 2>&1; then
+  mdbook build docs
+fi
+
+echo "=== [8/8] Running Gitleaks Scan ==="
 gitleaks git
 
-echo "=== VERIFY SUCCESS: All 7 checks passed cleanly! ==="
+echo "=== VERIFY SUCCESS: All 8 checks passed cleanly! ==="
