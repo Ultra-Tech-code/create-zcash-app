@@ -319,7 +319,7 @@ NODE
   (cd "$WORK_DIR/cli-extract/package" && npm install --omit=dev --no-audit --no-fund --loglevel=error)
   (
     cd "$WORK_DIR"
-    node cli-extract/package/dist/index.js my-app --network testnet --remote
+    node cli-extract/package/dist/index.js my-app --network testnet --remote --key-source none
   )
   echo
   echo "files written by the scaffolder:"
