@@ -23,8 +23,10 @@ pnpm --filter @zcash-app/sdk test
 echo "=== [5/6] Running zcash-dev CLI Tests ==="
 # zcash-dev imports @zcash-app/sdk, whose types live in dist/ (gitignored). Building the SDK
 # first is what makes this step work from a clean checkout, not just from a used one.
+# dev tests (keys-and-cli.test.mjs) import create-zcash-app's dist/ (gitignored), so build it first.
 pnpm --filter @zcash-app/sdk build
 pnpm --filter zcash-dev build
+pnpm --filter create-zcash-app build
 pnpm --filter zcash-dev test
 
 echo "=== [6/6] Running Gitleaks Scan ==="
