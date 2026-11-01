@@ -5,7 +5,25 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { spawn, execSync } from 'child_process';
-import { createClient, dev, accountFromMnemonic, KNOWN_TEST_MNEMONICS } from '@zcash-app/sdk';
+import {
+  createClient,
+  dev,
+  accountFromMnemonic,
+  accountFromUfvk,
+  getBalance,
+  quoteFee,
+  send,
+  syncWallet,
+  WalletHandle,
+  KNOWN_TEST_MNEMONICS,
+} from '@zcash-app/sdk';
+import {
+  loadProjectEnv,
+  applyProjectEnv,
+  formatZec,
+  parseZecToZatoshis,
+} from './env';
+import { redactSecretUrl, sanitizeError } from './redact';
 import {
   readZebraCookie,
   buildTestnetLightwalletdArgs,
@@ -79,6 +97,280 @@ program
       process.exit(1);
     } finally {
       await client.close();
+    }
+  });
+
+export interface SendActionOptions {
+  to: string;
+  amount: string;
+  memo?: string;
+  yes?: boolean;
+  mainnet?: boolean;
+  endpoint?: string;
+}
+
+export interface SendDependencies {
+  client?: any;
+  sendFn?: typeof send;
+  syncWalletFn?: typeof syncWallet;
+  openWalletFn?: typeof WalletHandle.open;
+}
+
+export interface SendResult {
+  isDryRun: boolean;
+  network: string;
+  recipient: string;
+  amountZatoshis: bigint;
+  feeZatoshis: bigint;
+  endpoint: string;
+  memo?: string;
+  txid?: string;
+}
+
+export async function executeSend(
+  options: SendActionOptions,
+  config?: Record<string, string>,
+  deps?: SendDependencies
+): Promise<SendResult> {
+  const env = config ?? loadProjectEnv();
+  const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
+  const endpoint = options.endpoint || env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:28137';
+  const mnemonic = (env.ZCASH_MNEMONIC ?? '').trim();
+  const ufvk = (env.ZCASH_UFVK ?? '').trim();
+  const accountIndex = parseInt(env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
+  const birthdayRaw = (env.ZCASH_BIRTHDAY ?? '').trim();
+  const birthday = /^\d+$/.test(birthdayRaw) ? parseInt(birthdayRaw, 10) : undefined;
+
+  // Reject UFVK-only configs
+  if (ufvk && !mnemonic) {
+    throw new Error('Cannot send from a watch-only account (UFVK). A spending key (mnemonic) is required.');
+  }
+
+  if (!mnemonic && network !== 'regtest') {
+    throw new Error(`No spending key (ZCASH_MNEMONIC) configured for ${network}. Cannot send without a spending key.`);
+  }
+
+  const amountZatoshis = parseZecToZatoshis(options.amount);
+  const feeZatoshis = quoteFee(2);
+
+  // Dry run mode (default when --yes is not set)
+  if (!options.yes) {
+    return {
+      isDryRun: true,
+      network,
+      recipient: options.to,
+      amountZatoshis,
+      feeZatoshis,
+      endpoint: redactSecretUrl(endpoint),
+      memo: options.memo,
+    };
+  }
+
+  // Broadcast mode (--yes passed)
+  if (network === 'mainnet' && !options.mainnet) {
+    throw new Error('Sending on mainnet requires the explicit --mainnet flag.');
+  }
+
+  const activeMnemonic = mnemonic || (network === 'regtest' ? KNOWN_TEST_MNEMONICS[accountIndex] || KNOWN_TEST_MNEMONICS[0] : '');
+  const account = accountFromMnemonic(activeMnemonic, accountIndex, network as any);
+
+  const client = deps?.client ?? createClient({ endpoint, network: network as any });
+  const openFn = deps?.openWalletFn ?? WalletHandle.open;
+  const syncFn = deps?.syncWalletFn ?? syncWallet;
+  const sendFn = deps?.sendFn ?? send;
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wallet-'));
+  const dbPath = path.join(tempDir, 'wallet.db');
+
+  let result;
+  try {
+    const wallet = openFn(
+      dbPath,
+      network as any,
+      account.getUnifiedFullViewingKey(),
+      `acct${accountIndex}`,
+      birthday
+    );
+    await syncFn(client, wallet);
+    result = await sendFn({
+      client,
+      wallet,
+      from: account,
+      to: options.to,
+      amount: amountZatoshis,
+      memo: options.memo,
+    });
+  } finally {
+    if (!deps?.client) {
+      await client.close().catch(() => {});
+    }
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {}
+  }
+
+  return {
+    isDryRun: false,
+    network,
+    recipient: options.to,
+    amountZatoshis,
+    feeZatoshis: result.fee ? BigInt(result.fee) : feeZatoshis,
+    endpoint: redactSecretUrl(endpoint),
+    memo: options.memo,
+    txid: result.txid,
+  };
+}
+
+program
+  .command('address')
+  .description('Display the derived address for the configured account')
+  .option('-i, --index <n>', 'Account index')
+  .action((options) => {
+    try {
+      applyProjectEnv();
+      const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
+      const rawIndex = options.index ?? process.env.ZCASH_ACCOUNT_INDEX ?? '0';
+      const accountIndex = parseInt(rawIndex, 10) || 0;
+      const mnemonic = (process.env.ZCASH_MNEMONIC ?? '').trim();
+      const ufvk = (process.env.ZCASH_UFVK ?? '').trim();
+
+      if (!mnemonic && !ufvk) {
+        if (network === 'regtest') {
+          const acct = dev.fixtures.account(accountIndex, 'regtest');
+          console.log(`\n--- Configured Account Address ---`);
+          console.log(`Network:          ${network}`);
+          console.log(`Account Index:    ${accountIndex} (regtest default fixture)`);
+          console.log(`Unified Address:  ${acct.getUnifiedAddress()}`);
+          const tAddr = acct.getTransparentAddress?.();
+          if (tAddr) console.log(`Transparent:      ${tAddr}`);
+          console.log('');
+          return;
+        }
+        throw new Error(
+          `Neither ZCASH_MNEMONIC nor ZCASH_UFVK is configured for ${network}. Set ZCASH_MNEMONIC or ZCASH_UFVK in .env.local.`
+        );
+      }
+
+      if (mnemonic) {
+        const acct = accountFromMnemonic(mnemonic, accountIndex, network as any);
+        console.log(`\n--- Configured Account Address ---`);
+        console.log(`Network:          ${network}`);
+        console.log(`Account Index:    ${accountIndex}`);
+        console.log(`Unified Address:  ${acct.getUnifiedAddress()}`);
+        const tAddr = acct.getTransparentAddress?.();
+        if (tAddr) console.log(`Transparent:      ${tAddr}`);
+        console.log('');
+        return;
+      }
+
+      if (ufvk) {
+        const watchAcct = accountFromUfvk(ufvk, network as any);
+        console.log(`\n--- Configured Account Address (Watch-Only) ---`);
+        console.log(`Network:          ${network}`);
+        console.log(`Account Index:    ${accountIndex} (UFVK)`);
+        console.log(`Unified Address:  ${watchAcct.getUnifiedAddress()}`);
+        const tAddr = watchAcct.getTransparentAddress?.();
+        if (tAddr) console.log(`Transparent:      ${tAddr}`);
+        console.log('');
+        return;
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err, process.env.ZCASH_MNEMONIC);
+      console.error('Address derivation failed:', sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('balance')
+  .description('Check balance for the configured account')
+  .option('-e, --endpoint <endpoint>', 'Zaino / lightwalletd gRPC endpoint')
+  .action(async (options) => {
+    let client: any;
+    try {
+      applyProjectEnv();
+      const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
+      const endpoint = options.endpoint || process.env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:28137';
+      const birthdayRaw = (process.env.ZCASH_BIRTHDAY ?? '').trim();
+      const birthday = /^\d+$/.test(birthdayRaw) ? parseInt(birthdayRaw, 10) : undefined;
+      const accountIndex = parseInt(process.env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
+      const mnemonic = (process.env.ZCASH_MNEMONIC ?? '').trim();
+      const ufvk = (process.env.ZCASH_UFVK ?? '').trim();
+
+      let account: any;
+      if (mnemonic) {
+        account = accountFromMnemonic(mnemonic, accountIndex, network as any);
+      } else if (ufvk) {
+        account = accountFromUfvk(ufvk, network as any);
+      } else if (network === 'regtest') {
+        account = dev.fixtures.account(accountIndex, 'regtest');
+      } else {
+        throw new Error(
+          `Neither ZCASH_MNEMONIC nor ZCASH_UFVK is configured for ${network}. Set ZCASH_MNEMONIC or ZCASH_UFVK in .env.local.`
+        );
+      }
+
+      console.log(`Querying balance on ${network} via ${redactSecretUrl(endpoint)}...`);
+      client = createClient({ endpoint, network: network as any });
+      const b = await getBalance(client, account, { sinceHeight: birthday });
+      console.log('\n--- Account Balance ---');
+      console.log(`Network:     ${network}`);
+      console.log(`Total:       ${formatZec(b.total)} ZEC (${b.total} zatoshis)`);
+      console.log(`Ironwood:    ${formatZec(b.ironwood)} ZEC`);
+      console.log(`Orchard:     ${formatZec(b.orchard)} ZEC`);
+      console.log(`Sapling:     ${formatZec(b.sapling)} ZEC`);
+      console.log(`Transparent: ${formatZec(b.transparent)} ZEC`);
+      if (b.confirmed && b.pending) {
+        console.log(`Confirmed:   ${formatZec(b.confirmed.total)} ZEC`);
+        console.log(`Pending:     ${formatZec(b.pending.total)} ZEC`);
+      }
+      console.log('');
+    } catch (err: any) {
+      const sanitized = sanitizeError(err, process.env.ZCASH_MNEMONIC);
+      console.error('Balance check failed:', sanitized.message);
+      process.exit(1);
+    } finally {
+      if (client) {
+        await client.close().catch(() => {});
+      }
+    }
+  });
+
+program
+  .command('send')
+  .description('Send ZEC or perform a transaction dry run')
+  .requiredOption('--to <address>', 'Recipient address (unified, sapling, or transparent)')
+  .requiredOption('--amount <zec>', 'Amount to send in ZEC')
+  .option('--memo <memo>', 'Optional memo for shielded recipient')
+  .option('--yes', 'Broadcast the transaction (without --yes, runs in dry-run mode)')
+  .option('--mainnet', 'Safety confirmation flag required when broadcasting on mainnet')
+  .option('-e, --endpoint <endpoint>', 'Zaino / lightwalletd gRPC endpoint')
+  .action(async (options) => {
+    try {
+      applyProjectEnv();
+      const config = loadProjectEnv();
+      const res = await executeSend(options, config);
+      if (res.isDryRun) {
+        console.log('\n=== Transaction Dry Run ===');
+        console.log(`Network:   ${res.network}`);
+        console.log(`Recipient: ${res.recipient}`);
+        console.log(`Amount:    ${options.amount} ZEC (${res.amountZatoshis} zatoshis)`);
+        console.log(`Fee:       ${formatZec(res.feeZatoshis)} ZEC (${res.feeZatoshis} zatoshis) [estimated (ZIP-317, 2 outputs assumed)]`);
+        console.log(`Endpoint:  ${res.endpoint}`);
+        if (res.memo) {
+          console.log(`Memo:      ${res.memo}`);
+        }
+        console.log('Status:    DRY RUN ONLY — transaction was NOT broadcast.');
+        console.log(`Pass --yes to sign and broadcast this transaction${res.network === 'mainnet' ? ' (requires --mainnet)' : ''}.\n`);
+      } else {
+        console.log('\n✅ Transaction broadcast successfully!');
+        console.log(`Txid:      ${res.txid}`);
+        console.log(`Fee:       ${formatZec(res.feeZatoshis)} ZEC (${res.feeZatoshis} zatoshis)\n`);
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err, process.env.ZCASH_MNEMONIC);
+      console.error('Send failed:', sanitized.message);
+      process.exit(1);
     }
   });
 
@@ -803,3 +1095,5 @@ const isEntrypoint =
 if (isEntrypoint) {
   program.parse(process.argv);
 }
+
+export { program };

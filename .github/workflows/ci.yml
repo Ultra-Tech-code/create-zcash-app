@@ -155,6 +155,7 @@ jobs:
         run: |
           pnpm --filter @zcash-app/sdk build
           pnpm --filter zcash-dev build
+          pnpm --filter create-zcash-app build
           pnpm --filter zcash-dev test
           pnpm --filter dashboard test
 
