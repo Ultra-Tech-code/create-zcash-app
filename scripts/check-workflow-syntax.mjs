@@ -80,10 +80,10 @@ for (const workflowPath of workflowFiles) {
         }
       }
 
-      // 3. Extract and check inline node -e '...' scripts
-      const nodeEvalRegex = /node\s+(?:-[^\s]+\s+)*-e\s+'([\s\S]*?)'/g;
+      // 3. Extract and check inline node -e and -p scripts (both single and double quoted)
+      const nodeEvalRegex = /node\s+(?:-[^\s]+\s+)*-[ep]\s*(?:'([\s\S]*?)'|"([\s\S]*?)")/g;
       while ((match = nodeEvalRegex.exec(step.run)) !== null) {
-        const jsCode = match[1];
+        const jsCode = match[1] !== undefined ? match[1] : match[2];
         totalChecks++;
         try {
           execSync('node --check', {
@@ -91,9 +91,9 @@ for (const workflowPath of workflowFiles) {
             stdio: ['pipe', 'pipe', 'pipe'],
             encoding: 'utf8',
           });
-          console.log(`  [node --check -e] OK: ${stepName}`);
+          console.log(`  [node --check inline] OK: ${stepName}`);
         } catch (err) {
-          console.error(`  [node --check -e] FAILED: ${stepName}\n${err.stderr || err.message}`);
+          console.error(`  [node --check inline] FAILED: ${stepName}\n${err.stderr || err.message}`);
           failures++;
         }
       }

@@ -93,15 +93,30 @@ jobs:
     name: publish - ${{ inputs.dry_run && 'dry run' || 'npm' }}
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v7
 
-      - name: Setup node (with the npm registry token)
+      - name: Setup node (trusted publishing)
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      - name: Verify npm version for trusted publishing
+        run: |
+          npm_v=$(npm --version)
+          echo "npm version: $npm_v"
+          node -e '
+            const v = process.argv[1].split(".").map(Number);
+            if (v[0] < 11 || (v[0] === 11 && (v[1] < 5 || (v[1] === 5 && v[2] < 1)))) {
+              console.error(`::error::npm >= 11.5.1 required for trusted publishing, found ${process.argv[1]}`);
+              process.exit(1);
+            }
+          ' "$npm_v"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
@@ -265,7 +280,8 @@ jobs:
           const expectedUrl = 'git+https://github.com/Ultra-Tech-code/create-zcash-app.git';
           let failures = 0;
 
-          // Check that every one of the 9 tarballs has license, repository.url, and a LICENSE file
+          // Check that every one of the 9 tarballs has license, repository.url, a LICENSE file,
+          // and zero workspace: ranges
           for (const file of tarballs) {
             const full = path.join('/tmp/release-packs', file);
             const listing = execSync(`tar -tzf ${full}`, { encoding: 'utf8' }).split('\n').filter(Boolean);
@@ -287,6 +303,19 @@ jobs:
               console.error(`MISSING package/LICENSE in ${file}`);
               failures++;
             }
+            const workspaceRanges = Object.entries({
+              ...(manifest.dependencies || {}),
+              ...(manifest.optionalDependencies || {}),
+              ...(manifest.peerDependencies || {}),
+              ...(manifest.devDependencies || {}),
+            }).filter(([, range]) => String(range).includes('workspace:'));
+            if (workspaceRanges.length > 0) {
+              console.error(
+                `WORKSPACE RANGE IN ${file}: ` + workspaceRanges.map(([n, r]) => `${n}=${r}`).join(', ')
+              );
+              failures++;
+            }
+            console.log(`tarball check ok: ${file} (workspace ranges: 0, license: ${manifest.license})`);
           }
 
           const expected = [
@@ -358,49 +387,59 @@ jobs:
             console.log("All publishable packages are at " + versions[0]);
           '
 
-      # pnpm, not npm: @zcash-app/sdk and zcash-dev depend on `workspace:*`, and `npm publish`
-      # packs that range verbatim, which no consumer can resolve. pnpm rewrites it to the real
-      # version at pack time. --no-git-checks is required because the checkout is a detached SHA.
-      #
-      # --ignore-scripts: @zcash-app/core still declares a legacy "prepublish" script
-      # (`napi pre-publish --dry-run --tag-style npm`) which pnpm runs on publish. That would
-      # rewrite the manifest a second time without this workflow's flags and aborts when a
-      # platform addon is missing. The addons and manifest are already prepared above.
+      # Publish the 9 tarballs already produced by pnpm pack in /tmp/release-packs.
+      # Because they were packed by pnpm pack, all workspace:* ranges were rewritten to real versions.
+      # Publishing the packed tarballs directly via npm publish with --tag next uses npm's trusted
+      # publishing (OIDC) without needing secrets.NPM_TOKEN or pnpm publish.
       - name: Publish the per-platform packages first
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
+          args="--access public --tag ${NPM_TAG:-next}"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
           for dir in packages/core/npm/*/; do
-            echo "::group::pnpm publish $dir"
-            pnpm publish "$dir" $args
+            pkg_name=$(node -p "require('./$dir/package.json').name.replace('@', '').replace('/', '-')")
+            tarball=$(ls -1 /tmp/release-packs/${pkg_name}-*.tgz)
+            echo "::group::npm publish $tarball"
+            npm publish "$tarball" $args
             echo "::endgroup::"
           done
 
       - name: Publish @zcash-app/core
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
+          args="--access public --tag ${NPM_TAG:-next}"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
-          pnpm publish packages/core $args
+          tarball=$(node -e '
+            const fs = require("fs");
+            const f = fs.readdirSync("/tmp/release-packs").find((f) => /^zcash-app-core-\d/.test(f));
+            if (!f) { console.error("core tarball not found"); process.exit(1); }
+            console.log("/tmp/release-packs/" + f);
+          ')
+          echo "::group::npm publish $tarball"
+          npm publish "$tarball" $args
+          echo "::endgroup::"
 
       - name: Publish @zcash-app/sdk, zcash-dev and create-zcash-app
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          args="--ignore-scripts --no-git-checks --access public --tag $NPM_TAG"
+          args="--access public --tag ${NPM_TAG:-next}"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
-          for dir in packages/sdk packages/dev packages/cli; do
-            echo "::group::pnpm publish $dir"
-            pnpm publish "$dir" $args
+          for pattern in '^zcash-app-sdk-\d' '^zcash-dev-\d' '^create-zcash-app-\d'; do
+            tarball=$(node -e '
+              const fs = require("fs");
+              const re = new RegExp(process.argv[1]);
+              const f = fs.readdirSync("/tmp/release-packs").find((f) => re.test(f));
+              if (!f) { console.error("tarball not found matching " + process.argv[1]); process.exit(1); }
+              console.log("/tmp/release-packs/" + f);
+            ' "$pattern")
+            echo "::group::npm publish $tarball"
+            npm publish "$tarball" $args
             echo "::endgroup::"
           done
 
@@ -408,7 +447,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
-            echo "Dry run: every pnpm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
+            echo "Dry run: every npm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, zcash-dev and create-zcash-app with dist-tag \`$NPM_TAG\`." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, zcash-dev and create-zcash-app with dist-tag \`${NPM_TAG:-next}\`." >> "$GITHUB_STEP_SUMMARY"
           fi
