@@ -23,13 +23,13 @@ Consensus upgrades in Zcash are activated strictly by **block height**, not by t
 
 ### Network Upgrade 7 (NU7) Specifications
 
-The specifications for Network Upgrade 7 (NU7) are defined in [ZIP 259: Network Upgrade 7](https://zips.z.cash/zip-0259) and [Zcash ZIPs PR #1405](https://github.com/zcash/zips/pull/1405) (as of November 2026):
+The specifications for Network Upgrade 7 (NU7) are defined in [ZIP 259: Network Upgrade 7](https://zips.z.cash/zip-0259) and [Zcash ZIPs PR #1405](https://github.com/zcash/zips/pull/1405) (as of November 2, 2026):
 
 - **Consensus Branch ID**: `0x77190ad9`
 - **Testnet Activation Height**: `4,465,026` (activated)
 - **Testnet Canonical Activation Block Hash**: `000089ba27100beede16d64b34e3d1b626b428cb7ee9fe6dcfdc217ce24e78af`
 - **Mainnet Activation Height**: `3,543,405`
-- **Mainnet Activation Schedule**: Mainnet activation is strictly height-based, **expected around Nov 5–6, 2026 UTC** (as of November 2026). Because activation depends on block arrival times governed by Proof of Work difficulty adjustments, it is an estimated window rather than a fixed calendar time.
+- **Mainnet Activation Schedule**: Mainnet activation is strictly height-based, **expected around Nov 5–6, 2026 UTC** (as of November 2, 2026). Because activation depends on block arrival times governed by Proof of Work difficulty adjustments, it is an estimated window rather than a fixed calendar time.
 
 ### Why the NU7 Devnet Uses Zebra + lightwalletd (Not Zaino/Zallet)
 
@@ -39,9 +39,9 @@ Developers working with `zcash-dev` can select between two local regtest stacks:
 
 Understanding why the NU7 path uses Zebra + lightwalletd instead of Zaino and Zallet is essential:
 
-1. **Zallet beta.3 Lacks NU7 Support**: As documented in the upstream release of [Zallet v0.1.0-beta.3](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.3) (published August 26, 2026), Zallet's stable releases support up to NU6.3. When connected to a node activating NU7 (`0x77190ad9`), Zallet beta.3 warns `Pending incompatible network upgrades: Nu7 (branch ID 77190ad9, unrecognized)` and halts steady-state synchronization. Full NU7 support is tracked in subsequent pull requests (such as Zallet PR #898).
-2. **Zaino 0.10.x Lacks NU7 Support**: As documented in the upstream release notes of [Zaino 0.10.1](https://github.com/zingolabs/zaino/releases/tag/0.10.1) (published September 29, 2026) and [Zaino 0.10.0](https://github.com/zingolabs/zaino/releases/tag/0.10.0) (published September 12, 2026), the 0.10.x release line does not recognize consensus branch `0x77190ad9`. On a chain activating NU7, Zaino 0.10.x logs `validator unavailable: deserialize: parse error: invalid consensus branch id` (tracked in open upstream [Zaino PR #1655](https://github.com/zingolabs/zaino/pull/1655) and [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731)).
-3. **Zebra 7.0.0 & lightwalletd Support NU7**: [Zebra 7.0.0](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0) and official `lightwalletd` include complete support for the NU7 consensus branch ID `0x77190ad9`. Therefore, `create-zcash-app` routes all NU7 development and testing through the Zebra + lightwalletd container stack.
+1. **Zallet beta.3 Lacks NU7 Support**: As documented in the upstream release of [Zallet v0.1.0-beta.3](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.3) (published August 26, 2026, read November 2, 2026), Zallet's stable releases support up to NU6.3 and cannot read Zebra v29 state format. When connected to a node activating NU7 (`0x77190ad9`), Zallet beta.3 warns `Pending incompatible network upgrades: Nu7 (branch ID 77190ad9, unrecognized)` and halts steady-state synchronization. Upstream tagged `v0.1.0-beta.4` on November 1, 2026 ([PR #924](https://github.com/zcash/zallet/pull/924)) to add NU7 support ahead of mainnet activation.
+2. **Zaino 0.10.x Lacks NU7 Support**: As documented in the upstream releases of [Zaino 0.10.1](https://github.com/zingolabs/zaino/releases/tag/0.10.1) (published September 29, 2026) and tag `zainod-0.10.2` (merged October 12, 2026 via [PR #1658](https://github.com/zingolabs/zaino/pull/1658), read November 2, 2026), the 0.10.x release line does not recognize consensus branch `0x77190ad9`. On a chain activating NU7, Zaino 0.10.x logs `validator unavailable: deserialize: parse error: invalid consensus branch id` (tracked in open upstream [Zaino PR #1655](https://github.com/zingolabs/zaino/pull/1655) and [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731)).
+3. **Zebra 7.0.0 & lightwalletd Support NU7**: [Zebra 7.0.0](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0) (published October 22, 2026, read November 2, 2026) and official `lightwalletd` include complete support for the NU7 consensus branch ID `0x77190ad9`. Therefore, `create-zcash-app` routes all NU7 development and testing through the Zebra + lightwalletd container stack.
 
 ---
 

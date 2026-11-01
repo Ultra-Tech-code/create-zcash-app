@@ -297,11 +297,87 @@ export function checkInternalLinks() {
   console.log(`✅ All internal links and anchor references are valid across ${allMarkdownFiles.length} docs files.`);
 }
 
+/**
+ * 4. Validate external web links
+ */
+export async function checkExternalLinks() {
+  console.log('--- Step 4: Validating External Web Links ---');
+
+  // If mdbook-linkcheck2 is available, run it
+  try {
+    execSync('mdbook-linkcheck2 -s docs', { cwd: REPO_ROOT, stdio: 'inherit' });
+    console.log('✅ mdbook-linkcheck2 validated all internal and external web links cleanly.');
+    return;
+  } catch (err) {
+    if (err.status !== 127 && err.code !== 'ENOENT') {
+      console.error('❌ mdbook-linkcheck2 found broken links.');
+      process.exit(1);
+    }
+  }
+
+  // Fallback: extract all http(s) URLs and check with fetch
+  const allMarkdownFiles = [];
+  function walk(dir) {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) walk(full);
+      else if (ent.name.endsWith('.md')) allMarkdownFiles.push(full);
+    }
+  }
+  walk(DOCS_SRC);
+
+  const urlRegex = /https?:\/\/[^\s)\]>"']+/g;
+  const urlsToCheck = new Set();
+
+  for (const f of allMarkdownFiles) {
+    const content = fs.readFileSync(f, 'utf8');
+    let m;
+    while ((m = urlRegex.exec(content)) !== null) {
+      let u = m[0].replace(/[.,;:!?]+$/, '');
+      if (u.includes('localhost') || u.includes('127.0.0.1')) continue;
+      urlsToCheck.add(u);
+    }
+  }
+
+  let failed = 0;
+  for (const u of urlsToCheck) {
+    try {
+      const res = await fetch(u, {
+        method: 'HEAD',
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.status >= 400 && res.status !== 403 && res.status !== 405) {
+        const getRes = await fetch(u, {
+          method: 'GET',
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (getRes.status >= 400 && getRes.status !== 403) {
+          console.error(`❌ HTTP ${getRes.status} for URL: ${u}`);
+          failed++;
+        }
+      }
+    } catch (e) {
+      console.error(`❌ Failed to connect to URL: ${u} (${e.message})`);
+      failed++;
+    }
+  }
+
+  if (failed > 0) {
+    console.error(`\n❌ Found ${failed} unreachable external URLs.\n`);
+    process.exit(1);
+  }
+
+  console.log(`✅ All ${urlsToCheck.size} external URLs verified.`);
+}
+
 export async function main() {
   console.log('=== Running Documentation Check (pnpm docs:check) ===');
   await checkGeneratedDrift();
   await checkProseCommands();
   checkInternalLinks();
+  await checkExternalLinks();
   console.log('=== All Documentation Checks Passed Cleanly! ===\n');
 }
 

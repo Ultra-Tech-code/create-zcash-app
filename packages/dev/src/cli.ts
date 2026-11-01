@@ -175,7 +175,7 @@ export async function executeSend(
   const account = accountFromMnemonic(activeMnemonic, accountIndex, network as any);
 
   const client = deps?.client ?? createClient({ endpoint, network: network as any });
-  const openFn = deps?.openWalletFn ?? WalletHandle.open;
+  const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
   const syncFn = deps?.syncWalletFn ?? syncWallet;
   const sendFn = deps?.sendFn ?? send;
 

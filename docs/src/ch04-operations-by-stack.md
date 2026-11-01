@@ -8,13 +8,13 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 
 | Operation | Z3 NU6.3 Regtest | NU7 Regtest | Testnet | Mainnet | Implementing SDK / CLI Source |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Mine Blocks** | ✅ Supported | ✅ Supported | ❌ Not available (PoW) | ❌ Not available (PoW) | `zcash-dev mine`, `dev.mine()` in [`packages/sdk/src/dev.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/dev.ts) |
-| **Account / Address Derivation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev address`, `accountFromMnemonic()`, `accountFromUfvk()` in [`packages/sdk/src/keys.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/keys.ts) |
-| **Balance Calculation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev balance`, `getBalance()` in [`packages/sdk/src/sync.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/sync.ts) |
-| **Testnet / Devnet Faucet Funding** | ✅ Supported | ⚠️ Coinbase rewards only | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `dev.fund()` in [`packages/sdk/src/dev.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/dev.ts) |
-| **Send / Broadcast Transaction** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported (with `--mainnet`) | `zcash-dev send`, `send()` in [`packages/sdk/src/send.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/send.ts) |
-| **Decrypted Tx & Memo Inspection** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `decryptTransaction()`, `decodeTransaction()` in [`packages/sdk/src/decrypted-tx.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/decrypted-tx.ts) |
-| **Unified Full Viewing Keys (UFVK)** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `account.getUnifiedFullViewingKey()` in [`packages/sdk/src/keys.ts`](file:///Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk/src/keys.ts) |
+| **Mine Blocks** | ✅ Supported | ✅ Supported | ❌ Not available (PoW) | ❌ Not available (PoW) | `zcash-dev mine`, `dev.mine()` in `packages/sdk/src/dev.ts` |
+| **Account / Address Derivation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev address`, `accountFromMnemonic()`, `accountFromUfvk()` in `packages/sdk/src/keys.ts` |
+| **Balance Calculation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev balance`, `getBalance()` in `packages/sdk/src/sync.ts` |
+| **Testnet / Devnet Faucet Funding** | ✅ Supported | ⚠️ Coinbase rewards only | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `dev.fund()` in `packages/sdk/src/dev.ts` |
+| **Send / Broadcast Transaction** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported (with `--mainnet`) | `zcash-dev send`, `send()` in `packages/sdk/src/send.ts` |
+| **Decrypted Tx & Memo Inspection** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `decryptTransaction()`, `decodeTransaction()` in `packages/sdk/src/decrypted-tx.ts` |
+| **Unified Full Viewing Keys (UFVK)** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `account.getUnifiedFullViewingKey()` in `packages/sdk/src/keys.ts` |
 | **Partially Created Zcash Tx (PCZT)** | ⚠️ Zallet RPC only | ❌ Not available | ❌ Not available | ❌ Not available | Upstream Zallet RPC methods `pczt_create`; not yet exposed in `@zcash-app/sdk` v0.1.0 |
 | **Encrypted Keystore on Disk** | ⚠️ Zallet backend only | ❌ Not available | ❌ Not available | ❌ Not available | Zallet `init-wallet-encryption`; `@zcash-app/sdk` stores keys in `.env.local` or environment variables |
 
