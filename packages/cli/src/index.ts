@@ -3,10 +3,10 @@ import { Command } from 'commander';
 import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
-import { generateMnemonic } from './bip39';
+import { generateMnemonic, validateMnemonic, BIP39_WORDLIST } from './bip39';
 import { redactSecretUrl } from './redact';
 
-export { redactSecretUrl };
+export { redactSecretUrl, validateMnemonic, BIP39_WORDLIST };
 
 export const REMOTE_ENDPOINTS = {
   regtest: '127.0.0.1:28137',
@@ -144,6 +144,9 @@ export function validateEndpoint(endpoint: string): void {
   const trimmed = endpoint.trim();
   if (!trimmed) {
     throw new Error('Endpoint cannot be empty.');
+  }
+  if (trimmed.includes('://')) {
+    throw new Error('Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)');
   }
   if (/\s/.test(trimmed)) {
     throw new Error(`Invalid endpoint "${trimmed}": contains whitespace.`);
@@ -330,6 +333,10 @@ program
         console.error(err.message || String(err));
         process.exit(1);
       }
+      if (!validateMnemonic(mnemonic)) {
+        console.error('Invalid BIP-39 mnemonic (word count, wordlist or checksum)');
+        process.exit(1);
+      }
     } else if (keySource === 'ufvk') {
       ufvk = options.ufvk || '';
       if (!ufvk && process.stdin.isTTY) {
@@ -385,6 +392,13 @@ program
         generateDockerCompose = dockerResponse.compose ?? false;
       } else {
         generateDockerCompose = network === 'regtest';
+      }
+    }
+
+    if (mnemonic && keySource !== 'generate') {
+      if (!validateMnemonic(mnemonic)) {
+        console.error('Invalid BIP-39 mnemonic (word count, wordlist or checksum)');
+        process.exit(1);
       }
     }
 
@@ -460,8 +474,8 @@ program
     const configData = {
       network,
       connectionMode,
-      endpoint,
-      zebraRpc: zebraRpc || '',
+      endpoint: redactSecretUrl(endpoint),
+      zebraRpc: zebraRpc ? redactSecretUrl(zebraRpc) : '',
       keySource,
       createdAt: new Date().toISOString(),
     };

@@ -355,7 +355,7 @@ program
         console.log(`Network:   ${res.network}`);
         console.log(`Recipient: ${res.recipient}`);
         console.log(`Amount:    ${options.amount} ZEC (${res.amountZatoshis} zatoshis)`);
-        console.log(`Fee:       ${formatZec(res.feeZatoshis)} ZEC (${res.feeZatoshis} zatoshis) [ZIP-317 quoted fee]`);
+        console.log(`Fee:       ${formatZec(res.feeZatoshis)} ZEC (${res.feeZatoshis} zatoshis) [estimated (ZIP-317, 2 outputs assumed)]`);
         console.log(`Endpoint:  ${res.endpoint}`);
         if (res.memo) {
           console.log(`Memo:      ${res.memo}`);

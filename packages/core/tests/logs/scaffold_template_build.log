@@ -1,7 +1,7 @@
 === create-zcash-app template release proof ===
-date:        2026-11-01T12:03:30Z
+date:        2026-11-01T16:15:59Z
 repo:        /Users/0xblackadam/Downloads/zcash_scafolder
-work dir:    /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-release-proof.voxz8z
+work dir:    /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-release-proof.Ag0hZU
 node:        v22.22.2
 pnpm:        11.5.3
 
@@ -32,7 +32,7 @@ index.js
 LICENSE
 package.json
 Tarball Details
-/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/tarballs/zcash-app-core-0.1.0-alpha.1.tgz
+/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/tarballs/zcash-app-core-0.1.0-alpha.1.tgz
 package: @zcash-app/sdk@0.1.0-alpha.1
 Tarball Contents
 dist/client.d.ts
@@ -70,7 +70,7 @@ package.json
 proto/compact_formats.proto
 proto/service.proto
 Tarball Details
-/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/tarballs/zcash-app-sdk-0.1.0-alpha.1.tgz
+/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/tarballs/zcash-app-sdk-0.1.0-alpha.1.tgz
 package: zcash-dev@0.1.0-alpha.1
 Tarball Contents
 dist/cli.d.ts
@@ -95,7 +95,7 @@ docker/regtest/zebra.toml
 LICENSE
 package.json
 Tarball Details
-/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/tarballs/zcash-dev-0.1.0-alpha.1.tgz
+/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/tarballs/zcash-dev-0.1.0-alpha.1.tgz
 package: create-zcash-app@0.1.0-alpha.1
 Tarball Contents
 dist/bip39.d.ts
@@ -115,7 +115,7 @@ template/package.json.tmpl
 template/pnpm-workspace.yaml
 template/tsconfig.json
 Tarball Details
-/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/tarballs/create-zcash-app-0.1.0-alpha.1.tgz
+/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/tarballs/create-zcash-app-0.1.0-alpha.1.tgz
 npm notice
 npm notice 📦  @zcash-app/core-darwin-arm64@0.1.0-alpha.1
 npm notice Tarball Contents
@@ -143,11 +143,11 @@ zcash-app-sdk-0.1.0-alpha.1.tgz
 zcash-dev-0.1.0-alpha.1.tgz
 
 sha256:
-eed1acecce22dacb719c8751cd1b795b20e180d9a826dd062a9543d8ce2bdea5  create-zcash-app-0.1.0-alpha.1.tgz
+57b94c0736b1829e00b66e057335e974bca00ece6a20950510ad5ddfedb8cdde  create-zcash-app-0.1.0-alpha.1.tgz
 ca6175ec4c90adc4d8535de9ef8feb61dcf417fabcc5218f82fe63cfb54e87ba  zcash-app-core-0.1.0-alpha.1.tgz
 4b00c4b644b24fb46fb379563a2a80e8e807e29480e7a5f99c75fdba6afbaf62  zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz
 12a9aa4f13da0b9013e6f39cfe87f9cfe9a453b1fd55e752471750007be1fba5  zcash-app-sdk-0.1.0-alpha.1.tgz
-838105fd40384edeed40bd9723510dcb9d3bae8dd4406d5cdeefc884648e66e5  zcash-dev-0.1.0-alpha.1.tgz
+dd062dcd34645ac93af375a9c8a19ed0984dcff9d939efdea339fb922e63d6fe  zcash-dev-0.1.0-alpha.1.tgz
 
 payload and manifest checks (everything a consumer receives):
 zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz: platform addon package/zcash-core.darwin-arm64.node
@@ -164,9 +164,9 @@ create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 17 entries, 
 
 added 4 packages in 3s
 
-🚀 Scaffolding shielded Zcash app in /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/my-app...
+🚀 Scaffolding shielded Zcash app in /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/my-app...
 
-🎉 Success! Created my-app at /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.voxz8z/my-app
+🎉 Success! Created my-app at /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-release-proof.Ag0hZU/my-app
    Configured Network: testnet (remote)
    Indexer Endpoint:   testnet.zec.rocks:443
    Key Source:         none
@@ -199,14 +199,14 @@ installing from file:../tarballs/zcash-app-sdk-0.1.0-alpha.1.tgz
 
 --- step 6: pnpm install ---
 Progress: resolved 1, reused 0, downloaded 0, added 0
-Progress: resolved 7, reused 4, downloaded 2, added 0
-Progress: resolved 60, reused 27, downloaded 3, added 0
-Progress: resolved 98, reused 64, downloaded 4, added 0
+Progress: resolved 16, reused 10, downloaded 1, added 0
+Progress: resolved 70, reused 39, downloaded 1, added 0
+Progress: resolved 97, reused 66, downloaded 1, added 0
 Packages: +68
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-Progress: resolved 100, reused 66, downloaded 4, added 67
-Progress: resolved 100, reused 66, downloaded 4, added 68
-Progress: resolved 100, reused 66, downloaded 4, added 68, done
+Progress: resolved 100, reused 69, downloaded 1, added 66
+Progress: resolved 100, reused 69, downloaded 1, added 67
+Progress: resolved 100, reused 69, downloaded 1, added 68, done
 .../node_modules/protobufjs postinstall$ node scripts/postinstall
 .../node_modules/protobufjs postinstall: Done
 
@@ -223,7 +223,7 @@ devDependencies:
 + typescript 5.9.3 (7.0.2 is available)
 + zcash-dev 0.1.0-alpha.1
 
-Done in 5.5s using pnpm v11.5.3
+Done in 6s using pnpm v11.5.3
 
 --- step 7: pnpm build ---
 $ next build
@@ -232,7 +232,7 @@ $ next build
 ✓ Running next.config.mjs took 13ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 1537ms
+✓ Compiled successfully in 1190ms
   Running TypeScript ...
 
   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
@@ -241,10 +241,10 @@ $ next build
   	- allowJs was set to true
   	- include was updated to add '.next/dev/types/**/*.ts'
 
-  Finished TypeScript in 1375ms ...
+  Finished TypeScript in 1208ms ...
   Collecting page data using 5 workers ...
   Generating static pages using 5 workers (0/3) ...
-✓ Generating static pages using 5 workers (3/3) in 301ms
+✓ Generating static pages using 5 workers (3/3) in 302ms
   Finalizing page optimization ...
 
 Route (app)
@@ -258,13 +258,13 @@ Route (app)
 
 
 --- step 8: build output ---
-BUILD_ID: NV2UPhB2mcu1pCl4lzOhc
+BUILD_ID: SBu6ZZu_bm6VbgoQrabW7
 installed @zcash-app/sdk   0.1.0-alpha.1
 installed @zcash-app/core  0.1.0-alpha.1 (node_modules/.pnpm/@zcash-app+core@file+..+tarballs+zcash-app-core-0.1.0-alpha.1.tgz/node_modules/@zcash-app/core/package.json)
 installed zcash-dev        0.1.0-alpha.1
 
 --- step 9: the installed SDK loads its native addon at runtime ---
 mnemonic words: 12
-regtest unified address prefix: uregtest1z5p… (length 220)
+regtest unified address prefix: uregtest1ag4… (length 220)
 
 RESULT: the scaffolded project installed from tarballs and built successfully

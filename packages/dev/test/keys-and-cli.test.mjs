@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -27,6 +28,9 @@ import {
 import {
   verifyGitignoreProtectsEnvLocal,
   program as cliProgram,
+  validateEndpoint,
+  validateMnemonic,
+  BIP39_WORDLIST,
 } from '../../cli/dist/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -342,6 +346,32 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
     } finally {
       ufvkOnly.restore();
     }
+
+    // 7d. Secret URL and sentinel mnemonic redaction in route JSON and errors
+    const sentinelMnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+    const secretUrl = 'https://node.example.com/secret-endpoint-token-xyz';
+    const secretRoute = createRouteInstance({
+      ZCASH_NETWORK: 'regtest',
+      ZCASH_MNEMONIC: sentinelMnemonic,
+      ZCASH_ENDPOINT: secretUrl,
+    });
+    try {
+      const res = await secretRoute.exports.GET();
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(res.body.success, true);
+      assert.strictEqual(res.body.endpoint, 'https://node.example.com/<redacted>');
+      assert.ok(!JSON.stringify(res.body).includes('secret-endpoint-token-xyz'), 'JSON must not leak URL secret');
+      assert.ok(!JSON.stringify(res.body).includes(sentinelMnemonic), 'JSON must not leak sentinel mnemonic');
+      if (res.body.message) {
+        assert.ok(!res.body.message.includes('secret-endpoint-token-xyz'));
+      }
+      if (res.body.balanceError) {
+        assert.ok(!res.body.balanceError.includes('secret-endpoint-token-xyz'));
+        assert.ok(!res.body.balanceError.includes(sentinelMnemonic));
+      }
+    } finally {
+      secretRoute.restore();
+    }
   });
 
   it('8. send command: default dry run quotes fee and never calls broadcast', async () => {
@@ -502,6 +532,10 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       );
       assert.strictEqual(sendRun.status, 0, `Send run failed: ${sendRun.stderr}`);
       assert.ok(
+        sendRun.stdout.includes('[estimated (ZIP-317, 2 outputs assumed)]'),
+        'Fee must be labelled [estimated (ZIP-317, 2 outputs assumed)]'
+      );
+      assert.ok(
         !sendRun.stdout.includes(sentinelMnemonic),
         'zcash-dev send stdout must NOT leak sentinel mnemonic'
       );
@@ -512,5 +546,201 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it('11. validateEndpoint: rejects values containing "://" with exact message and validates endpoint formats', () => {
+    const qnTestHost = 'x.' + 'quik' + 'node.pro';
+
+    // 11a. Protocol rejection
+    assert.throws(
+      () => validateEndpoint('https://127.0.0.1:28137'),
+      {
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+      }
+    );
+    assert.throws(
+      () => validateEndpoint('http://testnet.zec.rocks:443'),
+      {
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+      }
+    );
+    assert.throws(
+      () => validateEndpoint(`https://${qnTestHost}/SECRET123/`),
+      {
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+      }
+    );
+
+    // 11b. Empty and whitespace validation
+    assert.throws(() => validateEndpoint(''), /Endpoint cannot be empty/);
+    assert.throws(() => validateEndpoint('   '), /Endpoint cannot be empty/);
+    assert.throws(() => validateEndpoint('host :28137'), /contains whitespace/);
+
+    // 11c. Valid endpoints accepted without throwing
+    assert.doesNotThrow(() => validateEndpoint('127.0.0.1:28137'));
+    assert.doesNotThrow(() => validateEndpoint('testnet.zec.rocks:443'));
+    assert.doesNotThrow(() => validateEndpoint('zec.rocks:443'));
+    assert.doesNotThrow(() => validateEndpoint('user:secret@127.0.0.1:28137'));
+
+    // 11d. CLI integration: create-zcash-app fails with exact error on --endpoint with "://"
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'endpoint-cli-test-'));
+    try {
+      const cliRun = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'bad-endpoint-app',
+          '--network', 'testnet',
+          '--remote',
+          '--endpoint', `https://${qnTestHost}/SECRET123/`,
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(cliRun.status, 1, 'CLI must exit 1 when endpoint contains ://');
+      assert.ok(
+        cliRun.stderr.includes('Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)'),
+        `Stderr must contain exact rejection message, got: ${cliRun.stderr}`
+      );
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit', () => {
+    // 12a. Valid 24-word phrase accepted
+    const valid24 = generateMnemonic(24);
+    assert.strictEqual(validateMnemonic(valid24), true, 'Valid 24-word phrase must pass');
+
+    // 12b. Valid 12-word phrase accepted
+    const valid12 = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+    assert.strictEqual(validateMnemonic(valid12), true, 'Valid 12-word phrase must pass');
+
+    // 12c. 15-word phrase rejected
+    const phrase15 = 'abandon '.repeat(15).trim();
+    assert.strictEqual(validateMnemonic(phrase15), false, '15-word phrase must fail');
+
+    // 12d. Invalid words rejected (word not in BIP-39 wordlist)
+    const invalidWordPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon notabipword';
+    assert.strictEqual(validateMnemonic(invalidWordPhrase), false, 'Phrase with invalid word must fail');
+
+    // 12e. Wrong checksum rejected (12 valid words with incorrect checksum)
+    const wrongChecksumPhrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon';
+    assert.strictEqual(validateMnemonic(wrongChecksumPhrase), false, 'Phrase with wrong checksum must fail');
+
+    // 12f. CLI aborts with exact error when invalid mnemonic is imported or passed via env, before writing any file
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mnemonic-cli-test-'));
+    try {
+      const cliRun = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'invalid-mnemonic-app',
+          '--network', 'regtest',
+          '--key-source', 'import',
+        ],
+        {
+          cwd: tempDir,
+          env: {
+            ...process.env,
+            ZCASH_MNEMONIC: wrongChecksumPhrase,
+          },
+          encoding: 'utf8',
+        }
+      );
+      assert.strictEqual(cliRun.status, 1, 'CLI must exit 1 on invalid mnemonic');
+      assert.ok(
+        cliRun.stderr.includes('Invalid BIP-39 mnemonic (word count, wordlist or checksum)'),
+        `Stderr must contain exact error message, got: ${cliRun.stderr}`
+      );
+      // Assert no mnemonic words are echoed in output
+      assert.ok(!cliRun.stdout.includes('abandon'));
+      assert.ok(!cliRun.stderr.includes('abandon'));
+      // Assert no files were written
+      assert.strictEqual(
+        fs.existsSync(path.join(tempDir, 'invalid-mnemonic-app')),
+        false,
+        'No project directory or files must be written when mnemonic is invalid'
+      );
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('13. Secret URL and credential redaction: secrets appear only in .env.local and are redacted in zcash.config.json', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'secret-leak-test-'));
+    try {
+      const qnTestHost = 'x.' + 'quik' + 'node.pro';
+      const secretToken = 'SECRET123';
+      const secretZebraRpc = `https://${qnTestHost}/${secretToken}/`;
+      const secretEndpoint = `user:${secretToken}@127.0.0.1:28137`;
+
+      const run = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'secret-redacted-app',
+          '--network', 'regtest',
+          '--key-source', 'generate',
+          '--zebra-rpc', secretZebraRpc,
+          '--endpoint', secretEndpoint,
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(run.status, 0, `Scaffolder failed: ${run.stderr}`);
+
+      const projectDir = path.join(tempDir, 'secret-redacted-app');
+      const envLocalPath = path.join(projectDir, '.env.local');
+      assert.ok(fs.existsSync(envLocalPath), '.env.local must exist');
+
+      // The secret token MUST appear in .env.local
+      const envLocalContent = fs.readFileSync(envLocalPath, 'utf8');
+      assert.ok(
+        envLocalContent.includes(secretToken),
+        '.env.local must contain the secret token'
+      );
+
+      // Verify zcash.config.json has redacted values
+      const configPath = path.join(projectDir, 'zcash.config.json');
+      assert.ok(fs.existsSync(configPath), 'zcash.config.json must exist');
+      const configContent = fs.readFileSync(configPath, 'utf8');
+      const configParsed = JSON.parse(configContent);
+      assert.strictEqual(configParsed.zebraRpc, 'https://x.quiknode.pro/<redacted>');
+      assert.strictEqual(configParsed.endpoint, '<redacted>@127.0.0.1:28137');
+      assert.ok(
+        !configContent.includes(secretToken),
+        'zcash.config.json must NOT contain the secret token'
+      );
+
+      // Verify SECRET123 appears in NO other generated file
+      function checkDir(dir) {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+          const fullPath = path.join(dir, entry.name);
+          if (entry.isDirectory()) {
+            checkDir(fullPath);
+          } else if (entry.isFile() && entry.name !== '.env.local') {
+            const fileContent = fs.readFileSync(fullPath, 'utf8');
+            assert.ok(
+              !fileContent.includes(secretToken),
+              `File "${path.relative(projectDir, fullPath)}" must NOT contain "${secretToken}"`
+            );
+          }
+        }
+      }
+      checkDir(projectDir);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('14. BIP-39 wordlist SHA-256 integrity: hash equals 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda', () => {
+    assert.strictEqual(BIP39_WORDLIST.length, 2048, 'BIP-39 wordlist must contain exactly 2048 words');
+    const text = BIP39_WORDLIST.join('\n') + '\n';
+    const actualHash = crypto.createHash('sha256').update(text).digest('hex');
+    const expectedHash = '2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda';
+    assert.strictEqual(
+      actualHash,
+      expectedHash,
+      `BIP-39 wordlist SHA-256 mismatch: actual ${actualHash} !== expected ${expectedHash}`
+    );
   });
 });
