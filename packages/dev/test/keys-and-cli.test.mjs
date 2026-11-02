@@ -1073,4 +1073,133 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       /Could not connect to Z3 RPC router \/ Zallet at http:\/\/127\.0\.0\.1:8181\. Is the Z3 stack running\? Run: zcash-dev regtest up --stack nu6/
     );
   });
+
+  it('18. regtest-init.sh retry logic & CLI execSync error handling', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cza-test-regtest-init-'));
+    const binDir = path.join(tmpDir, 'bin');
+    fs.mkdirSync(binDir, { recursive: true });
+
+    // Mock docker
+    fs.writeFileSync(
+      path.join(binDir, 'docker'),
+      `#!/bin/sh
+if [ "$1" = "compose" ] && [ "$2" = "logs" ]; then
+  for i in $(seq 1 20); do echo "mock-zebra-log-line-$i"; done
+fi
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    // Mock nc
+    fs.writeFileSync(
+      path.join(binDir, 'nc'),
+      `#!/bin/sh
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const scriptPath = path.resolve(__dirname, '../docker/regtest-nu7/regtest-init.sh');
+
+    // 18a: Generate fails twice, then works -> retries and succeeds
+    const stateFile = path.join(tmpDir, 'count.txt');
+    fs.writeFileSync(stateFile, '0');
+
+    fs.writeFileSync(
+      path.join(binDir, 'curl'),
+      `#!/usr/bin/env bash
+for arg in "$@"; do
+  if [[ "$arg" =~ "getblockchaininfo" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"result":{"blocks":0}}'
+    exit 0
+  fi
+  if [[ "$arg" =~ "generate" ]]; then
+    CNT=$(cat "${stateFile}")
+    CNT=$((CNT + 1))
+    echo "$CNT" > "${stateFile}"
+    if [ "$CNT" -le 2 ]; then
+      echo '{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"startup race: state not initialized"}}'
+      exit 0
+    else
+      echo '{"jsonrpc":"2.0","id":1,"result":["00000001","00000002"]}'
+      exit 0
+    fi
+  fi
+done
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const successRun = spawnSync('bash', [scriptPath], {
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        GENERATE_TIMEOUT_SECS: '10',
+      },
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(successRun.status, 0, `Expected 0, stderr: ${successRun.stderr}`);
+    assert.match(successRun.stdout, /Blocks mined\. NU7 is now active\./);
+    assert.strictEqual(fs.readFileSync(stateFile, 'utf8').trim(), '3');
+
+    // 18b: Permanent failure -> prints last response body & last 20 lines of docker compose logs, exits 1
+    fs.writeFileSync(
+      path.join(binDir, 'curl'),
+      `#!/usr/bin/env bash
+for arg in "$@"; do
+  if [[ "$arg" =~ "getblockchaininfo" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"result":{"blocks":0}}'
+    exit 0
+  fi
+  if [[ "$arg" =~ "generate" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"fatal startup crash permanent"}}'
+    exit 0
+  fi
+done
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const failRun = spawnSync('bash', [scriptPath], {
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        GENERATE_TIMEOUT_SECS: '2',
+      },
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(failRun.status, 1);
+    assert.match(failRun.stderr, /Failed to mine initial blocks within 2s\./);
+    assert.match(failRun.stderr, /fatal startup crash permanent/);
+    assert.match(failRun.stderr, /mock-zebra-log-line-20/);
+
+    // 18c: CLI handling when execSync of init script fails -> prints one clear line, no stack trace
+    const dummyRegtestDir = path.join(tmpDir, 'dummy-regtest');
+    fs.mkdirSync(dummyRegtestDir, { recursive: true });
+    fs.writeFileSync(path.join(dummyRegtestDir, 'docker-compose.yml'), 'version: "3"\n');
+    fs.writeFileSync(
+      path.join(dummyRegtestDir, 'regtest-init.sh'),
+      '#!/bin/sh\necho "simulated init error"\nexit 1\n',
+      { mode: 0o755 }
+    );
+
+    const cliRun = spawnSync(
+      process.execPath,
+      [devBinPath, 'regtest', 'up', '--stack', 'nu7', '--regtest-path', dummyRegtestDir],
+      { encoding: 'utf8' }
+    );
+
+    assert.strictEqual(cliRun.status, 1);
+    assert.match(cliRun.stderr, /regtest-init\.sh failed, see output above/);
+    assert.doesNotMatch(cliRun.stderr, /node:child_process/);
+    assert.doesNotMatch(cliRun.stderr, /at checkExecSyncError/);
+    assert.doesNotMatch(cliRun.stderr, /Command failed:/);
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
 });

@@ -49,8 +49,8 @@ Example output:
 --- Configured Account Address ---
 Network:          regtest
 Account Index:    0
-Unified Address:  uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c
-Transparent:      tmXezXncSzSsTNvLqxtwwfjEzDXWXQWmpFZ
+Unified Address:  uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
+Transparent:      tmT96bXJukAhyno6uG71aAsAD4qPjqp9DA3
 ```
 
 ---
@@ -68,20 +68,57 @@ This command:
 2. Starts the Zebra and lightwalletd Docker containers.
 3. Automatically mines 105 initial blocks to satisfy coinbase maturity requirements (coinbase outputs require 100 confirmations to spend).
 
+Verify running containers:
+
+```bash
+docker ps --format '{{.Names}} {{.Image}} {{.Ports}}'
+```
+
+Output:
+
+```text
+zcash-regtest-nu7-lightwalletd-1 electriccoinco/lightwalletd 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
+zcash-regtest-nu7-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+```
+
 ---
 
 ## Step 4: Mine Blocks & Fund Accounts
 
-To advance the blockchain or simulate confirmations, use the `mine` command:
+To fund any Unified Address on the devnet from the miner account, execute:
 
 ```bash
-npx zcash-dev mine 10
+npx zcash-dev fund uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy 5.0
 ```
 
-To fund any Unified Address on the devnet, execute:
+Output:
+
+```text
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 105 (tip: 105, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 105/105 (100.0%) | Req: 106 | Speed: 92.8 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(105):
+  Wallet Ironwood Root:  fc49cc9d82fe07368882d114a351ba8a43958dd46510146c2a9ec8f9bc7c9633
+  Remote ironwoodTree:   01938725621c955d324b6ffe9b7ced282b9b5dd11f8e08cbbcce7bb91475e3da3201be2703abf46ca358c9cc09dbba50f116172a8678f51ca1076c0fbb2053cc20221f01d2bf3a0ac32264340e454d392b4912ef2d9eff6d30a22a25e22102cf6e375a13019244bce713f91beff73211846f11a5a75ad0098f9432c61d84d67cff514ea70c00000175ed1d5065fc9a855044e440f906e66ed240fd53bb2d1cfa9d04c939bc45150d01f9fbaa9f049a7243b66bf87599c9ea477278c1a2c7f94c5ff3eb5ede64f7412500000000000000000000000000000000000000000000000000
+  Derived Remote Root:   fc49cc9d82fe07368882d114a351ba8a43958dd46510146c2a9ec8f9bc7c9633
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Funded successfully via NU7 stack!
+Recipient: uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
+Amount:    5.0 ZEC (500000000 zatoshis)
+Txid:      0d50c1f1eba9d290a61e343941c6c46014fba0e07028410ba7bf02a408b9baaa
+```
+
+Mine 1 block to confirm the funding transaction:
 
 ```bash
-npx zcash-dev fund uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c 5.0
+npx zcash-dev mine 1
+```
+
+Output:
+
+```text
+Mining 1 block(s) on NU7 regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
 ```
 
 ---
@@ -94,7 +131,7 @@ Query your account balance across the Sapling, Orchard, and Ironwood shielded po
 npx zcash-dev balance
 ```
 
-Example output:
+Output:
 
 ```text
 Querying balance on regtest via 127.0.0.1:39067...
@@ -117,7 +154,7 @@ Pending:     0.00000000 ZEC
 Before spending funds or broadcasting to the network, perform a safe dry run to compute the ZIP-317 proportional fee:
 
 ```bash
-npx zcash-dev send --to uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c --amount 0.1 --memo "Coffee payment"
+npx zcash-dev send --to uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy --amount 0.1 --memo "Coffee payment"
 ```
 
 Output:
@@ -125,7 +162,7 @@ Output:
 ```text
 === Transaction Dry Run ===
 Network:   regtest
-Recipient: uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c
+Recipient: uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
 Amount:    0.1 ZEC (10000000 zatoshis)
 Fee:       0.00010000 ZEC (10000 zatoshis) [estimated (ZIP-317, 2 outputs assumed)]
 Endpoint:  127.0.0.1:39067
@@ -137,7 +174,44 @@ Pass --yes to sign and broadcast this transaction.
 To sign and broadcast the payment across the regtest network, pass the `--yes` flag:
 
 ```bash
-npx zcash-dev send --to uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c --amount 0.1 --memo "Coffee payment" --yes
+npx zcash-dev send --to uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy --amount 0.1 --memo "Coffee payment" --yes
+```
+
+Output:
+
+```text
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 106 (tip: 106, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 106/106 (100.0%) | Req: 3 | Speed: 1381.6 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(106):
+  Wallet Ironwood Root:  bc85897b39e8f1b36972efa5cd19b750f330a9394c85e0f469f42c3584d65a29
+  Remote ironwoodTree:   01ceb285bddfc22645c2778f5d954ed554b6a92b022e452f23aeac0aee4337d60a015cf20fa3344759410b147d82cd6f128fa5f8209ca745990346016b65d764cd1e1f014a4f9dff47be4aa401d412315cc88775da0365b3c66fa91aa2e5a106a0da412800014182a315a2325d1514fa9f451f8b542e288edcbfd68be6f8f9579a6d7c4b630a000175ed1d5065fc9a855044e440f906e66ed240fd53bb2d1cfa9d04c939bc45150d01f9fbaa9f049a7243b66bf87599c9ea477278c1a2c7f94c5ff3eb5ede64f7412500000000000000000000000000000000000000000000000000
+  Derived Remote Root:   bc85897b39e8f1b36972efa5cd19b750f330a9394c85e0f469f42c3584d65a29
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Transaction broadcast successfully!
+Txid:      cf0bd7f9d05ff5003cfdc258c4936823dab1005854cc14b2ed9b629323e5efba
+Fee:       0.00010000 ZEC (10000 zatoshis)
+```
+
+Confirm the transaction and check balance:
+
+```bash
+npx zcash-dev mine 1
+npx zcash-dev balance
+```
+
+Output:
+
+```text
+--- Account Balance ---
+Network:     regtest
+Total:       4.99990000 ZEC (499990000 zatoshis)
+Ironwood:    4.99990000 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   4.99990000 ZEC
+Pending:     0.00000000 ZEC
 ```
 
 ---

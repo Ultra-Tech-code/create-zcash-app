@@ -958,7 +958,12 @@ regtestCmd
       console.log('\n🐳 Starting NU7 Regtest containers...');
       const initScript = path.join(regtestDir, 'regtest-init.sh');
       if (fs.existsSync(initScript)) {
-        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+        try {
+          execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+        } catch {
+          console.error('regtest-init.sh failed, see output above');
+          process.exit(1);
+        }
       } else {
         execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
       }
@@ -1013,7 +1018,12 @@ regtestCmd
     console.log('\n🐳 Starting Regtest containers...');
     const initScript = path.join(regtestDir, 'regtest-init.sh');
     if (fs.existsSync(initScript)) {
-      execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      try {
+        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      } catch {
+        console.error('regtest-init.sh failed, see output above');
+        process.exit(1);
+      }
     } else {
       execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
     }
@@ -1236,7 +1246,12 @@ regtestCmd
       console.log('\n=== 🛠️  Reinitializing fresh NU7 chain via regtest-init.sh ===\n');
       const initScript = path.join(regtestDir, 'regtest-init.sh');
       if (fs.existsSync(initScript)) {
-        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+        try {
+          execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+        } catch {
+          console.error('regtest-init.sh failed, see output above');
+          process.exit(1);
+        }
       } else {
         execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
       }
@@ -1268,10 +1283,15 @@ regtestCmd
     console.log('\n=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===\n');
     const initScript = path.join(regtestDir, 'regtest-init.sh');
     const legacyInitScript = path.join(regtestDir, 'scripts/regtest-init.sh');
-    if (fs.existsSync(initScript)) {
-      execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
-    } else if (fs.existsSync(legacyInitScript)) {
-      execSync(`cd "${regtestDir}" && bash "${legacyInitScript}"`, { stdio: 'inherit' });
+    try {
+      if (fs.existsSync(initScript)) {
+        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      } else if (fs.existsSync(legacyInitScript)) {
+        execSync(`cd "${regtestDir}" && bash "${legacyInitScript}"`, { stdio: 'inherit' });
+      }
+    } catch {
+      console.error('regtest-init.sh failed, see output above');
+      process.exit(1);
     }
     execSync(`cd "${regtestDir}" && docker compose up -d && docker compose up -d zaino`, { stdio: 'inherit' });
 
