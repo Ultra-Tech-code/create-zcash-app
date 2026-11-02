@@ -1,5 +1,7 @@
 # create-zcash-app
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Ultra-Tech-code/create-zcash-app)
+
 A scaffolder, TypeScript SDK, Rust crypto core, and developer dashboard for building shielded Zcash applications with **NU7** as the default network upgrade cohort.
 
 Supports both the **Orchard** and post-NU6.3 **Ironwood** pools with deterministic key derivation, compact action trial-decryption, and local regtest developer tooling.
