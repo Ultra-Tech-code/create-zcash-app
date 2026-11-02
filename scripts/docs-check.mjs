@@ -2,7 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import { runAll as runDocsGen } from './docs-gen.mjs';
+import { runAll as runDocsGen, installNativeCoreStub } from './docs-gen.mjs';
+
+// Ensure native core stub is installed before any CLI imports
+installNativeCoreStub();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

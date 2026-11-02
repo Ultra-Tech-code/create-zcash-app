@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import Module from 'module';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
 
@@ -12,6 +13,81 @@ const REF_DIR = path.join(DOCS_SRC, 'reference');
 
 // Ensure directories exist
 fs.mkdirSync(REF_DIR, { recursive: true });
+
+/**
+ * Creates a harmless stub proxy for @zcash-app/core that satisfies load-time imports
+ * by SDK/dev CLI while throwing an explicit error if any native method is invoked.
+ */
+export function createNativeCoreStub() {
+  const handler = {
+    get(_target, prop) {
+      if (prop === '__esModule') return true;
+      if (prop === 'default') return stub;
+      if (prop === 'then') return undefined; // Avoid treating as a Promise
+      if (prop === 'toString') return () => '[Stub: @zcash-app/core]';
+      if (typeof prop === 'symbol') return undefined;
+
+      const fn = function (..._args) {
+        throw new Error(
+          `Native function "${String(prop)}" from @zcash-app/core was invoked during documentation generation. ` +
+          `Command-tree extraction must be independent of native bindings and must not invoke native functions at load time.`
+        );
+      };
+      fn.prototype = {};
+      return fn;
+    },
+    apply(_target, _thisArg, _args) {
+      throw new Error(
+        `Native function call on @zcash-app/core was invoked during documentation generation. ` +
+        `Command-tree extraction must be independent of native bindings and must not invoke native functions at load time.`
+      );
+    },
+    construct(_target, _args) {
+      throw new Error(
+        `Native constructor on @zcash-app/core was invoked during documentation generation. ` +
+        `Command-tree extraction must be independent of native bindings and must not invoke native functions at load time.`
+      );
+    },
+  };
+  const stub = new Proxy(function () {}, handler);
+  return stub;
+}
+
+let stubInstalled = false;
+
+/**
+ * Installs a Module._load hook to intercept requires of '@zcash-app/core' and
+ * 'packages/core/index.js', returning the harmless stub without needing the compiled
+ * Rust native addon (.node file).
+ */
+export function installNativeCoreStub() {
+  if (stubInstalled) return;
+  stubInstalled = true;
+
+  const origLoad = Module._load;
+  const coreStub = createNativeCoreStub();
+  const coreResolvedPath = path.resolve(REPO_ROOT, 'packages', 'core', 'index.js');
+  const coreDir = path.resolve(REPO_ROOT, 'packages', 'core');
+
+  Module._load = function (request, parent, isMain) {
+    if (
+      request === '@zcash-app/core' ||
+      request === coreResolvedPath ||
+      request === coreDir ||
+      request.endsWith('packages/core/index.js') ||
+      request.endsWith('packages/core')
+    ) {
+      return coreStub;
+    }
+    if (parent && parent.filename && parent.filename.startsWith(coreDir)) {
+      return coreStub;
+    }
+    return origLoad.apply(this, arguments);
+  };
+}
+
+// Install the native stub hook immediately at module load time so all CLI imports use it
+installNativeCoreStub();
 
 /**
  * Normalizes default option values, replacing machine-specific absolute home directories
