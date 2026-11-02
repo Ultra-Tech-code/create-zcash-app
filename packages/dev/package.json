@@ -1,6 +1,6 @@
 {
   "name": "zcash-dev",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Regtest developer helper CLI for shielded Zcash apps",
   "bin": {
     "zcash-dev": "./dist/cli.js"

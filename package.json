@@ -1,6 +1,6 @@
 {
   "name": "create-zcash-app-monorepo",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.2",
   "private": true,
   "description": "Scaffolder + TypeScript SDK + Rust crypto core for shielded Zcash apps",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "create-zcash-app",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Scaffolder CLI for building shielded Zcash apps on the Z3 stack",
   "bin": {
     "create-zcash-app": "./dist/index.js"
