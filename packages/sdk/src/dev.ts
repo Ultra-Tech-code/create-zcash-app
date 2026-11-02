@@ -7,7 +7,7 @@ import { quoteFee } from './send.js';
 export namespace dev {
   export const fixtures = {
     mnemonics: KNOWN_TEST_MNEMONICS,
-    account(index: number, network: 'regtest' | 'testnet' | 'mainnet' = 'regtest'): Account {
+    account(index: number, network: 'regtest' | 'testnet' | 'mainnet' | 'regtest-nu7' = 'regtest'): Account {
       if (network === 'mainnet' || network === 'testnet') {
         throw new Error(
           `Security Error: Test fixture mnemonics are publicly known and strictly prohibited on ${network}. Import an explicit UFVK for watch-only monitoring.`
@@ -24,16 +24,21 @@ export namespace dev {
   };
 
   export async function mine(client: ZcashClient, blocks: number): Promise<void> {
-    if (client.config.network !== 'regtest') {
+    if (client.config.network !== 'regtest' && client.config.network !== 'regtest-nu7') {
       throw new Error('mine is only available on regtest');
     }
-    // Call Zebra JSON-RPC generate
-    const res = await fetch('http://127.0.0.1:8181', {
+    const isNu7 = client.config.regtestNu7 || client.config.network === 'regtest-nu7' || client.config.endpoint?.includes('39067');
+    const rpcUrl = isNu7 ? 'http://127.0.0.1:39232' : 'http://127.0.0.1:8181';
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (!isNu7) {
+      headers['Authorization'] = 'Basic ' + Buffer.from('zebra:zebra').toString('base64');
+    }
+
+    const res = await fetch(rpcUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
-      },
+      headers,
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 'zcash-dev-mine',

@@ -20,6 +20,7 @@ import {
   parseZecToZatoshis,
   formatZec,
   executeSend,
+  executeFund,
   generateMnemonic,
   quoteFee,
   program as devProgram,
@@ -836,5 +837,369 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       expectedHash,
       `BIP-39 wordlist SHA-256 mismatch: actual ${actualHash} !== expected ${expectedHash}`
     );
+  });
+
+  it('15. Scaffolder regtest stack option: --regtest-stack nu7 vs --regtest-stack z3', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stack-test-'));
+    try {
+      // 15a. NU7 stack
+      const runNu7 = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'nu7-app',
+          '--network', 'regtest',
+          '--regtest-stack', 'nu7',
+          '--key-source', 'generate',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(runNu7.status, 0, `Scaffolder NU7 failed: ${runNu7.stderr}`);
+
+      const nu7Dir = path.join(tempDir, 'nu7-app');
+      const nu7Env = fs.readFileSync(path.join(nu7Dir, '.env.local'), 'utf8');
+      assert.ok(nu7Env.includes('ZCASH_NETWORK=regtest'));
+      assert.ok(nu7Env.includes('ZCASH_REGTEST_STACK=nu7'));
+      assert.ok(nu7Env.includes('ZCASH_ENDPOINT=127.0.0.1:39067'));
+      assert.ok(nu7Env.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:39232'));
+
+      const nu7Config = JSON.parse(fs.readFileSync(path.join(nu7Dir, 'zcash.config.json'), 'utf8'));
+      assert.strictEqual(nu7Config.network, 'regtest');
+      assert.strictEqual(nu7Config.regtestStack, 'nu7');
+      assert.strictEqual(nu7Config.endpoint, '127.0.0.1:39067');
+      assert.strictEqual(nu7Config.zebraRpc, 'http://127.0.0.1:39232');
+
+      const nu7Compose = fs.readFileSync(path.join(nu7Dir, 'docker-compose.yml'), 'utf8');
+      assert.ok(nu7Compose.includes('zfnd/zebra:7.0.0'));
+      assert.ok(nu7Compose.includes('electriccoinco/lightwalletd:latest'));
+      assert.ok(nu7Compose.includes('39067:9067'));
+      assert.ok(nu7Compose.includes('39232:18232'));
+
+      // 15b. Z3 stack
+      const runZ3 = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'z3-app',
+          '--network', 'regtest',
+          '--regtest-stack', 'z3',
+          '--key-source', 'generate',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(runZ3.status, 0, `Scaffolder Z3 failed: ${runZ3.stderr}`);
+
+      const z3Dir = path.join(tempDir, 'z3-app');
+      const z3Env = fs.readFileSync(path.join(z3Dir, '.env.local'), 'utf8');
+      assert.ok(z3Env.includes('ZCASH_NETWORK=regtest'));
+      assert.ok(z3Env.includes('ZCASH_REGTEST_STACK=z3'));
+      assert.ok(z3Env.includes('ZCASH_ENDPOINT=127.0.0.1:28137'));
+      assert.ok(z3Env.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:18232'));
+
+      const z3Config = JSON.parse(fs.readFileSync(path.join(z3Dir, 'zcash.config.json'), 'utf8'));
+      assert.strictEqual(z3Config.network, 'regtest');
+      assert.strictEqual(z3Config.regtestStack, 'z3');
+      assert.strictEqual(z3Config.endpoint, '127.0.0.1:28137');
+      assert.strictEqual(z3Config.zebraRpc, 'http://127.0.0.1:18232');
+
+      const z3Compose = fs.readFileSync(path.join(z3Dir, 'docker-compose.yml'), 'utf8');
+      assert.ok(z3Compose.includes('zingodevops/zainod:0.10.0-no-tls'));
+      assert.ok(z3Compose.includes('28137:28137'));
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it('16. Unbound WalletHandle.open regression test: executeSend with default openFn exercises receiver binding', async () => {
+    // When openWalletFn is omitted from deps, executeSend must call WalletHandle.open with WalletHandle as receiver
+    let syncCalled = false;
+    let sendCalled = false;
+
+    const mockClient = {
+      close: async () => {},
+      config: { network: 'regtest-nu7', endpoint: '127.0.0.1:39067' },
+    };
+
+    const res = await executeSend(
+      {
+        to: 'uregtest1cjtspqcvw97evv27s0qfq55e347hwwp02s0hsvvgdfh05j5cydf7q2x6e09vd72776c5354h2v72zsw649w30cqq6jffwsv9h679f6m25p',
+        amount: '0.05',
+        yes: true,
+      },
+      {
+        ZCASH_NETWORK: 'regtest',
+        ZCASH_REGTEST_STACK: 'nu7',
+        ZCASH_ENDPOINT: '127.0.0.1:39067',
+      },
+      {
+        client: mockClient,
+        // openWalletFn deliberately omitted to exercise default openFn
+        syncWalletFn: async (client, wallet) => {
+          syncCalled = true;
+          assert.ok(wallet, 'Wallet instance must be passed to syncWalletFn');
+          assert.strictEqual(typeof wallet.getWalletSummary, 'function');
+        },
+        sendFn: async (opts) => {
+          sendCalled = true;
+          return { txid: 'regression-unbound-open-txid-12345' };
+        },
+      }
+    );
+
+    assert.strictEqual(syncCalled, true, 'syncWalletFn must be called');
+    assert.strictEqual(sendCalled, true, 'sendFn must be called');
+    assert.strictEqual(res.txid, 'regression-unbound-open-txid-12345');
+    assert.strictEqual(res.isDryRun, false);
+  });
+
+  it('17. executeFund unit tests: NU7 SDK send vs Z3 Zallet RPC router with stubbed dependencies', async () => {
+    const targetUa = 'uregtest1cjtspqcvw97evv27s0qfq55e347hwwp02s0hsvvgdfh05j5cydf7q2x6e09vd72776c5354h2v72zsw649w30cqq6jffwsv9h679f6m25p';
+
+    // 17a. NU7 stack funding via SDK send path
+    let nu7SyncCalled = false;
+    let nu7SendCalled = false;
+    const mockNu7Client = {
+      close: async () => {},
+      config: { network: 'regtest-nu7', endpoint: '127.0.0.1:39067' },
+    };
+
+    const nu7FundRes = await executeFund(
+      { address: targetUa, amount: '3.5', stack: 'nu7' },
+      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'nu7', ZCASH_ENDPOINT: '127.0.0.1:39067' },
+      {
+        client: mockNu7Client,
+        syncWalletFn: async (client, wallet) => {
+          nu7SyncCalled = true;
+          assert.ok(wallet);
+        },
+        sendFn: async (opts) => {
+          nu7SendCalled = true;
+          assert.strictEqual(opts.to, targetUa);
+          assert.strictEqual(opts.amount, 350000000n);
+          return { txid: 'mock-nu7-fund-txid-abcdef' };
+        },
+      }
+    );
+
+    assert.strictEqual(nu7SyncCalled, true);
+    assert.strictEqual(nu7SendCalled, true);
+    assert.strictEqual(nu7FundRes.stack, 'nu7');
+    assert.strictEqual(nu7FundRes.txid, 'mock-nu7-fund-txid-abcdef');
+    assert.strictEqual(nu7FundRes.amountZec, '3.5');
+    assert.strictEqual(nu7FundRes.zatoshis, 350000000n);
+
+    // 17b. Z3 stack funding via Zallet RPC router
+    const calls = [];
+    const mockZ3Fetch = async (url, init) => {
+      calls.push({ url, body: JSON.parse(init.body) });
+      const body = JSON.parse(init.body);
+      if (body.method === 'listaddresses') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            result: [
+              {
+                unified: [
+                  {
+                    addresses: [
+                      { address: 'uregtest1_mock_zallet_sender_address' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          }),
+        };
+      }
+      if (body.method === 'z_sendmany') {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            result: 'mock-z3-fund-txid-998877',
+          }),
+        };
+      }
+      throw new Error(`Unexpected RPC method: ${body.method}`);
+    };
+
+    const z3FundRes = await executeFund(
+      { address: targetUa, amount: '1.25', stack: 'z3' },
+      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'z3', ZCASH_ENDPOINT: '127.0.0.1:28137' },
+      { fetchFn: mockZ3Fetch }
+    );
+
+    assert.strictEqual(calls.length, 2);
+    assert.strictEqual(calls[0].body.method, 'listaddresses');
+    assert.strictEqual(calls[1].body.method, 'z_sendmany');
+    assert.strictEqual(calls[1].body.params[0], 'uregtest1_mock_zallet_sender_address');
+    assert.strictEqual(calls[1].body.params[1][0].address, targetUa);
+    assert.strictEqual(calls[1].body.params[1][0].amount, '1.25000000');
+    assert.strictEqual(z3FundRes.stack, 'z3');
+    assert.strictEqual(z3FundRes.txid, 'mock-z3-fund-txid-998877');
+    assert.strictEqual(z3FundRes.amountZec, '1.25');
+    assert.strictEqual(z3FundRes.zatoshis, 125000000n);
+
+    // 17c. Backend missing error handling
+    await assert.rejects(
+      async () => {
+        await executeFund(
+          { address: targetUa, amount: '1.0', stack: 'nu7' },
+          { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'nu7', ZCASH_ENDPOINT: '127.0.0.1:39067' },
+          {
+            client: mockNu7Client,
+            syncWalletFn: async () => {
+              throw new Error('connect ECONNREFUSED 127.0.0.1:39067');
+            },
+          }
+        );
+      },
+      /Could not connect to NU7 lightwalletd indexer at 127.0.0.1:39067\. Is the NU7 stack running\? Run: zcash-dev regtest up --stack nu7/
+    );
+
+    await assert.rejects(
+      async () => {
+        await executeFund(
+          { address: targetUa, amount: '1.0', stack: 'z3' },
+          { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'z3', ZCASH_ENDPOINT: '127.0.0.1:28137' },
+          {
+            fetchFn: async () => {
+              throw new Error('fetch failed ECONNREFUSED');
+            },
+          }
+        );
+      },
+      /Could not connect to Z3 RPC router \/ Zallet at http:\/\/127\.0\.0\.1:8181\. Is the Z3 stack running\? Run: zcash-dev regtest up --stack nu6/
+    );
+  });
+
+  it('18. regtest-init.sh retry logic & CLI execSync error handling', () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'cza-test-regtest-init-'));
+    const binDir = path.join(tmpDir, 'bin');
+    fs.mkdirSync(binDir, { recursive: true });
+
+    // Mock docker
+    fs.writeFileSync(
+      path.join(binDir, 'docker'),
+      `#!/bin/sh
+if [ "$1" = "compose" ] && [ "$2" = "logs" ]; then
+  for i in $(seq 1 20); do echo "mock-zebra-log-line-$i"; done
+fi
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    // Mock nc
+    fs.writeFileSync(
+      path.join(binDir, 'nc'),
+      `#!/bin/sh
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const scriptPath = path.resolve(__dirname, '../docker/regtest-nu7/regtest-init.sh');
+
+    // 18a: Generate fails twice, then works -> retries and succeeds
+    const stateFile = path.join(tmpDir, 'count.txt');
+    fs.writeFileSync(stateFile, '0');
+
+    fs.writeFileSync(
+      path.join(binDir, 'curl'),
+      `#!/usr/bin/env bash
+for arg in "$@"; do
+  if [[ "$arg" =~ "getblockchaininfo" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"result":{"blocks":0}}'
+    exit 0
+  fi
+  if [[ "$arg" =~ "generate" ]]; then
+    CNT=$(cat "${stateFile}")
+    CNT=$((CNT + 1))
+    echo "$CNT" > "${stateFile}"
+    if [ "$CNT" -le 2 ]; then
+      echo '{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"startup race: state not initialized"}}'
+      exit 0
+    else
+      echo '{"jsonrpc":"2.0","id":1,"result":["00000001","00000002"]}'
+      exit 0
+    fi
+  fi
+done
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const successRun = spawnSync('bash', [scriptPath], {
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        GENERATE_TIMEOUT_SECS: '10',
+      },
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(successRun.status, 0, `Expected 0, stderr: ${successRun.stderr}`);
+    assert.match(successRun.stdout, /Blocks mined\. NU7 is now active\./);
+    assert.strictEqual(fs.readFileSync(stateFile, 'utf8').trim(), '3');
+
+    // 18b: Permanent failure -> prints last response body & last 20 lines of docker compose logs, exits 1
+    fs.writeFileSync(
+      path.join(binDir, 'curl'),
+      `#!/usr/bin/env bash
+for arg in "$@"; do
+  if [[ "$arg" =~ "getblockchaininfo" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"result":{"blocks":0}}'
+    exit 0
+  fi
+  if [[ "$arg" =~ "generate" ]]; then
+    echo '{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"fatal startup crash permanent"}}'
+    exit 0
+  fi
+done
+exit 0
+`,
+      { mode: 0o755 }
+    );
+
+    const failRun = spawnSync('bash', [scriptPath], {
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH}`,
+        GENERATE_TIMEOUT_SECS: '2',
+      },
+      encoding: 'utf8',
+    });
+
+    assert.strictEqual(failRun.status, 1);
+    assert.match(failRun.stderr, /Failed to mine initial blocks within 2s\./);
+    assert.match(failRun.stderr, /fatal startup crash permanent/);
+    assert.match(failRun.stderr, /mock-zebra-log-line-20/);
+
+    // 18c: CLI handling when execSync of init script fails -> prints one clear line, no stack trace
+    const dummyRegtestDir = path.join(tmpDir, 'dummy-regtest');
+    fs.mkdirSync(dummyRegtestDir, { recursive: true });
+    fs.writeFileSync(path.join(dummyRegtestDir, 'docker-compose.yml'), 'version: "3"\n');
+    fs.writeFileSync(
+      path.join(dummyRegtestDir, 'regtest-init.sh'),
+      '#!/bin/sh\necho "simulated init error"\nexit 1\n',
+      { mode: 0o755 }
+    );
+
+    const cliRun = spawnSync(
+      process.execPath,
+      [devBinPath, 'regtest', 'up', '--stack', 'nu7', '--regtest-path', dummyRegtestDir],
+      { encoding: 'utf8' }
+    );
+
+    assert.strictEqual(cliRun.status, 1);
+    assert.match(cliRun.stderr, /regtest-init\.sh failed, see output above/);
+    assert.doesNotMatch(cliRun.stderr, /node:child_process/);
+    assert.doesNotMatch(cliRun.stderr, /at checkExecSyncError/);
+    assert.doesNotMatch(cliRun.stderr, /Command failed:/);
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });

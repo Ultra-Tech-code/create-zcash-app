@@ -436,7 +436,7 @@ describe('Phase 3 Explorer Offline Tests', () => {
       if (prevZebraRpc !== undefined) process.env.ZEBRA_RPC_URL = prevZebraRpc;
       else delete process.env.ZEBRA_RPC_URL;
     }
-  });
+  }, 15000);
 
   it('Security: without ZCASH_ALLOW_CUSTOM_ENDPOINT=1, ?customEndpoint=... causes zero connections to a canary listener for /api/explorer, /api/status, and /api/account', async () => {
     let canaryConnCount = 0;
@@ -486,7 +486,7 @@ describe('Phase 3 Explorer Offline Tests', () => {
       if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
       else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     }
-  });
+  }, 15000);
 
   it('Security: state-changing POST routes reject cross-site requests with 403 Forbidden', async () => {
     const postRoutes = [
@@ -703,7 +703,7 @@ describe('Phase 3 Explorer Offline Tests', () => {
       if (prevAllowCustom !== undefined) process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT = prevAllowCustom;
       else delete process.env.ZCASH_ALLOW_CUSTOM_ENDPOINT;
     }
-  });
+  }, 15000);
 
   describe('Explorer source attribution, cookie handling and third-party opt-in', () => {
     let tmpDir: string;

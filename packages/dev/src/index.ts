@@ -8,4 +8,8 @@ export {
   SendActionOptions,
   SendDependencies,
   SendResult,
+  executeFund,
+  FundActionOptions,
+  FundDependencies,
+  FundResult,
 } from './cli';

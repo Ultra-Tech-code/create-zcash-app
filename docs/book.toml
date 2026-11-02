@@ -1,0 +1,14 @@
+[book]
+authors = ["Ultra Tech"]
+language = "en"
+src = "src"
+title = "create-zcash-app Book"
+
+[output.html]
+git-repository-url = "https://github.com/Ultra-Tech-code/create-zcash-app"
+edit-url-template = "https://github.com/Ultra-Tech-code/create-zcash-app/edit/main/docs/{path}"
+
+[output.html.fold]
+enable = true
+level = 1
+

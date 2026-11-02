@@ -25,10 +25,34 @@ done
 echo "   Zebra is ready."
 
 echo "==> Mining 2 initial blocks to activate NU7 at height 2..."
-curl -s \
-    -X POST -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"generate","params":[2],"id":1}' \
-    "http://127.0.0.1:${ZEBRA_PORT}" | grep -q '"result"'
+GEN_TIMEOUT="${GENERATE_TIMEOUT_SECS:-60}"
+GEN_SUCCESS=0
+LAST_GEN_RESPONSE=""
+START_TIME=$(date +%s)
+while true; do
+  LAST_GEN_RESPONSE="$(curl -s -X POST \
+      -H "Content-Type: application/json" \
+      -d '{"jsonrpc":"2.0","method":"generate","params":[2],"id":1}' \
+      "http://127.0.0.1:${ZEBRA_PORT}" 2>&1 || true)"
+  if echo "$LAST_GEN_RESPONSE" | grep -q '"result"' && ! echo "$LAST_GEN_RESPONSE" | grep -q '"error"'; then
+    GEN_SUCCESS=1
+    break
+  fi
+  NOW=$(date +%s)
+  if [ $((NOW - START_TIME)) -ge "$GEN_TIMEOUT" ]; then
+    break
+  fi
+  sleep 2
+done
+
+if [ "$GEN_SUCCESS" -ne 1 ]; then
+  echo "❌ Failed to mine initial blocks within ${GEN_TIMEOUT}s." >&2
+  echo "Last response body:" >&2
+  echo "$LAST_GEN_RESPONSE" >&2
+  echo "Last 20 lines of docker compose logs zebra:" >&2
+  $COMPOSE logs --tail 20 zebra >&2 || true
+  exit 1
+fi
 echo "   Blocks mined. NU7 is now active."
 
 echo "==> Starting lightwalletd service..."
