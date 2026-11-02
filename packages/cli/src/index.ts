@@ -174,6 +174,7 @@ program
   .argument('[project-name]', 'Name of the project directory')
   .option('-t, --template <template>', 'Template to use (nextjs-fullstack)', 'nextjs-fullstack')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)')
+  .option('--regtest-stack <stack>', 'Regtest stack (nu7 | z3)')
   .option('--remote', 'Use remote public RPC indexer without local node')
   .option('--key-source <source>', 'Key source (generate | import | ufvk | none)')
   .option('--ufvk <ufvk>', 'Unified Full Viewing Key for watch-only account')
@@ -182,6 +183,8 @@ program
   .option('--birthday <height>', 'Wallet birthday block height')
   .option('--account-index <index>', 'BIP-44 account index', '0')
   .option('--allow-mainnet-key-on-disk', 'Explicitly allow writing mainnet private key to disk (dangerous)')
+  .option('--docker-compose', 'Include pre-configured docker-compose.yml')
+  .option('--no-docker-compose', 'Do not generate docker-compose.yml')
   .action(async (projectNameArg, options) => {
     let projectName = projectNameArg;
 
@@ -242,11 +245,46 @@ program
     let connectionMode: 'local' | 'remote' = 'local';
     let endpoint = options.endpoint;
     let zebraRpc = options.zebraRpc;
+    let regtestStack = options.regtestStack;
 
     if (network === 'regtest') {
       connectionMode = 'local';
-      endpoint = endpoint || '127.0.0.1:28137';
-      zebraRpc = zebraRpc || DEFAULT_ZEBRA_RPC.regtest;
+      if (!regtestStack) {
+        if (process.stdin.isTTY) {
+          const stackResponse = await prompts({
+            type: 'select',
+            name: 'stack',
+            message: 'Which regtest stack do you want to use?',
+            choices: [
+              {
+                title: '⚡ NU7 Regtest (Default — Zebra 7.0.0 + lightwalletd, ZIP 259 branch 0x77190ad9)',
+                value: 'nu7',
+              },
+              {
+                title: '🏛️  Z3 Regtest (Legacy — Zebra + Zaino + Zallet, NU6.3 branch 0x5b331005)',
+                value: 'z3',
+              },
+            ],
+            initial: 0,
+          });
+          regtestStack = stackResponse.stack || 'nu7';
+        } else {
+          regtestStack = 'nu7';
+        }
+      }
+      regtestStack = regtestStack.toLowerCase();
+      if (regtestStack !== 'nu7' && regtestStack !== 'z3') {
+        console.error(`Invalid --regtest-stack "${regtestStack}". Must be "nu7" or "z3".`);
+        process.exit(1);
+      }
+
+      if (regtestStack === 'nu7') {
+        endpoint = endpoint || '127.0.0.1:39067';
+        zebraRpc = zebraRpc || 'http://127.0.0.1:39232';
+      } else {
+        endpoint = endpoint || '127.0.0.1:28137';
+        zebraRpc = zebraRpc || DEFAULT_ZEBRA_RPC.regtest;
+      }
     } else {
       if (options.remote) {
         connectionMode = 'remote';
@@ -391,11 +429,14 @@ program
     // 5. Prompt for Docker Compose if local
     let generateDockerCompose = false;
     if (connectionMode === 'local') {
-      if (process.stdin.isTTY) {
+      if (typeof options.dockerCompose === 'boolean') {
+        generateDockerCompose = options.dockerCompose;
+      } else if (process.stdin.isTTY) {
+        const stackLabel = network === 'regtest' ? `${regtestStack || 'nu7'} stack` : network;
         const dockerResponse = await prompts({
           type: 'confirm',
           name: 'compose',
-          message: `Include pre-configured docker-compose.yml for Z3 stack (${network})?`,
+          message: `Include pre-configured docker-compose.yml for ${stackLabel}?`,
           initial: true,
         });
         generateDockerCompose = dockerResponse.compose ?? false;
@@ -437,6 +478,7 @@ program
     const envLocalLines = [
       '# create-zcash-app environment config',
       `ZCASH_NETWORK=${network}`,
+      ...(network === 'regtest' ? [`ZCASH_REGTEST_STACK=${regtestStack}`] : []),
       `ZCASH_ENDPOINT=${endpoint}`,
       `ZCASH_ZEBRA_RPC=${zebraRpc || ''}`,
       `ZCASH_BIRTHDAY=${birthday}`,
@@ -466,6 +508,7 @@ program
     const envExampleLines = [
       '# create-zcash-app example environment config',
       `ZCASH_NETWORK=${network}`,
+      ...(network === 'regtest' ? [`ZCASH_REGTEST_STACK=${regtestStack}`] : []),
       `ZCASH_ENDPOINT=${redactSecretUrl(endpoint)}`,
       `ZCASH_ZEBRA_RPC=${redactSecretUrl(zebraRpc || '')}`,
       'ZCASH_BIRTHDAY=',
@@ -480,7 +523,7 @@ program
     writtenFiles.push('.env.example');
 
     // 10. Write zcash.config.json
-    const configData = {
+    const configData: Record<string, any> = {
       network,
       connectionMode,
       endpoint: redactSecretUrl(endpoint),
@@ -488,15 +531,55 @@ program
       keySource,
       createdAt: new Date().toISOString(),
     };
+    if (network === 'regtest') {
+      configData.regtestStack = regtestStack;
+    }
     fs.writeFileSync(
       path.join(targetDir, 'zcash.config.json'),
       JSON.stringify(configData, null, 2)
     );
     writtenFiles.push('zcash.config.json');
 
-    // 11. Optionally generate docker-compose.yml for local Z3
+    // 11. Optionally generate docker-compose.yml for local node
     if (generateDockerCompose) {
-      const composeContent = `services:
+      let composeContent = '';
+      if (network === 'regtest' && regtestStack === 'nu7') {
+        composeContent = `services:
+  zebra:
+    image: zfnd/zebra:7.0.0
+    restart: unless-stopped
+    ports:
+      - "39232:18232"
+      - "38080:8080"
+    environment:
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+
+  lightwalletd:
+    image: electriccoinco/lightwalletd:latest
+    restart: unless-stopped
+    depends_on:
+      - zebra
+    ports:
+      - "39067:9067"
+      - "39068:9068"
+    command:
+      - --no-tls-very-insecure
+      - --grpc-bind-addr=0.0.0.0:9067
+      - --http-bind-addr=0.0.0.0:9068
+      - --rpchost=zebra
+      - --rpcport=18232
+      - --rpcuser=zebra
+      - --rpcpassword=zebra
+      - --no-backend-check
+`;
+      } else {
+        composeContent = `services:
   zebra:
     image: zfnd/zebra:7.0.0
     restart: unless-stopped
@@ -516,6 +599,7 @@ program
     environment:
       - ZAINO_ZEBRA_RPC=http://zebra:18232
 `;
+      }
       fs.writeFileSync(path.join(targetDir, 'docker-compose.yml'), composeContent);
       writtenFiles.push('docker-compose.yml');
     }

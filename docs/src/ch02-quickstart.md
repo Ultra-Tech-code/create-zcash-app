@@ -15,7 +15,7 @@ In this quickstart, you will scaffold a new shielded Zcash application, initiali
 Run the scaffolder CLI to generate a new application. You can provide flags directly or walk through the interactive wizard:
 
 ```bash
-npx create-zcash-app my-shielded-app --network regtest --key-source generate
+npx create-zcash-app my-shielded-app --network regtest --regtest-stack nu7 --key-source generate
 ```
 
 Navigate into your new project directory and install dependencies:
@@ -97,7 +97,7 @@ npx zcash-dev balance
 Example output:
 
 ```text
-Querying balance on regtest via 127.0.0.1:28137...
+Querying balance on regtest via 127.0.0.1:39067...
 
 --- Account Balance ---
 Network:     regtest
@@ -128,7 +128,7 @@ Network:   regtest
 Recipient: uregtest142daw7l8csg2m3sl3dykhl0k0xe498vh5zffp80f28xxjjxdt2jfx2gee06h9lj90tg5e9xjymn6lk3h94pz4kz653au7z9yala8jc5hjxph6trp3sf9303y62eg58lz43hdkanw00jmvykuzd9rc0044k2a3ppcm24t3nlhy8hnnv5fxnnpf9ck4uegy5zzy2wr45z4eu0w6upke4c
 Amount:    0.1 ZEC (10000000 zatoshis)
 Fee:       0.00010000 ZEC (10000 zatoshis) [estimated (ZIP-317, 2 outputs assumed)]
-Endpoint:  127.0.0.1:28137
+Endpoint:  127.0.0.1:39067
 Memo:      Coffee payment
 Status:    DRY RUN ONLY — transaction was NOT broadcast.
 Pass --yes to sign and broadcast this transaction.

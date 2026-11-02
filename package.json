@@ -10,6 +10,7 @@
     "check:workflow-syntax": "node scripts/check-workflow-syntax.mjs",
     "docs:gen": "node scripts/docs-gen.mjs",
     "docs:check": "node scripts/docs-check.mjs",
+    "docs:check:external": "node scripts/docs-check.mjs --external",
     "docs:build": "node scripts/docs-build.mjs"
   },
   "devDependencies": {

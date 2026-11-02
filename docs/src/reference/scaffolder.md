@@ -24,6 +24,7 @@ npx create-zcash-app [project-name] [options]
 | :--- | :--- | :--- |
 | `-t, --template <template>` | Template to use (nextjs-fullstack) | `nextjs-fullstack` |
 | `-n, --network <network>` | Network (regtest \| testnet \| mainnet) | None (interactive prompt) |
+| `--regtest-stack <stack>` | Regtest stack (nu7 \| z3) | None (interactive prompt) |
 | `--remote` | Use remote public RPC indexer without local node | None (interactive prompt) |
 | `--key-source <source>` | Key source (generate \| import \| ufvk \| none) | None (interactive prompt) |
 | `--ufvk <ufvk>` | Unified Full Viewing Key for watch-only account | None (interactive prompt) |
@@ -32,6 +33,8 @@ npx create-zcash-app [project-name] [options]
 | `--birthday <height>` | Wallet birthday block height | None (interactive prompt) |
 | `--account-index <index>` | BIP-44 account index | `0` |
 | `--allow-mainnet-key-on-disk` | Explicitly allow writing mainnet private key to disk (dangerous) | None (interactive prompt) |
+| `--docker-compose` | Include pre-configured docker-compose.yml | None (interactive prompt) |
+| `--no-docker-compose` | Do not generate docker-compose.yml | None (interactive prompt) |
 
 ## Default Network Endpoints
 

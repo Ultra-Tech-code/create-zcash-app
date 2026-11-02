@@ -377,7 +377,11 @@ export async function main() {
   await checkGeneratedDrift();
   await checkProseCommands();
   checkInternalLinks();
-  await checkExternalLinks();
+  if (process.argv.includes('--external')) {
+    await checkExternalLinks();
+  } else {
+    console.log('--- Step 4: External Web Link Check Skipped (offline default; pass --external to run) ---');
+  }
   console.log('=== All Documentation Checks Passed Cleanly! ===\n');
 }
 

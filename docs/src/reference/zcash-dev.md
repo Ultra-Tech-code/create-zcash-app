@@ -93,7 +93,8 @@ Mine blocks on regtest
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-e, --endpoint <endpoint>` | Zaino gRPC endpoint | `127.0.0.1:28137` |
+| `-e, --endpoint <endpoint>` | Zebra RPC or Zaino endpoint | None |
+| `--stack <stack>` | Regtest stack (nu7 \| z3) | None |
 
 ---
 
@@ -112,7 +113,8 @@ Fund a Unified Address on regtest
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-e, --endpoint <endpoint>` | Zaino gRPC endpoint | `127.0.0.1:28137` |
+| `-e, --endpoint <endpoint>` | Zaino / lightwalletd gRPC endpoint | None |
+| `--stack <stack>` | Regtest stack (nu7 \| z3) | None |
 
 ---
 

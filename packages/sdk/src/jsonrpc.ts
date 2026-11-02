@@ -54,6 +54,17 @@ export interface JsonRpcTreeState {
   };
 }
 
+function isLoopback(urlOrEndpoint?: string | null): boolean {
+  if (!urlOrEndpoint) return false;
+  try {
+    const u = new URL(urlOrEndpoint);
+    const h = u.hostname.toLowerCase();
+    return h === '127.0.0.1' || h === 'localhost' || h === '::1' || h === '[::1]' || h === '0.0.0.0';
+  } catch {
+    return /^(https?:\/\/)?(127\.0\.0\.1|localhost|\[::1\]|0\.0\.0\.0)(:\d+)?(\/.*)?$/i.test(urlOrEndpoint.trim());
+  }
+}
+
 export class JsonRpcVerifier {
   public readonly rawUrl: string;
   public readonly safeUrl: string;
@@ -126,17 +137,18 @@ export class JsonRpcVerifier {
     });
     this.lastHeaders = headers;
 
+    const serverType = isLoopback(this.rawUrl) ? '(local)' : '(third-party server)';
     if (!res.ok) {
       const text = await res.text().catch(() => '');
       throw new Error(
-        `[${this.safeUrl}] (third-party server) HTTP ${res.status} ${res.statusText}: ${text}`
+        `[${this.safeUrl}] ${serverType} HTTP ${res.status} ${res.statusText}: ${text}`
       );
     }
 
     const data = (await res.json()) as JsonRpcResponse<T>;
     if (data.error) {
       throw new Error(
-        `[${this.safeUrl}] (third-party server) RPC Error (${data.error.code}): ${data.error.message}`
+        `[${this.safeUrl}] ${serverType} RPC Error (${data.error.code}): ${data.error.message}`
       );
     }
 

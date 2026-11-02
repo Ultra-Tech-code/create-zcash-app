@@ -430,7 +430,7 @@ Type: `"0713a6429dc1cef50224668082022ca8881593e09a3170717e6a725491c03b96"`
 
 ### `testkit`
 
-Type: `{ fixtures: { mnemonics: readonly string[]; account(index: number, network?: "regtest" | "testnet" | "mainnet"): Account; }; withRegtest(fn: (ctx: { client: ZcashClient; fund: (client: ZcashClient, to: string, value: bigint) => Promise<...>; }) => Promise<...>): Promise<...>; }`
+Type: `{ fixtures: { mnemonics: readonly string[]; account(index: number, network?: "regtest" | "testnet" | "mainnet" | "regtest-nu7"): Account; }; withRegtest(fn: (ctx: { client: ZcashClient; fund: (client: ZcashClient, to: string, value: bigint) => Promise<...>; }) => Promise<...>): Promise<...>; }`
 
 ### `KNOWN_TEST_MNEMONICS`
 

@@ -11,7 +11,7 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 | **Mine Blocks** | ✅ Supported | ✅ Supported | ❌ Not available (PoW) | ❌ Not available (PoW) | `zcash-dev mine`, `dev.mine()` in `packages/sdk/src/dev.ts` |
 | **Account / Address Derivation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev address`, `accountFromMnemonic()`, `accountFromUfvk()` in `packages/sdk/src/keys.ts` |
 | **Balance Calculation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev balance`, `getBalance()` in `packages/sdk/src/sync.ts` |
-| **Testnet / Devnet Faucet Funding** | ✅ Supported | ⚠️ Coinbase rewards only | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `dev.fund()` in `packages/sdk/src/dev.ts` |
+| **Testnet / Devnet Faucet Funding** | ✅ Supported (Zallet) | ✅ Supported (Account 0 Miner) | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `executeFund()` in `packages/dev/src/cli.ts` |
 | **Send / Broadcast Transaction** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported (with `--mainnet`) | `zcash-dev send`, `send()` in `packages/sdk/src/send.ts` |
 | **Decrypted Tx & Memo Inspection** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `decryptTransaction()`, `decodeTransaction()` in `packages/sdk/src/decrypted-tx.ts` |
 | **Unified Full Viewing Keys (UFVK)** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `account.getUnifiedFullViewingKey()` in `packages/sdk/src/keys.ts` |
@@ -37,8 +37,8 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 - Identical behavior across all stacks.
 
 ### 4. Faucet & Funding (`fund`)
-- **Z3 NU6.3 Regtest**: Supported via `zcash-dev fund <address> [amount]` and `dev.fund(client, address, zatoshis)` in `packages/sdk/src/dev.ts`. Funds are drawn from the pre-mined Zallet test account via `z_sendmany`.
-- **NU7 Regtest**: The Zallet faucet is not available on the NU7 stack because Zallet beta.3 lacks NU7 support. Instead, Zebra automatically pays block rewards to the Account 0 miner address (`uregtest1...`). Developers fund accounts by mining 105 blocks for coinbase maturity, then sending funds from Account 0.
+- **Z3 NU6.3 Regtest**: Supported via `zcash-dev fund <address> [amount] --stack z3`. Funds are drawn from the pre-mined Zallet test account via `z_sendmany`.
+- **NU7 Regtest**: Supported via `zcash-dev fund <address> [amount]`. Since Zallet is not present on the NU7 stack, `zcash-dev fund` uses the SDK client to fund target accounts directly from the Account 0 miner fixture (`KNOWN_TEST_MNEMONICS[0]`), which receives Zebra block rewards. After mining at least 105 blocks for coinbase maturity, `zcash-dev fund` transfers mature shielded notes to the recipient Unified Address via lightwalletd.
 - **Testnet & Mainnet**: CLI faucet funding is not available. Testnet users must obtain TAZ from public community faucets (such as `https://faucet.zecpages.com`), while mainnet requires real ZEC.
 
 ### 5. Send & Transaction Broadcast (`send`)

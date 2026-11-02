@@ -105,6 +105,11 @@ export async function initWalletTreeFrontier(
   };
 }
 
+function isLoopback(endpoint?: string | null): boolean {
+  if (!endpoint) return false;
+  return /^(https?:\/\/)?(127\.0\.0\.1|localhost|\[::1\]|0\.0\.0\.0)(:\d+)?(\/.*)?$/i.test(endpoint.trim());
+}
+
 /**
  * Synchronizes a WalletHandle against a live Zaino/Zcash indexer with streaming,
  * reorg resolution via resolveReorg, request throttling, exponential backoff,
@@ -118,7 +123,8 @@ export async function syncWallet(
   const batchSize = options.batchSize ?? 1000;
   const throttleMs = options.throttleMs ?? 50;
   const maxRetries = options.maxRetries ?? 5;
-  const endpointLabel = `(${client.safeEndpoint}) (third-party server)`;
+  const serverType = isLoopback(client.safeEndpoint) ? '(local)' : '(third-party server)';
+  const endpointLabel = `(${client.safeEndpoint}) ${serverType}`;
 
   let initialSummary = wallet.getWalletSummary();
   const info = await client.getInfo();

@@ -134,7 +134,10 @@ export async function executeSend(
 ): Promise<SendResult> {
   const env = config ?? loadProjectEnv();
   const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-  const endpoint = options.endpoint || env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:28137';
+  const regtestStack = (env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
+  const endpoint = options.endpoint || env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
+  const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
+  const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
   const mnemonic = (env.ZCASH_MNEMONIC ?? '').trim();
   const ufvk = (env.ZCASH_UFVK ?? '').trim();
   const accountIndex = parseInt(env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -172,9 +175,9 @@ export async function executeSend(
   }
 
   const activeMnemonic = mnemonic || (network === 'regtest' ? KNOWN_TEST_MNEMONICS[accountIndex] || KNOWN_TEST_MNEMONICS[0] : '');
-  const account = accountFromMnemonic(activeMnemonic, accountIndex, network as any);
+  const account = accountFromMnemonic(activeMnemonic, accountIndex, effectiveNetwork as any);
 
-  const client = deps?.client ?? createClient({ endpoint, network: network as any });
+  const client = deps?.client ?? createClient({ endpoint, network: effectiveNetwork as any });
   const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
   const syncFn = deps?.syncWalletFn ?? syncWallet;
   const sendFn = deps?.sendFn ?? send;
@@ -186,7 +189,7 @@ export async function executeSend(
   try {
     const wallet = openFn(
       dbPath,
-      network as any,
+      effectiveNetwork as any,
       account.getUnifiedFullViewingKey(),
       `acct${accountIndex}`,
       birthday
@@ -229,6 +232,10 @@ program
     try {
       applyProjectEnv();
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
+      const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
+      const endpoint = process.env.ZCASH_ENDPOINT ?? '';
+      const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
+      const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
       const rawIndex = options.index ?? process.env.ZCASH_ACCOUNT_INDEX ?? '0';
       const accountIndex = parseInt(rawIndex, 10) || 0;
       const mnemonic = (process.env.ZCASH_MNEMONIC ?? '').trim();
@@ -236,7 +243,7 @@ program
 
       if (!mnemonic && !ufvk) {
         if (network === 'regtest') {
-          const acct = dev.fixtures.account(accountIndex, 'regtest');
+          const acct = dev.fixtures.account(accountIndex, effectiveNetwork as any);
           console.log(`\n--- Configured Account Address ---`);
           console.log(`Network:          ${network}`);
           console.log(`Account Index:    ${accountIndex} (regtest default fixture)`);
@@ -252,7 +259,7 @@ program
       }
 
       if (mnemonic) {
-        const acct = accountFromMnemonic(mnemonic, accountIndex, network as any);
+        const acct = accountFromMnemonic(mnemonic, accountIndex, effectiveNetwork as any);
         console.log(`\n--- Configured Account Address ---`);
         console.log(`Network:          ${network}`);
         console.log(`Account Index:    ${accountIndex}`);
@@ -264,7 +271,7 @@ program
       }
 
       if (ufvk) {
-        const watchAcct = accountFromUfvk(ufvk, network as any);
+        const watchAcct = accountFromUfvk(ufvk, effectiveNetwork as any);
         console.log(`\n--- Configured Account Address (Watch-Only) ---`);
         console.log(`Network:          ${network}`);
         console.log(`Account Index:    ${accountIndex} (UFVK)`);
@@ -290,7 +297,10 @@ program
     try {
       applyProjectEnv();
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-      const endpoint = options.endpoint || process.env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:28137';
+      const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
+      const endpoint = options.endpoint || process.env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
+      const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
+      const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
       const birthdayRaw = (process.env.ZCASH_BIRTHDAY ?? '').trim();
       const birthday = /^\d+$/.test(birthdayRaw) ? parseInt(birthdayRaw, 10) : undefined;
       const accountIndex = parseInt(process.env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -299,11 +309,11 @@ program
 
       let account: any;
       if (mnemonic) {
-        account = accountFromMnemonic(mnemonic, accountIndex, network as any);
+        account = accountFromMnemonic(mnemonic, accountIndex, effectiveNetwork as any);
       } else if (ufvk) {
-        account = accountFromUfvk(ufvk, network as any);
+        account = accountFromUfvk(ufvk, effectiveNetwork as any);
       } else if (network === 'regtest') {
-        account = dev.fixtures.account(accountIndex, 'regtest');
+        account = dev.fixtures.account(accountIndex, effectiveNetwork as any);
       } else {
         throw new Error(
           `Neither ZCASH_MNEMONIC nor ZCASH_UFVK is configured for ${network}. Set ZCASH_MNEMONIC or ZCASH_UFVK in .env.local.`
@@ -311,7 +321,7 @@ program
       }
 
       console.log(`Querying balance on ${network} via ${redactSecretUrl(endpoint)}...`);
-      client = createClient({ endpoint, network: network as any });
+      client = createClient({ endpoint, network: effectiveNetwork as any });
       const b = await getBalance(client, account, { sinceHeight: birthday });
       console.log('\n--- Account Balance ---');
       console.log(`Network:     ${network}`);
@@ -374,26 +384,272 @@ program
     }
   });
 
+export interface FundActionOptions {
+  address: string;
+  amount: string;
+  endpoint?: string;
+  stack?: string;
+}
+
+export interface FundDependencies {
+  client?: any;
+  sendFn?: typeof send;
+  syncWalletFn?: typeof syncWallet;
+  openWalletFn?: typeof WalletHandle.open;
+  fetchFn?: typeof fetch;
+}
+
+export interface FundResult {
+  txid: string;
+  stack: 'nu7' | 'z3';
+  recipient: string;
+  amountZec: string;
+  zatoshis: bigint;
+  endpoint: string;
+}
+
+export async function executeFund(
+  options: FundActionOptions,
+  config?: Record<string, string>,
+  deps?: FundDependencies
+): Promise<FundResult> {
+  const env = config ?? loadProjectEnv();
+  const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
+  if (network !== 'regtest' && network !== 'regtest-nu7') {
+    throw new Error(`Fund is only available on regtest (current network: ${network}).`);
+  }
+
+  let stack = (options.stack || env.ZCASH_REGTEST_STACK || '').trim().toLowerCase();
+  const endpointOpt = options.endpoint || env.ZCASH_ENDPOINT;
+  if (!stack) {
+    if (endpointOpt && (endpointOpt.includes('39067') || endpointOpt.includes('39232'))) {
+      stack = 'nu7';
+    } else if (endpointOpt && (endpointOpt.includes('28137') || endpointOpt.includes('8181'))) {
+      stack = 'z3';
+    } else {
+      stack = 'nu7';
+    }
+  }
+
+  if (stack !== 'nu7' && stack !== 'z3') {
+    throw new Error(`Invalid regtest stack "${stack}". Must be "nu7" or "z3".`);
+  }
+
+  const zatoshis = parseZecToZatoshis(options.amount);
+  const effectiveFetch = deps?.fetchFn ?? fetch;
+
+  if (stack === 'nu7') {
+    const effectiveEndpoint = options.endpoint || env.ZCASH_ENDPOINT || '127.0.0.1:39067';
+    const minerAccount = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest-nu7');
+    const client = deps?.client ?? createClient({ endpoint: effectiveEndpoint, network: 'regtest-nu7' });
+    const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
+    const syncFn = deps?.syncWalletFn ?? syncWallet;
+    const sendFn = deps?.sendFn ?? send;
+
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-fund-'));
+    const dbPath = path.join(tempDir, 'wallet.db');
+    let result;
+    try {
+      const wallet = openFn(
+        dbPath,
+        'regtest-nu7',
+        minerAccount.getUnifiedFullViewingKey(),
+        'miner0',
+        0
+      );
+      await syncFn(client, wallet);
+      result = await sendFn({
+        client,
+        wallet,
+        from: minerAccount,
+        to: options.address,
+        amount: zatoshis,
+      });
+    } catch (err: any) {
+      const msg = err.message || String(err);
+      if (msg.includes('ECONNREFUSED') || msg.includes('UNAVAILABLE') || msg.includes('connect')) {
+        throw new Error(
+          `Could not connect to NU7 lightwalletd indexer at ${redactSecretUrl(effectiveEndpoint)}. Is the NU7 stack running? Run: zcash-dev regtest up --stack nu7 (${msg})`
+        );
+      }
+      throw err;
+    } finally {
+      if (!deps?.client) {
+        await client.close().catch(() => {});
+      }
+      try {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      } catch {}
+    }
+
+    return {
+      txid: result.txid,
+      stack: 'nu7',
+      recipient: options.address,
+      amountZec: options.amount,
+      zatoshis,
+      endpoint: redactSecretUrl(effectiveEndpoint),
+    };
+  } else {
+    const rpcRouterUrl = 'http://127.0.0.1:8181';
+    let addrData: any;
+    try {
+      const addrRes = await effectiveFetch(rpcRouterUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 'fund-listaddresses',
+          method: 'listaddresses',
+          params: [],
+        }),
+      });
+      if (!addrRes.ok) {
+        throw new Error(`Zallet HTTP ${addrRes.status}: ${addrRes.statusText}`);
+      }
+      addrData = await addrRes.json();
+    } catch (err: any) {
+      throw new Error(
+        `Could not connect to Z3 RPC router / Zallet at ${rpcRouterUrl}. Is the Z3 stack running? Run: zcash-dev regtest up --stack nu6 (${err.message || err})`
+      );
+    }
+
+    const accounts = addrData?.result?.[0]?.unified;
+    const senderUa = accounts?.[0]?.addresses?.[0]?.address;
+    if (!senderUa) {
+      throw new Error('No sender address found in Zallet regtest wallet');
+    }
+
+    const isNegative = zatoshis < 0n;
+    const abs = isNegative ? -zatoshis : zatoshis;
+    const whole = abs / 100_000_000n;
+    const frac = abs % 100_000_000n;
+    const amountZec = `${isNegative ? '-' : ''}${whole}.${frac.toString().padStart(8, '0')}`;
+
+    const sendRes = await effectiveFetch(rpcRouterUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 'fund-sendmany',
+        method: 'z_sendmany',
+        params: [senderUa, [{ address: options.address, amount: amountZec }]],
+      }),
+    });
+    if (!sendRes.ok) {
+      throw new Error(`Zallet z_sendmany HTTP ${sendRes.status}: ${sendRes.statusText}`);
+    }
+    const sendData: any = await sendRes.json();
+    if (sendData.error) {
+      throw new Error(`Zallet z_sendmany RPC error: ${sendData.error.message || JSON.stringify(sendData.error)}`);
+    }
+    const txid = sendData.result;
+    return {
+      txid,
+      stack: 'z3',
+      recipient: options.address,
+      amountZec: options.amount,
+      zatoshis,
+      endpoint: rpcRouterUrl,
+    };
+  }
+}
+
 program
   .command('mine')
   .description('Mine blocks on regtest')
   .argument('[blocks]', 'Number of blocks to mine', '1')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
+  .option('-e, --endpoint <endpoint>', 'Zebra RPC or Zaino endpoint')
+  .option('--stack <stack>', 'Regtest stack (nu7 | z3)')
   .action(async (blocksStr, options) => {
-    const blocks = parseInt(blocksStr, 10);
-    const client = createClient({
-      endpoint: options.endpoint,
-      network: 'regtest',
-    });
     try {
-      console.log(`Mining ${blocks} block(s)...`);
-      await dev.mine(client, blocks);
-      console.log(`✅ Successfully mined ${blocks} block(s).`);
+      applyProjectEnv();
+      const env = loadProjectEnv();
+      const blocks = parseInt(blocksStr, 10);
+      let stack = (options.stack || env.ZCASH_REGTEST_STACK || '').trim().toLowerCase();
+      const endpointOpt = options.endpoint || env.ZCASH_ENDPOINT;
+      const zebraRpcOpt = env.ZCASH_ZEBRA_RPC;
+
+      if (!stack) {
+        if ((endpointOpt && (endpointOpt.includes('39067') || endpointOpt.includes('39232'))) || (zebraRpcOpt && zebraRpcOpt.includes('39232'))) {
+          stack = 'nu7';
+        } else if ((endpointOpt && (endpointOpt.includes('28137') || endpointOpt.includes('8181'))) || (zebraRpcOpt && zebraRpcOpt.includes('18232'))) {
+          stack = 'z3';
+        } else {
+          stack = 'nu7';
+        }
+      }
+
+      console.log(`Mining ${blocks} block(s) on ${stack.toUpperCase()} regtest stack...`);
+      if (stack === 'nu7') {
+        const zebraUrl = (options.endpoint && options.endpoint.startsWith('http'))
+          ? options.endpoint
+          : (zebraRpcOpt || 'http://127.0.0.1:39232');
+        let res;
+        try {
+          res = await fetch(zebraUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 'zcash-dev-mine',
+              method: 'generate',
+              params: [blocks],
+            }),
+          });
+        } catch (err: any) {
+          throw new Error(
+            `Could not connect to Zebra JSON-RPC at ${zebraUrl}. Is the NU7 stack running? Run: zcash-dev regtest up --stack nu7 (${err.message})`
+          );
+        }
+        if (!res.ok) {
+          throw new Error(`Zebra mining HTTP ${res.status}: ${res.statusText}`);
+        }
+        const data: any = await res.json();
+        if (data.error) {
+          throw new Error(`Zebra mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+        }
+        console.log(`✅ Successfully mined ${blocks} block(s) on Zebra.`);
+      } else {
+        const rpcRouterUrl = 'http://127.0.0.1:8181';
+        let res;
+        try {
+          res = await fetch(rpcRouterUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
+            },
+            body: JSON.stringify({
+              jsonrpc: '2.0',
+              id: 'zcash-dev-mine',
+              method: 'generate',
+              params: [blocks],
+            }),
+          });
+        } catch (err: any) {
+          throw new Error(
+            `Could not connect to Z3 RPC router at ${rpcRouterUrl}. Is the Z3 stack running? Run: zcash-dev regtest up --stack nu6 (${err.message})`
+          );
+        }
+        if (!res.ok) {
+          throw new Error(`Z3 mining HTTP ${res.status}: ${res.statusText}`);
+        }
+        const data: any = await res.json();
+        if (data.error) {
+          throw new Error(`Z3 mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+        }
+        console.log(`✅ Successfully mined ${blocks} block(s) on Z3 stack.`);
+      }
     } catch (err: any) {
       console.error('Mining failed:', err.message || err);
       process.exit(1);
-    } finally {
-      await client.close();
     }
   });
 
@@ -402,22 +658,24 @@ program
   .description('Fund a Unified Address on regtest')
   .argument('<address>', 'Recipient Unified Address')
   .argument('[amount]', 'Amount in ZEC', '1.0')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
+  .option('-e, --endpoint <endpoint>', 'Zaino / lightwalletd gRPC endpoint')
+  .option('--stack <stack>', 'Regtest stack (nu7 | z3)')
   .action(async (address, amountStr, options) => {
-    const zatoshis = BigInt(Math.round(parseFloat(amountStr) * 100000000));
-    const client = createClient({
-      endpoint: options.endpoint,
-      network: 'regtest',
-    });
     try {
-      console.log(`Funding ${address} with ${amountStr} ZEC (${zatoshis} zatoshis)...`);
-      const res = await dev.fund(client, address, zatoshis);
-      console.log(`✅ Funded successfully. Txid: ${res.txid}`);
+      applyProjectEnv();
+      const config = loadProjectEnv();
+      const res = await executeFund(
+        { address, amount: amountStr, endpoint: options.endpoint, stack: options.stack },
+        config
+      );
+      console.log(`\n✅ Funded successfully via ${res.stack.toUpperCase()} stack!`);
+      console.log(`Recipient: ${res.recipient}`);
+      console.log(`Amount:    ${res.amountZec} ZEC (${res.zatoshis} zatoshis)`);
+      console.log(`Txid:      ${res.txid}\n`);
     } catch (err: any) {
-      console.error('Funding failed:', err.message || err);
+      const sanitized = sanitizeError(err, process.env.ZCASH_MNEMONIC);
+      console.error('Funding failed:', sanitized.message);
       process.exit(1);
-    } finally {
-      await client.close();
     }
   });
 

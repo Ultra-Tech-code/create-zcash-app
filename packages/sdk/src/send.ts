@@ -88,6 +88,11 @@ export function quoteFee(numActions: number): bigint {
   return BigInt(coreQuoteFee(numActions));
 }
 
+function isLoopback(endpoint?: string | null): boolean {
+  if (!endpoint) return false;
+  return /^(https?:\/\/)?(127\.0\.0\.1|localhost|\[::1\]|0\.0\.0\.0)(:\d+)?(\/.*)?$/i.test(endpoint.trim());
+}
+
 /**
  * Warms up the static circuit proving key in a background thread ahead of first send.
  */
@@ -237,9 +242,10 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   // Cross-check anchor against secondary verification endpoints if configured
   const verifyEndpoints = client.config.verifyEndpoints ?? [];
   const endpointLabel = client.safeEndpoint ?? client.config.endpoint;
+  const mainServerType = isLoopback(endpointLabel) ? '(local)' : '(third-party server)';
   if (verifyEndpoints.length === 0) {
     console.log(
-      `[send] (${endpointLabel}) (third-party server) Anchor verification is single-source. No secondary verification endpoints configured.`
+      `[send] (${endpointLabel}) ${mainServerType} Anchor verification is single-source. No secondary verification endpoints configured.`
     );
   } else {
     for (const ep of verifyEndpoints) {
@@ -247,7 +253,8 @@ export async function send(opts: SendOptions): Promise<SendResult> {
       let epLabel = '';
       if (typeof ep === 'string' || ep.kind === 'grpc') {
         const epUrl = typeof ep === 'string' ? ep : ep.url;
-        epLabel = `[${epUrl}] (third-party server)`;
+        const secServerType = isLoopback(epUrl) ? '(local)' : '(third-party server)';
+        epLabel = `[${epUrl}] ${secServerType}`;
         const secClient = new ZcashClient({ endpoint: epUrl, network: client.config.network });
         try {
           const secTreeState = await secClient.getTreeState(anchorHeight);
@@ -261,7 +268,8 @@ export async function send(opts: SendOptions): Promise<SendResult> {
         }
       } else if (ep.kind === 'jsonrpc') {
         const jsonVerifier = new JsonRpcVerifier(ep.url);
-        epLabel = `[${jsonVerifier.safeUrl}] (third-party server)`;
+        const jsonServerType = isLoopback(jsonVerifier.safeUrl) ? '(local)' : '(third-party server)';
+        epLabel = `[${jsonVerifier.safeUrl}] ${jsonServerType}`;
         const secTreeState = await jsonVerifier.getTreeState(anchorHeight);
         const finalRoot = secTreeState.ironwood?.commitments?.finalRoot;
         if (finalRoot) {
