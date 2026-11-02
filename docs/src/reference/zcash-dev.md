@@ -4,7 +4,7 @@
 
 `zcash-dev` is the developer harness, regtest orchestrator, and operational CLI for shielded Zcash applications.
 
-**CLI Version**: `0.1.0-alpha.1` (as of November 2026)
+**CLI Version**: `0.1.0-alpha.2` (as of November 2026)
 
 ## Overview of Commands
 

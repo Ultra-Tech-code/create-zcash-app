@@ -1,0 +1,278 @@
+=== create-zcash-app 0.1.0-alpha.2 release verification & clean-room proof ===
+date:        2026-11-02T03:30:15Z
+repo:        /Users/0xblackadam/Downloads/zcash_scafolder
+node:        v22.22.2
+npm:         10.9.7
+pnpm:        11.5.3
+os:          Darwin arm64
+
+--- step 1: build TypeScript packages ---
+$ tsc
+$ tsc
+$ tsc
+TypeScript packages built successfully.
+
+--- step 2: pack all 9 packages into /tmp/release-packs-alpha2 ---
+temporary placeholder for non-host target: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
+temporary placeholder for non-host target: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
+temporary placeholder for non-host target: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
+temporary placeholder for non-host target: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
+package: @zcash-app/core@0.1.0-alpha.2
+Tarball Contents
+index.d.ts
+index.js
+LICENSE
+package.json
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-0.1.0-alpha.2.tgz
+package: @zcash-app/sdk@0.1.0-alpha.2
+Tarball Contents
+dist/client.d.ts
+dist/client.js
+dist/consensus.d.ts
+dist/consensus.js
+dist/constants.d.ts
+dist/constants.js
+dist/dashboard-wallet.d.ts
+dist/dashboard-wallet.js
+dist/decrypted-tx.d.ts
+dist/decrypted-tx.js
+dist/detection.d.ts
+dist/detection.js
+dist/dev.d.ts
+dist/dev.js
+dist/explorer.d.ts
+dist/explorer.js
+dist/index.d.ts
+dist/index.js
+dist/jsonrpc.d.ts
+dist/jsonrpc.js
+dist/keys.d.ts
+dist/keys.js
+dist/payment.d.ts
+dist/payment.js
+dist/send.d.ts
+dist/send.js
+dist/sync.d.ts
+dist/sync.js
+dist/types.d.ts
+dist/types.js
+LICENSE
+package.json
+proto/compact_formats.proto
+proto/service.proto
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-sdk-0.1.0-alpha.2.tgz
+package: zcash-dev@0.1.0-alpha.2
+Tarball Contents
+dist/cli.d.ts
+dist/cli.js
+dist/env.d.ts
+dist/env.js
+dist/index.d.ts
+dist/index.js
+dist/redact.d.ts
+dist/redact.js
+dist/testnet-lightwalletd.d.ts
+dist/testnet-lightwalletd.js
+docker/regtest-nu7/docker-compose.yml
+docker/regtest-nu7/regtest-init.sh
+docker/regtest-nu7/zebra.toml
+docker/regtest/.env.regtest
+docker/regtest/docker-compose.yml
+docker/regtest/regtest-init.sh
+docker/regtest/zaino.toml
+docker/regtest/zallet.toml
+docker/regtest/zebra.toml
+LICENSE
+package.json
+Tarball Details
+/tmp/release-packs-alpha2/zcash-dev-0.1.0-alpha.2.tgz
+package: create-zcash-app@0.1.0-alpha.2
+Tarball Contents
+dist/bip39.d.ts
+dist/bip39.js
+dist/index.d.ts
+dist/index.js
+dist/redact.d.ts
+dist/redact.js
+LICENSE
+package.json
+template/app/api/account/route.ts
+template/app/layout.tsx
+template/app/page.tsx
+template/gitignore.tmpl
+template/next.config.mjs
+template/package.json.tmpl
+template/pnpm-workspace.yaml
+template/tsconfig.json
+Tarball Details
+/tmp/release-packs-alpha2/create-zcash-app-0.1.0-alpha.2.tgz
+package: @zcash-app/core-darwin-arm64@0.1.0-alpha.2
+Tarball Contents
+LICENSE
+package.json
+README.md
+zcash-core.darwin-arm64.node
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-darwin-arm64-0.1.0-alpha.2.tgz
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+package: @zcash-app/core-darwin-x64@0.1.0-alpha.2
+Tarball Contents
+LICENSE
+package.json
+README.md
+zcash-core.darwin-x64.node
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-darwin-x64-0.1.0-alpha.2.tgz
+[WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+[WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+package: @zcash-app/core-linux-arm64-gnu@0.1.0-alpha.2
+Tarball Contents
+LICENSE
+package.json
+README.md
+zcash-core.linux-arm64-gnu.node
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-linux-arm64-gnu-0.1.0-alpha.2.tgz
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+package: @zcash-app/core-linux-x64-gnu@0.1.0-alpha.2
+Tarball Contents
+LICENSE
+package.json
+README.md
+zcash-core.linux-x64-gnu.node
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-linux-x64-gnu-0.1.0-alpha.2.tgz
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["win32"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+[WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["win32"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
+package: @zcash-app/core-win32-x64-msvc@0.1.0-alpha.2
+Tarball Contents
+LICENSE
+package.json
+README.md
+zcash-core.win32-x64-msvc.node
+Tarball Details
+/tmp/release-packs-alpha2/zcash-app-core-win32-x64-msvc-0.1.0-alpha.2.tgz
+packed tarballs in /tmp/release-packs-alpha2:
+create-zcash-app-0.1.0-alpha.2.tgz
+zcash-app-core-0.1.0-alpha.2.tgz
+zcash-app-core-darwin-arm64-0.1.0-alpha.2.tgz
+zcash-app-core-darwin-x64-0.1.0-alpha.2.tgz
+zcash-app-core-linux-arm64-gnu-0.1.0-alpha.2.tgz
+zcash-app-core-linux-x64-gnu-0.1.0-alpha.2.tgz
+zcash-app-core-win32-x64-msvc-0.1.0-alpha.2.tgz
+zcash-app-sdk-0.1.0-alpha.2.tgz
+zcash-dev-0.1.0-alpha.2.tgz
+total tarballs: 9
+
+--- step 3: run release.yml sanity checks on tarballs ---
+tarball check ok: create-zcash-app-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+tarball check ok: zcash-dev-0.1.0-alpha.2.tgz (workspace ranges: 0, license: Apache-2.0, version: 0.1.0-alpha.2)
+✅ All 9 tarballs passed manifest and structure validation.
+
+--- step 4: clean-room install and verification in /tmp/cza-alpha2-cleanroom ---
+1. Initialize clean npm package
+Wrote to /private/tmp/cza-alpha2-cleanroom/package.json:
+
+{
+  "name": "cza-alpha2-cleanroom",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+
+
+
+2. Install packed tarballs into clean room
+
+added 43 packages, and audited 44 packages in 1s
+
+3 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+3. Run create-zcash-app scaffolder
+
+🚀 Scaffolding shielded Zcash app in /private/tmp/cza-alpha2-cleanroom/qs...
+
+🎉 Success! Created qs at /private/tmp/cza-alpha2-cleanroom/qs
+   Configured Network: regtest (local)
+   Indexer Endpoint:   127.0.0.1:39067
+   Zebra RPC:          http://127.0.0.1:39232
+   Key Source:         generate
+   Package range:      @zcash-app/sdk@^0.1.0-alpha.2, zcash-dev@^0.1.0-alpha.2
+   Files written:      13
+
+Next steps:
+   cd qs
+   pnpm install
+   pnpm dev
+
+4. Verify scaffolded qs/package.json dependency ranges
+qs dependencies: {
+  "@zcash-app/sdk": "^0.1.0-alpha.2",
+  "next": "16.4.2",
+  "react": "19.3.0",
+  "react-dom": "19.3.0"
+}
+qs devDependencies: {
+  "@types/node": "^20",
+  "@types/react": "^19",
+  "@types/react-dom": "^19",
+  "typescript": "^5",
+  "zcash-dev": "^0.1.0-alpha.2"
+}
+✅ Verified: scaffolded app depends on @zcash-app/sdk@^0.1.0-alpha.2 and zcash-dev@^0.1.0-alpha.2
+5. Enter qs directory and verify npx zcash-dev --help
+Usage: zcash-dev [options] [command]
+
+Developer harness & regtest helper CLI for shielded Zcash apps
+
+Options:
+  -V, --version                      output the version number
+  -h, --help                         display help for command
+
+Commands:
+  info [options]                     Get node & indexer status
+  address [options]                  Display the derived address for the
+                                     configured account
+  balance [options]                  Check balance for the configured account
+  send [options]                     Send ZEC or perform a transaction dry run
+  mine [options] [blocks]            Mine blocks on regtest
+  fund [options] <address> [amount]  Fund a Unified Address on regtest
+  fixtures [options]                 Display deterministic fixture accounts
+  switch [options] [target-network]  Switch project network (regtest | testnet
+                                     | mainnet)
+  dashboard [options]                Launch the Zcash Developer Dashboard
+  testnet                            Testnet developer helper tools
+  regtest                            Regtest environment management commands
+  help [command]                     display help for command
+
+6. Run npx zcash-dev address (verifies key derivation via native addon)
+
+--- Configured Account Address ---
+Network:          regtest
+Account Index:    0
+Unified Address:  uregtest16qmh3u3x85l5us5xnhenwu9akq36p8twad930h8hgwtqa5gwjkqv69z30eh3mlgyyzm7sels6prdr9ala4pnfdgsj268puy06lwrn0aqy6rh9a4cnw5pa4vwtsjvhava8ypsjugde8q2s2fmuf67fwsu0y7fxah78620l4jg5hqn2hxvm0fqed7gm8q0lj89gc98hh95gm50v4sf9yw
+Transparent:      tmWfL9xDDRZpXHdm5NhcQqcytn7Sjke7FoW
+
+
+7. Clean up temporary test artifacts
+
+=== Clean-room install verification SUCCEEDED ===
