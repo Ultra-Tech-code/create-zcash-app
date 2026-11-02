@@ -175,13 +175,13 @@ Start local testnet lightwalletd connected to local Zebra testnet node
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--cookie-path <path>` | Path to Zebra .cookie file | `/Users/0xblackadam/Library/Caches/zebra/.cookie` |
+| `--cookie-path <path>` | Path to Zebra .cookie file | `~/Library/Caches/zebra/.cookie` |
 | `--binary <path>` | Path to lightwalletd binary | `/tmp/lightwalletd` |
 | `--rpchost <host>` | Zebra testnet RPC host | `127.0.0.1` |
 | `--rpcport <port>` | Zebra testnet RPC port | `18232` |
 | `--grpc-bind-addr <addr>` | gRPC bind address | `127.0.0.1:39167` |
 | `--http-bind-addr <addr>` | HTTP bind address | `127.0.0.1:39168` |
-| `--data-dir <dir>` | Lightwalletd cache/data dir | `/Users/0xblackadam/.zcash-app-testnet/lightwalletd-data` |
+| `--data-dir <dir>` | Lightwalletd cache/data dir | `~/.zcash-app-testnet/lightwalletd-data` |
 | `--dry-run` | Validate configuration and build arguments without launching process | None |
 
 ---

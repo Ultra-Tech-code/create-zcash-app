@@ -32,6 +32,55 @@ export async function checkGeneratedDrift() {
 }
 
 /**
+ * 2. Validate that no generated or prose docs contain machine-specific absolute paths (/Users/, /home/, /root/)
+ */
+export function checkNoMachineSpecificPaths() {
+  console.log('--- Step 2: Checking for Machine-Specific Absolute Paths (/Users/, /home/, /root/) ---');
+  const allMarkdownFiles = [];
+  function walk(dir) {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) {
+        walk(full);
+      } else if (ent.name.endsWith('.md')) {
+        allMarkdownFiles.push(full);
+      }
+    }
+  }
+  walk(DOCS_SRC);
+
+  let errors = 0;
+  // Match absolute paths starting with /Users/, /home/, or /root/
+  const machinePathRegex = /(?:^|[\s"'`(/])(\/(?:Users|home|root)(?:\/[^\s"'`)]*)?)/g;
+
+  for (const filePath of allMarkdownFiles) {
+    const relPath = path.relative(REPO_ROOT, filePath);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      let match;
+      machinePathRegex.lastIndex = 0;
+      while ((match = machinePathRegex.exec(line)) !== null) {
+        console.error(`❌ ${relPath}:${i + 1}: Machine-specific absolute path found: "${match[1]}"`);
+        errors++;
+      }
+    }
+  }
+
+  if (errors > 0) {
+    console.error(
+      `\n❌ Found ${errors} machine-specific absolute path(s) in documentation.\n` +
+      'All user paths must be rendered as ~ (or relative paths) to ensure reproducibility across machines.\n'
+    );
+    process.exit(1);
+  }
+
+  console.log(`✅ No machine-specific absolute paths found across ${allMarkdownFiles.length} docs files.`);
+}
+
+/**
  * Helper to extract option flags from a Commander Command object
  */
 function getCommandFlags(cmd) {
@@ -51,10 +100,10 @@ function getCommandFlags(cmd) {
 }
 
 /**
- * 2. Validate CLI commands and flags mentioned in code blocks of prose chapters
+ * 3. Validate CLI commands and flags mentioned in code blocks of prose chapters
  */
 export async function checkProseCommands() {
-  console.log('--- Step 2: Validating CLI Commands & Flags in Prose Chapters ---');
+  console.log('--- Step 3: Validating CLI Commands & Flags in Prose Chapters ---');
 
   const cliDistPath = path.join(REPO_ROOT, 'packages', 'cli', 'dist', 'index.js');
   const devDistPath = path.join(REPO_ROOT, 'packages', 'dev', 'dist', 'cli.js');
@@ -204,10 +253,10 @@ export async function checkProseCommands() {
 }
 
 /**
- * 3. Validate internal links and anchors
+ * 4. Validate internal links and anchors
  */
 export function checkInternalLinks() {
-  console.log('--- Step 3: Validating Internal Markdown Links & Anchors ---');
+  console.log('--- Step 4: Validating Internal Markdown Links & Anchors ---');
 
   const allMarkdownFiles = [];
   function walk(dir) {
@@ -298,10 +347,10 @@ export function checkInternalLinks() {
 }
 
 /**
- * 4. Validate external web links
+ * 5. Validate external web links
  */
 export async function checkExternalLinks() {
-  console.log('--- Step 4: Validating External Web Links ---');
+  console.log('--- Step 5: Validating External Web Links ---');
 
   // If mdbook-linkcheck2 is available, run it
   try {
@@ -375,12 +424,13 @@ export async function checkExternalLinks() {
 export async function main() {
   console.log('=== Running Documentation Check (pnpm docs:check) ===');
   await checkGeneratedDrift();
+  checkNoMachineSpecificPaths();
   await checkProseCommands();
   checkInternalLinks();
   if (process.argv.includes('--external')) {
     await checkExternalLinks();
   } else {
-    console.log('--- Step 4: External Web Link Check Skipped (offline default; pass --external to run) ---');
+    console.log('--- Step 5: External Web Link Check Skipped (offline default; pass --external to run) ---');
   }
   console.log('=== All Documentation Checks Passed Cleanly! ===\n');
 }

@@ -2,6 +2,9 @@
 
 In this quickstart, you will scaffold a new shielded Zcash application, initialize an isolated local NU7 regtest devnet, fund an account, run the application, and simulate your first shielded payment.
 
+> [!NOTE]
+> The commands below need create-zcash-app / zcash-dev 0.1.0-alpha.2 or later (the current release is alpha.1; NU7 stack support was added in this PR).
+
 ## Prerequisites
 
 - **Node.js**: v20 or v22 LTS

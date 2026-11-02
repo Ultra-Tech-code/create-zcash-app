@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import ts from 'typescript';
@@ -11,6 +12,26 @@ const REF_DIR = path.join(DOCS_SRC, 'reference');
 
 // Ensure directories exist
 fs.mkdirSync(REF_DIR, { recursive: true });
+
+/**
+ * Normalizes default option values, replacing machine-specific absolute home directories
+ * (e.g. /Users/<user>, /home/<user>, /root) with ~ for machine-independent documentation generation.
+ */
+export function formatDefaultValue(val) {
+  if (val === undefined || val === null) return 'None';
+  let str = String(val);
+  const home = os.homedir();
+  if (home && str.startsWith(home)) {
+    str = '~' + str.slice(home.length);
+  }
+  if (process.env.HOME && str.startsWith(process.env.HOME)) {
+    str = '~' + str.slice(process.env.HOME.length);
+  }
+  str = str.replace(/^\/(?:Users|home)\/[^/]+/, '~');
+  str = str.replace(/^\/root(?:\/|$)/, (m) => (m.endsWith('/') ? '~/' : '~'));
+  str = str.replace(/^\/tmp\/fakehome[0-9]*(?:\/|$)/, (m) => (m.endsWith('/') ? '~/' : '~'));
+  return `\`${str}\``;
+}
 
 /**
  * 1. Synchronize known-issues.md from root KNOWN_ISSUES.md
@@ -62,7 +83,7 @@ export async function generateScaffolderRef() {
   for (const opt of program.options) {
     const flags = `\`${opt.flags}\``;
     const desc = opt.description.replace(/\|/g, '\\|');
-    const def = opt.defaultValue !== undefined ? `\`${opt.defaultValue}\`` : 'None (interactive prompt)';
+    const def = opt.defaultValue !== undefined ? formatDefaultValue(opt.defaultValue) : 'None (interactive prompt)';
     md += `| ${flags} | ${desc} | ${def} |\n`;
   }
 
@@ -144,7 +165,7 @@ export async function generateZcashDevRef() {
           md += `| Option | Description | Default |\n`;
           md += `| :--- | :--- | :--- |\n`;
           for (const o of opts) {
-            const def = o.defaultValue !== undefined ? `\`${o.defaultValue}\`` : 'None';
+            const def = o.defaultValue !== undefined ? formatDefaultValue(o.defaultValue) : 'None';
             md += `| \`${o.flags}\` | ${o.description.replace(/\|/g, '\\|')} | ${def} |\n`;
           }
           md += `\n`;
@@ -168,7 +189,7 @@ export async function generateZcashDevRef() {
         md += `| Option | Description | Default |\n`;
         md += `| :--- | :--- | :--- |\n`;
         for (const o of opts) {
-          const def = o.defaultValue !== undefined ? `\`${o.defaultValue}\`` : 'None';
+          const def = o.defaultValue !== undefined ? formatDefaultValue(o.defaultValue) : 'None';
           md += `| \`${o.flags}\` | ${o.description.replace(/\|/g, '\\|')} | ${def} |\n`;
         }
         md += `\n`;
