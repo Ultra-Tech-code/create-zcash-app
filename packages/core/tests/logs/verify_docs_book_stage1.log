@@ -1,221 +1,221 @@
 === [1/8] Checking Log Provenance & Integrity against MANIFEST ===
 === Checking Log Provenance & Integrity against MANIFEST ===
-✅ All 89 log files match MANIFEST sha256, tracked in git, and recorded provenance commands cleanly.
+✅ All 90 log files match MANIFEST sha256, tracked in git, and recorded provenance commands cleanly.
 === [2/8] Running Cargo Tests ===
    Compiling proc-macro2 v1.0.107
-   Compiling quote v1.0.47
    Compiling unicode-ident v1.0.27
-   Compiling cfg-if v1.0.5
+   Compiling quote v1.0.47
    Compiling libc v0.2.190
+   Compiling cfg-if v1.0.5
    Compiling typenum v1.20.1
    Compiling subtle v2.6.1
    Compiling version_check v0.9.5
    Compiling rand_core v0.10.1
-   Compiling constant_time_eq v0.4.2
    Compiling arrayvec v0.7.8
    Compiling memuse v0.2.2
-   Compiling radium v0.7.0
+   Compiling constant_time_eq v0.4.2
    Compiling either v1.19.0
+   Compiling radium v0.7.0
    Compiling tap v1.0.1
    Compiling funty v2.0.0
-   Compiling crossbeam-utils v0.8.23
    Compiling blake2b_simd v1.0.5
-   Compiling cmov v0.5.4
+   Compiling getrandom v0.4.3
+   Compiling crossbeam-utils v0.8.23
    Compiling wyz v0.5.1
    Compiling generic-array v0.14.7
-   Compiling getrandom v0.4.3
-   Compiling ctutils v0.4.5
+   Compiling cmov v0.5.4
    Compiling scopeguard v1.2.0
+   Compiling ctutils v0.4.5
    Compiling lock_api v0.4.14
+   Compiling once_cell v1.21.4
+   Compiling hybrid-array v0.4.15
+   Compiling shlex v2.0.1
+   Compiling hex v0.4.3
+   Compiling crossbeam-epoch v0.9.21
    Compiling bitflags v2.13.2
    Compiling find-msvc-tools v0.1.14
-   Compiling hybrid-array v0.4.15
-   Compiling once_cell v1.21.4
-   Compiling hex v0.4.3
-   Compiling shlex v2.0.1
-   Compiling crossbeam-epoch v0.9.21
    Compiling spin v0.9.9
-   Compiling cc v1.8.0
    Compiling crossbeam-deque v0.8.8
    Compiling pin-project-lite v0.2.17
+   Compiling hashbrown v0.17.1
+   Compiling cc v1.8.0
+   Compiling bitvec v1.1.1
    Compiling rayon-core v1.13.0
+   Compiling equivalent v1.0.3
    Compiling crypto-common v0.2.2
    Compiling block-buffer v0.12.1
    Compiling inout v0.2.5
-   Compiling hashbrown v0.17.1
-   Compiling equivalent v1.0.3
    Compiling static_assertions v1.1.0
-   Compiling cipher v0.5.2
    Compiling lazy_static v1.5.1
-   Compiling chacha20 v0.10.2
    Compiling thiserror v2.0.21
-   Compiling anyhow v1.0.104
-   Compiling crypto-common v0.1.7
-   Compiling block-buffer v0.10.4
-   Compiling autocfg v1.5.1
-   Compiling digest v0.10.7
    Compiling byteorder v1.5.0
-   Compiling serde_core v1.0.229
-   Compiling corez v0.1.1
-   Compiling log v0.4.34
-   Compiling zerocopy v0.8.63
-   Compiling secp256k1-sys v0.14.1
-   Compiling bitvec v1.1.1
-   Compiling digest v0.11.3
-   Compiling num-traits v0.2.19
-   Compiling tracing-core v0.1.36
-   Compiling itertools v0.14.0
-   Compiling rustix v1.1.5
-   Compiling litrs v1.0.1
+   Compiling autocfg v1.5.1
    Compiling syn v2.0.119
    Compiling syn v3.0.9
    Compiling cpufeatures v0.2.17
+   Compiling cipher v0.5.2
+   Compiling serde_core v1.0.229
+   Compiling corez v0.1.1
+   Compiling anyhow v1.0.104
+   Compiling chacha20 v0.10.2
+   Compiling num-traits v0.2.19
    Compiling cpufeatures v0.3.1
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
    Compiling rand v0.10.3
+   Compiling zerocopy v0.8.63
+   Compiling digest v0.10.7
+   Compiling log v0.4.34
    Compiling sha2 v0.10.9
+   Compiling digest v0.11.3
+   Compiling secp256k1-sys v0.14.1
    Compiling getrandom v0.2.17
-   Compiling serde v1.0.229
+   Compiling tracing-core v0.1.36
+   Compiling itertools v0.14.0
    Compiling bech32 v0.11.1
    Compiling rayon v1.12.0
+   Compiling ff v0.14.0
    Compiling nonempty v0.11.0
-   Compiling document-features v0.2.12
+   Compiling rustix v1.1.5
+   Compiling group v0.14.0
+   Compiling litrs v1.0.1
+   Compiling serde v1.0.229
+   Compiling pairing v0.24.0
    Compiling bs58 v0.5.1
-   Compiling errno v0.3.14
    Compiling universal-hash v0.6.1
-   Compiling prettyplease v0.2.37
-   Compiling memchr v2.8.3
+   Compiling document-features v0.2.12
+   Compiling errno v0.3.14
    Compiling libm v0.2.16
    Compiling bytes v1.12.1
    Compiling crunchy v0.2.4
-   Compiling ff v0.14.0
-   Compiling group v0.14.0
-   Compiling pairing v0.24.0
-   Compiling poly1305 v0.9.1
+   Compiling prettyplease v0.2.37
+   Compiling memchr v2.8.3
    Compiling num-integer v0.1.47
+   Compiling poly1305 v0.9.1
    Compiling zcash_encoding v0.5.0
    Compiling aead v0.6.1
    Compiling zcash_spec v0.2.1
+   Compiling futures-core v0.3.34
+   Compiling fastrand v2.5.0
    Compiling regex-syntax v0.8.11
    Compiling foldhash v0.1.5
    Compiling futures-sink v0.3.34
-   Compiling futures-core v0.3.34
-   Compiling fastrand v2.5.0
    Compiling chacha20poly1305 v0.11.0
-   Compiling num-bigint v0.5.1
    Compiling hashbrown v0.15.5
+   Compiling num-bigint v0.5.1
    Compiling zcash_protocol v0.11.0
    Compiling maybe-rayon v0.1.1
    Compiling sha2 v0.11.1
-   Compiling num_cpus v1.17.0
-   Compiling crossbeam-channel v0.5.17
-   Compiling hmac v0.13.0
    Compiling ripemd v0.2.0
+   Compiling hmac v0.13.0
    Compiling cbc v0.2.1
+   Compiling crossbeam-channel v0.5.17
+   Compiling num_cpus v1.17.0
    Compiling indexmap v2.14.2
-   Compiling regex-automata v0.4.18
-   Compiling incrementalmerkletree v0.9.0
-   Compiling blake2s_simd v1.0.5
-   Compiling halo2_legacy_pdqsort v0.1.0
-   Compiling cpubits v0.1.1
-   Compiling fixedbitset v0.5.7
-   Compiling aes v0.9.3
-   Compiling bellman v0.15.0
-   Compiling fpe v0.7.0
-   Compiling uint v0.9.5
-   Compiling zcash_note_encryption v0.5.1
-   Compiling tempfile v3.27.0
-   Compiling petgraph v0.8.3
-   Compiling rand_core v0.6.4
-   Compiling secp256k1 v0.33.1
-   Compiling sha1 v0.10.7
-   Compiling ripemd v0.1.3
-   Compiling ahash v0.8.12
-   Compiling multimap v0.10.1
    Compiling thiserror-impl v2.0.21
-   Compiling serde_derive v1.0.229
-   Compiling napi-build v2.6.0
    Compiling zeroize_derive v1.5.0
    Compiling tracing-attributes v0.1.31
    Compiling prost-derive v0.14.4
-   Compiling getset v0.1.7
-   Compiling heck v0.5.0
-   Compiling groth16 v0.2.0
+   Compiling serde_derive v1.0.229
+   Compiling secp256k1 v0.33.1
+   Compiling regex-automata v0.4.18
    Compiling zeroize v1.9.1
-   Compiling visibility v0.1.1
+   Compiling getset v0.1.7
+   Compiling incrementalmerkletree v0.9.0
+   Compiling blake2s_simd v1.0.5
+   Compiling cpubits v0.1.1
+   Compiling fixedbitset v0.5.7
+   Compiling halo2_legacy_pdqsort v0.1.0
+   Compiling aes v0.9.3
+   Compiling tempfile v3.27.0
+   Compiling petgraph v0.8.3
+   Compiling bellman v0.15.0
+   Compiling fpe v0.7.0
+   Compiling pasta_curves v0.6.1
+   Compiling tracing v0.1.44
+   Compiling bls12_381 v0.9.0
+   Compiling zip32 v0.3.0
+   Compiling bip32 v0.6.0
+   Compiling prost v0.14.4
+   Compiling uint v0.9.5
+   Compiling zcash_note_encryption v0.5.1
+   Compiling rand_core v0.6.4
+   Compiling jubjub v0.11.1
+   Compiling sha1 v0.10.7
+   Compiling ripemd v0.1.3
+   Compiling ahash v0.8.12
+   Compiling napi-build v2.6.0
    Compiling regex v1.13.1
+   Compiling sinsemilla v0.2.0
+   Compiling halo2_poseidon v0.2.0
+   Compiling bounded-vec v0.9.0
+   Compiling heck v0.5.0
+   Compiling halo2_proofs v0.4.0
+   Compiling multimap v0.10.1
+   Compiling groth16 v0.2.0
+   Compiling prost-types v0.14.4
+   Compiling zcash_script v0.6.0
+   Compiling visibility v0.1.1
    Compiling futures-macro v0.3.34
    Compiling tonic-build v0.14.6
    Compiling futures-channel v0.3.34
    Compiling f4jumble v0.1.2
-   Compiling equihash v0.3.0
-   Compiling vcpkg v0.2.15
    Compiling futures-io v0.3.34
-   Compiling tracing v0.1.44
-   Compiling pasta_curves v0.6.1
-   Compiling bls12_381 v0.9.0
-   Compiling zip32 v0.3.0
-   Compiling bip32 v0.6.0
    Compiling slab v0.4.12
    Compiling futures-task v0.3.34
    Compiling pkg-config v0.3.34
-   Compiling prost v0.14.4
-   Compiling futures-util v0.3.34
+   Compiling equihash v0.3.0
+   Compiling vcpkg v0.2.15
    Compiling zcash_address v0.14.0
    Compiling ppv-lite86 v0.2.21
-   Compiling jubjub v0.11.1
+   Compiling futures-util v0.3.34
+   Compiling zcash_transparent v0.11.0
    Compiling which v8.0.6
-   Compiling bounded-vec v0.9.0
-   Compiling libsqlite3-sys v0.30.1
-   Compiling zcash_script v0.6.0
-   Compiling minimal-lexical v0.2.1
-   Compiling base64ct v1.8.3
-   Compiling halo2_poseidon v0.2.0
-   Compiling sinsemilla v0.2.0
-   Compiling halo2_proofs v0.4.0
    Compiling napi-sys v3.4.0
    Compiling unicode-segmentation v1.13.3
-   Compiling nom v7.1.3
-   Compiling password-hash v0.5.0
-   Compiling prost-types v0.14.4
-   Compiling convert_case v0.12.0
-   Compiling zcash_transparent v0.11.0
-   Compiling rand_chacha v0.3.1
-   Compiling hashbrown v0.14.5
-   Compiling secrecy v0.8.0
-   Compiling napi v3.14.2
    Compiling prost-build v0.14.4
+   Compiling libsqlite3-sys v0.30.1
+   Compiling minimal-lexical v0.2.1
+   Compiling base64ct v1.8.3
+   Compiling nom v7.1.3
+   Compiling convert_case v0.12.0
+   Compiling password-hash v0.5.0
+   Compiling reddsa v0.6.1
+   Compiling rand_chacha v0.3.1
+   Compiling redjubjub v0.9.0
+   Compiling tonic-prost-build v0.14.6
+   Compiling hashbrown v0.14.5
+   Compiling sapling-crypto v0.9.0
+   Compiling napi v3.14.2
+   Compiling secrecy v0.8.0
    Compiling tokio-macros v2.7.2
    Compiling nanorand v0.7.0
    Compiling libloading v0.9.0
-   Compiling zmij v1.0.23
-   Compiling percent-encoding v2.3.2
-   Compiling reddsa v0.6.1
-   Compiling num-conv v0.2.2
-   Compiling deranged v0.5.9
    Compiling tinyvec v1.13.3
+   Compiling zcash_client_backend v0.25.0
+   Compiling deranged v0.5.9
    Compiling time-core v0.1.9
    Compiling ctor v1.0.13
-   Compiling tonic-prost-build v0.14.6
    Compiling semver v1.0.28
    Compiling powerfmt v0.2.1
-   Compiling redjubjub v0.9.0
    Compiling base64 v0.22.1
+   Compiling zmij v1.0.23
+   Compiling percent-encoding v2.3.2
+   Compiling num-conv v0.2.2
+   Compiling zip321 v0.10.0
+   Compiling halo2_gadgets v0.6.0
    Compiling napi-derive-backend v6.1.5
    Compiling tokio v1.54.1
    Compiling unicode-normalization v0.1.25
-   Compiling sapling-crypto v0.9.0
-   Compiling zip321 v0.10.0
-   Compiling zcash_client_backend v0.25.0
-   Compiling futures-executor v0.3.34
-   Compiling futures v0.3.34
    Compiling time v0.3.55
    Compiling flume v0.11.1
    Compiling hashlink v0.9.1
-   Compiling halo2_gadgets v0.6.0
-   Compiling rand v0.8.8
    Compiling pbkdf2 v0.12.2
+   Compiling rand v0.8.8
    Compiling shardtree v0.8.0
    Compiling zcash-core v0.1.0 (/private/tmp/cza-clean-verify/packages/core)
+   Compiling futures-executor v0.3.34
+   Compiling futures v0.3.34
    Compiling hmac v0.12.1
    Compiling fallible-streaming-iterator v0.1.9
    Compiling fallible-iterator v0.3.0
@@ -223,14 +223,14 @@
    Compiling serde_json v1.0.154
    Compiling smallvec v1.16.4
    Compiling nohash-hasher v0.2.0
+   Compiling orchard v0.16.0
    Compiling bip0039 v0.12.0
    Compiling itoa v1.0.18
    Compiling napi-derive v3.6.12
-   Compiling orchard v0.16.0
    Compiling rusqlite v0.32.1
    Compiling zcash_primitives v0.31.0
    Compiling zcash_keys v0.17.0
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.24s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 23.50s
      Running unittests src/lib.rs (target/debug/deps/zcash_core-66997c169da359cf)
 
 running 3 tests
@@ -250,20 +250,20 @@ test test_sender_ovk_recovers_outgoing_and_internal_change ... ok
 test test_ovk_policy_none_prevents_sender_recovery ... ok
 test test_decrypt_transaction_fee_with_transparent_part ... ok
 
-test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 39.29s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.20s
 
      Running tests/full_suite_test.rs (target/debug/deps/full_suite_test-6a5cffc702fb7ebc)
 
 running 19 tests
 test test_decode_real_regtest_funding_block_with_ironwood_actions ... ok
-test test_chain_reset_first_scanned_hash_mismatch ... ok
 test test_decode_real_regtest_compact_block_and_missing_field_rejection ... ok
 test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+test test_chain_reset_first_scanned_hash_mismatch ... ok
 test test_activation_scan_prevents_unseeded_tree_gap ... ok
 test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
 test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
-test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
 test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
 test test_atomicity_crash_rollback_on_batch_failure ... ok
 test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
 test test_persisted_vs_rescan_close_reopen_parity ... ok
@@ -275,13 +275,13 @@ test test_time_bounded_batch_interruption_and_clean_resume_parity ... ok
 test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
 test test_sliding_window_prunes_headers_without_deleting_notes ... ok
 
-test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.07s
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.16s
 
      Running tests/pending_spends_test.rs (target/debug/deps/pending_spends_test-6c753490d8ac1e70)
 
 running 3 tests
-test test_stale_reservation_and_expired_tx_cleanup ... ok
 test test_slow_proving_heartbeat_refresh_preserves_reservation ... ok
+test test_stale_reservation_and_expired_tx_cleanup ... ok
 test test_reserve_notes_and_state_transitions ... ok
 
 test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
@@ -298,13 +298,13 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/scanner_test.rs (target/debug/deps/scanner_test-9627c5c054eb350d)
 
 running 5 tests
-test test_scanner_rejects_malformed_action ... ok
 test test_scanner_detects_tree_size_gap ... ok
 test test_scanner_rejects_missing_metadata ... ok
+test test_scanner_rejects_malformed_action ... ok
 test test_scanner_dual_scope_and_positions_and_spend_detection ... ok
 test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
 
-test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.90s
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.13s
 
      Running tests/shard_store_test.rs (target/debug/deps/shard_store_test-f4d99ca86a044941)
 
@@ -315,7 +315,7 @@ test test_decode_zaino_tampered_frontier_fails_or_mismatches ... ok
 test test_shard_store_matches_memory_shard_store_roundtrip ... ok
 test test_p1_vs_p2_anchor_comparison ... ok
 
-test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.58s
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.67s
 
      Running tests/spendable_test.rs (target/debug/deps/spendable_test-fa3ae72d421fb0a1)
 
@@ -325,7 +325,7 @@ test test_builder_note_query_rejects_spent_above_anchor_and_unwitnessed_notes ..
 test test_spendable_notes_confirmation_boundaries_and_anchor_filtering ... ok
 test test_builder_integration_with_spendable_notes ... ok
 
-test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.70s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 29.04s
 
      Running tests/transaction_test.rs (target/debug/deps/transaction_test-9ff6d36e52e46560)
 
@@ -334,32 +334,31 @@ test test_c_live_regtest_broadcast_and_mine ... ignored
 test test_fee_acceptance_on_regtest_node ... ignored, requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)
 test test_p6_zip317_fee_parity_with_crate_feerule ... ok
 test test_default_tx_expiry_delta_for_nu6_3_and_nu7 ... ok
-test test_p4_analyze_crate_support_and_two_bundles ... ok
 test test_amendment2_zip302_default_memo ... ok
+test test_p4_analyze_crate_support_and_two_bundles ... ok
+test test_amendment4_action_padding ... ok
 test test_a_pure_rust_multi_input_multi_output has been running for over 60 seconds
 test test_amendment1_zip317_fee_strictness has been running for over 60 seconds
 test test_amendment3_ovk_policy has been running for over 60 seconds
-test test_amendment4_action_padding has been running for over 60 seconds
 test test_amendment5_anchor_and_expiry has been running for over 60 seconds
 test test_amendments_6_and_7_security_and_error_handling has been running for over 60 seconds
 test test_b_round_trip_transaction_read_and_txid has been running for over 60 seconds
 test test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id has been running for over 60 seconds
-test test_amendment1_zip317_fee_strictness ... ok
-test test_amendment4_action_padding ... ok
-test test_amendments_6_and_7_security_and_error_handling ... ok
 test test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id ... ok
-test test_amendment3_ovk_policy ... ok
 test test_amendment5_anchor_and_expiry ... ok
-test test_a_pure_rust_multi_input_multi_output ... ok
+test test_amendment1_zip317_fee_strictness ... ok
+test test_amendments_6_and_7_security_and_error_handling ... ok
+test test_amendment3_ovk_policy ... ok
 test test_b_round_trip_transaction_read_and_txid ... ok
+test test_a_pure_rust_multi_input_multi_output ... ok
 
-test result: ok. 12 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 91.09s
+test result: ok. 12 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 87.39s
 
      Running tests/tree_frontier_init_test.rs (target/debug/deps/tree_frontier_init_test-b53b400e523a50cd)
 
 running 4 tests
-test test_tree_frontier_init_size_mismatch_rejection ... ok
 test test_tree_frontier_init_empty_frontier_rejection ... ok
+test test_tree_frontier_init_size_mismatch_rejection ... ok
 test test_tree_frontier_init_from_captured_fixture ... ok
 test test_tree_frontier_init_idempotent ... ok
 
@@ -368,8 +367,8 @@ test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
      Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-1e20b6d0a85113cf)
 
 running 8 tests
-test test_consensus_branch_id_derivation ... ok
 test test_nu6_3_activation_heights_from_consensus ... ok
+test test_consensus_branch_id_derivation ... ok
 test test_address_equivalence_in_code ... ok
 test test_schema_v2_to_v3_migration_in_place ... ok
 test test_schema_v1_to_v2_migration_in_place_preserves_reservations ... ok
@@ -377,7 +376,7 @@ test test_notes_unique_txid_action_constraint ... ok
 test test_schema_initialization_and_permissions ... ok
 test test_metadata_binding_and_mismatch ... ok
 
-test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
 
      Running tests/wallet_handle_test.rs (target/debug/deps/wallet_handle_test-92b0cb07094b1df3)
 
@@ -397,9 +396,9 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
     Checking cfg-if v1.0.5
     Checking subtle v2.6.1
     Checking rand_core v0.10.1
-    Checking constant_time_eq v0.4.2
     Checking arrayvec v0.7.8
     Checking memuse v0.2.2
+    Checking constant_time_eq v0.4.2
     Checking tap v1.0.1
     Checking libc v0.2.190
     Checking radium v0.7.0
@@ -409,168 +408,168 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
     Checking wyz v0.5.1
     Checking scopeguard v1.2.0
     Checking crossbeam-utils v0.8.23
-    Checking hex v0.4.3
     Checking once_cell v1.21.4
+    Checking hex v0.4.3
     Checking pin-project-lite v0.2.17
-    Checking static_assertions v1.1.0
     Checking blake2b_simd v1.0.5
+    Checking static_assertions v1.1.0
     Checking lock_api v0.4.14
-    Checking ctutils v0.4.5
     Checking either v1.19.0
     Checking byteorder v1.5.0
+    Checking ctutils v0.4.5
     Checking corez v0.1.1
     Checking thiserror v2.0.21
     Checking bitflags v2.13.2
     Checking serde_core v1.0.229
     Checking spin v0.9.9
-    Checking tracing-core v0.1.36
     Checking bitvec v1.1.1
+    Checking tracing-core v0.1.36
     Checking bech32 v0.11.1
     Checking nonempty v0.11.0
     Checking num-traits v0.2.19
     Checking crossbeam-epoch v0.9.21
-    Checking zerocopy v0.8.63
     Checking lazy_static v1.5.1
+    Checking zerocopy v0.8.63
    Compiling itertools v0.14.0
     Checking memchr v2.8.3
+    Checking crossbeam-deque v0.8.8
     Checking tracing v0.1.44
     Checking zcash_encoding v0.5.0
-    Checking crossbeam-deque v0.8.8
     Checking getrandom v0.4.3
     Checking cpufeatures v0.2.17
+    Checking rayon-core v1.13.0
     Checking cpufeatures v0.3.1
+    Checking getrandom v0.2.17
     Checking hybrid-array v0.4.15
     Checking generic-array v0.14.7
-    Checking rayon-core v1.13.0
-    Checking getrandom v0.2.17
     Checking secp256k1-sys v0.14.1
     Checking zcash_spec v0.2.1
-   Compiling bytes v1.12.1
-    Checking num-integer v0.1.47
-   Compiling equivalent v1.0.3
     Checking hashbrown v0.17.1
+    Checking num-integer v0.1.47
    Compiling errno v0.3.14
     Checking rayon v1.12.0
+    Checking equivalent v1.0.3
     Checking futures-sink v0.3.34
     Checking futures-core v0.3.34
+   Compiling bytes v1.12.1
     Checking crypto-common v0.2.2
     Checking block-buffer v0.12.1
     Checking inout v0.2.5
-    Checking block-buffer v0.10.4
     Checking crypto-common v0.1.7
+    Checking block-buffer v0.10.4
    Compiling rustix v1.1.5
-    Checking digest v0.10.7
-    Checking num-bigint v0.5.1
     Checking indexmap v2.14.2
-    Checking secp256k1 v0.33.1
+    Checking num-bigint v0.5.1
+    Checking digest v0.10.7
     Checking sha2 v0.10.9
+    Checking secp256k1 v0.33.1
     Checking bs58 v0.5.1
+   Compiling prost-derive v0.14.4
     Checking cipher v0.5.2
     Checking digest v0.11.3
     Checking universal-hash v0.6.1
+    Checking serde v1.0.229
     Checking aead v0.6.1
-    Checking poly1305 v0.9.1
-   Compiling prost-derive v0.14.4
     Checking chacha20 v0.10.2
+    Checking poly1305 v0.9.1
     Checking ripemd v0.2.0
     Checking hmac v0.13.0
     Checking sha2 v0.11.1
+    Checking ff v0.14.0
     Checking cbc v0.2.1
     Checking rand v0.10.3
-    Checking serde v1.0.229
     Checking chacha20poly1305 v0.11.0
+    Checking group v0.14.0
     Checking zip32 v0.3.0
     Checking zcash_protocol v0.11.0
-    Checking ff v0.14.0
+    Checking pairing v0.24.0
     Checking num_cpus v1.17.0
     Checking libm v0.2.16
-    Checking group v0.14.0
     Checking crunchy v0.2.4
     Checking crossbeam-channel v0.5.17
+    Checking bls12_381 v0.9.0
     Checking incrementalmerkletree v0.9.0
     Checking blake2s_simd v1.0.5
-   Compiling fastrand v2.5.0
-    Checking pairing v0.24.0
+    Checking maybe-rayon v0.1.1
     Checking cpubits v0.1.1
-    Checking pasta_curves v0.6.1
-    Checking bls12_381 v0.9.0
     Checking halo2_legacy_pdqsort v0.1.0
     Checking log v0.4.34
-    Checking bip32 v0.6.0
-   Compiling tempfile v3.27.0
-   Compiling petgraph v0.8.3
+   Compiling fastrand v2.5.0
     Checking aes v0.9.3
+   Compiling petgraph v0.8.3
     Checking uint v0.9.5
     Checking zcash_note_encryption v0.5.1
-    Checking maybe-rayon v0.1.1
+    Checking pasta_curves v0.6.1
     Checking bellman v0.15.0
-    Checking ripemd v0.1.3
+    Checking bip32 v0.6.0
+   Compiling tempfile v3.27.0
     Checking sha1 v0.10.7
+    Checking ripemd v0.1.3
+    Checking jubjub v0.11.1
     Checking rand_core v0.6.4
     Checking bounded-vec v0.9.0
-    Checking jubjub v0.11.1
     Checking futures-channel v0.3.34
     Checking f4jumble v0.1.2
-    Checking slab v0.4.12
-    Checking fpe v0.7.0
-    Checking futures-task v0.3.34
     Checking futures-io v0.3.34
+    Checking slab v0.4.12
+    Checking futures-task v0.3.34
     Checking zcash_address v0.14.0
+    Checking fpe v0.7.0
    Compiling which v8.0.6
     Checking minimal-lexical v0.2.1
-    Checking futures-util v0.3.34
-    Checking base64ct v1.8.3
-    Checking equihash v0.3.0
    Compiling prost v0.14.4
+    Checking base64ct v1.8.3
+    Checking futures-util v0.3.34
+    Checking equihash v0.3.0
+    Checking groth16 v0.2.0
+    Checking nom v7.1.3
+    Checking nanorand v0.7.0
+    Checking secrecy v0.8.0
+    Checking password-hash v0.5.0
+    Checking libloading v0.9.0
+    Checking time-core v0.1.9
     Checking reddsa v0.6.1
     Checking sinsemilla v0.2.0
     Checking halo2_proofs v0.4.0
     Checking halo2_poseidon v0.2.0
-    Checking groth16 v0.2.0
-    Checking nom v7.1.3
-    Checking password-hash v0.5.0
     Checking zcash_script v0.6.0
-    Checking redjubjub v0.9.0
-    Checking nanorand v0.7.0
-    Checking secrecy v0.8.0
-    Checking libloading v0.9.0
-    Checking deranged v0.5.9
-    Checking sapling-crypto v0.9.0
-    Checking time-core v0.1.9
-    Checking ppv-lite86 v0.2.21
-    Checking ahash v0.8.12
     Checking base64 v0.22.1
+    Checking ahash v0.8.12
+    Checking ppv-lite86 v0.2.21
+    Checking redjubjub v0.9.0
     Checking hashbrown v0.14.5
     Checking rand_chacha v0.3.1
-    Checking zcash_transparent v0.11.0
-   Compiling prost-types v0.14.4
+    Checking sapling-crypto v0.9.0
     Checking powerfmt v0.2.1
     Checking percent-encoding v2.3.2
-    Checking num-conv v0.2.2
     Checking tinyvec v1.13.3
-    Checking hashlink v0.9.1
+    Checking num-conv v0.2.2
+    Checking zcash_transparent v0.11.0
+   Compiling prost-types v0.14.4
+    Checking deranged v0.5.9
     Checking rand v0.8.8
+    Checking hashlink v0.9.1
+    Checking unicode-normalization v0.1.25
+    Checking pbkdf2 v0.12.2
     Checking napi-sys v3.4.0
+    Checking zip321 v0.10.0
     Checking flume v0.11.1
     Checking tokio v1.54.1
-    Checking zip321 v0.10.0
     Checking libsqlite3-sys v0.30.1
-    Checking time v0.3.55
-    Checking pbkdf2 v0.12.2
-    Checking unicode-normalization v0.1.25
    Compiling zcash-core v0.1.0 (/private/tmp/cza-clean-verify/packages/core)
     Checking shardtree v0.8.0
     Checking hmac v0.12.1
-    Checking fallible-iterator v0.3.0
-    Checking ctor v1.0.13
-    Checking rustc-hash v2.1.3
     Checking smallvec v1.16.4
+   Compiling ctor v1.0.13
     Checking nohash-hasher v0.2.0
-   Compiling prost-build v0.14.4
     Checking fallible-streaming-iterator v0.1.9
+    Checking fallible-iterator v0.3.0
+    Checking rustc-hash v2.1.3
    Compiling napi-derive v3.6.12
     Checking bip0039 v0.12.0
     Checking zmij v1.0.23
+   Compiling prost-build v0.14.4
+    Checking time v0.3.55
     Checking rusqlite v0.32.1
     Checking futures-executor v0.3.34
     Checking itoa v1.0.18
@@ -578,137 +577,137 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
     Checking serde_json v1.0.154
     Checking napi v3.14.2
    Compiling tonic-prost-build v0.14.6
-    Checking halo2_gadgets v0.6.0
    Compiling zcash_client_backend v0.25.0
+    Checking halo2_gadgets v0.6.0
     Checking orchard v0.16.0
     Checking zcash_primitives v0.31.0
     Checking zcash_keys v0.17.0
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.06s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 11.04s
 === [4/8] Running SDK Tests ===
 $ napi build --platform --release
    Compiling proc-macro2 v1.0.107
-   Compiling quote v1.0.47
    Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
    Compiling libc v0.2.190
    Compiling typenum v1.20.1
    Compiling cfg-if v1.0.5
    Compiling subtle v2.6.1
    Compiling version_check v0.9.5
    Compiling rand_core v0.10.1
+   Compiling memuse v0.2.2
    Compiling constant_time_eq v0.4.2
    Compiling arrayvec v0.7.8
-   Compiling memuse v0.2.2
    Compiling radium v0.7.0
    Compiling tap v1.0.1
    Compiling funty v2.0.0
-   Compiling crossbeam-utils v0.8.23
    Compiling cmov v0.5.4
    Compiling wyz v0.5.1
-   Compiling getrandom v0.4.3
-   Compiling generic-array v0.14.7
    Compiling blake2b_simd v1.0.5
+   Compiling generic-array v0.14.7
+   Compiling crossbeam-utils v0.8.23
+   Compiling getrandom v0.4.3
    Compiling ctutils v0.4.5
    Compiling scopeguard v1.2.0
    Compiling lock_api v0.4.14
+   Compiling crossbeam-epoch v0.9.21
    Compiling shlex v2.0.1
    Compiling hex v0.4.3
    Compiling find-msvc-tools v0.1.14
    Compiling hybrid-array v0.4.15
-   Compiling crossbeam-epoch v0.9.21
    Compiling cc v1.8.0
    Compiling spin v0.9.9
+   Compiling pin-project-lite v0.2.17
    Compiling crossbeam-deque v0.8.8
    Compiling once_cell v1.21.4
    Compiling bitvec v1.1.1
-   Compiling pin-project-lite v0.2.17
-   Compiling static_assertions v1.1.0
    Compiling rayon-core v1.13.0
-   Compiling either v1.19.0
-   Compiling lazy_static v1.5.1
    Compiling crypto-common v0.2.2
    Compiling block-buffer v0.12.1
    Compiling inout v0.2.5
+   Compiling either v1.19.0
+   Compiling static_assertions v1.1.0
+   Compiling lazy_static v1.5.1
    Compiling thiserror v2.0.21
    Compiling syn v2.0.119
    Compiling syn v3.0.9
+   Compiling corez v0.1.1
+   Compiling anyhow v1.0.104
+   Compiling cipher v0.5.2
    Compiling autocfg v1.5.1
+   Compiling chacha20 v0.10.2
+   Compiling byteorder v1.5.0
    Compiling crypto-common v0.1.7
    Compiling block-buffer v0.10.4
    Compiling cpufeatures v0.2.17
-   Compiling digest v0.10.7
-   Compiling byteorder v1.5.0
-   Compiling corez v0.1.1
-   Compiling anyhow v1.0.104
    Compiling num-traits v0.2.19
-   Compiling cipher v0.5.2
-   Compiling sha2 v0.10.9
    Compiling cpufeatures v0.3.1
-   Compiling chacha20 v0.10.2
-   Compiling serde_core v1.0.229
+   Compiling digest v0.10.7
    Compiling rand v0.10.3
    Compiling zerocopy v0.8.63
+   Compiling serde_core v1.0.229
+   Compiling sha2 v0.10.9
    Compiling itertools v0.14.0
-   Compiling secp256k1-sys v0.14.1
    Compiling rayon v1.12.0
-   Compiling digest v0.11.3
    Compiling getrandom v0.2.17
+   Compiling secp256k1-sys v0.14.1
+   Compiling digest v0.11.3
    Compiling tracing-core v0.1.36
-   Compiling litrs v1.0.1
-   Compiling serde v1.0.229
-   Compiling nonempty v0.11.0
-   Compiling ff v0.14.0
    Compiling bech32 v0.11.1
-   Compiling document-features v0.2.12
+   Compiling litrs v1.0.1
+   Compiling ff v0.14.0
+   Compiling serde v1.0.229
    Compiling group v0.14.0
+   Compiling nonempty v0.11.0
    Compiling pairing v0.24.0
+   Compiling document-features v0.2.12
    Compiling bs58 v0.5.1
    Compiling universal-hash v0.6.1
-   Compiling bitflags v2.13.2
-   Compiling rustix v1.1.5
    Compiling libm v0.2.16
    Compiling crunchy v0.2.4
    Compiling prettyplease v0.2.37
-   Compiling num-integer v0.1.47
+   Compiling bitflags v2.13.2
+   Compiling rustix v1.1.5
    Compiling poly1305 v0.9.1
+   Compiling num-integer v0.1.47
    Compiling zcash_encoding v0.5.0
    Compiling errno v0.3.14
    Compiling aead v0.6.1
    Compiling zcash_spec v0.2.1
-   Compiling memchr v2.8.3
-   Compiling equivalent v1.0.3
-   Compiling foldhash v0.1.5
    Compiling hashbrown v0.17.1
-   Compiling futures-sink v0.3.34
-   Compiling bytes v1.12.1
    Compiling regex-syntax v0.8.11
    Compiling futures-core v0.3.34
-   Compiling hashbrown v0.15.5
+   Compiling equivalent v1.0.3
+   Compiling memchr v2.8.3
    Compiling thiserror-impl v2.0.21
-   Compiling serde_derive v1.0.229
-   Compiling indexmap v2.14.2
    Compiling zeroize_derive v1.5.0
    Compiling tracing-attributes v0.1.31
    Compiling prost-derive v0.14.4
-   Compiling getset v0.1.7
+   Compiling serde_derive v1.0.229
+   Compiling foldhash v0.1.5
    Compiling zeroize v1.9.1
-   Compiling chacha20poly1305 v0.11.0
+   Compiling bytes v1.12.1
+   Compiling futures-sink v0.3.34
+   Compiling hashbrown v0.15.5
+   Compiling indexmap v2.14.2
    Compiling regex-automata v0.4.18
-   Compiling zcash_protocol v0.11.0
-   Compiling pasta_curves v0.6.1
    Compiling tracing v0.1.44
+   Compiling pasta_curves v0.6.1
    Compiling bls12_381 v0.9.0
-   Compiling zip32 v0.3.0
    Compiling prost v0.14.4
+   Compiling zip32 v0.3.0
+   Compiling getset v0.1.7
+   Compiling chacha20poly1305 v0.11.0
+   Compiling jubjub v0.11.1
+   Compiling zcash_protocol v0.11.0
    Compiling maybe-rayon v0.1.1
    Compiling num-bigint v0.5.1
-   Compiling sha2 v0.11.1
-   Compiling jubjub v0.11.1
-   Compiling ripemd v0.2.0
    Compiling hmac v0.13.0
-   Compiling cbc v0.2.1
+   Compiling sha2 v0.11.1
+   Compiling ripemd v0.2.0
    Compiling num_cpus v1.17.0
-   Compiling incrementalmerkletree v0.9.0
    Compiling crossbeam-channel v0.5.17
+   Compiling cbc v0.2.1
+   Compiling incrementalmerkletree v0.9.0
    Compiling blake2s_simd v1.0.5
    Compiling fastrand v2.5.0
    Compiling cpubits v0.1.1
@@ -716,115 +715,125 @@ $ napi build --platform --release
    Compiling fixedbitset v0.5.7
    Compiling log v0.4.34
    Compiling tempfile v3.27.0
+   Compiling reddsa v0.6.1
    Compiling petgraph v0.8.3
    Compiling bellman v0.15.0
-   Compiling halo2_proofs v0.4.0
    Compiling fpe v0.7.0
+   Compiling halo2_proofs v0.4.0
    Compiling aes v0.9.3
-   Compiling reddsa v0.6.1
    Compiling prost-types v0.14.4
-   Compiling sinsemilla v0.2.0
-   Compiling halo2_poseidon v0.2.0
    Compiling regex v1.13.1
    Compiling uint v0.9.5
-   Compiling bounded-vec v0.9.0
+   Compiling sinsemilla v0.2.0
+   Compiling halo2_poseidon v0.2.0
    Compiling zcash_note_encryption v0.5.1
+   Compiling bounded-vec v0.9.0
    Compiling rand_core v0.6.4
    Compiling sha1 v0.10.7
    Compiling ripemd v0.1.3
    Compiling ahash v0.8.12
+   Compiling multimap v0.10.1
    Compiling heck v0.5.0
    Compiling napi-build v2.6.0
-   Compiling multimap v0.10.1
-   Compiling groth16 v0.2.0
    Compiling prost-build v0.14.4
+   Compiling groth16 v0.2.0
    Compiling redjubjub v0.9.0
    Compiling tonic-build v0.14.6
+   Compiling futures-channel v0.3.34
    Compiling visibility v0.1.1
    Compiling futures-macro v0.3.34
-   Compiling futures-channel v0.3.34
    Compiling f4jumble v0.1.2
+   Compiling futures-io v0.3.34
    Compiling equihash v0.3.0
    Compiling futures-task v0.3.34
    Compiling vcpkg v0.2.15
    Compiling slab v0.4.12
    Compiling pkg-config v0.3.34
-   Compiling futures-io v0.3.34
-   Compiling zcash_address v0.14.0
    Compiling tonic-prost-build v0.14.6
+   Compiling zcash_address v0.14.0
+   Compiling secp256k1 v0.33.1
    Compiling sapling-crypto v0.9.0
-   Compiling libsqlite3-sys v0.30.1
    Compiling futures-util v0.3.34
    Compiling ppv-lite86 v0.2.21
+   Compiling libsqlite3-sys v0.30.1
    Compiling which v8.0.6
-   Compiling base64ct v1.8.3
-   Compiling unicode-segmentation v1.13.3
-   Compiling minimal-lexical v0.2.1
-   Compiling napi-sys v3.4.0
-   Compiling password-hash v0.5.0
-   Compiling secp256k1 v0.33.1
-   Compiling convert_case v0.12.0
-   Compiling nom v7.1.3
-   Compiling halo2_gadgets v0.6.0
    Compiling bip32 v0.6.0
-   Compiling zcash_client_backend v0.25.0
+   Compiling minimal-lexical v0.2.1
+   Compiling unicode-segmentation v1.13.3
+   Compiling base64ct v1.8.3
+   Compiling napi-sys v3.4.0
    Compiling zcash_script v0.6.0
+   Compiling password-hash v0.5.0
+   Compiling convert_case v0.12.0
+   Compiling halo2_gadgets v0.6.0
+   Compiling nom v7.1.3
+   Compiling zcash_client_backend v0.25.0
+   Compiling zcash_transparent v0.11.0
    Compiling rand_chacha v0.3.1
    Compiling hashbrown v0.14.5
    Compiling napi v3.14.2
    Compiling secrecy v0.8.0
-   Compiling zcash_transparent v0.11.0
    Compiling tokio-macros v2.7.2
    Compiling orchard v0.16.0
    Compiling nanorand v0.7.0
+   Compiling futures-executor v0.3.34
    Compiling libloading v0.9.0
+   Compiling tinyvec v1.13.3
+   Compiling deranged v0.5.9
    Compiling time-core v0.1.9
    Compiling base64 v0.22.1
-   Compiling futures-executor v0.3.34
    Compiling semver v1.0.28
    Compiling powerfmt v0.2.1
    Compiling percent-encoding v2.3.2
    Compiling num-conv v0.2.2
-   Compiling tinyvec v1.13.3
-   Compiling deranged v0.5.9
    Compiling zip321 v0.10.0
    Compiling napi-derive-backend v6.1.5
    Compiling unicode-normalization v0.1.25
-   Compiling futures v0.3.34
-   Compiling tokio v1.54.1
    Compiling time v0.3.55
+   Compiling futures v0.3.34
    Compiling flume v0.11.1
+   Compiling tokio v1.54.1
    Compiling hashlink v0.9.1
    Compiling rand v0.8.8
    Compiling pbkdf2 v0.12.2
    Compiling zcash-core v0.1.0 (/private/tmp/cza-clean-verify/packages/core)
-   Compiling zcash_primitives v0.31.0
-   Compiling zcash_keys v0.17.0
    Compiling shardtree v0.8.0
    Compiling hmac v0.12.1
-   Compiling ctor v1.0.13
-   Compiling fallible-iterator v0.3.0
-   Compiling smallvec v1.16.4
-   Compiling rustc-hash v2.1.3
    Compiling nohash-hasher v0.2.0
+   Compiling zcash_primitives v0.31.0
+   Compiling zcash_keys v0.17.0
    Compiling fallible-streaming-iterator v0.1.9
+   Compiling ctor v1.0.13
+   Compiling smallvec v1.16.4
+   Compiling fallible-iterator v0.3.0
+   Compiling rustc-hash v2.1.3
    Compiling napi-derive v3.6.12
    Compiling bip0039 v0.12.0
    Compiling rusqlite v0.32.1
-    Finished `release` profile [optimized] target(s) in 45.27s
+    Finished `release` profile [optimized] target(s) in 44.91s
 $ vitest run
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
  RUN  v2.1.9 /private/tmp/cza-clean-verify/packages/sdk
 
- ✓ src/consensus.test.ts (5 tests) 4ms
- ✓ src/spend-tracking.test.ts (2 tests) 6ms
- ✓ src/decrypted-tx.test.ts (3 tests) 59ms
- ✓ src/client.test.ts (9 tests) 101ms
+ ✓ src/consensus.test.ts (5 tests) 6ms
+ ✓ src/spend-tracking.test.ts (2 tests) 8ms
+ ✓ src/decrypted-tx.test.ts (3 tests) 53ms
 stdout | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
 [Sync] (127.0.0.1:28137) (local) Starting sync from height 50 to target 50 (tip: 50, batch size: 1000, throttle: 50ms)...
 
+ ✓ src/client.test.ts (9 tests) 134ms
  ✓ src/mainnet-guard.test.ts (4 tests) 7ms
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > makes zero block requests when already at tip, and requests only >= last_scanned+1 on advance
+[Sync] (undefined) (third-party server) Wallet already synced at height 0 (target end: 0). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 15 (target end: 15). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Starting sync from height 16 to target 25 (tip: 25, batch size: 10, throttle: 50ms)...
+
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+
+ ✓ src/sync.test.ts (2 tests) 42ms
 stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
 [Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
 [Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
@@ -843,24 +852,14 @@ stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend 
 [Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
 [Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
 
-stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > makes zero block requests when already at tip, and requests only >= last_scanned+1 on advance
-[Sync] (undefined) (third-party server) Wallet already synced at height 0 (target end: 0). Fetching 0 blocks.
-[Sync] (undefined) (third-party server) Wallet already synced at height 15 (target end: 15). Fetching 0 blocks.
-[Sync] (undefined) (third-party server) Starting sync from height 16 to target 25 (tip: 25, batch size: 10, throttle: 50ms)...
-
-stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false
-[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
-[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
-
- ✓ src/sync.test.ts (2 tests) 197ms
 stderr | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
 [Sync] (127.0.0.1:28137) (local) Failed to fetch full transaction aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (attempted 3x): Connection timeout to node
 
 stdout | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
 [Sync] (127.0.0.1:28137) (local) Height: 50/50 (100.0%) | Req: 5 | Speed: 1.7 blocks/s
 
- ✓ src/sync-tx-fetch.test.ts (4 tests) 639ms
-   ✓ Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts 613ms
+ ✓ src/sync-tx-fetch.test.ts (4 tests) 644ms
+   ✓ Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts 609ms
 stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
 [Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
 [Sync] (undefined) (third-party server) Verified against GetTreeState(10):
@@ -1018,19 +1017,19 @@ stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend 
 [Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
 [Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
 
- ✓ src/send.test.ts (19 tests) 671ms
+ ✓ src/send.test.ts (19 tests) 577ms
 stdout | src/explorer.test.ts > Phase 3 Explorer Offline Tests > Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers
-[Sync] (http://127.0.0.1:39067) (local) Wallet already synced at height 114 (target end: 110). Fetching 0 blocks.
+[Sync] (http://127.0.0.1:39067) (local) Wallet already synced at height 114 (target end: 107). Fetching 0 blocks.
 
- ✓ src/explorer.test.ts (18 tests) 5132ms
-   ✓ Phase 3 Explorer Offline Tests > Security: request with ?zebraRpc=... query param must NOT cause any call to that listener 1700ms
-   ✓ Phase 3 Explorer Offline Tests > Security: without ZCASH_ALLOW_CUSTOM_ENDPOINT=1, ?customEndpoint=... causes zero connections to a canary listener for /api/explorer, /api/status, and /api/account 1488ms
-   ✓ Phase 3 Explorer Offline Tests > Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers 1671ms
+ ✓ src/explorer.test.ts (18 tests) 6151ms
+   ✓ Phase 3 Explorer Offline Tests > Security: request with ?zebraRpc=... query param must NOT cause any call to that listener 2854ms
+   ✓ Phase 3 Explorer Offline Tests > Security: without ZCASH_ALLOW_CUSTOM_ENDPOINT=1, ?customEndpoint=... causes zero connections to a canary listener for /api/explorer, /api/status, and /api/account 1347ms
+   ✓ Phase 3 Explorer Offline Tests > Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers 1708ms
 
  Test Files  9 passed (9)
       Tests  66 passed (66)
-   Start at  01:21:54
-   Duration  6.49s (transform 710ms, setup 0ms, collect 6.70s, tests 6.82s, environment 2ms, prepare 831ms)
+   Start at  02:24:27
+   Duration  7.53s (transform 609ms, setup 0ms, collect 7.87s, tests 7.62s, environment 1ms, prepare 674ms)
 
 === [5/8] Running zcash-dev CLI Tests ===
 $ tsc
@@ -1042,206 +1041,212 @@ TAP version 13
     # Subtest: 1. Env parser precedence: process.env wins > .env.local > .env
     ok 1 - 1. Env parser precedence: process.env wins > .env.local > .env
       ---
-      duration_ms: 1.906542
+      duration_ms: 2.08725
       type: 'test'
       ...
     # Subtest: 2. Redaction: secret URLs and mnemonics are scrubbed from outputs and errors
     ok 2 - 2. Redaction: secret URLs and mnemonics are scrubbed from outputs and errors
       ---
-      duration_ms: 0.311709
+      duration_ms: 0.35025
       type: 'test'
       ...
     # Subtest: 3. .gitignore guard: verifies .gitignore protects .env.local
     ok 3 - 3. .gitignore guard: verifies .gitignore protects .env.local
       ---
-      duration_ms: 0.844583
+      duration_ms: 0.913625
       type: 'test'
       ...
     # Subtest: 4. File mode 0600: .env.local permissions are restricted to owner read/write
     ok 4 - 4. File mode 0600: .env.local permissions are restricted to owner read/write
       ---
-      duration_ms: 59.387417
+      duration_ms: 60.039916
       type: 'test'
       ...
     # Subtest: 5. Mainnet key policy: refuses to write mnemonic to disk without explicit flag
     ok 5 - 5. Mainnet key policy: refuses to write mnemonic to disk without explicit flag
       ---
-      duration_ms: 115.259708
+      duration_ms: 116.4925
       type: 'test'
       ...
     # Subtest: 6. Argv safety: assert NO --mnemonic or -m option exists in CLI programs
     ok 6 - 6. Argv safety: assert NO --mnemonic or -m option exists in CLI programs
       ---
-      duration_ms: 0.232125
+      duration_ms: 0.229959
       type: 'test'
       ...
     # Subtest: 7. Template route: testnet/mainnet error without key, UFVK watch-only rejects send
     ok 7 - 7. Template route: testnet/mainnet error without key, UFVK watch-only rejects send
       ---
-      duration_ms: 81.196583
+      duration_ms: 82.627583
       type: 'test'
       ...
     # Subtest: 8. send command: default dry run quotes fee and never calls broadcast
     ok 8 - 8. send command: default dry run quotes fee and never calls broadcast
       ---
-      duration_ms: 0.702792
+      duration_ms: 0.7155
       type: 'test'
       ...
     # Subtest: 9. Scaffold e2e: non-interactive scaffold for regtest and testnet in temp dir
     ok 9 - 9. Scaffold e2e: non-interactive scaffold for regtest and testnet in temp dir
       ---
-      duration_ms: 114.844291
+      duration_ms: 118.55225
       type: 'test'
       ...
     # Subtest: 10. Grep test: sentinel secret mnemonic never appears in CLI output or logs
     ok 10 - 10. Grep test: sentinel secret mnemonic never appears in CLI output or logs
       ---
-      duration_ms: 211.892833
+      duration_ms: 217.830291
       type: 'test'
       ...
     # Subtest: 11. validateEndpoint: rejects values containing "://" with exact message and validates endpoint formats
     ok 11 - 11. validateEndpoint: rejects values containing "://" with exact message and validates endpoint formats
       ---
-      duration_ms: 152.918667
+      duration_ms: 159.820709
       type: 'test'
       ...
     # Subtest: 12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit
     ok 12 - 12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit
       ---
-      duration_ms: 74.605
+      duration_ms: 55.844209
       type: 'test'
       ...
     # Subtest: 13. Secret URL and credential redaction: secrets appear only in .env.local and are redacted in zcash.config.json
     ok 13 - 13. Secret URL and credential redaction: secrets appear only in .env.local and are redacted in zcash.config.json
       ---
-      duration_ms: 81.279708
+      duration_ms: 62.642167
       type: 'test'
       ...
     # Subtest: 14. BIP-39 wordlist SHA-256 integrity: hash equals 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
     ok 14 - 14. BIP-39 wordlist SHA-256 integrity: hash equals 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
       ---
-      duration_ms: 0.287291
+      duration_ms: 0.52575
       type: 'test'
       ...
     # Subtest: 15. Scaffolder regtest stack option: --regtest-stack nu7 vs --regtest-stack z3
     ok 15 - 15. Scaffolder regtest stack option: --regtest-stack nu7 vs --regtest-stack z3
       ---
-      duration_ms: 121.550209
+      duration_ms: 124.350542
       type: 'test'
       ...
     # Subtest: 16. Unbound WalletHandle.open regression test: executeSend with default openFn exercises receiver binding
     ok 16 - 16. Unbound WalletHandle.open regression test: executeSend with default openFn exercises receiver binding
       ---
-      duration_ms: 19.597542
+      duration_ms: 17.408458
       type: 'test'
       ...
     # Subtest: 17. executeFund unit tests: NU7 SDK send vs Z3 Zallet RPC router with stubbed dependencies
     ok 17 - 17. executeFund unit tests: NU7 SDK send vs Z3 Zallet RPC router with stubbed dependencies
       ---
-      duration_ms: 37.021667
+      duration_ms: 41.223125
       type: 'test'
       ...
-    1..17
+    # Subtest: 18. regtest-init.sh retry logic & CLI execSync error handling
+    ok 18 - 18. regtest-init.sh retry logic & CLI execSync error handling
+      ---
+      duration_ms: 7639.604
+      type: 'test'
+      ...
+    1..18
 ok 1 - Private-Key & RPC Configuration (create-zcash-app & zcash-dev)
   ---
-  duration_ms: 1075.050417
+  duration_ms: 8702.443875
   type: 'suite'
   ...
 # Subtest: Local Testnet Lightwalletd Helper (v0.6.0 Flags & Secret Redaction)
     # Subtest: builds genuine v0.6.0 lightwalletd arguments with exact required flags
     ok 1 - builds genuine v0.6.0 lightwalletd arguments with exact required flags
       ---
-      duration_ms: 0.815292
+      duration_ms: 1.159584
       type: 'test'
       ...
     # Subtest: strictly refuses to build arguments without an RPC password / cookie token
     ok 2 - strictly refuses to build arguments without an RPC password / cookie token
       ---
-      duration_ms: 0.244583
+      duration_ms: 0.266458
       type: 'test'
       ...
     # Subtest: redacts cookie token and replaces home directory paths for safe logging
     ok 3 - redacts cookie token and replaces home directory paths for safe logging
       ---
-      duration_ms: 0.121042
+      duration_ms: 0.1315
       type: 'test'
       ...
     # Subtest: reads and parses Zebra cookie file by code, handling restarts and invalid formats
     ok 4 - reads and parses Zebra cookie file by code, handling restarts and invalid formats
       ---
-      duration_ms: 1.563166
+      duration_ms: 1.715792
       type: 'test'
       ...
     # Subtest: zcash-dev testnet lightwalletd --dry-run prints redacted flags and never reveals token in output
     ok 5 - zcash-dev testnet lightwalletd --dry-run prints redacted flags and never reveals token in output
       ---
-      duration_ms: 106.772334
+      duration_ms: 109.724667
       type: 'test'
       ...
     1..5
 ok 2 - Local Testnet Lightwalletd Helper (v0.6.0 Flags & Secret Redaction)
   ---
-  duration_ms: 110.343625
+  duration_ms: 113.877625
   type: 'suite'
   ...
 # Subtest: Port Uniqueness Across Local Stacks & Presets
     # Subtest: ensures every local preset in endpoints.ts has a distinct port
     ok 1 - ensures every local preset in endpoints.ts has a distinct port
       ---
-      duration_ms: 0.903875
+      duration_ms: 0.939917
       type: 'test'
       ...
     # Subtest: ensures docker-compose stacks and testnet lightwalletd use non-overlapping host ports
     ok 2 - ensures docker-compose stacks and testnet lightwalletd use non-overlapping host ports
       ---
-      duration_ms: 0.507916
+      duration_ms: 0.797042
       type: 'test'
       ...
     1..2
 ok 3 - Port Uniqueness Across Local Stacks & Presets
   ---
-  duration_ms: 2.858417
+  duration_ms: 3.323333
   type: 'suite'
   ...
 # Subtest: zcash-dev regtest wipe refuses to run without --yes (default z3-regtest)
 ok 4 - zcash-dev regtest wipe refuses to run without --yes (default z3-regtest)
   ---
-  duration_ms: 337.237375
+  duration_ms: 352.640709
   type: 'test'
   ...
 # Subtest: zcash-dev regtest wipe refuses to run without --yes (nu7 stack: zcash-regtest-nu7)
 ok 5 - zcash-dev regtest wipe refuses to run without --yes (nu7 stack: zcash-regtest-nu7)
   ---
-  duration_ms: 226.061041
+  duration_ms: 229.773208
   type: 'test'
   ...
 # Subtest: zcash-dev regtest wipe refuses untrusted project name
 ok 6 - zcash-dev regtest wipe refuses untrusted project name
   ---
-  duration_ms: 99.890458
+  duration_ms: 100.958291
   type: 'test'
   ...
 # Subtest: zcash-dev regtest wipe --dry-run accepts zcash-regtest-nu7 project name
 ok 7 - zcash-dev regtest wipe --dry-run accepts zcash-regtest-nu7 project name
   ---
-  duration_ms: 223.582084
+  duration_ms: 246.241459
   type: 'test'
   ...
 # Subtest: miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks
 ok 8 - miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks
   ---
-  duration_ms: 93.463042
+  duration_ms: 94.113458
   type: 'test'
   ...
 1..8
-# tests 29
+# tests 30
 # suites 3
-# pass 29
+# pass 30
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 1502.848834
+# duration_ms 9113.793416
 === [6/8] Running Dashboard Tests ===
 $ node --test test/*.test.mjs
 TAP version 13
@@ -1250,118 +1255,118 @@ TAP version 13
         # Subtest: handles synced state when percentage >= 99.9%
         ok 1 - handles synced state when percentage >= 99.9%
           ---
-          duration_ms: 0.621375
+          duration_ms: 0.583958
           type: 'test'
           ...
         # Subtest: handles synced state when blocks >= headers and within 2 blocks of estimate
         ok 2 - handles synced state when blocks >= headers and within 2 blocks of estimate
           ---
-          duration_ms: 0.162416
+          duration_ms: 0.154042
           type: 'test'
           ...
         # Subtest: handles syncing state when sync percentage < 99.9%
         ok 3 - handles syncing state when sync percentage < 99.9%
           ---
-          duration_ms: 0.078083
+          duration_ms: 0.078458
           type: 'test'
           ...
         # Subtest: handles regtest network: tip estimate is irrelevant, returns syncState="regtest" and syncPercent=null
         ok 4 - handles regtest network: tip estimate is irrelevant, returns syncState="regtest" and syncPercent=null
           ---
-          duration_ms: 0.073666
+          duration_ms: 0.07575
           type: 'test'
           ...
         # Subtest: falls back to verification_progress * 100 when estimated_height is missing or zero
         ok 5 - falls back to verification_progress * 100 when estimated_height is missing or zero
           ---
-          duration_ms: 0.063625
+          duration_ms: 0.067666
           type: 'test'
           ...
         # Subtest: handles estimated_height < blocks gracefully (clamps at 100%)
         ok 6 - handles estimated_height < blocks gracefully (clamps at 100%)
           ---
-          duration_ms: 0.061125
+          duration_ms: 0.0625
           type: 'test'
           ...
         # Subtest: handles unreachable RPC or null/empty input without faking 0% or 100%
         ok 7 - handles unreachable RPC or null/empty input without faking 0% or 100%
           ---
-          duration_ms: 0.196958
+          duration_ms: 0.194833
           type: 'test'
           ...
         # Subtest: calculates indexer lag correctly and clamps negative differences to 0
         ok 8 - calculates indexer lag correctly and clamps negative differences to 0
           ---
-          duration_ms: 0.182209
+          duration_ms: 0.176125
           type: 'test'
           ...
         1..8
     ok 1 - calculateSyncStatus edge cases
       ---
-      duration_ms: 2.086208
+      duration_ms: 2.035625
       type: 'suite'
       ...
     # Subtest: redactSecretUrl helper
         # Subtest: redacts basic auth credentials from URL
         ok 1 - redacts basic auth credentials from URL
           ---
-          duration_ms: 0.250334
+          duration_ms: 0.246083
           type: 'test'
           ...
         # Subtest: redacts secret paths (QuickNode style)
         ok 2 - redacts secret paths (QuickNode style)
           ---
-          duration_ms: 0.205792
+          duration_ms: 0.206917
           type: 'test'
           ...
         # Subtest: redacts URLs with query string secrets
         ok 3 - redacts URLs with query string secrets
           ---
-          duration_ms: 0.069042
+          duration_ms: 0.066334
           type: 'test'
           ...
         # Subtest: preserves clean local URLs without secrets or auth
         ok 4 - preserves clean local URLs without secrets or auth
           ---
-          duration_ms: 0.044667
+          duration_ms: 0.04825
           type: 'test'
           ...
         1..4
     ok 2 - redactSecretUrl helper
       ---
-      duration_ms: 0.736167
+      duration_ms: 0.734375
       type: 'suite'
       ...
     # Subtest: round helper
         # Subtest: rounds numbers to 2 decimal places by default
         ok 1 - rounds numbers to 2 decimal places by default
           ---
-          duration_ms: 0.053083
+          duration_ms: 0.055208
           type: 'test'
           ...
         1..1
     ok 3 - round helper
       ---
-      duration_ms: 0.084583
+      duration_ms: 0.090333
       type: 'suite'
       ...
     # Subtest: Local Zebra live RPC integration
         # Subtest: queries local testnet Zebra if reachable and computes real sync percentage
         ok 1 - queries local testnet Zebra if reachable and computes real sync percentage
           ---
-          duration_ms: 34.85175
+          duration_ms: 36.4065
           type: 'test'
           ...
         1..1
     ok 4 - Local Zebra live RPC integration
       ---
-      duration_ms: 35.09975
+      duration_ms: 36.621583
       type: 'suite'
       ...
     1..4
 ok 1 - Dashboard Node Sync Percentage & Status Calculation
   ---
-  duration_ms: 38.536834
+  duration_ms: 40.004791
   type: 'suite'
   ...
 1..1
@@ -1372,7 +1377,7 @@ ok 1 - Dashboard Node Sync Percentage & Status Calculation
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 424.567208
+# duration_ms 426.090416
 === [7/8] Running Documentation Drift & Link Check ===
 $ node scripts/docs-check.mjs
 === Running Documentation Check (pnpm docs:check) ===
@@ -1393,8 +1398,8 @@ $ node scripts/docs-check.mjs
 --- Step 4: External Web Link Check Skipped (offline default; pass --external to run) ---
 === All Documentation Checks Passed Cleanly! ===
 
-2026-11-02 01:22:09 [INFO] (mdbook::book): Book building has started
-2026-11-02 01:22:09 [INFO] (mdbook::book): Running the html backend
+2026-11-02 02:24:51 [INFO] (mdbook::book): Book building has started
+2026-11-02 02:24:51 [INFO] (mdbook::book): Running the html backend
 === [8/8] Running Gitleaks Scan ===
 
     ○
@@ -1403,7 +1408,7 @@ $ node scripts/docs-check.mjs
     ○ ░
     ░    gitleaks
 
-[90m1:22AM[0m [32mINF[0m [1m179 commits scanned.[0m
-[90m1:22AM[0m [32mINF[0m [1mscanned ~3552485 bytes (3.55 MB) in 302ms[0m
-[90m1:22AM[0m [32mINF[0m [1mno leaks found[0m
+[90m2:24AM[0m [32mINF[0m [1m182 commits scanned.[0m
+[90m2:24AM[0m [32mINF[0m [1mscanned ~3587729 bytes (3.59 MB) in 327ms[0m
+[90m2:24AM[0m [32mINF[0m [1mno leaks found[0m
 === VERIFY SUCCESS: All 8 checks passed cleanly! ===
