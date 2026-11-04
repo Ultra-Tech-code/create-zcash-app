@@ -1,0 +1,12 @@
+{
+  "name": "example-watch-only",
+  "version": "0.1.0-alpha.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node monitor.mjs"
+  },
+  "dependencies": {
+    "@zcash-app/sdk": "workspace:*"
+  }
+}

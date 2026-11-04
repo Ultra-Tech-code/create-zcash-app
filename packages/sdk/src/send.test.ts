@@ -11,7 +11,7 @@ import {
   ironwoodEmptyTreeRoot,
   getDefaultTxExpiryDelta,
 } from '@zcash-app/core';
-import { send, SendOptions, quoteFee, warmupProver, reverseTxid, AnchorVerificationError, ConsensusBranchMismatchError, UpgradeBoundaryError } from './send.js';
+import { send, SendOptions, quoteFee, warmupProver, reverseTxid, AnchorVerificationError, ConsensusBranchMismatchError, UpgradeBoundaryError, WatchOnlySpendError } from './send.js';
 import { ZcashClient, TreeState } from './client.js';
 import { accountFromMnemonic } from './keys.js';
 import { KNOWN_TEST_MNEMONICS } from './constants.js';
@@ -936,6 +936,43 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(buildSpy).toHaveBeenCalledWith(
         expect.objectContaining({ expiryHeight: 3_543_405 + 1 + 120 })
       );
+    });
+  });
+
+  describe('Watch-Only Spend Guard', () => {
+    it('immediately rejects sending from a WatchOnlyAccount with WatchOnlySpendError without making client network calls', async () => {
+      const { accountFromUfvk, isWatchOnly } = await import('./keys.js');
+      const watchAcct = accountFromUfvk(validUfvk, 'regtest');
+      expect(isWatchOnly(watchAcct)).toBe(true);
+
+      const mockClient = {
+        config: { endpoint: '127.0.0.1:28137', network: 'regtest' },
+        getInfo: vi.fn(),
+        getTreeState: vi.fn(),
+        sendTransaction: vi.fn(),
+      } as unknown as ZcashClient;
+
+      await expect(
+        send({
+          client: mockClient,
+          wallet,
+          from: watchAcct,
+          to: 'uregtest1recipient...',
+          amount: 50_000n,
+        })
+      ).rejects.toThrow(WatchOnlySpendError);
+
+      // Verify ZERO network calls were made to the client
+      expect(mockClient.getInfo).not.toHaveBeenCalled();
+      expect(mockClient.getTreeState).not.toHaveBeenCalled();
+      expect(mockClient.sendTransaction).not.toHaveBeenCalled();
+    });
+
+    it('allows spending when from is a full Account with spendHandle', async () => {
+      const { isWatchOnly } = await import('./keys.js');
+      const spendingAcct = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest');
+      expect(isWatchOnly(spendingAcct)).toBe(false);
+      expect(typeof spendingAcct.spendHandle).toBe('number');
     });
   });
 

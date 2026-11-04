@@ -54,5 +54,17 @@ export function accountFromUfvk(
       return t || undefined;
     },
     network,
+    isWatchOnly: true,
   };
+}
+
+/**
+ * Returns true if the account is a watch-only account lacking spending authority.
+ */
+export function isWatchOnly(account: unknown): account is WatchOnlyAccount {
+  if (!account || typeof account !== 'object') return false;
+  if ((account as any).isWatchOnly === true) return true;
+  if ('spendingKeyBytes' in account && Buffer.isBuffer((account as any).spendingKeyBytes)) return false;
+  if ('spendHandle' in account && typeof (account as any).spendHandle === 'number') return false;
+  return typeof (account as any).getUnifiedFullViewingKey === 'function';
 }

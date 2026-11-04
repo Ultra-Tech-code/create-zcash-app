@@ -71,10 +71,10 @@ Introduced under [ZIP 258: Consensus rules from NU6.3 activation](https://zips.z
 
 ```mermaid
 flowchart TD
-    Mnemonic["BIP-39 Mnemonic Seed (24 words)\n[SECRET / SPENDING AUTHORITY]"]
+    Mnemonic["BIP-39 Mnemonic Seed (24 words)<br/>[SECRET / SPENDING AUTHORITY]"]
     RootKey["Root Spending Key (ZIP 32)"]
-    UFVK["Unified Full Viewing Key (UFVK)\n[WATCH-ONLY / INCOMING & OUTGOING]"]
-    UA["Unified Address (UA)\n[PUBLIC RECEIVING ADDRESS]"]
+    UFVK["Unified Full Viewing Key (UFVK)<br/>[WATCH-ONLY / INCOMING & OUTGOING]"]
+    UA["Unified Address (UA)<br/>[PUBLIC RECEIVING ADDRESS]"]
     FVK_Orchard["Orchard FVK"]
     FVK_Sapling["Sapling FVK"]
     FVK_Transparent["Transparent Pubkey"]

@@ -1,0 +1,12 @@
+{
+  "name": "example-checkout",
+  "version": "0.1.0-alpha.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node checkout.mjs"
+  },
+  "dependencies": {
+    "@zcash-app/sdk": "workspace:*"
+  }
+}
