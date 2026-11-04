@@ -8,7 +8,8 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 import {
   formatZec,
@@ -30,7 +31,7 @@ import {
   formatPeers,
   formatMempool,
   ZebraRpcClient,
-} from '../dist/index.js';
+} from '../dist/pretty/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -382,6 +383,43 @@ describe('Pretty RPC & Formatters Unit Tests', () => {
       const client = new ZebraRpcClient({ endpoint: secretUrl });
       assert.doesNotMatch(client.endpoint, /supersecretpass/);
       assert.match(client.endpoint, /http:\/\/127\.0\.0\.1:39232/);
+    });
+  });
+
+  // =========================================================================
+  // Import Graph Isolation (No Native Binding or SDK Dependency)
+  // =========================================================================
+  describe('Import Graph Isolation (No Native Binding or SDK Dependency)', () => {
+    it('imports dist/pretty/index.js cleanly in a fresh process that throws on @zcash-app/sdk or native binding', () => {
+      const targetUrl = pathToFileURL(path.resolve(__dirname, '../dist/pretty/index.js')).href;
+      const code = `
+        import Module from 'node:module';
+        const origLoad = Module._load;
+        Module._load = function(request, parent, isMain) {
+          if (request === '@zcash-app/sdk' || request === '@zcash-app/core' || request.endsWith('.node')) {
+            throw new Error('Forbidden import in pretty modules: ' + request);
+          }
+          return origLoad.apply(this, arguments);
+        };
+        await import(${JSON.stringify(targetUrl)});
+      `;
+      const repoRoot = path.resolve(__dirname, '../../..');
+      const res = spawnSync(process.execPath, ['--input-type=module', '-e', code], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+      });
+      assert.equal(res.status, 0, `Isolated import failed: ${res.stderr || res.stdout}`);
+    });
+
+    it('verifies compiled files in dist/pretty do not reference @zcash-app/sdk or core', () => {
+      const prettyDistDir = path.resolve(__dirname, '../dist/pretty');
+      const files = fs.readdirSync(prettyDistDir).filter((f) => f.endsWith('.js'));
+      for (const file of files) {
+        const content = fs.readFileSync(path.join(prettyDistDir, file), 'utf8');
+        assert.doesNotMatch(content, /@zcash-app\/sdk/);
+        assert.doesNotMatch(content, /@zcash-app\/core/);
+        assert.doesNotMatch(content, /\.node/);
+      }
     });
   });
 });
