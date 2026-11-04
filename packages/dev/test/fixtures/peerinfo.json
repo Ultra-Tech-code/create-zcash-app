@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "addr": "192.168.1.100:8233",
+    "addrbind": "192.168.1.1:8233",
+    "inbound": false,
+    "conntime": 1730750000,
+    "version": 170100,
+    "subver": "/MagicBean:5.5.0/"
+  },
+  {
+    "id": 2,
+    "addr": "10.0.0.42:8233",
+    "addrbind": "10.0.0.1:8233",
+    "inbound": true,
+    "conntime": 1730750500,
+    "version": 170100,
+    "subver": "/Zebra:1.9.0/"
+  }
+]

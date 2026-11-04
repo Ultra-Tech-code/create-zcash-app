@@ -96,3 +96,10 @@ b7f0e342df4693472ca117df4b4b72b963bc0fbef84f62845f5227f72246f339  verify_release
 a078748788e8ede926b7fc7a914eecaa27fbbe5f52952048421ac4c177412724  recipe_checkout_nu7.log  |  node scripts/run_recipes_regtest.mjs
 e21e98d90dfd4f3c682c69517e5f7d20811f1a48c4e9fb8eed83db4d76ef04f2  recipe_watch_only_nu7.log  |  node scripts/run_recipes_regtest.mjs
 bdd5d2712568c6941f6bf36dfdea540bcc94ff1dba762d63a8901334fec54eb0  recipe_payroll_nu7.log  |  node scripts/run_recipes_regtest.mjs
+75c7b2e185121c78ddf5d454c058aefc116ab016b1e18810636b452b515f4f1e  pretty_rpc_supply.log  |  node packages/dev/dist/cli.js supply
+0cd7c9f6e2f0b958ba7de424ea3c7deca6734e3ab32e02cb5ffbc4698c08df19  pretty_rpc_block.log  |  node packages/dev/dist/cli.js block 108
+2306fc8bfe063862ec9f98a90ca271701ffece047bcbe29198a55902c5a8f3ef  pretty_rpc_tx.log  |  node packages/dev/dist/cli.js tx 93a787dbf6fdafee5da89168044b787bf515ee89b2b39467e275de8734d2b9d0
+4bbde8088d61c1969647d15fea3186a4ef72e7fc79d811ec7cffb09010695cff  pretty_rpc_peers.log  |  node packages/dev/dist/cli.js peers
+2304ca0b39216e34a4fdf3f4623afa5af9fc21e99c052b1df76654764544dd9f  pretty_rpc_mempool.log  |  node packages/dev/dist/cli.js mempool
+75c7b2e185121c78ddf5d454c058aefc116ab016b1e18810636b452b515f4f1e  pretty_rpc_rpc_pretty.log  |  node packages/dev/dist/cli.js rpc getblockchaininfo --pretty
+903e5b176e38370bbc9fa26ef9dba2da889224fbd65080eaa9eac66a69bb7f3a  verify_pretty_rpc.log  |  git worktree add /tmp/cza-clean-verify-pretty-rpc HEAD && cd /tmp/cza-clean-verify-pretty-rpc && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_pretty_rpc.log

@@ -1,0 +1,28 @@
+Block Height:     108
+Block Hash:       602b4fd7661af844d664bca0538b9ebdfd28fa95e89732fbabb8458de4cdab11
+Confirmations:    5
+Timestamp:        2011-02-02T23:17:02Z (UTC)
+Size:             16,746 bytes
+Version:          4
+Merkle Root:      a8b8b97e2d12ced9d522c6839dac8e3d94e01b3442208557c8641ea64effb2ad
+Commitments Root: b56ea6603a44e9603bf5784cdc07ef844f30f88e026364813fd5486ca5a8b270
+Transactions:     2 tx(s)
+  [0] 8a83c773e57749c0848726b77d4c11768430fe46d4b7bb27394105377fa109ce (coinbase)
+  [1] 93a787dbf6fdafee5da89168044b787bf515ee89b2b39467e275de8734d2b9d0
+Chain Supply:     229.16660631 ZEC (22,916,660,631 zatoshis)
+
+Value Pools:
+──────────────────────────────────────────────────────────────────────────
+Pool                   Delta (ZEC)           Balance (ZEC)   Monitored
+──────────────────────────────────────────────────────────────────────────
+Transparent             0.00000000              0.00000000          no
+Sprout                  0.00000000              0.00000000          no
+Sapling                 0.00000000              6.25000000         yes
+Orchard                 0.00000000              0.00000000          no
+Lockbox                 0.00000000              0.00000000          no
+Ironwood               +2.08327333            222.91660631         yes
+──────────────────────────────────────────────────────────────────────────
+
+Commitment Trees:
+  Sapling Tree Size: 1
+  Ironwood Tree Size: 109

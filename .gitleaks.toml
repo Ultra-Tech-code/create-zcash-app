@@ -14,7 +14,9 @@ secretGroup = 0
 id = "generic-api-key"
 [rules.allowlist]
 paths = [
-    '''packages/dev/test/testnet-lightwalletd\.test\.mjs'''
+    '''packages/dev/test/testnet-lightwalletd\.test\.mjs''',
+    '''packages/dev/test/fixtures/.*''',
+    '''packages/dev/test/pretty-rpc\.test\.mjs'''
 ]
 
 [allowlist]
@@ -23,6 +25,8 @@ paths = [
     '''packages/sdk/src/sync\.test\.ts''',
     '''packages/sdk/dist/sync\.test\.js''',
     '''packages/core/tests/fixtures/.*''',
-    '''packages/core/tests/logs/.*'''
+    '''packages/core/tests/logs/.*''',
+    '''packages/dev/test/fixtures/.*''',
+    '''packages/dev/test/pretty-rpc\.test\.mjs'''
 ]
 

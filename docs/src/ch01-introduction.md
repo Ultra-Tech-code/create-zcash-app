@@ -68,3 +68,7 @@ flowchart TD
 
 In the next chapter, we will walk through the [Quickstart](./ch02-quickstart.md) to bootstrap your first application and send a payment on a local regtest devnet.
 
+## Credits & Acknowledgments
+
+- **zebraUtilities**: The human-readable terminal formatters in `zcash-dev` (`supply`, `block`, `tx`, `peers`, `mempool`, and `rpc --pretty`) are inspired by the open-source [zebraUtilities](https://github.com/dismad/zebraUtilities) project by [dismad](https://github.com/dismad) (MIT License, (c) dismad), reimplemented natively in TypeScript with zero bash/curl/jq dependencies, BigInt zatoshis precision, and cross-platform support.
+

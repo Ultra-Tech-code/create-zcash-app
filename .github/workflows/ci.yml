@@ -39,6 +39,41 @@ jobs:
       - name: Validate workflow syntax (bash & node)
         run: pnpm run check:workflow-syntax
 
+  pretty-rpc-offline:
+    name: offline pretty-rpc formatters - ${{ matrix.os }} - node@22
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11.5.3
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build TypeScript packages
+        run: |
+          pnpm --filter @zcash-app/sdk build
+          pnpm --filter zcash-dev build
+
+      - name: Run pretty-rpc unit tests
+        run: node --test packages/dev/test/pretty-rpc.test.mjs
+
   build:
     strategy:
       fail-fast: false
