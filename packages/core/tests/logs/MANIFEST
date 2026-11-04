@@ -93,3 +93,6 @@ b1abd8e064050ea7f0b61159b7d04fb70ec96f3eefcc28ff16f18f8504a3fc1d  verify_dashboa
 0970803c98b69f1639a38dd62d899c27ba6e7d444d66e121277f644a857d2abd  quickstart_nu7.log  |  bash scripts/record-quickstart-nu7.sh 2>&1 | tee packages/core/tests/logs/quickstart_nu7.log
 071d924529538eca25d4dce642a51db02fd2b45a250984712c59cea4fa5e7e46  release_cleanroom_alpha2.log  |  bash scripts/record-release-cleanroom.sh
 b7f0e342df4693472ca117df4b4b72b963bc0fbef84f62845f5227f72246f339  verify_release_alpha2.log  |  git worktree add /tmp/cza-clean-verify-alpha2 HEAD && cd /tmp/cza-clean-verify-alpha2 && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_release_alpha2.log
+46060db05e47834bf6d69269141a2bdffcf3118fc44d6744cec9d3678bfa7dd2  recipe_checkout_nu7.log  |  node scripts/run_recipes_regtest.mjs
+44514000c1f9f3795d0782c09c28a0192de47115771a8a16787a0c16bcbe5e16  recipe_watch_only_nu7.log  |  node scripts/run_recipes_regtest.mjs
+21252c879183370cddbd0b013402922a0091dc9f65731a369c490049c65c32c8  recipe_payroll_nu7.log  |  node scripts/run_recipes_regtest.mjs

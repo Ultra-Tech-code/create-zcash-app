@@ -24,13 +24,13 @@
 
 ---
 
-# Recipes (Coming in Stage 2)
+# Recipes
 
 - [Shielded Checkout Flow](./recipes/checkout.md)
 - [Watch-Only Wallet Monitor](./recipes/watch-only-monitor.md)
 - [Disbursement & Payroll](./recipes/payroll.md)
 
-# Advanced Guides (Coming in Stage 2)
+# Advanced Guides
 
 - [Developer Dashboard Guide](./guides/dashboard.md)
 - [Security & Key Hygiene](./guides/security.md)

@@ -1,0 +1,65 @@
+========================================================================
+RECIPE 3: DISBURSEMENT & PAYROLL — 3-RECIPIENT SEQUENTIAL BATCH RUN
+========================================================================
+Timestamp: 2026-11-04T19:50:27.510Z
+Network:   regtest
+Endpoint:  127.0.0.1:39067
+------------------------------------------------------------------------
+
+[1/4] Loaded Payroll Roster:
+      Employee 1: Alice (Lead Core Developer)
+        Address: uregtest17h4287clmqngsz89gwpzttkgty...
+        Amount:  0.0005 ZEC (50000 zatoshis)
+        Memo:    "Payroll: 2026-11 Alice Core Dev"
+      Employee 2: Bob (Security Researcher)
+        Address: uregtest1pdyndx5k5yuyncf6w6lumxxmdv...
+        Amount:  0.0007 ZEC (70000 zatoshis)
+        Memo:    "Payroll: 2026-11 Bob Security Audit"
+      Employee 3: Charlie (Infrastructure Eng)
+        Address: uregtest1kpzkz5yz4pgddlr73j26sapd0c...
+        Amount:  0.0009 ZEC (90000 zatoshis)
+        Memo:    "Payroll: 2026-11 Charlie Infra Ops"
+
+[2/4] Executing Sequential Disbursement Transactions:
+      Note: SDK and CLI currently support 1 recipient per transaction.
+      Each disbursement requires a separate transaction, ZIP-317 fee,
+      and anchor confirmation for sequential note spendability.
+
+      --> Processing payment 1/3 to Alice (Lead Core Developer)...
+          TxID:        bbbf4f8327518e96835a2b1c8f0323e8db9bc1761c46d1ca378245d9a961c006
+          ZIP-317 Fee: 10000 zatoshis
+          Mining block to confirm change note & update anchor...
+          Confirmed in block: fbb89f7622ceab00438586798d3baae42ee7f9b93d5413fea18ebc8aa499f801
+
+      --> Processing payment 2/3 to Bob (Security Researcher)...
+          TxID:        0b4670c719ac78b85d33ec21b56a78d98091349e52b0bd5826d2c491553f328b
+          ZIP-317 Fee: 10000 zatoshis
+          Mining block to confirm change note & update anchor...
+          Confirmed in block: bf9d5953d77db9f6abb32b34e7a70ce99085869a24e4a4c68bbced8327d8046d
+
+      --> Processing payment 3/3 to Charlie (Infrastructure Eng)...
+          TxID:        9cd4322caa0ef34bcc383f6b5d9a249d5360398201c21ea2d6bbb4d76a463b36
+          ZIP-317 Fee: 10000 zatoshis
+          Mining block to confirm change note & update anchor...
+          Confirmed in block: 7437068b3b578e580e4a3ecb3a1d0696e14013962c5b87b997e6a49183fdb4ab
+
+[3/4] Verifying Payee Balances Post-Disbursement:
+      Alice (Lead Core Developer):
+        Confirmed Balance: 250000 zatoshis (0.00250000 ZEC)
+        Orchard Confirmed: 0 zatoshis
+      Bob (Security Researcher):
+        Confirmed Balance: 270000 zatoshis (0.00270000 ZEC)
+        Orchard Confirmed: 0 zatoshis
+      Charlie (Infrastructure Eng):
+        Confirmed Balance: 90000 zatoshis (0.00090000 ZEC)
+        Orchard Confirmed: 0 zatoshis
+
+[4/4] Batch Summary:
+      Total Employees Paid: 3
+      Total Disbursed:      210000 zatoshis (0.00210000 ZEC)
+      Total ZIP-317 Fees:   30000 zatoshis (0.00030000 ZEC)
+      Total Net Outflow:    240000 zatoshis (0.00240000 ZEC)
+
+========================================================================
+PAYROLL RECIPE COMPLETED SUCCESSFULLY
+========================================================================

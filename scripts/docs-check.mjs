@@ -350,10 +350,98 @@ export function checkInternalLinks() {
 }
 
 /**
- * 5. Validate external web links
+ * 5. Validate Mermaid diagrams preprocessing and rendered containers in built book
+ */
+export function checkMermaidContainers() {
+  console.log('--- Step 5: Checking Mermaid Diagram Preprocessing & Rendered Containers ---');
+  const allMarkdownFiles = [];
+  function walk(dir) {
+    for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, ent.name);
+      if (ent.isDirectory()) walk(full);
+      else if (ent.name.endsWith('.md')) allMarkdownFiles.push(full);
+    }
+  }
+  walk(DOCS_SRC);
+
+  const bookDir = path.join(REPO_ROOT, 'docs', 'book');
+
+  // If docs/book does not exist yet, build the book first if mdbook is present
+  if (!fs.existsSync(bookDir)) {
+    try {
+      console.log('Building docs to verify rendered book containers...');
+      execSync('mdbook build docs', { cwd: REPO_ROOT, stdio: 'inherit' });
+    } catch (err) {
+      console.error('❌ Failed to build docs with mdbook:', err.message);
+      process.exit(1);
+    }
+  }
+
+  let mermaidBlocksFound = 0;
+  let errors = 0;
+
+  for (const mdPath of allMarkdownFiles) {
+    const relMd = path.relative(DOCS_SRC, mdPath);
+    const content = fs.readFileSync(mdPath, 'utf8');
+
+    const mermaidMatches = content.match(/```mermaid/g);
+    if (!mermaidMatches || mermaidMatches.length === 0) {
+      continue;
+    }
+
+    mermaidBlocksFound += mermaidMatches.length;
+    const relHtml = relMd.replace(/\.md$/, '.html');
+    const htmlPath = path.join(bookDir, relHtml);
+
+    if (!fs.existsSync(htmlPath)) {
+      console.error(`❌ ${relMd}: Built HTML does not exist at "${path.relative(REPO_ROOT, htmlPath)}".`);
+      errors++;
+      continue;
+    }
+
+    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    if (htmlContent.includes('<code class="language-mermaid">')) {
+      console.error(
+        `❌ ${relMd}: Built HTML contains raw un-preprocessed '<code class="language-mermaid">'. ` +
+        `mdbook-mermaid failed to convert the diagram into a rendered container.`
+      );
+      errors++;
+    }
+
+    const hasContainer =
+      htmlContent.includes('<pre class="mermaid">') ||
+      htmlContent.includes('<div class="mermaid">') ||
+      htmlContent.includes('<svg');
+
+    if (!hasContainer) {
+      console.error(
+        `❌ ${relMd}: Built HTML lacks a rendered Mermaid container (<pre class="mermaid">, <div class="mermaid">, or <svg>).`
+      );
+      errors++;
+    }
+
+    if (!htmlContent.includes('mermaid') || !htmlContent.includes('mermaid-init')) {
+      console.error(
+        `❌ ${relMd}: Built HTML does not include references to vendored mermaid scripts.`
+      );
+      errors++;
+    }
+  }
+
+  if (errors > 0) {
+    console.error(`\n❌ Found ${errors} Mermaid diagram rendering/container error(s) in built book.\n`);
+    process.exit(1);
+  }
+
+  console.log(`✅ All ${mermaidBlocksFound} Mermaid diagram block(s) have valid rendered containers and scripts in the book output.`);
+}
+
+/**
+ * 6. Validate external web links
  */
 export async function checkExternalLinks() {
-  console.log('--- Step 5: Validating External Web Links ---');
+  console.log('--- Step 6: Validating External Web Links ---');
 
   // If mdbook-linkcheck2 is available, run it
   try {
@@ -430,10 +518,11 @@ export async function main() {
   checkNoMachineSpecificPaths();
   await checkProseCommands();
   checkInternalLinks();
+  checkMermaidContainers();
   if (process.argv.includes('--external')) {
     await checkExternalLinks();
   } else {
-    console.log('--- Step 5: External Web Link Check Skipped (offline default; pass --external to run) ---');
+    console.log('--- Step 6: External Web Link Check Skipped (offline default; pass --external to run) ---');
   }
   console.log('=== All Documentation Checks Passed Cleanly! ===\n');
 }

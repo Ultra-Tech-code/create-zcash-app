@@ -4,6 +4,10 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+if [[ "$(uname -s)" == "Darwin" && -z "${DEVELOPER_DIR:-}" && -d "/Library/Developer/CommandLineTools" ]]; then
+  export DEVELOPER_DIR="/Library/Developer/CommandLineTools"
+fi
+
 echo "=== [1/8] Checking Log Provenance & Integrity against MANIFEST ==="
 ./scripts/check_logs_provenance.sh
 
@@ -39,6 +43,7 @@ echo "=== [7/8] Running Documentation Drift & Link Check ==="
 pnpm docs:check
 if command -v mdbook >/dev/null 2>&1; then
   mdbook build docs
+  node scripts/docs-verify-mermaid.mjs
 fi
 
 echo "=== [8/8] Running Gitleaks Scan ==="
