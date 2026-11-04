@@ -1,0 +1,12 @@
+Transaction ID: 93a787dbf6fdafee5da89168044b787bf515ee89b2b39467e275de8734d2b9d0
+Status:         Mined in block 108 (5 confirmations)
+Block Hash:     602b4fd7661af844d664bca0538b9ebdfd28fa95e89732fbabb8458de4cdab11
+Timestamp:      2011-02-02T23:17:02Z (UTC)
+Type:           Standard (Version 6, Overwintered)
+Pools:          Ironwood
+Fee:            0.00010000 ZEC (10,000 zatoshis)
+
+Pool Details:
+──────────────────────────────────────────────────────────────────────────
+  Ironwood:       2 action(s), value balance: +0.00010000 ZEC (+10,000 zatoshis)
+──────────────────────────────────────────────────────────────────────────

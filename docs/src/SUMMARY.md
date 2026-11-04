@@ -33,6 +33,7 @@
 # Advanced Guides
 
 - [Developer Dashboard Guide](./guides/dashboard.md)
+- [Human-Readable Zebra RPC (Pretty Mode)](./guides/pretty-rpc.md)
 - [Security & Key Hygiene](./guides/security.md)
 - [Troubleshooting](./guides/troubleshooting.md)
 

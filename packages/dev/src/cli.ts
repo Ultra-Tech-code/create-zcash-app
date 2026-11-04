@@ -25,6 +25,15 @@ import {
 } from './env';
 import { redactSecretUrl, sanitizeError } from './redact';
 import {
+  ZebraRpcClient,
+  formatSupply,
+  formatBlock,
+  formatTx,
+  formatPeers,
+  formatMempool,
+  toZatoshis,
+} from './pretty';
+import {
   readZebraCookie,
   buildTestnetLightwalletdArgs,
   redactLightwalletdArgs,
@@ -691,6 +700,248 @@ program
       console.log(`UA:   ${acct.getUnifiedAddress()}`);
       console.log(`UFVK: ${acct.getUnifiedFullViewingKey()}`);
       console.log();
+    }
+  });
+
+function parseRpcParam(val: string): any {
+  try {
+    return JSON.parse(val);
+  } catch {
+    return val;
+  }
+}
+
+program
+  .command('rpc <method> [params...]')
+  .description('Execute raw JSON-RPC call to Zebra')
+  .option('--pretty', 'Display human-readable pretty output for known methods')
+  .option('--json', 'Output raw result as JSON (default)')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('--local', 'Format timestamps in local timezone instead of UTC')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (method, rawParams = [], options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      let params = (rawParams || []).map(parseRpcParam);
+
+      // Special handling for getblock where Zebra expects string for param[0]
+      if (method.toLowerCase() === 'getblock' && params.length > 0 && typeof params[0] === 'number') {
+        params[0] = String(params[0]);
+      }
+
+      const result = await client.call(method, params);
+
+      if (options.pretty) {
+        const lower = method.toLowerCase();
+        if (lower === 'getblockchaininfo') {
+          console.log(formatSupply(result, options));
+        } else if (lower === 'getblock') {
+          console.log(formatBlock(result, options));
+        } else if (lower === 'getrawtransaction') {
+          let subsidyZat: bigint | null = null;
+          if (result.height !== undefined && result.vin?.some((v: any) => v.coinbase)) {
+            try {
+              const subsidy = await client.call('getblocksubsidy', [result.height]);
+              subsidyZat = toZatoshis(undefined, subsidy.totalblocksubsidy);
+            } catch {
+              // Ignore subsidy resolution failure
+            }
+          }
+          console.log(formatTx(result, { subsidyZat }, options));
+        } else if (lower === 'getpeerinfo') {
+          console.log(formatPeers(result, options));
+        } else if (lower === 'getrawmempool') {
+          console.log(formatMempool(result, options));
+        } else {
+          console.log(JSON.stringify(result, null, 2));
+        }
+      } else {
+        // Default output: raw JSON result
+        console.log(JSON.stringify(result, null, 2));
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('tx <txid>')
+  .description('Inspect transaction details with human-readable pool and fee breakdown')
+  .option('--json', 'Output raw transaction JSON')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('--local', 'Format timestamps in local timezone instead of UTC')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (txid, options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      const tx = await client.call('getrawtransaction', [txid, 1]);
+
+      if (options.json) {
+        console.log(JSON.stringify(tx, null, 2));
+        return;
+      }
+
+      let subsidyZat: bigint | null = null;
+      let transparentInputsTotalZat: bigint | null = null;
+      let transparentInputsUnresolved = false;
+
+      const isCoinbase = Boolean(tx.vin && tx.vin.length > 0 && tx.vin.some((v: any) => v.coinbase));
+      if (isCoinbase) {
+        if (tx.height !== undefined) {
+          try {
+            const subsidyRes = await client.call('getblocksubsidy', [tx.height]);
+            subsidyZat = toZatoshis(undefined, subsidyRes.totalblocksubsidy);
+          } catch {
+            // Unresolved subsidy
+          }
+        }
+      } else if (tx.vin && tx.vin.length > 0) {
+        let total = 0n;
+        for (const vin of tx.vin) {
+          if (vin.valueZat !== undefined) {
+            total += toZatoshis(vin.valueZat, vin.value);
+          } else if (vin.prevout?.valueZat !== undefined) {
+            total += toZatoshis(vin.prevout.valueZat, vin.prevout.value);
+          } else if (vin.txid && vin.vout !== undefined) {
+            try {
+              const prevTx = await client.call('getrawtransaction', [vin.txid, 1]);
+              const prevOut = prevTx.vout?.[vin.vout];
+              if (prevOut) {
+                total += toZatoshis(prevOut.valueZat, prevOut.value);
+              } else {
+                transparentInputsUnresolved = true;
+                break;
+              }
+            } catch {
+              transparentInputsUnresolved = true;
+              break;
+            }
+          } else {
+            transparentInputsUnresolved = true;
+            break;
+          }
+        }
+        if (!transparentInputsUnresolved) {
+          transparentInputsTotalZat = total;
+        }
+      }
+
+      console.log(
+        formatTx(
+          tx,
+          {
+            subsidyZat,
+            transparentInputsTotalZat,
+            transparentInputsUnresolved,
+          },
+          options
+        )
+      );
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('block <heightOrHash>')
+  .description('Inspect block details, chain supply, value pool deltas and commitment trees')
+  .option('--json', 'Output raw block JSON')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('--local', 'Format timestamps in local timezone instead of UTC')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (heightOrHash, options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      const block = await client.call('getblock', [String(heightOrHash), 1]);
+
+      if (options.json) {
+        console.log(JSON.stringify(block, null, 2));
+      } else {
+        console.log(formatBlock(block, options));
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('supply')
+  .description('Display chain coin supply and value pool breakdown')
+  .option('--json', 'Output raw getblockchaininfo JSON')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      const bci = await client.call('getblockchaininfo', []);
+
+      if (options.json) {
+        console.log(JSON.stringify(bci, null, 2));
+      } else {
+        console.log(formatSupply(bci, options));
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('peers')
+  .description('Display connected Zebra peer details and count')
+  .option('--json', 'Output raw getpeerinfo JSON')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      const peers = await client.call('getpeerinfo', []);
+
+      if (options.json) {
+        console.log(JSON.stringify(peers, null, 2));
+      } else {
+        console.log(formatPeers(peers, options));
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('mempool')
+  .description('Display Zebra mempool transaction count and IDs')
+  .option('--json', 'Output raw getrawmempool JSON')
+  .option('--no-color', 'Disable ANSI colors')
+  .option('-e, --zebra-rpc <endpoint>', 'Zebra RPC endpoint URL')
+  .action(async (options) => {
+    try {
+      applyProjectEnv();
+      const client = new ZebraRpcClient({ endpoint: options.zebraRpc });
+      const mempool = await client.call('getrawmempool', []);
+
+      if (options.json) {
+        console.log(JSON.stringify(mempool, null, 2));
+      } else {
+        console.log(formatMempool(mempool, options));
+      }
+    } catch (err: any) {
+      const sanitized = sanitizeError(err);
+      console.error(sanitized.message);
+      process.exit(1);
     }
   });
 

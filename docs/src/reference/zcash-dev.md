@@ -17,6 +17,12 @@
 | [`zcash-dev mine`](#mine) | Mine blocks on regtest |
 | [`zcash-dev fund`](#fund) | Fund a Unified Address on regtest |
 | [`zcash-dev fixtures`](#fixtures) | Display deterministic fixture accounts |
+| [`zcash-dev rpc`](#rpc) | Execute raw JSON-RPC call to Zebra |
+| [`zcash-dev tx`](#tx) | Inspect transaction details with human-readable pool and fee breakdown |
+| [`zcash-dev block`](#block) | Inspect block details, chain supply, value pool deltas and commitment trees |
+| [`zcash-dev supply`](#supply) | Display chain coin supply and value pool breakdown |
+| [`zcash-dev peers`](#peers) | Display connected Zebra peer details and count |
+| [`zcash-dev mempool`](#mempool) | Display Zebra mempool transaction count and IDs |
 | [`zcash-dev switch`](#switch) | Switch project network (regtest \| testnet \| mainnet) |
 | [`zcash-dev dashboard`](#dashboard) | Launch the Zcash Developer Dashboard |
 | [`zcash-dev testnet`](#testnet) | Testnet developer helper tools |
@@ -127,6 +133,113 @@ Display deterministic fixture accounts
 | Option | Description | Default |
 | :--- | :--- | :--- |
 | `-n, --network <network>` | Network (regtest \| testnet) | `regtest` |
+
+---
+
+## `rpc`
+
+Execute raw JSON-RPC call to Zebra
+
+### Arguments
+
+| Argument | Description | Required |
+| :--- | :--- | :--- |
+| `method` | Argument | Yes |
+| `params` | Argument | No |
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--pretty` | Display human-readable pretty output for known methods | None |
+| `--json` | Output raw result as JSON (default) | None |
+| `--no-color` | Disable ANSI colors | None |
+| `--local` | Format timestamps in local timezone instead of UTC | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
+
+---
+
+## `tx`
+
+Inspect transaction details with human-readable pool and fee breakdown
+
+### Arguments
+
+| Argument | Description | Required |
+| :--- | :--- | :--- |
+| `txid` | Argument | Yes |
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--json` | Output raw transaction JSON | None |
+| `--no-color` | Disable ANSI colors | None |
+| `--local` | Format timestamps in local timezone instead of UTC | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
+
+---
+
+## `block`
+
+Inspect block details, chain supply, value pool deltas and commitment trees
+
+### Arguments
+
+| Argument | Description | Required |
+| :--- | :--- | :--- |
+| `heightOrHash` | Argument | Yes |
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--json` | Output raw block JSON | None |
+| `--no-color` | Disable ANSI colors | None |
+| `--local` | Format timestamps in local timezone instead of UTC | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
+
+---
+
+## `supply`
+
+Display chain coin supply and value pool breakdown
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--json` | Output raw getblockchaininfo JSON | None |
+| `--no-color` | Disable ANSI colors | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
+
+---
+
+## `peers`
+
+Display connected Zebra peer details and count
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--json` | Output raw getpeerinfo JSON | None |
+| `--no-color` | Disable ANSI colors | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
+
+---
+
+## `mempool`
+
+Display Zebra mempool transaction count and IDs
+
+### Options
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--json` | Output raw getrawmempool JSON | None |
+| `--no-color` | Disable ANSI colors | None |
+| `-e, --zebra-rpc <endpoint>` | Zebra RPC endpoint URL | None |
 
 ---
 

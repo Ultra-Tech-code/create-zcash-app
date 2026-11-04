@@ -55,11 +55,26 @@ jobs:
       - name: Install pinned mdBook (v0.5.4), mdbook-linkcheck2 (v0.13.0) & mdbook-mermaid (v0.17.1)
         run: |
           MDBOOK_VERSION="v0.5.4"
-          curl -sSL "https://github.com/rust-lang/mdBook/releases/download/${MDBOOK_VERSION}/mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | sudo tar -xz -C /usr/local/bin
+          tmp=$(mktemp)
+          url="https://github.com/rust-lang/mdBook/releases/download/${MDBOOK_VERSION}/mdbook-${MDBOOK_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --retry-all-errors -o "$tmp" "$url"
+          sudo tar -xzf "$tmp" -C /usr/local/bin
+          rm -f "$tmp"
+
           LINKCHECK_VERSION="v0.13.0"
-          curl -sSL "https://github.com/marxin/mdbook-linkcheck2/releases/download/${LINKCHECK_VERSION}/mdbook-linkcheck2-x86_64-unknown-linux-gnu.tar.gz" | sudo tar -xz -C /usr/local/bin
+          tmp=$(mktemp)
+          url="https://github.com/marxin/mdbook-linkcheck2/releases/download/${LINKCHECK_VERSION}/mdbook-linkcheck2-x86_64-unknown-linux-gnu.tar.gz"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --retry-all-errors -o "$tmp" "$url"
+          sudo tar -xzf "$tmp" -C /usr/local/bin
+          rm -f "$tmp"
+
           MERMAID_VERSION="v0.17.1"
-          curl -sSL "https://github.com/badboy/mdbook-mermaid/releases/download/${MERMAID_VERSION}/mdbook-mermaid-${MERMAID_VERSION}-x86_64-unknown-linux-gnu.tar.gz" | sudo tar -xz -C /usr/local/bin
+          tmp=$(mktemp)
+          url="https://github.com/badboy/mdbook-mermaid/releases/download/${MERMAID_VERSION}/mdbook-mermaid-${MERMAID_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 3 --retry-all-errors -o "$tmp" "$url"
+          sudo tar -xzf "$tmp" -C /usr/local/bin
+          rm -f "$tmp"
+
           sudo chmod +x /usr/local/bin/mdbook-linkcheck2 /usr/local/bin/mdbook /usr/local/bin/mdbook-mermaid
           mdbook --version
           mdbook-linkcheck2 --version
