@@ -107,3 +107,4 @@ main().catch((err) => {
   console.error('\n❌ Mermaid verification failed:', err.message);
   process.exit(1);
 });
+

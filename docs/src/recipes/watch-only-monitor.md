@@ -8,13 +8,13 @@ In this pattern:
 3. The server derives receiving addresses, scans incoming shielded notes, computes confirmed pool balances, and emits webhook notifications.
 4. Transaction signing and sending capabilities are **cryptographically impossible** on the watch-only node.
 
-A complete, runnable implementation is provided in [`examples/watch-only/`](file:///examples/watch-only/).
+A complete, runnable implementation is provided in [`examples/watch-only/`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/examples/watch-only/).
 
 ---
 
 ## 1. SDK API Signatures Used
 
-This recipe uses real exports from [`packages/sdk/src/index.ts`](file:///packages/sdk/src/index.ts):
+This recipe uses real exports from [`packages/sdk/src/index.ts`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/sdk/src/index.ts):
 
 ```typescript
 // Initializing a watch-only account with no spend keys
@@ -101,14 +101,14 @@ export async function runWatchOnlyMonitor(ufvk, network = 'regtest', endpoint = 
 The watch-only workflow was executed against the active NU7 regtest stack (`127.0.0.1:39067`).
 
 ### Machine-Captured Execution Log
-The following output is verbatim from [`packages/core/tests/logs/recipe_watch_only_nu7.log`](file:///packages/core/tests/logs/recipe_watch_only_nu7.log) (SHA-256: `44514000c1f9f3795d0782c09c28a0192de47115771a8a16787a0c16bcbe5e16`):
+The following output is verbatim from [`packages/core/tests/logs/recipe_watch_only_nu7.log`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/core/tests/logs/recipe_watch_only_nu7.log) (SHA-256: `e21e98d90dfd4f3c682c69517e5f7d20811f1a48c4e9fb8eed83db4d76ef04f2`):
 
 ```text
 ========================================================================
 RECIPE 2: WATCH-ONLY WALLET MONITOR — ZERO-CUSTODY AIR-GAPPED SERVICE
 ========================================================================
-Timestamp: 2026-11-04T19:50:23.042Z
-Network:   regtest
+Timestamp: 2026-11-04T20:38:52.256Z
+Network:   regtest-nu7
 Endpoint:  127.0.0.1:39067
 ------------------------------------------------------------------------
 
@@ -123,20 +123,20 @@ Endpoint:  127.0.0.1:39067
 [3/5] External payer broadcasts deposit:
       Recipient:       uregtest1pdyndx5k5yuyncf6w6lumxxmdvy9drk0jznfp4htspd9wqzhty264cnu7dd7my8h9gl2pxv9jmsk56pzwz4xh765hsvn8e28l3nx30wylgex4cqv3av2czajp9lm92xcndwrjentvhmajppz06qd0q9ehwl6pwy7awym2avh3x5eheq5hw6sx0ydgu5p6s4rkj6dys58c0djqpf88ah
       Amount:          0.002 ZEC (200,000 zatoshis)
-      TxID:            368c569937f38332ebc036574b811390089b197ebcd961016d48e54e21f9db53
+      TxID:            d846ee7bf02af03ea6e2fa262f65324728042fa1289bc004825c4535f8739c97
       Mining 1 block to confirm deposit...
-      Mined Block:     0a2e54c97bcd574e1e4140aa325e7c4153ef1faee387e625fc6e3d334e5b8a32
+      Mined Block:     a6120645c0e2e87e2f5400c5869b595189167a825b581a8ea59166afde74dcdb
 
 [4/5] Watch-only monitor detects deposit:
       Detected Pool:   ironwood
       Detected Value:  200000 zatoshis (0.00200000 ZEC)
-      Block Height:    6
+      Block Height:    109
       Confirmed Total: 200000 zatoshis (0.00200000 ZEC)
       Orchard Pool:    0 zatoshis
 
 [5/5] Enforcing Spend Rejection:
       Attempting to call send() from WatchOnlyAccount...
-      ✅ SPEND STRICTLY REJECTED: Consensus branch mismatch on network regtest at height 6: local expected 0x37a5165b, node reported 0x77190ad9
+      ✅ SPEND STRICTLY REJECTED: Cannot spend from a watch-only account: spending key or spend handle is required
 
 ========================================================================
 WATCH-ONLY RECIPE COMPLETED SUCCESSFULLY

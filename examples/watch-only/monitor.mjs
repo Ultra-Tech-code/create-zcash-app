@@ -14,10 +14,13 @@ import {
   detectIncoming,
   getBalance,
   send,
+  WatchOnlySpendError,
 } from '@zcash-app/sdk';
 
 const ENDPOINT = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
-const NETWORK = process.env.ZCASH_NETWORK || 'regtest';
+const rawNetwork = process.env.ZCASH_NETWORK || 'regtest';
+const isNu7 = rawNetwork === 'regtest-nu7' || ENDPOINT.includes('39067');
+const NETWORK = isNu7 ? 'regtest-nu7' : rawNetwork;
 
 export async function runWatchOnlyMonitor(ufvk) {
   console.log('=== Watch-Only Monitor Service ===\n');
@@ -68,7 +71,11 @@ export async function runWatchOnlyMonitor(ufvk) {
       console.error('❌ SECURITY FAILURE: send() succeeded on a watch-only account!');
       process.exit(1);
     } catch (spendErr) {
-      console.log(`✅ SPEND REJECTED AS EXPECTED: ${spendErr.message || spendErr}`);
+      if (spendErr instanceof WatchOnlySpendError) {
+        console.log(`✅ SPEND REJECTED AS EXPECTED (WatchOnlySpendError): ${spendErr.message}`);
+      } else {
+        throw new Error(`Expected WatchOnlySpendError, got: ${spendErr}`);
+      }
     }
   } finally {
     await client.close();
@@ -78,7 +85,7 @@ export async function runWatchOnlyMonitor(ufvk) {
 if (process.argv[1] && process.argv[1].endsWith('monitor.mjs')) {
   const sampleUfvk =
     process.env.ZCASH_UFVK ||
-    // Standard test fixture UFVK for account 0 on regtest
-    'uviewregtest1z6ssj73q32w934f59x2j4wh709d7q5u8w03rwnr50rvt5dly78f7wsq0x26k5w39d375z328n797v902vqqq530q8huvs0s2v032u6q7q832';
+    // Standard test fixture UFVK for account 2 on regtest
+    'uviewregtest1wc0v5cry88thqcarv52wll3a3kape7g3y4n3z938ul89jlnmclly56cttcg6cdat62m4nhcwn6vdsyf3g3ljkkd8fffk323l0qcy9ug8fsfxhexu737hckrvw6xgrz7dtepexaye25qdw02wys0l9h8kpes6wtge7ha6gu2c4jz75a4hrtzzt2ydympf2jjdg6hea687d2upfwf8ld6vdd46pxcylypkd8pdl3wt2jz4s0gjfu0swvzlzqm09nrjwj3uuf97yyvlrpx44stwlp6d9ak6sydqvyfp49a86khgzugrqkfm0l4qam995v56wt8c5k5pjlt947mazufsrkanv9y5atnh5tfh52nq30kjac97e6r2rcx25q8pl4p4uprqt60u3j2kedzev3acdr7ha5tg6gaejsjpmrtutyhstc7ssppwxga7cqd2r2fmlzp52ysaky97xznl23xtv36w2g3am9k42xy69qw3xz4pw6mussp6sg3l';
   runWatchOnlyMonitor(sampleUfvk).catch(console.error);
 }

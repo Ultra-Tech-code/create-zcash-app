@@ -13,7 +13,8 @@ import {
 } from '@zcash-app/core';
 import { ZcashClient, TreeState } from './client.js';
 import { syncWallet } from './sync.js';
-import { Account, VerificationEndpoint } from './types.js';
+import { Account, WatchOnlyAccount, VerificationEndpoint } from './types.js';
+import { isWatchOnly } from './keys.js';
 import { JsonRpcVerifier } from './jsonrpc.js';
 
 export interface SendFromOptions {
@@ -24,7 +25,7 @@ export interface SendFromOptions {
 export interface SendOptions {
   client: ZcashClient;
   wallet: WalletHandle;
-  from?: SendFromOptions | Account | number;
+  from?: SendFromOptions | Account | WatchOnlyAccount | number;
   to: string;
   amount: bigint | number;
   memo?: string;
@@ -36,6 +37,14 @@ export interface SendOptions {
    * Set this to true to send with only the local anchor root (a warning is logged).
    */
   allowUnverifiedAnchor?: boolean;
+}
+
+/** Thrown when transaction sending is attempted from a watch-only account lacking spending authority. */
+export class WatchOnlySpendError extends Error {
+  constructor(message: string = 'Cannot spend from a watch-only account: spending key or spend handle is required') {
+    super(message);
+    this.name = 'WatchOnlySpendError';
+  }
 }
 
 /** Thrown when the anchor cannot be checked against the node and no explicit override was given. */
@@ -115,6 +124,14 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   const { client, wallet, to, amount: rawAmount, memo } = opts;
   const amount = typeof rawAmount === 'bigint' ? rawAmount : BigInt(rawAmount);
   const minConfs = opts.minConfs ?? 1;
+
+  // 0. Immediate guard: Watch-only accounts have no spend keys or spend handle and cannot author spends.
+  // Fails closed BEFORE any network or consensus calls.
+  if (opts.from && isWatchOnly(opts.from)) {
+    throw new WatchOnlySpendError(
+      'Cannot spend from a watch-only account: spending key or spend handle is required'
+    );
+  }
 
   // Resolve spend handle or spending key
   let spendHandle: number | undefined;

@@ -287,8 +287,14 @@ export function checkInternalLinks() {
     while ((match = linkRegex.exec(content)) !== null) {
       const rawTarget = match[2].trim();
 
+      if (rawTarget.startsWith('file://')) {
+        console.error(`❌ ${relPath}: Prohibited file:// link "${rawTarget}". All documentation links must use relative paths or https:// GitHub URLs.`);
+        linkErrors++;
+        continue;
+      }
+
       // Skip external links or code links
-      if (rawTarget.startsWith('http://') || rawTarget.startsWith('https://') || rawTarget.startsWith('mailto:') || rawTarget.startsWith('file://')) {
+      if (rawTarget.startsWith('http://') || rawTarget.startsWith('https://') || rawTarget.startsWith('mailto:')) {
         continue;
       }
 

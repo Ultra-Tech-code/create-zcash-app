@@ -32,6 +32,16 @@ The `@zcash-app/sdk` package provides client connections, wallet synchronization
 | :--- | :--- |
 | `prototype` | `ZcashClient`  |
 
+### `class WatchOnlySpendError`
+
+Thrown when transaction sending is attempted from a watch-only account lacking spending authority.
+
+**Members & Methods**:
+
+| Member | Type / Description |
+| :--- | :--- |
+| `prototype` | `WatchOnlySpendError`  |
+
 ### `class AnchorVerificationError`
 
 Thrown when the anchor cannot be checked against the node and no explicit override was given.
@@ -95,6 +105,14 @@ function accountFromMnemonic(mnemonic: string, accountIndex?: number, network?: 
 
 ```typescript
 function accountFromUfvk(ufvk: string, network?: Network): WatchOnlyAccount;
+```
+
+### `isWatchOnly()`
+
+Returns true if the account is a watch-only account lacking spending authority.
+
+```typescript
+function isWatchOnly(account: unknown): account is WatchOnlyAccount;
 ```
 
 ### `detectIncoming()`

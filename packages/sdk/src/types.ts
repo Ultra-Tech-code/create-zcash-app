@@ -30,6 +30,7 @@ export interface WatchOnlyAccount {
   getTransparentAddress?(): string | undefined;
   birthdayHeight?: number;
   network: Network;
+  readonly isWatchOnly?: true;
 }
 
 export interface PoolBalances {

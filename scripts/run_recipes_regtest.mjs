@@ -9,7 +9,6 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import {
@@ -21,7 +20,9 @@ import {
   send,
   dev,
   reverseTxid,
+  WatchOnlySpendError,
 } from '../packages/sdk/dist/index.js';
+import { runCheckoutWorkflow } from '../examples/checkout/checkout.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +31,7 @@ const LOGS_DIR = path.join(REPO_ROOT, 'packages', 'core', 'tests', 'logs');
 
 const ENDPOINT = '127.0.0.1:39067';
 const ZEBRA_RPC = 'http://127.0.0.1:39232';
-const NETWORK = 'regtest';
+const NETWORK = 'regtest-nu7';
 
 function formatZec(zatoshis) {
   const z = BigInt(zatoshis);
@@ -65,107 +66,23 @@ async function runCheckoutRecipe() {
     logLines.push(msg);
   };
 
-  log('========================================================================');
-  log('RECIPE 1: SHIELDED CHECKOUT FLOW — NU7 REGTEST END-TO-END');
-  log('========================================================================');
-  log(`Timestamp: ${new Date().toISOString()}`);
-  log(`Network:   ${NETWORK}`);
-  log(`Endpoint:  ${ENDPOINT}`);
-  log(`Zebra RPC: ${ZEBRA_RPC}`);
-  log('------------------------------------------------------------------------\n');
+  // Uses CheckoutService implementation from examples/checkout/checkout.mjs
+  const result = await runCheckoutWorkflow({
+    merchantMnemonic: dev.fixtures.mnemonics[1],
+    payerMnemonic: dev.fixtures.mnemonics[0],
+    orderId: 'ORD-8821',
+    orderAmountZat: 100_000n,
+    network: NETWORK,
+    endpoint: ENDPOINT,
+    zebraRpc: ZEBRA_RPC,
+    log,
+  });
 
-  const client = createClient({ endpoint: ENDPOINT, network: NETWORK });
-
-  try {
-    const initialInfo = await client.getInfo();
-    log(`[1/5] Verified node & indexer connection:`);
-    log(`      Block Height:   ${initialInfo.blockHeight}`);
-    log(`      Active Branch:  ${initialInfo.consensusBranchId}`);
-    log(`      Network:        ${initialInfo.chainName}\n`);
-
-    // Merchant initializes watch-only viewing authority
-    const merchantMnemonic = dev.fixtures.mnemonics[1];
-    const merchantSpendAcct = accountFromMnemonic(merchantMnemonic, 0, NETWORK);
-    const merchantUfvk = merchantSpendAcct.getUnifiedFullViewingKey();
-    const merchantWatchAcct = accountFromUfvk(merchantUfvk, NETWORK);
-
-    log(`[2/5] Initialized Merchant Watch-Only Checkout Authority:`);
-    log(`      Merchant UFVK:  ${merchantUfvk.slice(0, 32)}...`);
-    log(`      Base UA:        ${merchantWatchAcct.getUnifiedAddress(0).slice(0, 35)}...\n`);
-
-    // Customer / store creates Order #ORD-8821
-    const orderId = 'ORD-8821';
-    const orderDiversifierIndex = 1;
-    const orderAddress = merchantWatchAcct.getUnifiedAddress(orderDiversifierIndex);
-    const orderAmountZat = 100_000n; // 0.001 ZEC
-
-    log(`[3/5] Created Order ${orderId}:`);
-    log(`      Diversifier Index: ${orderDiversifierIndex}`);
-    log(`      Payable UA:        ${orderAddress}`);
-    log(`      Required Amount:   ${orderAmountZat} zatoshis (${formatZec(orderAmountZat)} ZEC)`);
-    log(`      Initial Status:    PENDING\n`);
-
-    // Fund the sender (Fixture 0) and pay the order
-    const senderMnemonic = dev.fixtures.mnemonics[0];
-    const senderAcct = accountFromMnemonic(senderMnemonic, 0, NETWORK);
-    const senderUA = senderAcct.getUnifiedAddress(0);
-
-    log(`[4/5] Customer broadcasts payment transaction:`);
-    log(`      Payer Address:     ${senderUA.slice(0, 35)}...`);
-    log(`      Destination:       ${orderAddress}`);
-    log(`      Amount:            ${formatZec(orderAmountZat)} ZEC`);
-
-    // Execute send via dev cli
-    const sendCmd = `node "${path.join(REPO_ROOT, 'packages', 'dev', 'dist', 'cli.js')}" send --to "${orderAddress}" --amount 0.001 --memo "Payment for ${orderId}" --endpoint "${ENDPOINT}" --yes`;
-    const sendOutput = execSync(sendCmd, {
-      env: {
-        ...process.env,
-        ZCASH_MNEMONIC: senderMnemonic,
-        ZCASH_NETWORK: NETWORK,
-        ZCASH_ENDPOINT: ENDPOINT,
-        ZCASH_ZEBRA_RPC: ZEBRA_RPC,
-      },
-    }).toString();
-
-    const txidMatch = sendOutput.match(/Txid:\s+([0-9a-fA-F]{64})/);
-    const txid = txidMatch ? txidMatch[1] : 'unknown';
-    log(`      Broadcast TxID:    ${txid}`);
-
-    // Mine 1 block to confirm payment
-    log(`      Mining 1 block to confirm transaction...`);
-    const minedHashes = await mineBlocks(1);
-    log(`      Mined Block Hash:  ${minedHashes[0]}\n`);
-
-    // Merchant detects payment via watch-only detection
-    log(`[5/5] Merchant detects incoming payment note:`);
-    const { notes } = await detectIncoming(client, merchantWatchAcct, { sinceHeight: 1 });
-    const orderNote = notes.find(
-      (n) =>
-        n.txid === txid ||
-        reverseTxid(n.txid) === txid ||
-        (n.value >= orderAmountZat && n.pool === 'ironwood')
+  // Verify byte reversal equivalence
+  if (result.order.txid !== reverseTxid(result.broadcastTxid)) {
+    throw new Error(
+      `Detected note txid (${result.order.txid}) does not match reverseTxid(broadcastTxid) (${reverseTxid(result.broadcastTxid)})`
     );
-
-    if (!orderNote) {
-      throw new Error(`Payment note for order ${orderId} was not detected on-chain!`);
-    }
-
-    const currentInfo = await client.getInfo();
-    const currentHeight = Number(currentInfo.blockHeight);
-    const confirmations = currentHeight - orderNote.height + 1;
-
-    log(`      Detected Note TxID: ${orderNote.txid}`);
-    log(`      Value Received:     ${orderNote.value} zatoshis (${formatZec(orderNote.value)} ZEC)`);
-    log(`      Block Height:       ${orderNote.height}`);
-    log(`      Confirmations:      ${confirmations}`);
-    log(`      Payment Address:    ${orderAddress}`);
-    log(`      Order Status:       PAID ✅\n`);
-
-    log('========================================================================');
-    log('CHECKOUT RECIPE COMPLETED SUCCESSFULLY');
-    log('========================================================================');
-  } finally {
-    await client.close();
   }
 
   const logPath = path.join(LOGS_DIR, 'recipe_checkout_nu7.log');
@@ -244,7 +161,7 @@ async function runWatchOnlyRecipe() {
       (n) =>
         n.txid === txid ||
         reverseTxid(n.txid) === txid ||
-        (n.value >= 200_000n && n.pool === 'ironwood')
+        (n.value === 200_000n && n.pool === 'ironwood')
     );
     if (!depNote) throw new Error(`Watch-only monitor failed to detect deposit tx ${txid}`);
 
@@ -259,8 +176,7 @@ async function runWatchOnlyRecipe() {
     // 5. Demonstrate that spending from watch-only account is strictly rejected
     log(`[5/5] Enforcing Spend Rejection:`);
     log(`      Attempting to call send() from WatchOnlyAccount...`);
-    let spendRejected = false;
-    let rejectionMessage = '';
+    let caughtError = null;
 
     try {
       await send({
@@ -271,15 +187,17 @@ async function runWatchOnlyRecipe() {
         amount: 50_000n,
       });
     } catch (err) {
-      spendRejected = true;
-      rejectionMessage = err?.message || String(err);
+      caughtError = err;
     }
 
-    if (!spendRejected) {
+    if (!caughtError) {
       throw new Error(`SECURITY FATAL: WatchOnlyAccount was permitted to author a spend!`);
     }
+    if (!(caughtError instanceof WatchOnlySpendError)) {
+      throw new Error(`SECURITY ERROR: Expected WatchOnlySpendError, but caught: ${caughtError}`);
+    }
 
-    log(`      ✅ SPEND STRICTLY REJECTED: ${rejectionMessage}\n`);
+    log(`      ✅ SPEND STRICTLY REJECTED: ${caughtError.message}\n`);
 
     log('========================================================================');
     log('WATCH-ONLY RECIPE COMPLETED SUCCESSFULLY');
@@ -317,25 +235,25 @@ async function runPayrollRecipe() {
     const employerMnemonic = dev.fixtures.mnemonics[0];
     const employerAcct = accountFromMnemonic(employerMnemonic, 0, NETWORK);
 
-    // Setup 3 employee recipients
+    // Setup 3 fresh employee recipients (using dedicated test fixtures 4, 5, 6)
     const employees = [
       {
         name: 'Alice (Lead Core Developer)',
-        account: accountFromMnemonic(dev.fixtures.mnemonics[1], 0, NETWORK),
+        account: accountFromMnemonic(dev.fixtures.mnemonics[4], 0, NETWORK),
         amountZec: '0.0005',
         amountZat: 50_000n,
         memo: 'Payroll: 2026-11 Alice Core Dev',
       },
       {
         name: 'Bob (Security Researcher)',
-        account: accountFromMnemonic(dev.fixtures.mnemonics[2], 0, NETWORK),
+        account: accountFromMnemonic(dev.fixtures.mnemonics[5], 0, NETWORK),
         amountZec: '0.0007',
         amountZat: 70_000n,
         memo: 'Payroll: 2026-11 Bob Security Audit',
       },
       {
         name: 'Charlie (Infrastructure Eng)',
-        account: accountFromMnemonic(dev.fixtures.mnemonics[3], 0, NETWORK),
+        account: accountFromMnemonic(dev.fixtures.mnemonics[6], 0, NETWORK),
         amountZec: '0.0009',
         amountZat: 90_000n,
         memo: 'Payroll: 2026-11 Charlie Infra Ops',
@@ -346,6 +264,10 @@ async function runPayrollRecipe() {
     for (let i = 0; i < employees.length; i++) {
       const emp = employees[i];
       const ua = emp.account.getUnifiedAddress(0);
+      const initBal = await getBalance(client, emp.account);
+      if (initBal.total > 0n) {
+        throw new Error(`Account freshness assertion failed: ${emp.name} already has ${initBal.total} zatoshis!`);
+      }
       log(`      Employee ${i + 1}: ${emp.name}`);
       log(`        Address: ${ua.slice(0, 35)}...`);
       log(`        Amount:  ${emp.amountZec} ZEC (${emp.amountZat} zatoshis)`);

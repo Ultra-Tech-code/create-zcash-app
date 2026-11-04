@@ -80,28 +80,28 @@ export async function processPayroll(employees, employerMnemonic, endpoint = '12
 The payroll loop was executed against the active NU7 regtest stack (`127.0.0.1:39067`) paying 3 test employees: Alice, Bob, and Charlie.
 
 ### Machine-Captured Execution Log
-The following output is verbatim from [`packages/core/tests/logs/recipe_payroll_nu7.log`](file:///packages/core/tests/logs/recipe_payroll_nu7.log) (SHA-256: `21252c879183370cddbd0b013402922a0091dc9f65731a369c490049c65c32c8`):
+The following output is verbatim from [`packages/core/tests/logs/recipe_payroll_nu7.log`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/core/tests/logs/recipe_payroll_nu7.log) (SHA-256: `bdd5d2712568c6941f6bf36dfdea540bcc94ff1dba762d63a8901334fec54eb0`):
 
 ```text
 ========================================================================
 RECIPE 3: DISBURSEMENT & PAYROLL — 3-RECIPIENT SEQUENTIAL BATCH RUN
 ========================================================================
-Timestamp: 2026-11-04T19:50:27.510Z
-Network:   regtest
+Timestamp: 2026-11-04T20:38:59.004Z
+Network:   regtest-nu7
 Endpoint:  127.0.0.1:39067
 ------------------------------------------------------------------------
 
 [1/4] Loaded Payroll Roster:
       Employee 1: Alice (Lead Core Developer)
-        Address: uregtest17h4287clmqngsz89gwpzttkgty...
+        Address: uregtest13jg4w82j24qcany0njckg29lj3...
         Amount:  0.0005 ZEC (50000 zatoshis)
         Memo:    "Payroll: 2026-11 Alice Core Dev"
       Employee 2: Bob (Security Researcher)
-        Address: uregtest1pdyndx5k5yuyncf6w6lumxxmdv...
+        Address: uregtest1kgm3kspdy636u3e7jmnw57dxdu...
         Amount:  0.0007 ZEC (70000 zatoshis)
         Memo:    "Payroll: 2026-11 Bob Security Audit"
       Employee 3: Charlie (Infrastructure Eng)
-        Address: uregtest1kpzkz5yz4pgddlr73j26sapd0c...
+        Address: uregtest1wn0v08hx44ad9djs2vfem6ujef...
         Amount:  0.0009 ZEC (90000 zatoshis)
         Memo:    "Payroll: 2026-11 Charlie Infra Ops"
 
@@ -111,29 +111,29 @@ Endpoint:  127.0.0.1:39067
       and anchor confirmation for sequential note spendability.
 
       --> Processing payment 1/3 to Alice (Lead Core Developer)...
-          TxID:        bbbf4f8327518e96835a2b1c8f0323e8db9bc1761c46d1ca378245d9a961c006
+          TxID:        efa564873115442f18cac27d17af1b964e74d9f6f62c3851f76036aa51cf93e4
           ZIP-317 Fee: 10000 zatoshis
           Mining block to confirm change note & update anchor...
-          Confirmed in block: fbb89f7622ceab00438586798d3baae42ee7f9b93d5413fea18ebc8aa499f801
+          Confirmed in block: 79a713ad4c1c42645d9aca1940a8e509a92c781c8816c06661be341358351d5f
 
       --> Processing payment 2/3 to Bob (Security Researcher)...
-          TxID:        0b4670c719ac78b85d33ec21b56a78d98091349e52b0bd5826d2c491553f328b
+          TxID:        5b76fd21c8b045a854532788c5fea5e2720bcec5189c194f0509102e95e601a2
           ZIP-317 Fee: 10000 zatoshis
           Mining block to confirm change note & update anchor...
-          Confirmed in block: bf9d5953d77db9f6abb32b34e7a70ce99085869a24e4a4c68bbced8327d8046d
+          Confirmed in block: a018f93a206c476cdd1fa5970ce212b8b8c194cdb5f7379a9292c9990357e137
 
       --> Processing payment 3/3 to Charlie (Infrastructure Eng)...
-          TxID:        9cd4322caa0ef34bcc383f6b5d9a249d5360398201c21ea2d6bbb4d76a463b36
+          TxID:        161c55419d02c5843beab6f0601313493d782e59dd9065480fff0009f2654d70
           ZIP-317 Fee: 10000 zatoshis
           Mining block to confirm change note & update anchor...
-          Confirmed in block: 7437068b3b578e580e4a3ecb3a1d0696e14013962c5b87b997e6a49183fdb4ab
+          Confirmed in block: fff8c92e4b2e590799e4c4b070a85d6c43c05592336c0bfb61850f84958ddda6
 
 [3/4] Verifying Payee Balances Post-Disbursement:
       Alice (Lead Core Developer):
-        Confirmed Balance: 250000 zatoshis (0.00250000 ZEC)
+        Confirmed Balance: 50000 zatoshis (0.00050000 ZEC)
         Orchard Confirmed: 0 zatoshis
       Bob (Security Researcher):
-        Confirmed Balance: 270000 zatoshis (0.00270000 ZEC)
+        Confirmed Balance: 70000 zatoshis (0.00070000 ZEC)
         Orchard Confirmed: 0 zatoshis
       Charlie (Infrastructure Eng):
         Confirmed Balance: 90000 zatoshis (0.00090000 ZEC)

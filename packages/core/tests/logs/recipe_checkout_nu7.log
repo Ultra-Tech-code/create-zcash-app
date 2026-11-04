@@ -1,14 +1,14 @@
 ========================================================================
 RECIPE 1: SHIELDED CHECKOUT FLOW — NU7 REGTEST END-TO-END
 ========================================================================
-Timestamp: 2026-11-04T19:50:18.639Z
-Network:   regtest
+Timestamp: 2026-11-04T20:38:46.397Z
+Network:   regtest-nu7
 Endpoint:  127.0.0.1:39067
 Zebra RPC: http://127.0.0.1:39232
 ------------------------------------------------------------------------
 
 [1/5] Verified node & indexer connection:
-      Block Height:   4
+      Block Height:   107
       Active Branch:  77190ad9
       Network:        test
 
@@ -26,15 +26,15 @@ Zebra RPC: http://127.0.0.1:39232
       Payer Address:     uregtest1cjtspq0p660zrmhwn8uhzugwpx...
       Destination:       uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
       Amount:            0.00100000 ZEC
-      Broadcast TxID:    9ef4d7013d09f90ed66f96a238135dcf18b22bc23e9b41180b864fb540a2521e
+      Broadcast TxID:    d0b9d23487de75e26794b3b289ee15f57b784b046891a85deeaffdf6db87a793
       Mining 1 block to confirm transaction...
-      Mined Block Hash:  90f3ced12cf03502af357e5da0147ba6025a1d8f279e3a6d980ae945292d775c
+      Mined Block Hash:  602b4fd7661af844d664bca0538b9ebdfd28fa95e89732fbabb8458de4cdab11
 
 [5/5] Merchant detects incoming payment note:
-      Detected Note TxID: 5869aea1cbcddc549d79366ac3af48621f80648abe2a1ad1d0330283b65aae72
+      Detected Note TxID: 93a787dbf6fdafee5da89168044b787bf515ee89b2b39467e275de8734d2b9d0
       Value Received:     100000 zatoshis (0.00100000 ZEC)
-      Block Height:       4
-      Confirmations:      2
+      Block Height:       108
+      Confirmations:      1
       Payment Address:    uregtest17h4287clmqngsz89gwpzttkgty0rja66mwmpqst354n2q2qk5q5nlrvt52ezv3w59uwehpekq2qx6y9zyc7jzsw5u4qerf43hc550mctvh00gh5gsuyaacvgh7memgtaafzg3q2cne8hvpm5z7yut2matdxudq9smkfmdte56kqfj8jqy23reh6pwy3yu0h5pm99wryycpfesnegnd5
       Order Status:       PAID ✅
 

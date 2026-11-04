@@ -18,7 +18,7 @@ When the Docker container starts, Zebra takes several seconds to initialize its 
 ### Solution
 1. **Automatic Retry Loop**: `regtest-init.sh` now loops with a 60-second retry loop (polling every 2 seconds). It captures the response into a variable and asserts that the response contains `"result"` and no `"error"`.
 2. **Diagnostics on Failure**: If the command times out, it prints the last response body and the last 20 lines of `docker compose logs zebra`.
-3. **Clean CLI Handling**: In [`packages/dev/src/cli.ts`](file:///packages/dev/src/cli.ts), when `execSync` of the init script fails, it prints a clean error message (`regtest-init.sh failed, see output above`) and exits with code 1 without a confusing stack trace.
+3. **Clean CLI Handling**: In [`packages/dev/src/cli.ts`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/dev/src/cli.ts), when `execSync` of the init script fails, it prints a clean error message (`regtest-init.sh failed, see output above`) and exits with code 1 without a confusing stack trace.
 
 ---
 
@@ -39,7 +39,7 @@ Error: Cannot find native binding
   ```bash
   pnpm --filter @zcash-app/core run build
   ```
-- **Documentation & Analysis Tooling**: For environments without Rust (such as documentation build jobs in CI), [`scripts/docs-gen.mjs`](file:///scripts/docs-gen.mjs) installs an in-memory stub (`installNativeCoreStub()`) via `Module._load` before requiring CLI dist files. This allows command-tree extraction to run cleanly without compiling native binaries.
+- **Documentation & Analysis Tooling**: For environments without Rust (such as documentation build jobs in CI), [`scripts/docs-gen.mjs`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/scripts/docs-gen.mjs) installs an in-memory stub (`installNativeCoreStub()`) via `Module._load` before requiring CLI dist files. This allows command-tree extraction to run cleanly without compiling native binaries.
 
 ---
 
@@ -111,7 +111,7 @@ By default, Zebra automatically enables cookie authentication on testnet and mai
   ```bash
   zcash-dev testnet lightwalletd --cookie-path ~/Library/Caches/zebra/.cookie
   ```
-- **Dashboard Support**: The dashboard automatically inspects standard cookie cache paths via [`packages/dashboard/src/app/api/explorer/backend.ts`](file:///packages/dashboard/src/app/api/explorer/backend.ts) (`parseZebraCookie`), authenticating requests automatically.
+- **Dashboard Support**: The dashboard automatically inspects standard cookie cache paths via [`packages/dashboard/src/app/api/explorer/backend.ts`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/dashboard/src/app/api/explorer/backend.ts) (`parseZebraCookie`), authenticating requests automatically.
 
 ---
 
