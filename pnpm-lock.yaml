@@ -94,6 +94,9 @@ importers:
 
   packages/dev:
     dependencies:
+      '@zcash-app/dashboard':
+        specifier: workspace:*
+        version: link:../dashboard
       '@zcash-app/sdk':
         specifier: workspace:*
         version: link:../sdk

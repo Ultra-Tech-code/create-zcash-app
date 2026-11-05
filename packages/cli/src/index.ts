@@ -657,7 +657,14 @@ ${
    \`\`\`
    Open [http://localhost:3000](http://localhost:3000) in your browser to view your account's Unified Address and shielded balance.
 
-3. **Inspect chain state and balances via CLI**:
+3. **Open the Developer Dashboard**:
+   Inspect real-time balances, diversified Unified Addresses, and incoming notes:
+   \`\`\`bash
+   pnpm dashboard
+   \`\`\`
+   The dashboard runs on [http://localhost:3050](http://localhost:3050).
+
+4. **Inspect chain state and balances via CLI**:
    Use \`zcash-dev\` commands for account inspection and node diagnostics:
    \`\`\`bash
    # Inspect account address and balance
@@ -670,7 +677,7 @@ ${
    npx zcash-dev block tip
    \`\`\`
 
-4. **Switch networks anytime**:
+5. **Switch networks anytime**:
    When you're ready to deploy to testnet or mainnet, run:
    \`\`\`bash
    npx zcash-dev switch testnet
@@ -678,16 +685,16 @@ ${
    npx zcash-dev switch mainnet --remote
    \`\`\`
 
-## Developer Dashboard (Monorepo Feature)
+## Developer Dashboard
 
-The full interactive Developer Dashboard (UI for inspecting live sync, diversified Unified Addresses, and note decryption) is maintained in the \`create-zcash-app\` monorepo. It runs on port **3050** and is not bundled with standalone npm packages.
+The full interactive Developer Dashboard runs on port **3050** (\`pnpm dashboard\`), leaving port **3000** for your application. It provides real-time visibility into multi-pool balances, live block sync, diversified addresses, and note trial decryption.
 
-To run the Developer Dashboard from source:
+To run the Developer Dashboard from monorepo source:
 \`\`\`bash
 git clone https://github.com/Ultra-Tech-code/create-zcash-app.git
 cd create-zcash-app
 pnpm install && pnpm build
-pnpm --filter dashboard run dev
+pnpm --filter @zcash-app/dashboard run dev
 \`\`\`
 The dashboard will open at [http://localhost:3050](http://localhost:3050).
 `;

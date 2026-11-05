@@ -482,8 +482,8 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       assert.ok(readme.includes('## Keys and RPC Configuration'), 'README must have Keys and RPC Configuration section');
       assert.ok(readme.includes('Never commit your private keys or .env.local') || readme.includes('Never Commit Secrets'));
       const regtestPkg = JSON.parse(fs.readFileSync(path.join(regtestDir, 'package.json'), 'utf8'));
-      assert.strictEqual(regtestPkg.scripts?.dashboard, undefined, 'Scaffolded package.json must not have a dashboard script');
-      assert.strictEqual(readme.includes('pnpm dashboard'), false, 'Scaffolded README must not mention "pnpm dashboard"');
+      assert.strictEqual(regtestPkg.scripts?.dashboard, 'zcash-dev dashboard', 'Scaffolded package.json must have a dashboard script');
+      assert.ok(readme.includes('pnpm dashboard'), 'Scaffolded README must mention "pnpm dashboard"');
 
       // 9b. Testnet scaffold with UFVK
       const testnetRun = spawnSync(
@@ -1206,7 +1206,7 @@ exit 0
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('19. Scaffolder honesty: generated package.json has no "dashboard" script and README does not mention "pnpm dashboard"', () => {
+  it('19. Scaffolder honesty: generated package.json has "dashboard" script and README mentions "pnpm dashboard"', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scaffold-honesty-'));
     try {
       const scaffoldRun = spawnSync(
@@ -1223,11 +1223,12 @@ exit 0
       assert.strictEqual(scaffoldRun.status, 0, `Scaffold failed: ${scaffoldRun.stderr}`);
       const appDir = path.join(tempDir, 'app-honesty');
       const pkgJson = JSON.parse(fs.readFileSync(path.join(appDir, 'package.json'), 'utf8'));
-      assert.strictEqual(pkgJson.scripts?.dashboard, undefined, 'package.json must NOT contain a "dashboard" script');
+      assert.strictEqual(pkgJson.scripts?.dashboard, 'zcash-dev dashboard', 'package.json must contain a "dashboard" script');
 
       const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf8');
-      assert.strictEqual(readme.includes('pnpm dashboard'), false, 'README must NOT mention "pnpm dashboard"');
+      assert.ok(readme.includes('pnpm dashboard'), 'README must mention "pnpm dashboard"');
       assert.ok(readme.includes('http://localhost:3000'), 'README must mention http://localhost:3000');
+      assert.ok(readme.includes('http://localhost:3050'), 'README must mention http://localhost:3050');
       assert.ok(readme.includes('npx zcash-dev info'), 'README must mention zcash-dev inspection commands');
       assert.ok(readme.includes('git clone https://github.com/Ultra-Tech-code/create-zcash-app.git'), 'README must mention monorepo clone steps for dashboard');
     } finally {

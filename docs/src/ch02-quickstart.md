@@ -229,12 +229,24 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+---
+
+## Step 8: Open the Developer Dashboard
+
+In a separate terminal, launch the Developer Dashboard to inspect real-time balances across pools, view diversified Unified Addresses, and monitor node sync:
+
+```bash
+pnpm dashboard
+```
+
+Open [http://localhost:3050](http://localhost:3050) in your browser.
+
 > [!NOTE]
-> **Scaffolded App vs. Developer Dashboard**:
+> **Scaffolded App (Port 3000) vs. Developer Dashboard (Port 3050)**:
 > - **Scaffolded Web App (Port 3000)**: This is your end-user Next.js application (`app/page.tsx` and `app/api/account/route.ts`). It connects directly to your configured Zcash network/indexer to display your account's Unified Address, balance, and account API data.
-> - **Developer Dashboard (Port 3050)**: A separate visual diagnostic cockpit with multi-pool breakdowns, node health telemetry, diversifier generation, and raw transaction decryption. It lives inside the `create-zcash-app` monorepo source and is not bundled into scaffolded projects.
+> - **Developer Dashboard (Port 3050)**: An interactive visual diagnostic cockpit with multi-pool breakdowns (Transparent, Sapling, Orchard, Ironwood), node health telemetry, diversifier generation, and raw transaction decryption. Running `pnpm dashboard` launches the dashboard bundled with `zcash-dev`.
 >
-> To inspect node health, total chain supply, mempool, or block states from your scaffolded project without cloning the monorepo, use the `zcash-dev` CLI commands:
+> You can also inspect node health, total chain supply, mempool, or block states directly from the CLI:
 > ```bash
 > npx zcash-dev info
 > npx zcash-dev balance

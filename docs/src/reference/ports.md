@@ -9,7 +9,7 @@ This reference documents all default network ports used across the `create-zcash
 | Port | Service / Application | Protocol | Default Host Binding | Context / Scope | Config Variable / Override |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`3000`** | **Scaffolded Next.js App** | HTTP | `127.0.0.1:3000` | Scaffolded projects | `PORT=3000` / `next dev -p 3000` |
-| **`3050`** | **Developer Dashboard** | HTTP | `127.0.0.1:3050` | Monorepo source only | `PORT=3050` / `zcash-dev dashboard -p 3050` |
+| **`3050`** | **Developer Dashboard** | HTTP | `127.0.0.1:3050` | Scaffolded projects & Monorepo | `PORT=3050` / `pnpm dashboard` / `zcash-dev dashboard -p 3050` |
 | **`39067`** | **Lightwalletd gRPC (NU7)** | gRPC / HTTP/2 | `127.0.0.1:39067` | NU7 regtest stack | `LIGHTWALLETD_GRPC_PORT` / `ZCASH_ENDPOINT` |
 | **`39232`** | **Zebra JSON-RPC (NU7)** | HTTP JSON-RPC | `127.0.0.1:39232` | NU7 regtest stack | `ZEBRA_RPC_PORT` / `ZCASH_ZEBRA_RPC` |
 | **`38080`** | **Zebra Health Check (NU7)** | HTTP | `127.0.0.1:38080` | NU7 regtest stack | `ZEBRA_HEALTH_PORT` |
@@ -52,22 +52,28 @@ A common source of confusion is the distinction between your scaffolded web appl
     pnpm dev -- -p 3001
     ```
 
-### Developer Dashboard (Port 3050, Monorepo Only)
-- **What it is**: An internal diagnostic cockpit and health monitor maintained within the `create-zcash-app` monorepo (`packages/dashboard`). It provides multi-pool balance breakdown (Transparent, Sapling, Orchard, Ironwood), live block synchronization percentage tracking, diversified Unified Address generation, and transaction inspection.
-- **Location**: Only exists inside a full clone of the `create-zcash-app` source repository. It is **not** bundled with standalone npm packages (`zcash-dev dashboard` will refuse to launch and instruct you to clone the repo).
+### Developer Dashboard (Port 3050)
+- **What it is**: An internal diagnostic cockpit and health monitor maintained in `@zcash-app/dashboard`. It provides multi-pool balance breakdown (Transparent, Sapling, Orchard, Ironwood), live block synchronization percentage tracking, diversified Unified Address generation, and transaction inspection.
+- **Location & Installation**: Available both in standalone scaffolded projects via `pnpm dashboard` (bundled with `zcash-dev`) and inside a full clone of the `create-zcash-app` source repository.
 - **Default Port**: `3050` (to avoid collision with the scaffolded app on 3000).
-- **When to use**: When developing core libraries, testing consensus upgrades, or diagnosing low-level node and indexer states from source.
-- **How to launch (from monorepo clone)**:
-  ```bash
-  git clone https://github.com/Ultra-Tech-code/create-zcash-app.git
-  cd create-zcash-app
-  pnpm install && pnpm build
-  pnpm --filter dashboard run dev
-  # Or with zcash-dev CLI:
-  # pnpm --filter zcash-dev exec zcash-dev dashboard --port 3050
-  ```
+- **When to use**: When developing applications, inspecting live sync progress, testing diversifiers, or diagnosing node and indexer states.
+- **How to launch**:
+  - In a scaffolded application:
+    ```bash
+    pnpm dashboard
+    # or: npx zcash-dev dashboard
+    ```
+  - From the monorepo clone:
+    ```bash
+    git clone https://github.com/Ultra-Tech-code/create-zcash-app.git
+    cd create-zcash-app
+    pnpm install && pnpm build
+    pnpm --filter @zcash-app/dashboard run dev
+    # Or with zcash-dev CLI:
+    # pnpm --filter zcash-dev exec zcash-dev dashboard --port 3050
+    ```
 - **How to change the port**:
-  - In `packages/dashboard/package.json`:
+  - In `packages/dashboard/package.json` (monorepo):
     ```json
     "scripts": {
       "dev": "next dev -p 3055 --webpack"

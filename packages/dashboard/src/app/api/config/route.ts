@@ -4,7 +4,8 @@ import path from 'path';
 import { NETWORK_PRESETS, PresetId } from '../../endpoints';
 
 export async function GET() {
-  const configPath = path.resolve(process.cwd(), 'zcash.config.json');
+  const rootDir = process.env.ZCASH_PROJECT_DIR || process.cwd();
+  const configPath = path.resolve(rootDir, 'zcash.config.json');
   if (fs.existsSync(configPath)) {
     try {
       const data = JSON.parse(fs.readFileSync(configPath, 'utf8'));

@@ -76,10 +76,11 @@ A glassmorphic Next.js App Router UI providing real-time visibility into your Zc
 - **Background Sync**: Non-blocking status API (`/api/sync/status`) responding in < 5s with scanned progress and pending/failed fetch metrics.
 - **Security Notice**: Memos and counterparties are stored in plaintext in the SQLite wallet DB (`~/.zcash-app/dashboard/`); directory permissions are strictly 0700 and database file permissions are strictly 0600.
 - **Explorer**: Integrated transaction and block inspector supporting NU7 consensus branches and local Zebra cookie authentication.
-- **Monorepo-Only Availability**: The developer dashboard is maintained directly in the repository and runs on port **3050** from a local clone. It is not bundled into standalone scaffolded projects:
+- **Running the Dashboard**: Run `pnpm dashboard` in any scaffolded project (powered by `zcash-dev`), or run from the cloned repository:
   ```bash
-  pnpm --filter dashboard run dev
-  # or: cd packages/dashboard && pnpm dev
+  pnpm --filter @zcash-app/dashboard run dev
+  # or in a scaffolded project:
+  pnpm dashboard
   ```
 
 ### 5. `create-zcash-app` (Scaffolder CLI)
@@ -187,14 +188,14 @@ pnpm --filter @zcash-app/core run build
 pnpm --filter @zcash-app/sdk run build
 pnpm --filter zcash-dev run build
 pnpm --filter create-zcash-app run build
-pnpm --filter dashboard run build
+pnpm --filter @zcash-app/dashboard run build
 ```
 
-### 2. Launch the Developer Dashboard (Monorepo Only)
+### 2. Launch the Developer Dashboard
 
-The developer dashboard is run directly from the cloned repository on port **3050** (leaving port **3000** free for your scaffolded application):
+The developer dashboard runs on port **3050** (leaving port **3000** free for your scaffolded application). In a scaffolded project, run `pnpm dashboard`. From the cloned repository:
 ```bash
-pnpm --filter dashboard run dev
+pnpm --filter @zcash-app/dashboard run dev
 # or:
 cd packages/dashboard && pnpm dev
 ```
