@@ -8,6 +8,7 @@ This document describes the release procedure for `create-zcash-app`, `@zcash-ap
 - Write access to the GitHub repository to create tags and trigger release workflows.
 - npm CLI access to manage dist-tags if promoting from `next` to `latest`.
 - **Active Internet Connection for Dashboard Build**: Building the `@zcash-app/dashboard` package (`next build --webpack`) downloads Google Fonts at build time via `next/font/google` (`Geist` and `Geist_Mono`). An active internet connection is required during the release packaging step.
+- **Dashboard Build & Native Addon Ordering**: In `release.yml`, building `@zcash-app/dashboard` is sequenced after downloading and placing native addons (via `napi artifacts`) and before `napi prepublish`. Next.js evaluates API routes during `next build --webpack` (page data collection), which imports `@zcash-app/sdk` -> `@zcash-app/core` and requires the runner's native addon (`linux-x64-gnu`). The workflow temporarily copies `zcash-core.linux-x64-gnu.node` into `packages/core/` for the build and immediately removes it before packaging `@zcash-app/core`.
 
 ---
 
