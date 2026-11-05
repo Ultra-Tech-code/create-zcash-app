@@ -7,7 +7,7 @@ This recipe covers automated disbursement and employee payroll processing using 
 ## 1. Single-Recipient Architecture & Current Capabilities
 
 > [!IMPORTANT]
-> **Current SDK & CLI Capabilities**: As of `@zcash-app/sdk` and `zcash-dev` version `0.1.0-alpha.2`, the transaction send pipeline supports **one recipient per transaction**. The SDK `SendOptions` interface declares a single `to: string` destination:
+> **Current SDK & CLI Capabilities**: As of `@zcash-app/sdk` and `zcash-dev` version `0.1.0-alpha.3`, the transaction send pipeline supports **one recipient per transaction**. The SDK `SendOptions` interface declares a single `to: string` destination:
 > ```typescript
 > export interface SendOptions {
 >   client: ZcashClient;
