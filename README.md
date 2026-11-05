@@ -69,14 +69,14 @@ zcash-dev fund <UNIFIED_ADDRESS> 1.0
 > `zcash-dev mine` generates coinbase rewards via Zebra. Note that `zcash-dev fund` (via `z_sendmany`) requires 100 blocks of coinbase maturity and an active Zallet account with spendable balance.
 
 ### 4. `@zcash-app/dashboard` (Developer Dashboard)
-A glassmorphic Next.js App Router UI providing real-time visibility into your Zcash stack:
+A glassmorphic Next.js App Router UI providing real-time visibility into your Zcash stack (runs on port **3050**, distinct from scaffolded applications on port **3000**):
 - **Overview**: Live total balance and per-pool breakdown (Ironwood vs. Orchard).
 - **Addresses**: Unified Address (ZIP-316), diversified addresses, and view-only UFVK with copy buttons.
 - **Transactions**: Live list of incoming notes detected by trial-decryption, isolated by network preset.
 - **Background Sync**: Non-blocking status API (`/api/sync/status`) responding in < 5s with scanned progress and pending/failed fetch metrics.
 - **Security Notice**: Memos and counterparties are stored in plaintext in the SQLite wallet DB (`~/.zcash-app/dashboard/`); directory permissions are strictly 0700 and database file permissions are strictly 0600.
 - **Explorer**: Integrated transaction and block inspector supporting NU7 consensus branches and local Zebra cookie authentication.
-- **Running the Dashboard**: The developer dashboard is run from the cloned repository:
+- **Monorepo-Only Availability**: The developer dashboard is maintained directly in the repository and runs on port **3050** from a local clone. It is not bundled into standalone scaffolded projects:
   ```bash
   pnpm --filter dashboard run dev
   # or: cd packages/dashboard && pnpm dev
@@ -190,15 +190,15 @@ pnpm --filter create-zcash-app run build
 pnpm --filter dashboard run build
 ```
 
-### 2. Launch the Developer Dashboard
+### 2. Launch the Developer Dashboard (Monorepo Only)
 
-The dashboard is run directly from the repository:
+The developer dashboard is run directly from the cloned repository on port **3050** (leaving port **3000** free for your scaffolded application):
 ```bash
 pnpm --filter dashboard run dev
 # or:
 cd packages/dashboard && pnpm dev
 ```
-Open [http://localhost:3050](http://localhost:3050) to view chain state, inspect balances across pools (Orchard + Ironwood), and perform developer actions.
+Open [http://localhost:3050](http://localhost:3050) to view chain state, inspect balances across pools (Orchard + Ironwood), and perform developer actions. For complete port specifications, see [Default Ports & Configuration](docs/src/reference/ports.md).
 
 ---
 

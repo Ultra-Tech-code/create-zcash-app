@@ -642,7 +642,7 @@ Configuration is managed via environment variables in \`.env.local\` (local over
 
 ${
   generateDockerCompose
-    ? `1. **Start the local Z3 stack**:
+    ? `1. **Start the local devnet stack**:
    \`\`\`bash
    docker compose up -d
    \`\`\`
@@ -650,16 +650,24 @@ ${
     : `1. **Connected to ${connectionMode} indexer**: \`${redactSecretUrl(endpoint)}\`
 `
 }
-2. **Install and run your development app**:
+2. **Install and run your shielded application**:
    \`\`\`bash
    pnpm install
    pnpm dev
    \`\`\`
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view your account's Unified Address and shielded balance.
 
-3. **Open the Developer Dashboard**:
-   Inspect real-time balances, diversified Unified Addresses, and incoming notes:
+3. **Inspect chain state and balances via CLI**:
+   Use \`zcash-dev\` commands for account inspection and node diagnostics:
    \`\`\`bash
-   pnpm dashboard
+   # Inspect account address and balance
+   npx zcash-dev address
+   npx zcash-dev balance
+
+   # Pretty-print Zebra node info, supply, mempool, and blocks
+   npx zcash-dev info
+   npx zcash-dev supply
+   npx zcash-dev block tip
    \`\`\`
 
 4. **Switch networks anytime**:
@@ -669,6 +677,19 @@ ${
    # or
    npx zcash-dev switch mainnet --remote
    \`\`\`
+
+## Developer Dashboard (Monorepo Feature)
+
+The full interactive Developer Dashboard (UI for inspecting live sync, diversified Unified Addresses, and note decryption) is maintained in the \`create-zcash-app\` monorepo. It runs on port **3050** and is not bundled with standalone npm packages.
+
+To run the Developer Dashboard from source:
+\`\`\`bash
+git clone https://github.com/Ultra-Tech-code/create-zcash-app.git
+cd create-zcash-app
+pnpm install && pnpm build
+pnpm --filter dashboard run dev
+\`\`\`
+The dashboard will open at [http://localhost:3050](http://localhost:3050).
 `;
     fs.writeFileSync(path.join(targetDir, 'README.md'), readmeContent);
     writtenFiles.push('README.md');
