@@ -2,6 +2,35 @@
 
 All notable changes to `create-zcash-app` and its workspace packages will be documented in this file.
 
+## [0.1.0-alpha.3] - 2026-11-05
+
+### TypeScript SDK (`@zcash-app/sdk`)
+- **Watch-Only Spend Guard**: Added exported `WatchOnlySpendError` and exported `isWatchOnly(account)` helper function.
+- **Pre-flight Send Guard**: Enforced synchronous watch-only checking in `send()` before network or consensus calls, immediately rejecting attempts to spend from viewing-only (UFVK) accounts with `WatchOnlySpendError`.
+
+### Developer CLI (`zcash-dev`)
+- **Pretty Zebra JSON-RPC Mode**: Added a human-readable CLI inspection mode inspired by dismad's `zebraUtilities` (reimplemented purely in TypeScript with zero shell, curl, jq, or bc dependencies, using BigInt zatoshis precision end-to-end and strict secret URL redaction).
+- **RPC Command**: Added `zcash-dev rpc <method> [params...] [--pretty] [--json] [--no-color] [--local] [-e, --zebra-rpc <url>]` for executing raw or formatted Zebra JSON-RPC queries.
+- **Transaction Inspection**: Added `zcash-dev tx <txid> [--json] [--no-color] [--local]` displaying block height, confirmations, lock time, transparent/shielded inputs and outputs, value pool balances (Sprout, Sapling, Orchard, Ironwood), and computed fees for both mined and mempool transactions.
+- **Block Inspection**: Added `zcash-dev block <height|hash> [--json] [--no-color] [--local]` displaying block header metadata, height, hash, timestamp, size, and transaction list.
+- **Supply Distribution**: Added `zcash-dev supply [--json] [--no-color] [--local]` displaying total chain supply across value pools looked up strictly by pool ID with formatted ZEC values.
+- **Peer Information**: Added `zcash-dev peers [--json] [--no-color] [--local]` displaying connected Zebra peers, addresses, protocol versions, user agents, and ping latency.
+- **Mempool Inspection**: Added `zcash-dev mempool [--json] [--no-color] [--local]` displaying pending unmined transactions in Zebra's memory pool.
+
+### Native Core (`@zcash-app/core`)
+- **Version Alignment**: Bumped core package and all 5 platform packages (`darwin-arm64`, `darwin-x64`, `linux-arm64-gnu`, `linux-x64-gnu`, `win32-x64-msvc`) to `0.1.0-alpha.3`.
+- **Version Check Assertions**: Aligned runtime native addon version check assertions to expect `0.1.0-alpha.3`.
+
+### Documentation (Stage 2)
+- **Integration Recipes**: Added production-oriented recipes for Checkout & e-commerce payments (`docs/src/recipes/checkout.md`), Disbursement & Payroll (`docs/src/recipes/payroll.md`), and Watch-Only Account Monitoring (`docs/src/recipes/watch-only-monitor.md`), backed by executable examples in `examples/checkout/` and `examples/watch-only/`.
+- **Advanced Guides**: Added comprehensive reference guides for Pretty RPC (`docs/src/guides/pretty-rpc.md`), Security & Redaction pipeline (`docs/src/guides/security.md`), Troubleshooting & Common Errors (`docs/src/guides/troubleshooting.md`), and Dashboard architecture (`docs/src/guides/dashboard.md`).
+- **Vendored Mermaid Rendering**: Integrated mdBook Mermaid diagram support with vendored `mermaid.min.js` (v11.4.1) and zero external CDN dependencies, covered by automated Playwright verification (`pnpm docs:verify-mermaid`).
+- **Credits**: Credited dismad (`dismad/zebraUtilities`) for the pretty-RPC concept in `docs/src/ch01-introduction.md` and `docs/src/guides/pretty-rpc.md`.
+
+### Continuous Integration & Workflows
+- **Offline Formatters Matrix**: Added `pretty-rpc-offline` matrix job in `.github/workflows/ci.yml` verifying TypeScript-only formatting tests across Ubuntu, macOS, and Windows without native Rust addon dependencies.
+- **Tarball Download Hardening**: Hardened mdBook, mdbook-linkcheck2, and mdbook-mermaid downloads in `.github/workflows/ci.yml` and `.github/workflows/docs-pages.yml` with curl retry flags (`--retry 5 --retry-delay 3 --retry-all-errors`) and temporary file unpacking.
+
 ## [0.1.0-alpha.2] - 2026-11-02
 
 ### Scaffolder (`create-zcash-app`)
