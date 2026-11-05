@@ -10,6 +10,11 @@ The Zcash Developer Dashboard runs as a Next.js App Router service on port 3050 
 - **Endpoint Allowlisting (`resolveAllowedEndpoint`)**: Endpoints queried through proxy routes must exist in the recognized preset allowlist or match loopback/private ranges.
 - **Secret Redaction (`redactSecretUrl`)**: JSON responses redact sensitive tokens in RPC URLs and sanitize errors to never echo mnemonics or credentials.
 
+## Build & Network Requirements
+
+> [!NOTE]
+> Building the dashboard package (`@zcash-app/dashboard`) executes `next build --webpack`, which downloads Google Fonts at build time via `next/font/google` (`Geist` and `Geist_Mono`). An active internet connection is required during the release packaging build step. Once packaged, the runtime dashboard runs offline without external network dependencies.
+
 ## API Endpoints
 
 ### `GET /api/status`

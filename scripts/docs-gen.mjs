@@ -436,6 +436,10 @@ export async function generateDashboardApiRef() {
   md += `- **Endpoint Allowlisting (\`resolveAllowedEndpoint\`)**: Endpoints queried through proxy routes must exist in the recognized preset allowlist or match loopback/private ranges.\n`;
   md += `- **Secret Redaction (\`redactSecretUrl\`)**: JSON responses redact sensitive tokens in RPC URLs and sanitize errors to never echo mnemonics or credentials.\n\n`;
 
+  md += `## Build & Network Requirements\n\n`;
+  md += `> [!NOTE]\n`;
+  md += `> Building the dashboard package (\`@zcash-app/dashboard\`) executes \`next build --webpack\`, which downloads Google Fonts at build time via \`next/font/google\` (\`Geist\` and \`Geist_Mono\`). An active internet connection is required during the release packaging build step. Once packaged, the runtime dashboard runs offline without external network dependencies.\n\n`;
+
   md += `## API Endpoints\n\n`;
 
   const endpoints = [

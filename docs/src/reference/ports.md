@@ -72,6 +72,7 @@ A common source of confusion is the distinction between your scaffolded web appl
     # Or with zcash-dev CLI:
     # pnpm --filter zcash-dev exec zcash-dev dashboard --port 3050
     ```
+- **Build & Network Requirements**: Building `@zcash-app/dashboard` from source executes `next build --webpack`, which downloads Google Fonts at build time via `next/font/google` (`Geist`, `Geist_Mono`) and requires internet connectivity during the build. Packaged production releases run fully offline.
 - **How to change the port**:
   - In `packages/dashboard/package.json` (monorepo):
     ```json

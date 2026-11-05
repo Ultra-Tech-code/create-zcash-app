@@ -3,7 +3,7 @@
 In this quickstart, you will scaffold a new shielded Zcash application, initialize an isolated local NU7 regtest devnet, fund an account, run the application, and simulate your first shielded payment.
 
 > [!NOTE]
-> The commands below need create-zcash-app / zcash-dev 0.1.0-alpha.3 or later (alpha.3 is the current release, featuring full NU7 stack support, `address`, `balance`, and `send` commands).
+> The commands below need create-zcash-app / zcash-dev 0.1.0-alpha.4 or later (alpha.4 is the current release, featuring full NU7 stack support, `address`, `balance`, and `send` commands).
 
 ## Prerequisites
 

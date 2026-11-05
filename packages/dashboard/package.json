@@ -1,6 +1,6 @@
 {
   "name": "@zcash-app/dashboard",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "Developer dashboard for shielded Zcash apps",
   "license": "Apache-2.0",
   "repository": {
@@ -23,6 +23,11 @@
     ".next",
     "!.next/cache/**",
     "!.next/dev/**",
+    "!.next/diagnostics/**",
+    "!.next/types/**",
+    "!.next/trace",
+    "!.next/trace-build",
+    "!.next/trace*",
     "public",
     "package.json",
     "next.config.mjs",
