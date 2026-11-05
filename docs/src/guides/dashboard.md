@@ -3,7 +3,13 @@
 The Zcash Developer Dashboard is a full-stack Next.js application that provides a visual developer cockpit for testing shielded Zcash applications, monitoring consensus node status, inspecting Unified Addresses, and debugging transactions.
 
 > [!IMPORTANT]
-> **Source-Only Availability**: The dashboard package (`@zcash-app/dashboard`) is **not published to npm**. It is maintained directly in the monorepo and runs from a local clone of the repository. Running the dashboard outside a repository clone is intentionally unsupported (enforced by `zcash-dev dashboard` in [`packages/dev/src/cli.ts`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/dev/src/cli.ts#L800-L818)).
+> **Source-Only Availability**: The dashboard package (`@zcash-app/dashboard`) is **not published to npm**. It is maintained directly in the monorepo and runs from a local clone of the repository on port **3050**. Running the dashboard outside a repository clone is intentionally unsupported (enforced by `zcash-dev dashboard` in [`packages/dev/src/cli.ts`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/dev/src/cli.ts#L800-L818)).
+
+> [!NOTE]
+> **Developer Dashboard (Port 3050) vs. Scaffolded Application (Port 3000)**:
+> - **Developer Dashboard (`http://localhost:3050`)**: Diagnostic cockpit maintained inside the monorepo source. Use it for low-level node diagnostics, consensus tracking, diversifier testing, and visual note decryption.
+> - **Scaffolded Application (`http://localhost:3000`)**: Your standalone end-user application created with `npx create-zcash-app`. Use it for developing and running your product's front-end and application-specific API routes.
+> - See the [Default Ports Reference](../reference/ports.md) for complete port allocations and override instructions.
 
 ---
 

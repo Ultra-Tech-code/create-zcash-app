@@ -15,6 +15,7 @@
 - [TypeScript SDK](./reference/sdk.md)
 - [Dashboard API](./reference/dashboard-api.md)
 - [RPC & Protocol Reference](./reference/rpc.md)
+- [Default Ports & Configuration](./reference/ports.md)
 
 ---
 

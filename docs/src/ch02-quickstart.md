@@ -221,11 +221,25 @@ Pending:     0.00000000 ZEC
 
 ## Step 7: Run Your Web Application
 
-Start the local Next.js development server:
+Start the local Next.js development server for your scaffolded application:
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. The application dashboard displays your live balance, recent shielded transactions, and network synchronization status.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+> [!NOTE]
+> **Scaffolded App vs. Developer Dashboard**:
+> - **Scaffolded Web App (Port 3000)**: This is your end-user Next.js application (`app/page.tsx` and `app/api/account/route.ts`). It connects directly to your configured Zcash network/indexer to display your account's Unified Address, balance, and account API data.
+> - **Developer Dashboard (Port 3050)**: A separate visual diagnostic cockpit with multi-pool breakdowns, node health telemetry, diversifier generation, and raw transaction decryption. It lives inside the `create-zcash-app` monorepo source and is not bundled into scaffolded projects.
+>
+> To inspect node health, total chain supply, mempool, or block states from your scaffolded project without cloning the monorepo, use the `zcash-dev` CLI commands:
+> ```bash
+> npx zcash-dev info
+> npx zcash-dev balance
+> npx zcash-dev supply
+> npx zcash-dev block tip
+> ```
+> For complete port bindings and configuration details, see the [Default Ports & Configuration Reference](./reference/ports.md).
 
