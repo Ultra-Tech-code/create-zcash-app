@@ -176,6 +176,9 @@ export function getPresetZebraRpcUrl(
   presetParam?: PresetId | null,
   network: Network = 'regtest'
 ): string | null {
+  if (process.env.ZCASH_ZEBRA_RPC) {
+    return process.env.ZCASH_ZEBRA_RPC;
+  }
   if (process.env.ZEBRA_RPC_URL) {
     return process.env.ZEBRA_RPC_URL;
   }

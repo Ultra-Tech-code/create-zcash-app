@@ -192,7 +192,7 @@ jobs:
           pnpm --filter zcash-dev build
           pnpm --filter create-zcash-app build
           pnpm --filter zcash-dev test
-          pnpm --filter dashboard test
+          pnpm --filter @zcash-app/dashboard test
 
       - name: Install pinned mdBook (v0.5.4), mdbook-linkcheck2 (v0.13.0) & mdbook-mermaid (v0.17.1)
         run: |

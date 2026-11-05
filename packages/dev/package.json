@@ -1,6 +1,6 @@
 {
   "name": "zcash-dev",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "description": "Regtest developer helper CLI for shielded Zcash apps",
   "bin": {
     "zcash-dev": "./dist/cli.js"
@@ -37,6 +37,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@zcash-app/dashboard": "workspace:*",
     "@zcash-app/sdk": "workspace:*",
     "commander": "^12.1.0",
     "prompts": "^2.4.2"

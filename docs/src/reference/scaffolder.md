@@ -4,7 +4,7 @@
 
 The `create-zcash-app` CLI bootstraps new production-ready shielded Zcash applications with Next.js App Router, Tailwind CSS, TypeScript, and the `@zcash-app/sdk`.
 
-**CLI Version**: `0.1.0-alpha.3` (as of November 2026)
+**CLI Version**: `0.1.0-alpha.4` (as of November 2026)
 
 ## Synopsis
 

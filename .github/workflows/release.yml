@@ -143,8 +143,10 @@ jobs:
       # `pnpm run`/`pnpm exec` step after prepublish.
       - name: Build the TypeScript packages that get published
         # sdk first: zcash-dev imports @zcash-app/sdk's types from dist/.
+        # dashboard build runs next build --webpack before packing.
         run: |
           pnpm --filter @zcash-app/sdk build
+          pnpm --filter @zcash-app/dashboard run build
           pnpm --filter zcash-dev build
           pnpm --filter create-zcash-app build
 
@@ -163,7 +165,7 @@ jobs:
 
       - name: Copy LICENSE into all packages
         run: |
-          for dir in packages/core packages/sdk packages/dev packages/cli packages/core/npm/*/; do
+          for dir in packages/core packages/sdk packages/dashboard packages/dev packages/cli packages/core/npm/*/; do
             cp LICENSE "$dir/"
           done
 
@@ -225,6 +227,7 @@ jobs:
           mkdir -p /tmp/release-packs
           pnpm --filter @zcash-app/core pack --pack-destination /tmp/release-packs
           pnpm --filter @zcash-app/sdk pack --pack-destination /tmp/release-packs
+          pnpm --filter @zcash-app/dashboard pack --pack-destination /tmp/release-packs
           pnpm --filter zcash-dev pack --pack-destination /tmp/release-packs
           pnpm --filter create-zcash-app pack --pack-destination /tmp/release-packs
           for dir in packages/core/npm/*/; do
@@ -272,15 +275,15 @@ jobs:
           if (platformFailures > 0) process.exit(1);
 
           const tarballs = fs.readdirSync('/tmp/release-packs').filter((f) => f.endsWith('.tgz'));
-          if (tarballs.length !== 9) {
-            console.error(`EXPECTED exactly 9 tarballs in /tmp/release-packs, found ${tarballs.length}`);
+          if (tarballs.length !== 10) {
+            console.error(`EXPECTED exactly 10 tarballs in /tmp/release-packs, found ${tarballs.length}`);
             process.exit(1);
           }
 
           const expectedUrl = 'git+https://github.com/Ultra-Tech-code/create-zcash-app.git';
           let failures = 0;
 
-          // Check that every one of the 9 tarballs has license, repository.url, a LICENSE file,
+          // Check that every one of the 10 tarballs has license, repository.url, a LICENSE file,
           // and zero workspace: ranges
           for (const file of tarballs) {
             const full = path.join('/tmp/release-packs', file);
@@ -321,6 +324,7 @@ jobs:
           const expected = [
             { pattern: /^zcash-app-core-\d/, isCore: true, entries: ['package/index.js', 'package/index.d.ts'] },
             { pattern: /^zcash-app-sdk-\d/, entries: ['package/dist/index.js', 'package/dist/index.d.ts'] },
+            { pattern: /^zcash-app-dashboard-\d/, entries: ['package/.next', 'package/next.config.mjs', 'package/package.json', 'package/LICENSE'] },
             { pattern: /^zcash-dev-\d/, entries: ['package/dist/cli.js', 'package/dist/index.js'] },
             { pattern: /^create-zcash-app-\d/, entries: ['package/dist/index.js', 'package/template/package.json.tmpl'] },
           ];
@@ -370,11 +374,11 @@ jobs:
           if (failures > 0) process.exit(1);
           NODE
 
-      - name: Check that the four published packages share one version
+      - name: Check that the five published packages share one version
         run: |
           node -e '
             const fs = require("fs");
-            const names = ["core", "sdk", "dev", "cli"];
+            const names = ["core", "sdk", "dashboard", "dev", "cli"];
             const versions = names.map((n) => {
               const p = JSON.parse(fs.readFileSync(`packages/${n}/package.json`, "utf8"));
               console.log(`${p.name} ${p.version}`);
@@ -387,7 +391,7 @@ jobs:
             console.log("All publishable packages are at " + versions[0]);
           '
 
-      # Publish the 9 tarballs already produced by pnpm pack in /tmp/release-packs.
+      # Publish the 10 tarballs already produced by pnpm pack in /tmp/release-packs.
       # Because they were packed by pnpm pack, all workspace:* ranges were rewritten to real versions.
       # Publishing the packed tarballs directly via npm publish with --tag next uses npm's trusted
       # publishing (OIDC) without needing secrets.NPM_TOKEN or pnpm publish.
@@ -423,14 +427,14 @@ jobs:
           npm publish "$tarball" $args
           echo "::endgroup::"
 
-      - name: Publish @zcash-app/sdk, zcash-dev and create-zcash-app
+      - name: Publish @zcash-app/sdk, @zcash-app/dashboard, zcash-dev and create-zcash-app
         env:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
           args="--access public --tag ${NPM_TAG:-next}"
           if [ "$DRY_RUN" = "true" ]; then args="$args --dry-run"; fi
-          for pattern in '^zcash-app-sdk-\d' '^zcash-dev-\d' '^create-zcash-app-\d'; do
+          for pattern in '^zcash-app-sdk-\d' '^zcash-app-dashboard-\d' '^zcash-dev-\d' '^create-zcash-app-\d'; do
             tarball=$(node -e '
               const fs = require("fs");
               const re = new RegExp(process.argv[1]);
@@ -449,5 +453,5 @@ jobs:
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             echo "Dry run: every npm publish was invoked with --dry-run, so nothing was published." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, zcash-dev and create-zcash-app with dist-tag \`${NPM_TAG:-next}\`." >> "$GITHUB_STEP_SUMMARY"
+            echo "Published the platform packages, then @zcash-app/core, @zcash-app/sdk, @zcash-app/dashboard, zcash-dev and create-zcash-app with dist-tag \`${NPM_TAG:-next}\`." >> "$GITHUB_STEP_SUMMARY"
           fi

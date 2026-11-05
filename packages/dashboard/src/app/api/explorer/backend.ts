@@ -114,7 +114,9 @@ export function getThirdPartyRpcFallbackUrl(): string | null {
   if (fromEnv && fromEnv.trim()) return fromEnv.trim();
 
   try {
+    const projectDir = process.env.ZCASH_PROJECT_DIR;
     const envPaths = [
+      ...(projectDir ? [path.resolve(projectDir, '.env'), path.resolve(projectDir, '.env.local')] : []),
       path.resolve(process.cwd(), '.env'),
       path.resolve(process.cwd(), '../.env'),
       path.resolve(process.cwd(), '../../.env'),
@@ -144,6 +146,9 @@ export function getFallbackLightwalletdEndpoint(network: Network): string | null
 }
 
 export function getSecondaryRpcUrl(presetParam?: PresetId | null): string | null {
+  if (process.env.ZCASH_ZEBRA_RPC) {
+    return process.env.ZCASH_ZEBRA_RPC;
+  }
   if (process.env.ZEBRA_RPC_URL) {
     return process.env.ZEBRA_RPC_URL;
   }

@@ -2,6 +2,20 @@
 
 All notable changes to `create-zcash-app` and its workspace packages will be documented in this file.
 
+## [0.1.0-alpha.4] - 2026-11-05
+
+### Developer Dashboard (`@zcash-app/dashboard`)
+- **Published Package**: Shipped the Developer Dashboard as `@zcash-app/dashboard` on npm, packaging production Next.js build artifacts (`.next`), public assets, `LICENSE`, and pure ESM `next.config.mjs` with development, diagnostics, and tracing caches pruned for clean tarball hygiene.
+- **CLI Launch Integration**: Enabled `zcash-dev dashboard` to launch the packaged production dashboard via `next start` on port 3050 in scaffolded projects, while preserving the fallback to `next dev` inside the monorepo clone.
+- **Port Strategy Resolution**: Added pure `resolveDashboardStrategy` helper with full test coverage for packaged, monorepo, and uninstalled failure scenarios.
+
+### Scaffolder (`create-zcash-app`)
+- **Scaffolded Dashboard Script**: Restored `"dashboard": "zcash-dev dashboard"` in `packages/cli/template/package.json.tmpl` and quickstart documentation so newly scaffolded projects can run `pnpm dashboard` immediately.
+
+### Documentation & Reference
+- **Ports Reference**: Added dedicated default network and ports reference page (`docs/src/reference/ports.md`) documenting all port allocations across the ecosystem (3000 scaffolded Next app, 3050 developer dashboard, 39067/39232 NU7 stack, 28137/8181/29232 Z3 stack).
+- **Build Requirements**: Documented Google Fonts build-time download requirements (`next/font/google`) for `@zcash-app/dashboard` in `RELEASING.md`, `docs/src/reference/ports.md`, and `docs/src/reference/dashboard-api.md`.
+
 ## [0.1.0-alpha.3] - 2026-11-05
 
 ### TypeScript SDK (`@zcash-app/sdk`)

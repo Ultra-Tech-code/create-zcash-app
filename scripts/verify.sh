@@ -35,7 +35,7 @@ pnpm --filter zcash-dev test
 
 echo "=== [6/8] Running Dashboard Tests ==="
 # Test dashboard node sync percentage calculation, secret redaction, and status calculation
-pnpm --filter dashboard test
+pnpm --filter @zcash-app/dashboard test
 
 echo "=== [7/8] Running Documentation Drift & Link Check ==="
 # Verify that generated reference docs match the codebase, no CLI commands/flags in prose drift,

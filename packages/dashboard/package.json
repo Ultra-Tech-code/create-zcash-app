@@ -1,11 +1,42 @@
 {
-  "name": "dashboard",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@zcash-app/dashboard",
+  "version": "0.1.0-alpha.4",
+  "description": "Developer dashboard for shielded Zcash apps",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ultra-Tech-code/create-zcash-app.git",
+    "directory": "packages/dashboard"
+  },
+  "homepage": "https://github.com/Ultra-Tech-code/create-zcash-app#readme",
+  "bugs": {
+    "url": "https://github.com/Ultra-Tech-code/create-zcash-app/issues"
+  },
+  "keywords": [
+    "zcash",
+    "shielded",
+    "orchard",
+    "dashboard",
+    "developer-tools"
+  ],
+  "files": [
+    ".next",
+    "!.next/cache/**",
+    "!.next/dev/**",
+    "!.next/diagnostics/**",
+    "!.next/types/**",
+    "!.next/trace",
+    "!.next/trace-build",
+    "!.next/trace*",
+    "public",
+    "package.json",
+    "next.config.mjs",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "next dev -p 3050 --webpack",
     "build": "next build --webpack",
-    "start": "next start",
+    "start": "next start -p 3050",
     "lint": "eslint",
     "test": "node --test test/*.test.mjs"
   },

@@ -23,6 +23,7 @@ import {
   executeFund,
   generateMnemonic,
   quoteFee,
+  resolveDashboardStrategy,
   program as devProgram,
 } from '../dist/index.js';
 
@@ -482,8 +483,8 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       assert.ok(readme.includes('## Keys and RPC Configuration'), 'README must have Keys and RPC Configuration section');
       assert.ok(readme.includes('Never commit your private keys or .env.local') || readme.includes('Never Commit Secrets'));
       const regtestPkg = JSON.parse(fs.readFileSync(path.join(regtestDir, 'package.json'), 'utf8'));
-      assert.strictEqual(regtestPkg.scripts?.dashboard, undefined, 'Scaffolded package.json must not have a dashboard script');
-      assert.strictEqual(readme.includes('pnpm dashboard'), false, 'Scaffolded README must not mention "pnpm dashboard"');
+      assert.strictEqual(regtestPkg.scripts?.dashboard, 'zcash-dev dashboard', 'Scaffolded package.json must have a dashboard script');
+      assert.ok(readme.includes('pnpm dashboard'), 'Scaffolded README must mention "pnpm dashboard"');
 
       // 9b. Testnet scaffold with UFVK
       const testnetRun = spawnSync(
@@ -1206,7 +1207,7 @@ exit 0
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('19. Scaffolder honesty: generated package.json has no "dashboard" script and README does not mention "pnpm dashboard"', () => {
+  it('19. Scaffolder honesty: generated package.json has "dashboard" script and README mentions "pnpm dashboard"', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'scaffold-honesty-'));
     try {
       const scaffoldRun = spawnSync(
@@ -1223,15 +1224,53 @@ exit 0
       assert.strictEqual(scaffoldRun.status, 0, `Scaffold failed: ${scaffoldRun.stderr}`);
       const appDir = path.join(tempDir, 'app-honesty');
       const pkgJson = JSON.parse(fs.readFileSync(path.join(appDir, 'package.json'), 'utf8'));
-      assert.strictEqual(pkgJson.scripts?.dashboard, undefined, 'package.json must NOT contain a "dashboard" script');
+      assert.strictEqual(pkgJson.scripts?.dashboard, 'zcash-dev dashboard', 'package.json must contain a "dashboard" script');
 
       const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf8');
-      assert.strictEqual(readme.includes('pnpm dashboard'), false, 'README must NOT mention "pnpm dashboard"');
+      assert.ok(readme.includes('pnpm dashboard'), 'README must mention "pnpm dashboard"');
       assert.ok(readme.includes('http://localhost:3000'), 'README must mention http://localhost:3000');
+      assert.ok(readme.includes('http://localhost:3050'), 'README must mention http://localhost:3050');
       assert.ok(readme.includes('npx zcash-dev info'), 'README must mention zcash-dev inspection commands');
       assert.ok(readme.includes('git clone https://github.com/Ultra-Tech-code/create-zcash-app.git'), 'README must mention monorepo clone steps for dashboard');
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it('20. Dashboard launch resolution: chooses packaged next start when @zcash-app/dashboard is built, dev for monorepo, error when none', () => {
+    // Case 1: Packaged production dashboard resolved with .next directory.
+    // Must choose package/start EVEN IF monorepo is also present!
+    const packagedStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: '/test/node_modules/@zcash-app/dashboard/package.json',
+      hasBuiltArtifacts: true,
+      monorepoDir: '/test/monorepo/packages/dashboard',
+      monorepoExists: true,
+      resolveNextBin: () => '/test/node_modules/next/dist/bin/next',
+    });
+    assert.strictEqual(packagedStrategy.type, 'package', 'Must choose package mode when .next is present');
+    assert.strictEqual(packagedStrategy.command, 'start', 'Must choose start command for packaged mode');
+    assert.strictEqual(packagedStrategy.dir, '/test/node_modules/@zcash-app/dashboard');
+    assert.strictEqual(packagedStrategy.bin, '/test/node_modules/next/dist/bin/next');
+
+    // Case 2: Monorepo source mode (no packaged artifacts or unbuilt, but monorepo clone exists)
+    const monorepoStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: null,
+      hasBuiltArtifacts: false,
+      monorepoDir: '/test/monorepo/packages/dashboard',
+      monorepoExists: true,
+    });
+    assert.strictEqual(monorepoStrategy.type, 'monorepo', 'Must fallback to monorepo mode when no package is found');
+    assert.strictEqual(monorepoStrategy.command, 'dev', 'Must choose dev command for monorepo mode');
+    assert.strictEqual(monorepoStrategy.dir, '/test/monorepo/packages/dashboard');
+
+    // Case 3: Neither packaged dashboard nor monorepo clone exists
+    const noneStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: null,
+      hasBuiltArtifacts: false,
+      monorepoDir: null,
+      monorepoExists: false,
+    });
+    assert.strictEqual(noneStrategy.type, 'none', 'Must return none when neither package nor monorepo exists');
+    assert.ok(noneStrategy.error.includes('@zcash-app/dashboard is installed'), 'Must report helpful error');
   });
 });

@@ -4,6 +4,7 @@ import prompts from 'prompts';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import net from 'net';
 import { spawn, execSync } from 'child_process';
 import {
   createClient,
@@ -1040,51 +1041,190 @@ Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
     console.log(`\nThe developer dashboard will automatically reflect the ${targetNetwork} network.\n`);
   });
 
+export function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        resolve(false);
+      } else {
+        resolve(false);
+      }
+    });
+    server.once('listening', () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port);
+  });
+}
+
+export type DashboardStrategy =
+  | { type: 'package'; dir: string; bin: string; command: 'start' }
+  | { type: 'monorepo'; dir: string; command: 'dev' }
+  | { type: 'none'; error: string };
+
+export interface DashboardResolutionOptions {
+  dashboardPkgPath: string | null;
+  hasBuiltArtifacts: boolean;
+  monorepoDir?: string | null;
+  monorepoExists?: boolean;
+  resolveNextBin?: (paths: string[]) => string;
+}
+
+export function resolveDashboardStrategy(options: DashboardResolutionOptions): DashboardStrategy {
+  if (options.dashboardPkgPath && options.hasBuiltArtifacts) {
+    const dashboardDir = path.dirname(options.dashboardPkgPath);
+    const resolveBin =
+      options.resolveNextBin ||
+      ((paths) => {
+        try {
+          return require.resolve('next/dist/bin/next', { paths });
+        } catch {
+          return require.resolve('next/dist/bin/next');
+        }
+      });
+    let nextBin: string;
+    try {
+      nextBin = resolveBin([dashboardDir, process.cwd(), __dirname]);
+    } catch {
+      nextBin = 'next';
+    }
+    return {
+      type: 'package',
+      dir: dashboardDir,
+      bin: nextBin,
+      command: 'start',
+    };
+  }
+
+  if (options.monorepoExists && options.monorepoDir) {
+    return {
+      type: 'monorepo',
+      dir: options.monorepoDir,
+      command: 'dev',
+    };
+  }
+
+  return {
+    type: 'none',
+    error:
+      'The Zcash Developer Dashboard could not be found.\n' +
+      'Ensure @zcash-app/dashboard is installed, or run from within the create-zcash-app repository.',
+  };
+}
+
 program
   .command('dashboard')
   .description('Launch the Zcash Developer Dashboard')
   .option('-p, --port <port>', 'Port to run dashboard on', '3050')
-  .action((options) => {
+  .action(async (options) => {
     const port = options.port;
-    console.log(`\n🚀 Launching Zcash Developer Dashboard on http://localhost:${port} ...\n`);
+    const portNum = parseInt(port, 10);
+    if (isNaN(portNum) || portNum <= 0 || portNum > 65535) {
+      console.error(`Invalid port: ${port}`);
+      process.exit(1);
+    }
 
-    // Look for dashboard directory in monorepo packages or locally installed package
-    const monorepoDashboard = path.resolve(__dirname, '../../dashboard');
-
-    if (!fs.existsSync(monorepoDashboard) || !fs.existsSync(path.join(monorepoDashboard, 'package.json'))) {
+    const available = await isPortAvailable(portNum);
+    if (!available) {
       console.error(
-        `\n⚠️  The Zcash Developer Dashboard is a full Next.js App Router application maintained in the repository.\n` +
-        `Running the dashboard from a standalone npm package outside the monorepo clone is unsupported.\n\n` +
-        `To launch the Developer Dashboard:\n` +
-        `  1. Clone the repository:\n` +
-        `     git clone https://github.com/Ultra-Tech-code/create-zcash-app.git\n` +
-        `     cd create-zcash-app\n` +
-        `  2. Install dependencies & build:\n` +
-        `     pnpm install && pnpm build\n` +
-        `  3. Run the dashboard:\n` +
-        `     pnpm --filter dashboard run dev\n` +
-        `     # or: cd packages/dashboard && pnpm dev\n`
+        `\n⚠️  Port ${port} is already in use.\n` +
+        `Please stop the process running on port ${port} or specify another port with --port <port>.\n`
       );
       process.exit(1);
     }
 
-    const dashboardCwd = monorepoDashboard;
+    console.log(`\n🚀 Launching Zcash Developer Dashboard on http://localhost:${port} ...\n`);
 
-    const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-    const child = spawn(npx, ['next', 'dev', '-p', port], {
-      cwd: dashboardCwd,
-      stdio: 'inherit',
-      env: { ...process.env, PORT: port },
+    const projectEnv = loadProjectEnv(process.cwd());
+    const childEnv: NodeJS.ProcessEnv = {
+      ...process.env,
+      ...projectEnv,
+      PORT: String(port),
+      ZCASH_PROJECT_DIR: process.cwd(),
+    };
+
+    if (!childEnv.ZCASH_NETWORK) {
+      childEnv.ZCASH_NETWORK = 'regtest';
+    }
+    if (!childEnv.ZCASH_ENDPOINT) {
+      childEnv.ZCASH_ENDPOINT = childEnv.ZCASH_NETWORK === 'regtest' ? '127.0.0.1:39067' : 'testnet.zec.rocks:443';
+    }
+    if (!childEnv.ZCASH_ZEBRA_RPC && childEnv.ZCASH_NETWORK === 'regtest') {
+      const isZ3 = childEnv.ZCASH_REGTEST_STACK === 'z3' || childEnv.ZCASH_ENDPOINT.includes('28137');
+      childEnv.ZCASH_ZEBRA_RPC = isZ3 ? 'http://127.0.0.1:8181' : 'http://127.0.0.1:39232';
+    }
+    if (childEnv.ZCASH_ZEBRA_RPC && !childEnv.ZEBRA_RPC_URL) {
+      childEnv.ZEBRA_RPC_URL = childEnv.ZCASH_ZEBRA_RPC;
+    }
+
+    // Try resolving @zcash-app/dashboard package
+    let dashboardPkgPath: string | null = null;
+    try {
+      dashboardPkgPath = require.resolve('@zcash-app/dashboard/package.json', {
+        paths: [process.cwd(), __dirname],
+      });
+    } catch {
+      try {
+        dashboardPkgPath = require.resolve('@zcash-app/dashboard/package.json');
+      } catch {
+        dashboardPkgPath = null;
+      }
+    }
+
+    const hasBuiltArtifacts = Boolean(
+      dashboardPkgPath && fs.existsSync(path.join(path.dirname(dashboardPkgPath), '.next'))
+    );
+
+    const monorepoDashboard = path.resolve(__dirname, '../../dashboard');
+    const monorepoExists = fs.existsSync(monorepoDashboard) && fs.existsSync(path.join(monorepoDashboard, 'package.json'));
+
+    const strategy = resolveDashboardStrategy({
+      dashboardPkgPath,
+      hasBuiltArtifacts,
+      monorepoDir: monorepoDashboard,
+      monorepoExists,
     });
 
-    child.on('error', (err) => {
-      console.error('Failed to start dashboard:', err);
-      process.exit(1);
-    });
+    if (strategy.type === 'package') {
+      const child = spawn(process.execPath, [strategy.bin, strategy.command, '-p', String(port)], {
+        cwd: strategy.dir,
+        stdio: 'inherit',
+        env: childEnv,
+      });
 
-    child.on('exit', (code) => {
-      process.exit(code ?? 0);
-    });
+      child.on('error', (err) => {
+        console.error('Failed to start dashboard:', err);
+        process.exit(1);
+      });
+
+      child.on('exit', (code) => {
+        process.exit(code ?? 0);
+      });
+      return;
+    }
+
+    if (strategy.type === 'monorepo') {
+      const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+      const child = spawn(npx, ['next', strategy.command, '-p', String(port)], {
+        cwd: strategy.dir,
+        stdio: 'inherit',
+        env: childEnv,
+      });
+
+      child.on('error', (err) => {
+        console.error('Failed to start dashboard:', err);
+        process.exit(1);
+      });
+
+      child.on('exit', (code) => {
+        process.exit(code ?? 0);
+      });
+      return;
+    }
+
+    console.error(`\n⚠️  ${strategy.error}\n`);
+    process.exit(1);
   });
 
 const testnetCmd = program
