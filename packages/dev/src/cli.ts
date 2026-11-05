@@ -1058,6 +1058,61 @@ export function isPortAvailable(port: number): Promise<boolean> {
   });
 }
 
+export type DashboardStrategy =
+  | { type: 'package'; dir: string; bin: string; command: 'start' }
+  | { type: 'monorepo'; dir: string; command: 'dev' }
+  | { type: 'none'; error: string };
+
+export interface DashboardResolutionOptions {
+  dashboardPkgPath: string | null;
+  hasBuiltArtifacts: boolean;
+  monorepoDir?: string | null;
+  monorepoExists?: boolean;
+  resolveNextBin?: (paths: string[]) => string;
+}
+
+export function resolveDashboardStrategy(options: DashboardResolutionOptions): DashboardStrategy {
+  if (options.dashboardPkgPath && options.hasBuiltArtifacts) {
+    const dashboardDir = path.dirname(options.dashboardPkgPath);
+    const resolveBin =
+      options.resolveNextBin ||
+      ((paths) => {
+        try {
+          return require.resolve('next/dist/bin/next', { paths });
+        } catch {
+          return require.resolve('next/dist/bin/next');
+        }
+      });
+    let nextBin: string;
+    try {
+      nextBin = resolveBin([dashboardDir, process.cwd(), __dirname]);
+    } catch {
+      nextBin = 'next';
+    }
+    return {
+      type: 'package',
+      dir: dashboardDir,
+      bin: nextBin,
+      command: 'start',
+    };
+  }
+
+  if (options.monorepoExists && options.monorepoDir) {
+    return {
+      type: 'monorepo',
+      dir: options.monorepoDir,
+      command: 'dev',
+    };
+  }
+
+  return {
+    type: 'none',
+    error:
+      'The Zcash Developer Dashboard could not be found.\n' +
+      'Ensure @zcash-app/dashboard is installed, or run from within the create-zcash-app repository.',
+  };
+}
+
 program
   .command('dashboard')
   .description('Launch the Zcash Developer Dashboard')
@@ -1117,43 +1172,23 @@ program
       }
     }
 
+    const hasBuiltArtifacts = Boolean(
+      dashboardPkgPath && fs.existsSync(path.join(path.dirname(dashboardPkgPath), '.next'))
+    );
+
     const monorepoDashboard = path.resolve(__dirname, '../../dashboard');
     const monorepoExists = fs.existsSync(monorepoDashboard) && fs.existsSync(path.join(monorepoDashboard, 'package.json'));
 
-    if (dashboardPkgPath) {
-      const dashboardDir = path.dirname(dashboardPkgPath);
-      if (fs.existsSync(path.join(dashboardDir, '.next'))) {
-        let nextBin: string;
-        try {
-          nextBin = require.resolve('next/dist/bin/next', {
-            paths: [dashboardDir, process.cwd(), __dirname],
-          });
-        } catch {
-          nextBin = require.resolve('next/dist/bin/next');
-        }
+    const strategy = resolveDashboardStrategy({
+      dashboardPkgPath,
+      hasBuiltArtifacts,
+      monorepoDir: monorepoDashboard,
+      monorepoExists,
+    });
 
-        const child = spawn(process.execPath, [nextBin, 'start', '-p', String(port)], {
-          cwd: dashboardDir,
-          stdio: 'inherit',
-          env: childEnv,
-        });
-
-        child.on('error', (err) => {
-          console.error('Failed to start dashboard:', err);
-          process.exit(1);
-        });
-
-        child.on('exit', (code) => {
-          process.exit(code ?? 0);
-        });
-        return;
-      }
-    }
-
-    if (monorepoExists) {
-      const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-      const child = spawn(npx, ['next', 'dev', '-p', String(port)], {
-        cwd: monorepoDashboard,
+    if (strategy.type === 'package') {
+      const child = spawn(process.execPath, [strategy.bin, strategy.command, '-p', String(port)], {
+        cwd: strategy.dir,
         stdio: 'inherit',
         env: childEnv,
       });
@@ -1169,10 +1204,26 @@ program
       return;
     }
 
-    console.error(
-      `\n⚠️  The Zcash Developer Dashboard could not be found.\n` +
-      `Ensure @zcash-app/dashboard is installed, or run from within the create-zcash-app repository.\n`
-    );
+    if (strategy.type === 'monorepo') {
+      const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+      const child = spawn(npx, ['next', strategy.command, '-p', String(port)], {
+        cwd: strategy.dir,
+        stdio: 'inherit',
+        env: childEnv,
+      });
+
+      child.on('error', (err) => {
+        console.error('Failed to start dashboard:', err);
+        process.exit(1);
+      });
+
+      child.on('exit', (code) => {
+        process.exit(code ?? 0);
+      });
+      return;
+    }
+
+    console.error(`\n⚠️  ${strategy.error}\n`);
     process.exit(1);
   });
 

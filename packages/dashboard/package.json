@@ -25,7 +25,8 @@
     "!.next/dev/**",
     "public",
     "package.json",
-    "next.config.ts"
+    "next.config.mjs",
+    "LICENSE"
   ],
   "scripts": {
     "dev": "next dev -p 3050 --webpack",

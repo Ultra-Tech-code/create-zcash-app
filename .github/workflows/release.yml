@@ -324,7 +324,7 @@ jobs:
           const expected = [
             { pattern: /^zcash-app-core-\d/, isCore: true, entries: ['package/index.js', 'package/index.d.ts'] },
             { pattern: /^zcash-app-sdk-\d/, entries: ['package/dist/index.js', 'package/dist/index.d.ts'] },
-            { pattern: /^zcash-app-dashboard-\d/, entries: ['package/.next', 'package/next.config.ts', 'package/package.json'] },
+            { pattern: /^zcash-app-dashboard-\d/, entries: ['package/.next', 'package/next.config.mjs', 'package/package.json', 'package/LICENSE'] },
             { pattern: /^zcash-dev-\d/, entries: ['package/dist/cli.js', 'package/dist/index.js'] },
             { pattern: /^create-zcash-app-\d/, entries: ['package/dist/index.js', 'package/template/package.json.tmpl'] },
           ];

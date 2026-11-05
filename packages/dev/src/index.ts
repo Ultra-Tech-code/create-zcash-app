@@ -43,4 +43,7 @@ export {
   FundActionOptions,
   FundDependencies,
   FundResult,
+  resolveDashboardStrategy,
+  DashboardStrategy,
+  DashboardResolutionOptions,
 } from './cli';

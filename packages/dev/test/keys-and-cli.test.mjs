@@ -23,6 +23,7 @@ import {
   executeFund,
   generateMnemonic,
   quoteFee,
+  resolveDashboardStrategy,
   program as devProgram,
 } from '../dist/index.js';
 
@@ -1234,5 +1235,42 @@ exit 0
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+
+  it('20. Dashboard launch resolution: chooses packaged next start when @zcash-app/dashboard is built, dev for monorepo, error when none', () => {
+    // Case 1: Packaged production dashboard resolved with .next directory.
+    // Must choose package/start EVEN IF monorepo is also present!
+    const packagedStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: '/test/node_modules/@zcash-app/dashboard/package.json',
+      hasBuiltArtifacts: true,
+      monorepoDir: '/test/monorepo/packages/dashboard',
+      monorepoExists: true,
+      resolveNextBin: () => '/test/node_modules/next/dist/bin/next',
+    });
+    assert.strictEqual(packagedStrategy.type, 'package', 'Must choose package mode when .next is present');
+    assert.strictEqual(packagedStrategy.command, 'start', 'Must choose start command for packaged mode');
+    assert.strictEqual(packagedStrategy.dir, '/test/node_modules/@zcash-app/dashboard');
+    assert.strictEqual(packagedStrategy.bin, '/test/node_modules/next/dist/bin/next');
+
+    // Case 2: Monorepo source mode (no packaged artifacts or unbuilt, but monorepo clone exists)
+    const monorepoStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: null,
+      hasBuiltArtifacts: false,
+      monorepoDir: '/test/monorepo/packages/dashboard',
+      monorepoExists: true,
+    });
+    assert.strictEqual(monorepoStrategy.type, 'monorepo', 'Must fallback to monorepo mode when no package is found');
+    assert.strictEqual(monorepoStrategy.command, 'dev', 'Must choose dev command for monorepo mode');
+    assert.strictEqual(monorepoStrategy.dir, '/test/monorepo/packages/dashboard');
+
+    // Case 3: Neither packaged dashboard nor monorepo clone exists
+    const noneStrategy = resolveDashboardStrategy({
+      dashboardPkgPath: null,
+      hasBuiltArtifacts: false,
+      monorepoDir: null,
+      monorepoExists: false,
+    });
+    assert.strictEqual(noneStrategy.type, 'none', 'Must return none when neither package nor monorepo exists');
+    assert.ok(noneStrategy.error.includes('@zcash-app/dashboard is installed'), 'Must report helpful error');
   });
 });
