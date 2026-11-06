@@ -13,6 +13,16 @@ The raw session transcript for this spike is preserved in `packages/core/tests/l
 - **Zebra Consensus Node**: `zfnd/zebra:7.0.0`
 - **Zallet Wallet Daemon**: `zodlinc/zallet@sha256:682ba6f9a9931ac25f6a2eb2218f39e0bf5295c3cbe4d8dfa3fc275c34559506`
 
+### Note on Zebra `indexer` Cargo Feature vs. Stock Docker Image
+Zebra's documentation ([Running Zallet with Zebra](https://zebra.zfnd.org/user/zallet.html)) notes that official release binaries and published Docker images (`zfnd/zebra:7.0.0`) are built with:
+```text
+features: default,default_release_binaries,howudoin,indicatif,metrics_exporter_prometheus,opentelemetry,progress_bar,prometheus,release_max_level_info,sentry
+```
+The Cargo `indexer` feature is **not** compiled into the stock release image.
+- When `indexer_listen_addr = "0.0.0.0:8230"` is provided in `zebrad.toml`, Zebra successfully spawns the indexer gRPC server (`zebra_rpc::indexer::server: Opened RPC endpoint at 0.0.0.0:8230`), which Zallet uses to follow chain tip changes and non-finalized blocks.
+- However, because the database was compiled without the `indexer` feature, Zebra does not populate the spending-transaction index on disk.
+- **Consequence for Spend Detection**: Zallet reads an empty spending-transaction index from Zebra's disk cache, meaning transparent spend tracking (mapping UTXOs to their spending transactions) is non-functional with the stock image. Shielded state (note commitment trees and nullifiers) is part of Zebra's standard consensus state (v29.0.0), which is why shielded Ironwood note detection (`z_listunspent`) and v6 spending (`z_sendmany`) succeed cleanly in this spike. Fully functional transparent spend tracking in Zallet requires custom-building Zebra from source with `--features "default-release-binaries indexer"`.
+
 ## Required Workarounds
 
 Running Zallet beta.4 directly with Zebra's local state cache requires two specific runtime workarounds:
@@ -70,7 +80,7 @@ docker compose up -d zallet
 
      Environment:
      - Zallet version: v0.1.0-beta.4 (zodlinc/zallet@sha256:682ba6f9a9931ac25f6a2eb2218f39e0bf5295c3cbe4d8dfa3fc275c34559506)
-     - Backend: zebra (co-located zebrad 7.0.0 with --features indexer)
+     - Backend: zebra (co-located stock zfnd/zebra:7.0.0 with indexer_listen_addr enabled)
      - Network: Regtest (NU7 activated at height 2)
 
      Description:
