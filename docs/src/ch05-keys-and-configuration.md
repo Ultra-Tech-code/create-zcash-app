@@ -71,7 +71,7 @@ Moving an application from local development to testnet and mainnet involves key
 | :--- | :--- | :--- |
 | **Address Prefixes** | `utest1...` (UA), `tm...` (transparent) | `u1...` (UA), `t1...` (transparent) |
 | **Default Remote Indexer** | `testnet.zec.rocks:443` | `zec.rocks:443` |
-| **NU7 Activation Height** | `4,465,026` (activated) | `3,543,405` (expected Nov 5-6, 2026 UTC) |
+| **NU7 Activation Height** | `4,465,026` (activated) | `3,543,405` (activated Nov 5, 2026 9:34 pm ET / 02:34 UTC Nov 6, per Unchained, citing Blockchair) |
 | **Consensus Branch ID** | `0x77190ad9` | `0x77190ad9` (at NU7) |
 | **Scaffolder Guard** | Default configuration permitted | Requires `--allow-mainnet-key-on-disk` to write spending key |
 | **Broadcast Guard** | `zcash-dev send --yes` | Requires `zcash-dev send --yes --mainnet` |
