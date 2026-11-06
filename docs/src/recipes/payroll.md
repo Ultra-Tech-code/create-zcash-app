@@ -30,7 +30,7 @@ To execute a disbursement batch across a roster of payees, the application execu
 
 1. **Transaction Fees**: Because each payout is a distinct transaction, a separate [ZIP 317](https://zips.z.cash/zip-0317) fee is incurred per recipient (10,000 zatoshis per standard 2-action transaction). A roster of 10 payees will pay 100,000 zatoshis in aggregate network fees.
 2. **Change Outputs & Anchor Maturity**: When an account spends a note, the remaining unspent value is returned to the account as an internal change note. Under Zcash consensus rules, that change output cannot be spent as an anchor input for another transaction until the transaction is mined into a block.
-3. **Loop Sequencing**: If an account does not hold multiple pre-split spendable notes, each transaction must wait for block confirmation (`zcash-dev mine 1` on regtest or ~75 seconds on mainnet/testnet) before constructing the subsequent payment in the loop.
+3. **Loop Sequencing**: If an account does not hold multiple pre-split spendable notes, each transaction must wait for block confirmation (`zcash-dev mine 1` on regtest or ~25 seconds on mainnet/testnet under NU7's 25-second target block spacing) before constructing the subsequent payment in the loop.
 
 ---
 

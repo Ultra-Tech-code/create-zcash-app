@@ -48,11 +48,11 @@ Error: Cannot find native binding
 ### Symptom
 Transactions constructed for NU7 or Ironwood fail when broadcast to the Z3 regtest stack with:
 ```text
-Error: Invalid consensus branch ID: expected 0xc2d6d0b4 (NU6), got 0x21175653 (NU7)
+Error: Invalid consensus branch ID: expected 0xc2d6d0b4 (NU6), got 0x77190ad9 (NU7)
 ```
 
 ### Cause
-The legacy Z3 regtest stack (`--stack z3`) runs Zaino and Zallet on top of Zebra configured for Network Upgrade 6 (NU6 / NU6.3). Zallet and Zaino do not currently support the experimental NU7 Ironwood consensus branch ID (`0x21175653`).
+The legacy Z3 regtest stack (`--stack z3`) runs Zaino and Zallet on top of Zebra configured for Network Upgrade 6 (NU6 / NU6.3). Zaino 0.10.x and the Z3 stack do not support the canonical NU7 consensus branch ID (`0x77190ad9`).
 
 ### Solution
 - **Use the NU7 Stack**: Run `zcash-dev regtest up --stack nu7`, which runs Zebra 7.0.0 + Lightwalletd with NU7 active at block 1/2.

@@ -24,7 +24,7 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 
 ### 1. Mining (`mine`)
 - **Regtest**: Mining is available on both local devnet stacks by calling the node's JSON-RPC `generate` method (`dev.mine(client, blocks)` in `packages/sdk/src/dev.ts`). On regtest, blocks are mined instantaneously without proof-of-work difficulty delays.
-- **Testnet & Mainnet**: Mining cannot be performed via the CLI or SDK because these chains use public Proof of Work (Equihash 200,9). Blocks arrive approximately every 75 seconds according to global network hash rate.
+- **Testnet & Mainnet**: Mining cannot be performed via the CLI or SDK because these chains use public Proof of Work (Equihash 200,9). Under NU7 (activated at block 3,543,405 on mainnet and 4,465,026 on testnet), target block spacing is 25 seconds (reduced from 75 seconds), tripling block production speed according to global network hash rate.
 
 ### 2. Account & Address Derivation (`address`)
 - Implemented in `packages/sdk/src/keys.ts` via `accountFromMnemonic(mnemonic, accountIndex, network)` and `accountFromUfvk(ufvk, network)`.
@@ -37,7 +37,7 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 - Identical behavior across all stacks.
 
 ### 4. Faucet & Funding (`fund`)
-- **Z3 NU6.3 Regtest**: Supported via `zcash-dev fund <address> [amount] --stack z3`. Funds are drawn from the pre-mined Zallet test account via `z_sendmany`.
+- **Z3 NU6.3 Regtest**: Supported via `zcash-dev fund <address> [amount] --stack z3`. Funds are drawn from the pre-mined Zallet test account via `z_sendmany`. Note: The Z3 stack is NU6.3-only. Zaino (0.10.1 and 0.10.2; checked 2026-11-06) cannot index past NU7 activation (open [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731); [PR #1655](https://github.com/zingolabs/zaino/pull/1655) unmerged and unreleased as of 2026-11-06). While [Zallet v0.1.0-beta.4](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.4) (released Nov 2, 2026) supports NU7, it removed the `zaino` backend entirely (PR #900) and requires `zebrad >= 7.0.0` built with the `indexer` feature and state cache v29.0.0. The Z3 stack can therefore not be upgraded to NU7 simply by replacing Zallet.
 - **NU7 Regtest**: Supported via `zcash-dev fund <address> [amount]`. Since Zallet is not present on the NU7 stack, `zcash-dev fund` uses the SDK client to fund target accounts directly from the Account 0 miner fixture (`KNOWN_TEST_MNEMONICS[0]`), which receives Zebra block rewards. After mining at least 105 blocks for coinbase maturity, `zcash-dev fund` transfers mature shielded notes to the recipient Unified Address via lightwalletd.
 - **Testnet & Mainnet**: CLI faucet funding is not available. Testnet users must obtain TAZ from public community faucets (such as `https://faucet.zecpages.com`), while mainnet requires real ZEC.
 
