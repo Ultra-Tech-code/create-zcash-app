@@ -143,10 +143,11 @@ jobs:
       # `pnpm run`/`pnpm exec` step after prepublish.
       - name: Build the TypeScript packages that get published
         # sdk first: zcash-dev imports @zcash-app/sdk's types from dist/.
-        # dashboard build runs next build --webpack before packing.
+        # The dashboard build is deferred until native addons are placed, because
+        # Next.js evaluates API routes during `next build --webpack` (page data collection),
+        # which imports @zcash-app/sdk -> @zcash-app/core and requires the native addon.
         run: |
           pnpm --filter @zcash-app/sdk build
-          pnpm --filter @zcash-app/dashboard run build
           pnpm --filter zcash-dev build
           pnpm --filter create-zcash-app build
 
@@ -162,6 +163,26 @@ jobs:
         run: |
           pnpm --filter @zcash-app/core exec napi artifacts --output-dir artifacts
           ls -la packages/core/npm/*/*.node
+
+      # Next.js evaluates API routes (/api/status, /api/account, /api/transactions) during
+      # `next build --webpack` to collect route data and manifests. Those routes import
+      # @zcash-app/sdk, which loads @zcash-app/core and throws "Cannot find native binding"
+      # unless the native addon for the host runner (ubuntu-latest = linux-x64-gnu) is present.
+      #
+      # We place this step immediately after `napi artifacts` and BEFORE `napi prepublish`
+      # because:
+      # 1. The native addons have just been downloaded and placed into packages/core/npm/*/.
+      # 2. `napi prepublish` has not run yet, so packages/core/package.json has not been rewritten
+      #    with optionalDependencies, keeping pnpm-lock.yaml valid so `pnpm --filter ... run build`
+      #    does not fail on frozen lockfile checks (no `pnpm run`/`pnpm exec` allowed after prepublish).
+      # 3. We copy the host addon to packages/core/ where index.js looks for `./zcash-core.linux-x64-gnu.node`,
+      #    build the dashboard, and then immediately remove the copied .node file so it is never
+      #    packaged into the root @zcash-app/core tarball.
+      - name: Build the dashboard (needs the linux native addon)
+        run: |
+          cp packages/core/npm/linux-x64-gnu/*.node packages/core/
+          pnpm --filter @zcash-app/dashboard run build
+          rm -f packages/core/*.node
 
       - name: Copy LICENSE into all packages
         run: |
@@ -342,7 +363,7 @@ jobs:
               execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
             );
             for (const entry of entries) {
-              if (!listing.includes(entry)) {
+              if (!listing.some((l) => l === entry || l.startsWith(entry + '/'))) {
                 console.error(`MISSING ${entry} in ${file}`);
                 failures++;
               }
