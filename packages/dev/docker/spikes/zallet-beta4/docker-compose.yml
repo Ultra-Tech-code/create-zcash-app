@@ -1,0 +1,55 @@
+# Standalone Zebra 7.0.0 + Zallet v0.1.0-beta.4 spike environment.
+# NOTE: This is an experimental research spike and is NOT part of the shipping stack.
+
+services:
+  zebra:
+    image: zfnd/zebra:7.0.0
+    container_name: zebra-spike
+    restart: unless-stopped
+    volumes:
+      - zebra-data:/home/zebra/.cache/zebra
+      - ./zebra.toml:/home/zebra/.config/zebrad.toml:ro
+    environment:
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_RPC__INDEXER_LISTEN_ADDR=0.0.0.0:8230
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+    ports:
+      - "127.0.0.1:49232:18232"
+    networks:
+      - spike-net
+
+  zallet:
+    image: zodlinc/zallet@sha256:682ba6f9a9931ac25f6a2eb2218f39e0bf5295c3cbe4d8dfa3fc275c34559506
+    container_name: zallet-spike
+    restart: unless-stopped
+    # Workaround 1: Zallet runs as UID 1000 by default, while Zebra creates files as UID 10001.
+    # Root UID 0:0 is required to read Zebra's state cache volume.
+    user: "0:0"
+    # Workaround 2: Zallet distroless image lacks /tmp directory.
+    # RocksDB secondary state initialization creates temporary folders under /tmp and panics without tmpfs.
+    tmpfs:
+      - /tmp
+    volumes:
+      - zallet-data:/data
+      - ./zallet.toml:/etc/zallet/zallet.toml:ro
+      - zebra-data:/zebra-cache:ro
+    command: ["-d", "/data", "-c", "/etc/zallet/zallet.toml", "start"]
+    ports:
+      - "127.0.0.1:48232:28232"
+    depends_on:
+      - zebra
+    networks:
+      - spike-net
+
+volumes:
+  zebra-data:
+  zallet-data:
+
+networks:
+  spike-net:
+
