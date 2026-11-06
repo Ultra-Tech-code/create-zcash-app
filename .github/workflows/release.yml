@@ -363,7 +363,7 @@ jobs:
               execSync(`tar -xzOf ${full} package/package.json`, { encoding: 'utf8' })
             );
             for (const entry of entries) {
-              if (!listing.includes(entry)) {
+              if (!listing.some((l) => l === entry || l.startsWith(entry + '/'))) {
                 console.error(`MISSING ${entry} in ${file}`);
                 failures++;
               }
