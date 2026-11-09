@@ -1,0 +1,58 @@
+===============================================================
+=== ZAINO FEAT/NU7 REGTEST SPIKE END-TO-END VERIFICATION =====
+===============================================================
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=108)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Zaino gRPC Service ---
+Zaino Vendor: ZingoLabs ZainoD
+Zaino Version: 0.10.1
+Zaino Git Commit: 03f015c781fb1b83872064fba5721fdda8fbeeb9
+Zaino Consensus Branch ID: 77190ad9
+Zaino Tip Height: 108
+[PASS] Zaino consensusBranchId is 77190ad9
+[PASS] Zaino blockHeight matches Zebra tip (height=108)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 108...
+Scanned: 108/108
+Discovered unspent notes: 107
+Total spendable balance: 21991648631 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=107)
+[PASS] Account 0 has spendable balance (balance=21991648631)
+
+--- 4. Executing send() from Account 0 to Account 1 through Zaino ---
+Send TxID: 9dcd8075eaec758d5a3ab8c32c278c3f03f6395c7878fe84c394946b152c4a63
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 229
+[PASS] Send returned valid txid (txid=9dcd8075eaec758d5a3ab8c32c278c3f03f6395c7878fe84c394946b152c4a63)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=229, expected=229)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["634a2c156b9494c384fe78785c39f6033f8c272cc3b83a5a8d75ecea7580cd9d"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=634a2c156b9494c384fe78785c39f6033f8c272cc3b83a5a8d75ecea7580cd9d)
+Mined block hash: 31754281df56e579b5d63861e49c34fb2aaaa83b15c80cfdf0acc22b26e7e6f6
+[PASS] Block successfully mined (blockHash=31754281df56e579b5d63861e49c34fb2aaaa83b15c80cfdf0acc22b26e7e6f6)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+Waiting for Zaino to index mined block 109...
+Zaino indexed block 109
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 109/109
+Recipient Unspent Notes: 4
+Recipient Balance: 400000000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=4)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=400000000)
+
+======================================================================
+=== ZAINO FEAT/NU7 REGTEST SPIKE END-TO-END VERIFIED: 19/19 ASSERTIONS PASSED ✅ ===
+======================================================================

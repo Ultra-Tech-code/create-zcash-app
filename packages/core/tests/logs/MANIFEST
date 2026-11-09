@@ -104,3 +104,4 @@ bdd5d2712568c6941f6bf36dfdea540bcc94ff1dba762d63a8901334fec54eb0  recipe_payroll
 75c7b2e185121c78ddf5d454c058aefc116ab016b1e18810636b452b515f4f1e  pretty_rpc_rpc_pretty.log  |  node packages/dev/dist/cli.js rpc getblockchaininfo --pretty
 903e5b176e38370bbc9fa26ef9dba2da889224fbd65080eaa9eac66a69bb7f3a  verify_pretty_rpc.log  |  git worktree add /tmp/cza-clean-verify-pretty-rpc HEAD && cd /tmp/cza-clean-verify-pretty-rpc && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_pretty_rpc.log
 ab7fdd6249c6cae4c9e3282903af83e6c14224f1af01c0280377a14d765ddeca  zallet_nu7_spike.log  |  node scripts/zallet_nu7_spike.mjs
+4f3199d36e19b4ed7b2c0fb0399ae3209cfaaa2a844f583c2152817a1706eddf  zaino_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
