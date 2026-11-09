@@ -105,3 +105,6 @@ bdd5d2712568c6941f6bf36dfdea540bcc94ff1dba762d63a8901334fec54eb0  recipe_payroll
 903e5b176e38370bbc9fa26ef9dba2da889224fbd65080eaa9eac66a69bb7f3a  verify_pretty_rpc.log  |  git worktree add /tmp/cza-clean-verify-pretty-rpc HEAD && cd /tmp/cza-clean-verify-pretty-rpc && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_pretty_rpc.log
 ab7fdd6249c6cae4c9e3282903af83e6c14224f1af01c0280377a14d765ddeca  zallet_nu7_spike.log  |  node scripts/zallet_nu7_spike.mjs
 4f3199d36e19b4ed7b2c0fb0399ae3209cfaaa2a844f583c2152817a1706eddf  zaino_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
+98b90cbbf54b0face15f03602335cc5e7cf1578ae57856d4f99970cbd8a4e8f2  zaino_nu7_spike_rpc.log  |  node scripts/zaino_nu7_spike.mjs
+bd4d57681c67a49539b590df274b468cc323fefa5d62ff66efabfc33f2dbdffb  zaino_nu7_spike_direct.log  |  node scripts/zaino_nu7_spike.mjs
+7e5817c6c6b9b98ffb56a8f3dccdbdc0f5c6a91cee145c997eae865fc14a83df  lightwalletd_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs

@@ -2,6 +2,9 @@
 [network]
 network = "Regtest"
 
+[state]
+cache_dir = "/cache"
+
 [network.testnet_parameters.activation_heights]
 BeforeOverwinter = 1
 Overwinter = 1

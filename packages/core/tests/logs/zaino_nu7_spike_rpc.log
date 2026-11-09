@@ -1,0 +1,65 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION: RPC =====
+===============================================================
+backend mode:      rpc
+config file name:  zainod-rpc.toml
+Zaino listen port: 8137
+Zebra RPC port:    49232
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=105)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Light Client gRPC Service ---
+zainod git commit (from GetLightdInfo): 03f015c781fb1b83872064fba5721fdda8fbeeb9
+Vendor:            ZingoLabs ZainoD
+Version:           0.10.1
+Branch ID:         77190ad9
+Tip Height:        105
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Block height matches Zebra tip (height=105)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 105...
+Scanned: 105/105
+Discovered unspent notes: 104
+Total spendable balance: 21666666632 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=104)
+[PASS] Account 0 has spendable balance (balance=21666666632)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+Send TxID: f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 226
+[PASS] Send returned valid txid (txid=f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=226, expected=226)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a)
+TxID f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a appears verbatim in Zebra mempool
+Mined block hash: 924bc429cb785b38f577fe603221724236b41b982d60e28146ac0fa9d2cfa030
+[PASS] Block successfully mined (blockHash=924bc429cb785b38f577fe603221724236b41b982d60e28146ac0fa9d2cfa030)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+TxID f4ce57e0716b4d51e6e6913b5f1957ec4e83b9d84f7621cc7956c69a9ef54d8a appears verbatim in mined block 106 tx list
+Waiting for service to index mined block 106...
+Service indexed block 106
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 106/106
+Recipient Unspent Notes: 1
+Recipient Balance: 100000000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=1)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=100000000)
+
+======================================================================
+=== RPC NU7 REGTEST END-TO-END VERIFIED: 19/19 ASSERTIONS PASSED ✅ ===
+======================================================================
+

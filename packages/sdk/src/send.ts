@@ -391,7 +391,7 @@ export async function send(opts: SendOptions): Promise<SendResult> {
   wallet.markBroadcastWithReservation(txidBuf, reservationId);
 
   return {
-    txid: built.txid,
+    txid: reverseTxid(built.txid),
     fee: BigInt(built.fee),
     rawBytes: built.rawBytes,
     numActions: built.numActions,

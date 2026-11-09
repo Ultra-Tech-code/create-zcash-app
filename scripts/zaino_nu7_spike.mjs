@@ -13,10 +13,12 @@ const {
   accountFromMnemonic,
   KNOWN_TEST_MNEMONICS,
   send,
-  reverseTxid,
   WalletHandle,
 } = await import(`${projectRoot}/packages/sdk/dist/index.js`);
 
+const BACKEND_MODE = process.env.ZAINO_BACKEND_MODE || 'rpc';
+const CONFIG_FILE = process.env.ZAINO_CONFIG_FILE || (BACKEND_MODE === 'direct' ? 'zainod-direct.toml' : 'zainod-rpc.toml');
+const OUTPUT_LOG = process.env.SPIKE_OUTPUT_LOG || `packages/core/tests/logs/zaino_nu7_spike_${BACKEND_MODE}.log`;
 const ZEBRA_RPC_PORT = process.env.ZEBRA_RPC_PORT || '49232';
 const ZAINO_GRPC_PORT = process.env.ZAINO_GRPC_PORT || '8137';
 
@@ -37,8 +39,12 @@ async function main() {
   };
 
   append('===============================================================');
-  append('=== ZAINO FEAT/NU7 REGTEST SPIKE END-TO-END VERIFICATION =====');
+  append(`=== NU7 REGTEST STACK END-TO-END VERIFICATION: ${BACKEND_MODE.toUpperCase()} =====`);
   append('===============================================================');
+  append(`backend mode:      ${BACKEND_MODE}`);
+  append(`config file name:  ${CONFIG_FILE}`);
+  append(`Zaino listen port: ${ZAINO_GRPC_PORT}`);
+  append(`Zebra RPC port:    ${ZEBRA_RPC_PORT}`);
 
   const assertions = [];
   function assertCheck(name, condition, details = '') {
@@ -64,7 +70,7 @@ async function main() {
   );
 
   // 2. Verify Zaino gRPC Service
-  append('\n--- 2. Connecting to Zaino gRPC Service ---');
+  append('\n--- 2. Connecting to Light Client gRPC Service ---');
   const client = new ZcashClient({
     endpoint: `http://127.0.0.1:${ZAINO_GRPC_PORT}`,
     network: 'regtest-nu7',
@@ -84,19 +90,19 @@ async function main() {
     lightdInfo = await client.getInfo();
   }
 
-  append(`Zaino Vendor: ${lightdInfo.vendor}`);
-  append(`Zaino Version: ${lightdInfo.version}`);
-  append(`Zaino Git Commit: ${lightdInfo.gitCommit}`);
-  append(`Zaino Consensus Branch ID: ${lightdInfo.consensusBranchId}`);
-  append(`Zaino Tip Height: ${lightdInfo.blockHeight}`);
+  append(`zainod git commit (from GetLightdInfo): ${lightdInfo.gitCommit}`);
+  append(`Vendor:            ${lightdInfo.vendor}`);
+  append(`Version:           ${lightdInfo.version}`);
+  append(`Branch ID:         ${lightdInfo.consensusBranchId}`);
+  append(`Tip Height:        ${lightdInfo.blockHeight}`);
 
-  assertCheck('Zaino consensusBranchId is 77190ad9', lightdInfo.consensusBranchId === '77190ad9');
-  assertCheck('Zaino blockHeight matches Zebra tip', Number(lightdInfo.blockHeight) >= 105, `height=${lightdInfo.blockHeight}`);
+  assertCheck('Consensus branch ID is 77190ad9', lightdInfo.consensusBranchId === '77190ad9');
+  assertCheck('Block height matches Zebra tip', Number(lightdInfo.blockHeight) >= 105, `height=${lightdInfo.blockHeight}`);
 
   // 3. Sync Account 0 (Miner Recipient)
   append('\n--- 3. Syncing Account 0 (Miner Recipient) to Tip ---');
   const acct0 = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest-nu7');
-  const dbDir = path.join(projectRoot, 'node_modules/.cache/zaino-spike');
+  const dbDir = path.join(projectRoot, `node_modules/.cache/${BACKEND_MODE}-spike`);
   fs.mkdirSync(dbDir, { recursive: true });
   const dbPath0 = path.join(dbDir, 'wallet_acct0.db');
   if (fs.existsSync(dbPath0)) fs.unlinkSync(dbPath0);
@@ -120,7 +126,7 @@ async function main() {
   assertCheck('Account 0 has spendable balance', sync0.summary.spendableBalanceZatoshis > 0, `balance=${sync0.summary.spendableBalanceZatoshis}`);
 
   // 4. Send transaction from Account 0 to Account 1
-  append('\n--- 4. Executing send() from Account 0 to Account 1 through Zaino ---');
+  append('\n--- 4. Executing send() from Account 0 to Account 1 ---');
   const acct1 = accountFromMnemonic(KNOWN_TEST_MNEMONICS[1], 0, 'regtest-nu7');
   const sendRes = await send({
     client,
@@ -128,7 +134,7 @@ async function main() {
     from: acct0.spendHandle,
     to: acct1.getUnifiedAddress(),
     amount: 100000000n, // 1.0 ZEC
-    memo: 'Zaino feat/nu7 regtest stack end-to-end evidence',
+    memo: 'NU7 stack end-to-end evidence',
   });
 
   append(`Send TxID: ${sendRes.txid}`);
@@ -144,10 +150,12 @@ async function main() {
 
   // 5. Verify transaction in mempool and mine block
   append('\n--- 5. Verifying mempool and mining block ---');
-  const explorerTxid = reverseTxid(sendRes.txid);
+  // send() returns the txid in node/explorer display order directly
+  const explorerTxid = sendRes.txid;
   const mempool = await rpcCall('getrawmempool');
   append(`Mempool contents: ${JSON.stringify(mempool.result)}`);
   assertCheck('Transaction is present in Zebra mempool', mempool.result.includes(explorerTxid), `explorerTxid=${explorerTxid}`);
+  append(`TxID ${explorerTxid} appears verbatim in Zebra mempool`);
 
   const mined = await rpcCall('generate', [1]);
   append(`Mined block hash: ${mined.result[0]}`);
@@ -157,14 +165,15 @@ async function main() {
   const block = await rpcCall('getblock', [String(nextHeight), 1]);
   assertCheck('Mined block height incremented', block.result.height === nextHeight);
   assertCheck('Mined block includes the sent transaction', block.result.tx.includes(explorerTxid));
+  append(`TxID ${explorerTxid} appears verbatim in mined block ${nextHeight} tx list`);
 
-  // Wait for Zaino to ingest the mined block
-  append(`Waiting for Zaino to index mined block ${nextHeight}...`);
+  // Wait for service to ingest the mined block
+  append(`Waiting for service to index mined block ${nextHeight}...`);
   for (let i = 0; i < 30; i++) {
     try {
       const hdr = await client.getBlockHeader(nextHeight);
       if (hdr && hdr.height === nextHeight) {
-        append(`Zaino indexed block ${nextHeight}`);
+        append(`Service indexed block ${nextHeight}`);
         break;
       }
     } catch (e) {}
@@ -200,7 +209,7 @@ async function main() {
 
   if (allChecksPassed) {
     append('\n' + '='.repeat(70));
-    append(`=== ZAINO FEAT/NU7 REGTEST SPIKE END-TO-END VERIFIED: ${passedCount}/${totalCount} ASSERTIONS PASSED ✅ ===`);
+    append(`=== ${BACKEND_MODE.toUpperCase()} NU7 REGTEST END-TO-END VERIFIED: ${passedCount}/${totalCount} ASSERTIONS PASSED ✅ ===`);
     append('='.repeat(70) + '\n');
   } else {
     append(`\n❌ VERIFICATION FAILED: Only ${passedCount}/${totalCount} assertions passed!`);
@@ -208,13 +217,12 @@ async function main() {
   }
 
   // Save log
-  const logPath = path.join(projectRoot, 'packages/core/tests/logs/zaino_nu7_spike.log');
-  fs.writeFileSync(logPath, log.join('\n'));
+  const logPath = path.join(projectRoot, OUTPUT_LOG);
+  fs.writeFileSync(logPath, log.join('\n') + '\n');
   console.log(`Log successfully written to ${logPath}`);
 }
 
 main().catch((err) => {
-  console.error('Fatal error during Zaino NU7 spike:', err);
+  console.error('Fatal error during spike:', err);
   process.exit(1);
 });
-

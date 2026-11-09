@@ -1,0 +1,65 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION: LIGHTWALLETD =====
+===============================================================
+backend mode:      lightwalletd
+config file name:  packages/dev/docker/regtest-nu7/docker-compose.yml
+Zaino listen port: 39067
+Zebra RPC port:    39232
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=113)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Light Client gRPC Service ---
+zainod git commit (from GetLightdInfo): e7436d2adb9ab5828eb8a27de534e16218841fc2
+Vendor:            ECC LightWalletD
+Version:           v0.6.0
+Branch ID:         77190ad9
+Tip Height:        113
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Block height matches Zebra tip (height=113)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 113...
+Scanned: 113/113
+Discovered unspent notes: 112
+Total spendable balance: 23232787296 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=112)
+[PASS] Account 0 has spendable balance (balance=23232787296)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+Send TxID: 6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 234
+[PASS] Send returned valid txid (txid=6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=234, expected=234)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0)
+TxID 6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0 appears verbatim in Zebra mempool
+Mined block hash: edce76a8c24bc2af53c32f6bb5103453d8074c6728317cc685618dfac92b0abd
+[PASS] Block successfully mined (blockHash=edce76a8c24bc2af53c32f6bb5103453d8074c6728317cc685618dfac92b0abd)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+TxID 6e3de46685f78c7d6dd3d932a2d2b3186c54b24aa3704b7aab527af6c4b6fbf0 appears verbatim in mined block 114 tx list
+Waiting for service to index mined block 114...
+Service indexed block 114
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 114/114
+Recipient Unspent Notes: 3
+Recipient Balance: 200100000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=3)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=200100000)
+
+======================================================================
+=== LIGHTWALLETD NU7 REGTEST END-TO-END VERIFIED: 19/19 ASSERTIONS PASSED ✅ ===
+======================================================================
+
