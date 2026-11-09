@@ -99,8 +99,7 @@ async function main() {
     minConfs: 1,
   });
   console.log('Send Result:');
-  console.log('  Internal TxID:  ', sendRes.txid);
-  console.log('  Explorer TxID:  ', reverseTxid(sendRes.txid));
+  console.log('  TxID:           ', sendRes.txid);
   console.log('  Fee (zatoshis): ', sendRes.fee.toString());
   console.log('  Num Actions:    ', sendRes.numActions);
   console.log('  Expiry Height:  ', sendRes.expiryHeight);

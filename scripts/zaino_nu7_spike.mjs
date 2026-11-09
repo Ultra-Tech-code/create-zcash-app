@@ -14,6 +14,8 @@ const {
   KNOWN_TEST_MNEMONICS,
   send,
   WalletHandle,
+  detectIncoming,
+  decodeIronwoodFrontierRoot,
 } = await import(`${projectRoot}/packages/sdk/dist/index.js`);
 
 const BACKEND_MODE = process.env.ZAINO_BACKEND_MODE || 'rpc';
@@ -43,7 +45,11 @@ async function main() {
   append('===============================================================');
   append(`backend mode:      ${BACKEND_MODE}`);
   append(`config file name:  ${CONFIG_FILE}`);
-  append(`Zaino listen port: ${ZAINO_GRPC_PORT}`);
+  if (BACKEND_MODE === 'lightwalletd') {
+    append(`Lightwalletd listen port: ${ZAINO_GRPC_PORT}`);
+  } else {
+    append(`Zaino listen port: ${ZAINO_GRPC_PORT}`);
+  }
   append(`Zebra RPC port:    ${ZEBRA_RPC_PORT}`);
 
   const assertions = [];
@@ -90,7 +96,8 @@ async function main() {
     lightdInfo = await client.getInfo();
   }
 
-  append(`zainod git commit (from GetLightdInfo): ${lightdInfo.gitCommit}`);
+  const commitLabel = BACKEND_MODE === 'lightwalletd' ? 'lightwalletd git commit' : 'zainod git commit';
+  append(`${commitLabel} (from GetLightdInfo): ${lightdInfo.gitCommit}`);
   append(`Vendor:            ${lightdInfo.vendor}`);
   append(`Version:           ${lightdInfo.version}`);
   append(`Branch ID:         ${lightdInfo.consensusBranchId}`);
@@ -124,6 +131,28 @@ async function main() {
   assertCheck('Account 0 scanned to tip', sync0.summary.lastScannedHeight === tipHeight);
   assertCheck('Account 0 discovered shielded notes', sync0.summary.unspentNotesCount > 0, `notes=${sync0.summary.unspentNotesCount}`);
   assertCheck('Account 0 has spendable balance', sync0.summary.spendableBalanceZatoshis > 0, `balance=${sync0.summary.spendableBalanceZatoshis}`);
+
+  // 3b. Verify Ironwood Note Discovery & Tree State Root
+  append('\n--- 3b. Verifying Ironwood Notes & Tree State ---');
+  const detected0 = await detectIncoming(client, acct0);
+  const ironwoodNotes0 = detected0.notes.filter((n) => n.pool === 'ironwood');
+  append(`Account 0 discovered Ironwood notes: ${ironwoodNotes0.length}`);
+  if (ironwoodNotes0.length > 0) {
+    append(`Sample Ironwood note: pool=${ironwoodNotes0[0].pool}, value=${ironwoodNotes0[0].value}, txid=${ironwoodNotes0[0].txid}`);
+  }
+  assertCheck('SDK discovered Ironwood note', ironwoodNotes0.length > 0, `ironwoodNotes=${ironwoodNotes0.length}`);
+
+  const treeState = await client.getTreeState(tipHeight);
+  append(`GetTreeState(${tipHeight}) ironwoodTree: ${treeState.ironwoodTree}`);
+  const ironwoodRootHex = treeState.ironwoodTree && treeState.ironwoodTree !== '000000'
+    ? decodeIronwoodFrontierRoot(treeState.ironwoodTree)
+    : null;
+  append(`GetTreeState(${tipHeight}) decoded Ironwood root: ${ironwoodRootHex}`);
+  assertCheck(
+    'GetTreeState returns non-empty Ironwood root',
+    typeof ironwoodRootHex === 'string' && ironwoodRootHex.length === 64,
+    `root=${ironwoodRootHex}`
+  );
 
   // 4. Send transaction from Account 0 to Account 1
   append('\n--- 4. Executing send() from Account 0 to Account 1 ---');
@@ -214,6 +243,11 @@ async function main() {
   } else {
     append(`\n❌ VERIFICATION FAILED: Only ${passedCount}/${totalCount} assertions passed!`);
     process.exit(1);
+  }
+
+  if (process.env.ZAINO_STARTUP_LOG && fs.existsSync(process.env.ZAINO_STARTUP_LOG)) {
+    append('\n--- Daemon Startup Output (Proof of Backend / State Mode) ---');
+    append(fs.readFileSync(process.env.ZAINO_STARTUP_LOG, 'utf8').trim());
   }
 
   // Save log

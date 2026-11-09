@@ -78,10 +78,10 @@ async function runCheckoutRecipe() {
     log,
   });
 
-  // Verify byte reversal equivalence
-  if (result.order.txid !== reverseTxid(result.broadcastTxid)) {
+  // Verify transaction ID matches between detected note and broadcast receipt
+  if (result.order.txid !== result.broadcastTxid) {
     throw new Error(
-      `Detected note txid (${result.order.txid}) does not match reverseTxid(broadcastTxid) (${reverseTxid(result.broadcastTxid)})`
+      `Detected note txid (${result.order.txid}) does not match broadcastTxid (${result.broadcastTxid})`
     );
   }
 

@@ -104,7 +104,9 @@ bdd5d2712568c6941f6bf36dfdea540bcc94ff1dba762d63a8901334fec54eb0  recipe_payroll
 75c7b2e185121c78ddf5d454c058aefc116ab016b1e18810636b452b515f4f1e  pretty_rpc_rpc_pretty.log  |  node packages/dev/dist/cli.js rpc getblockchaininfo --pretty
 903e5b176e38370bbc9fa26ef9dba2da889224fbd65080eaa9eac66a69bb7f3a  verify_pretty_rpc.log  |  git worktree add /tmp/cza-clean-verify-pretty-rpc HEAD && cd /tmp/cza-clean-verify-pretty-rpc && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_pretty_rpc.log
 ab7fdd6249c6cae4c9e3282903af83e6c14224f1af01c0280377a14d765ddeca  zallet_nu7_spike.log  |  node scripts/zallet_nu7_spike.mjs
-4f3199d36e19b4ed7b2c0fb0399ae3209cfaaa2a844f583c2152817a1706eddf  zaino_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
-98b90cbbf54b0face15f03602335cc5e7cf1578ae57856d4f99970cbd8a4e8f2  zaino_nu7_spike_rpc.log  |  node scripts/zaino_nu7_spike.mjs
-bd4d57681c67a49539b590df274b468cc323fefa5d62ff66efabfc33f2dbdffb  zaino_nu7_spike_direct.log  |  node scripts/zaino_nu7_spike.mjs
-7e5817c6c6b9b98ffb56a8f3dccdbdc0f5c6a91cee145c997eae865fc14a83df  lightwalletd_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
+2092ec9cfc905d5e5aa91aee03cdbb76903d24823a61774317132b132723733e  zaino_nu7_spike_rpc.log  |  ZAINO_BACKEND_MODE=rpc node scripts/zaino_nu7_spike.mjs
+2daee78a8a288bce45e8f78b476c340e5ab1145e2f0ad11b37676ebad1a4f577  zaino_nu7_spike_direct.log  |  ZAINO_BACKEND_MODE=direct node scripts/zaino_nu7_spike.mjs
+de353e4f15275de0773bbf244b02c09ca362a9cbd70f29e2567d4ecb4d7a30bc  lightwalletd_nu7_spike.log  |  ZAINO_BACKEND_MODE=lightwalletd node scripts/zaino_nu7_spike.mjs
+96c300df0428db66d275c1fb42151e2557d6cfe26e1c2fdd40ce3e219f331aad  zainod_startup_rpc.log  |  zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
+a7f9d5d17ce1384884be3089c9b9aac9f7e2b704503d97d2307fac62a5641277  zainod_startup_direct.log  |  zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-direct.toml
+066fe3cfc58686acb851f0594439ad4b7a1725d83aed852a5b640d15e58cde59  zaino_zallet_coexistence.log  |  node scripts/zaino_zallet_coexistence.mjs

@@ -123,7 +123,8 @@ async function main() {
 
   // 5. Verify transaction in mempool and mine block
   console.log('\n--- 5. Verifying mempool and mining block ---');
-  const explorerTxid = reverseTxid(sendRes.txid);
+  // send() returns txid in node/explorer display order directly
+  const explorerTxid = sendRes.txid;
   const mempool = await rpcCall('getrawmempool');
   assertCheck('Transaction is present in Zebra mempool', mempool.result.includes(explorerTxid), `explorerTxid=${explorerTxid}`);
 

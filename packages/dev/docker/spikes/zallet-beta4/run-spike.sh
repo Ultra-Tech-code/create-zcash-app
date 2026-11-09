@@ -46,16 +46,28 @@ until curl -sf -X POST -H 'Content-Type: application/json' \
   sleep 1
 done
 
-echo "==> Mining 10 blocks on Zebra to activate NU7 at height 2..."
-curl -sf -X POST -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"generate","params":[10],"id":1}' \
-  http://127.0.0.1:49232 > /dev/null
-
 echo "==> Initializing Zallet keystore and importing miner mnemonic..."
-docker run --rm --user 0:0 -v "$DATA_DIR:/data" "$IMAGE_ZALLET" -d /data generate-encryption-identity
-docker run --rm --user 0:0 -v "$DATA_DIR:/data" "$IMAGE_ZALLET" -d /data init-wallet-encryption
-echo "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about" | \
-  docker run -i --rm --user 0:0 -v "$DATA_DIR:/data" "$IMAGE_ZALLET" -d /data import-mnemonic
+docker run --rm --user 0:0 -v "$DATA_DIR:/data" -v "$DIR/zallet.toml:/etc/zallet/zallet.toml:ro" "$IMAGE_ZALLET" -d /data -c /etc/zallet/zallet.toml generate-encryption-identity
+docker run --rm --user 0:0 -v "$DATA_DIR:/data" -v "$DIR/zallet.toml:/etc/zallet/zallet.toml:ro" "$IMAGE_ZALLET" -d /data -c /etc/zallet/zallet.toml init-wallet-encryption
+python3 -c "
+import pty, os, subprocess
+master, slave = pty.openpty()
+proc = subprocess.Popen(
+    ['docker', 'run', '-i', '-t', '--rm', '--user', '0:0',
+     '-v', '$DATA_DIR:/data',
+     '-v', '$DIR/zallet.toml:/etc/zallet/zallet.toml:ro',
+     '$IMAGE_ZALLET', '-d', '/data', '-c', '/etc/zallet/zallet.toml', 'import-mnemonic'],
+    stdin=slave, stdout=slave, stderr=slave, close_fds=True
+)
+os.close(slave)
+os.write(master, b'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about\n\n')
+try:
+    while os.read(master, 1024): pass
+except OSError: pass
+proc.wait()
+if proc.returncode != 0:
+    exit(proc.returncode)
+"
 
 echo "==> Launching Zallet v0.1.0-beta.4..."
 # Note workarounds:
@@ -78,12 +90,33 @@ until curl -sf -u zebra:zebra -X POST -H 'Content-Type: application/json' \
   sleep 1
 done
 
-echo "==> Mining 100 additional blocks so coinbase outputs mature (100 block maturity)..."
+echo "==> Initializing Account 0 in Zallet..."
+SEEDFP=$(curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"getwalletinfo","params":[],"id":1}' \
+  http://127.0.0.1:48232 | jq -r '.result.mnemonic_seedfp')
+curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' \
+  -d "{\"jsonrpc\":\"2.0\",\"method\":\"z_getnewaccount\",\"params\":[\"$SEEDFP\"],\"id\":2}" \
+  http://127.0.0.1:48232 > /dev/null
+
+echo "==> Mining 110 blocks on Zebra to activate NU7 (height 2) and mature coinbase outputs (100 block maturity)..."
 curl -sf -X POST -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"generate","params":[100],"id":2}' \
+  -d '{"jsonrpc":"2.0","method":"generate","params":[110],"id":2}' \
   http://127.0.0.1:49232 > /dev/null
 
-sleep 2
+echo "==> Restarting Zallet so history recovery sync scans blocks for initialized Account 0..."
+docker restart zallet-spike > /dev/null
+until curl -sf -u zebra:zebra -X POST -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"getwalletinfo","params":[],"id":1}' \
+  http://127.0.0.1:48232 > /dev/null 2>&1; do
+  sleep 1
+done
+
+echo "==> Waiting for Zallet to sync to chain tip (height 110)..."
+until curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","method":"z_listunspent","params":[],"id":3}' \
+  http://127.0.0.1:48232 | jq -e '.result | length > 0' > /dev/null 2>&1; do
+  sleep 2
+done
 
 echo "==> Testing Zallet RPC endpoints..."
 echo "--- z_listunspent ---"

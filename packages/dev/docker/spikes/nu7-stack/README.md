@@ -170,15 +170,15 @@ ZAINO_BACKEND_MODE=direct ZAINO_CONFIG_FILE=zainod-direct.toml ZEBRA_RPC_PORT=49
 
 | Capability | `lightwalletd` | Zaino (`backend="rpc"`) | Zaino (`backend="direct"`) | Zaino + Zallet Coexistence |
 | :--- | :--- | :--- | :--- | :--- |
-| **NU7 Consensus Activation (`0x77190ad9`)** | **PASS** (`lightwalletd_nu7_spike.log:12`) | **PASS** (`zaino_nu7_spike_rpc.log:12`) | **PASS** (`zaino_nu7_spike_direct.log:12`) | **PASS** (`zallet_nu7_spike.log:52`) |
-| **GetLightdInfo / Branch ID Negotiation** | **PASS** (`lightwalletd_nu7_spike.log:20`) | **PASS** (`zaino_nu7_spike_rpc.log:20`) | **PASS** (`zaino_nu7_spike_direct.log:20`) | **PASS** (`zaino_nu7_spike_rpc.log:20`) |
-| **Remote Node Operation (No Shared State)** | **PASS** (`docker-compose.yml:30`) | **PASS** (`zainod-rpc.toml:1`) | **NOT TESTED** (direct requires state) | **NOT TESTED** (Zallet requires state) |
-| **Compact Block Streaming & Sync** | **PASS** (`lightwalletd_nu7_spike.log:28`) | **PASS** (`zaino_nu7_spike_rpc.log:28`) | **PASS** (`zaino_nu7_spike_direct.log:28`) | **PASS** (`zaino_nu7_spike_rpc.log:28`) |
-| **Ironwood Notes & Tree State** | **PASS** (`lightwalletd_nu7_spike.log:29`) | **PASS** (`zaino_nu7_spike_rpc.log:29`) | **PASS** (`zaino_nu7_spike_direct.log:29`) | **PASS** (`zallet_nu7_spike.log:52`) |
-| **SDK send() with Explorer-Order TxID** | **PASS** (`lightwalletd_nu7_spike.log:37`) | **PASS** (`zaino_nu7_spike_rpc.log:37`) | **PASS** (`zaino_nu7_spike_direct.log:37`) | **PASS** (`zaino_nu7_spike_rpc.log:37`) |
-| **Zebra Mempool & Block Settlement** | **PASS** (`lightwalletd_nu7_spike.log:44`) | **PASS** (`zaino_nu7_spike_rpc.log:44`) | **PASS** (`zaino_nu7_spike_direct.log:44`) | **PASS** (`zaino_nu7_spike_rpc.log:44`) |
-| **Recipient Discovery & Balance Sync** | **PASS** (`lightwalletd_nu7_spike.log:58`) | **PASS** (`zaino_nu7_spike_rpc.log:58`) | **PASS** (`zaino_nu7_spike_direct.log:58`) | **PASS** (`zaino_nu7_spike_rpc.log:58`) |
-| **Zallet Shielded Sync & Notes (`z_listunspent`)** | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | **PASS** (`zallet_nu7_spike.log:52`) |
+| **NU7 Consensus Activation (`0x77190ad9`)** | **PASS** (`lightwalletd_nu7_spike.log:12`) | **PASS** (`zaino_nu7_spike_rpc.log:12`) | **PASS** (`zaino_nu7_spike_direct.log:12`) | **PASS** (`zaino_zallet_coexistence.log:13`) |
+| **GetLightdInfo / Branch ID Negotiation** | **PASS** (`lightwalletd_nu7_spike.log:20`) | **PASS** (`zaino_nu7_spike_rpc.log:20`) | **PASS** (`zaino_nu7_spike_direct.log:20`) | **PASS** (`zaino_zallet_coexistence.log:21`) |
+| **Remote Node Operation (No Shared State)** | **PASS** (`docker inspect: Mounts=[]`) | **PASS** (`docker inspect: separate network/host`) | **NOT TESTED** (direct requires state) | **NOT TESTED** (Zallet requires state) |
+| **Compact Block Streaming & Sync** | **PASS** (`lightwalletd_nu7_spike.log:28`) | **PASS** (`zaino_nu7_spike_rpc.log:28`) | **PASS** (`zaino_nu7_spike_direct.log:28`) | **PASS** (`zaino_zallet_coexistence.log:38`) |
+| **Ironwood Notes & Tree State** | **PASS** (`lightwalletd_nu7_spike.log:35`) | **PASS** (`zaino_nu7_spike_rpc.log:35`) | **PASS** (`zaino_nu7_spike_direct.log:35`) | **PASS** (`zaino_zallet_coexistence.log:43`) |
+| **SDK send() with Explorer-Order TxID** | **PASS** (`lightwalletd_nu7_spike.log:45`) | **PASS** (`zaino_nu7_spike_rpc.log:45`) | **PASS** (`zaino_nu7_spike_direct.log:45`) | **PASS** (`zaino_zallet_coexistence.log:51`) |
+| **Zebra Mempool & Block Settlement** | **PASS** (`lightwalletd_nu7_spike.log:52`) | **PASS** (`zaino_nu7_spike_rpc.log:52`) | **PASS** (`zaino_nu7_spike_direct.log:52`) | **PASS** (`zaino_zallet_coexistence.log:55`) |
+| **Recipient Discovery & Balance Sync** | **PASS** (`lightwalletd_nu7_spike.log:66`) | **PASS** (`zaino_nu7_spike_rpc.log:66`) | **PASS** (`zaino_nu7_spike_direct.log:66`) | **NOT TESTED** (verified in standalone) |
+| **Zallet Shielded Sync & Notes (`z_listunspent`)** | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | **PASS** (`zallet_nu7_spike.log:58`, `zaino_zallet_coexistence.log:63`) |
 | **Zallet `z_listtransactions` (Non-UTF8 Memo)** | **NOT TESTED** | **NOT TESTED** | **NOT TESTED** | **FAIL** (`zallet_nu7_spike.log:3883`) |
 
 ---
@@ -186,10 +186,16 @@ ZAINO_BACKEND_MODE=direct ZAINO_CONFIG_FILE=zainod-direct.toml ZEBRA_RPC_PORT=49
 ## 8. Primary Evidence Logs
 
 - **Zaino RPC-Only Verification Log**: `packages/core/tests/logs/zaino_nu7_spike_rpc.log`  
-  SHA-256: `98b90cbbf54b0face15f03602335cc5e7cf1578ae57856d4f99970cbd8a4e8f2`
+  SHA-256: `2092ec9cfc905d5e5aa91aee03cdbb76903d24823a61774317132b132723733e`
 - **Zaino Direct Mode Verification Log**: `packages/core/tests/logs/zaino_nu7_spike_direct.log`  
-  SHA-256: `bd4d57681c67a49539b590df274b468cc323fefa5d62ff66efabfc33f2dbdffb`
+  SHA-256: `2daee78a8a288bce45e8f78b476c340e5ab1145e2f0ad11b37676ebad1a4f577`
 - **Lightwalletd Verification Log**: `packages/core/tests/logs/lightwalletd_nu7_spike.log`  
-  SHA-256: `7e5817c6c6b9b98ffb56a8f3dccdbdc0f5c6a91cee145c997eae865fc14a83df`
+  SHA-256: `de353e4f15275de0773bbf244b02c09ca362a9cbd70f29e2567d4ecb4d7a30bc`
 - **Zallet NU7 Verification Log**: `packages/core/tests/logs/zallet_nu7_spike.log`  
   SHA-256: `ab7fdd6249c6cae4c9e3282903af83e6c14224f1af01c0280377a14d765ddeca`
+- **Zaino RPC Startup Output Log**: `packages/core/tests/logs/zainod_startup_rpc.log`  
+  SHA-256: `96c300df0428db66d275c1fb42151e2557d6cfe26e1c2fdd40ce3e219f331aad`
+- **Zaino Direct Startup Output Log**: `packages/core/tests/logs/zainod_startup_direct.log`  
+  SHA-256: `a7f9d5d17ce1384884be3089c9b9aac9f7e2b704503d97d2307fac62a5641277`
+- **Zaino + Zallet Coexistence Verification Log**: `packages/core/tests/logs/zaino_zallet_coexistence.log`  
+  SHA-256: `066fe3cfc58686acb851f0594439ad4b7a1725d83aed852a5b640d15e58cde59`
