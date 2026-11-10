@@ -9,7 +9,7 @@
  * 3. Zallet v0.1.0-beta.4 running connected to Zebra
  * 4. SDK sync and transaction discovery via Zaino
  * 5. SDK send transaction via Zaino mined into Zebra block
- * 6. Zallet z_listunspent listing mature Ironwood shielded notes
+ * 6. Zallet z_listunspent listing Ironwood shielded notes
  */
 
 import fs from 'node:fs';

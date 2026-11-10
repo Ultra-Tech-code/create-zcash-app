@@ -98,7 +98,7 @@ curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' \
   -d "{\"jsonrpc\":\"2.0\",\"method\":\"z_getnewaccount\",\"params\":[\"$SEEDFP\"],\"id\":2}" \
   http://127.0.0.1:48232 > /dev/null
 
-echo "==> Mining 110 blocks on Zebra to activate NU7 (height 2) and mature coinbase outputs (100 block maturity)..."
+echo "==> Mining 110 blocks on Zebra to activate NU7 (height 2)..."
 curl -sf -X POST -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"generate","params":[110],"id":2}' \
   http://127.0.0.1:49232 > /dev/null

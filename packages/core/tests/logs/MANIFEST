@@ -110,3 +110,4 @@ de353e4f15275de0773bbf244b02c09ca362a9cbd70f29e2567d4ecb4d7a30bc  lightwalletd_n
 96c300df0428db66d275c1fb42151e2557d6cfe26e1c2fdd40ce3e219f331aad  zainod_startup_rpc.log  |  zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
 a7f9d5d17ce1384884be3089c9b9aac9f7e2b704503d97d2307fac62a5641277  zainod_startup_direct.log  |  zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-direct.toml
 066fe3cfc58686acb851f0594439ad4b7a1725d83aed852a5b640d15e58cde59  zaino_zallet_coexistence.log  |  node scripts/zaino_zallet_coexistence.mjs
+a47d114c8d47d3ea71612f256eadd278a14403df233072e2b1e3b82beb4df1f7  docker_inspect_remote_proof.log  |  docker inspect zebra-spike && docker inspect zcash-regtest-nu7-lightwalletd-1
