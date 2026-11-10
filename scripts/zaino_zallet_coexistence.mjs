@@ -13,6 +13,7 @@
  */
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -35,7 +36,9 @@ const ZEBRA_RPC_PORT = process.env.ZEBRA_RPC_PORT || '39232';
 const ZALLET_RPC_PORT = process.env.ZALLET_RPC_PORT || '8182';
 const INDEXER_GRPC_PORT = process.env.INDEXER_GRPC_PORT || process.env.ZAINO_GRPC_PORT || '39067';
 const EXPECTED_INDEXER_VENDOR = process.env.EXPECTED_INDEXER_VENDOR || 'ECC LightWalletD';
-const OUTPUT_LOG = process.env.COEXISTENCE_LOG || path.join(projectRoot, 'packages/core/tests/logs/zaino_zallet_coexistence.log');
+const OUTPUT_LOG = process.env.COEXISTENCE_LOG
+  ? path.resolve(process.env.COEXISTENCE_LOG)
+  : path.join(os.tmpdir(), 'zcash_coexistence.log');
 
 async function zebraRpc(method, params = []) {
   const res = await fetch(`http://127.0.0.1:${ZEBRA_RPC_PORT}`, {
