@@ -80,7 +80,18 @@ export class ZcashClient {
   private readonly client: any;
 
   constructor(config: ClientConfig) {
-    const network = config.regtestNu7 && config.network === 'regtest' ? 'regtest-nu7' : config.network;
+    let network = config.network;
+    if (network === 'regtest-nu7') {
+      console.warn(
+        '[ZcashClient] Deprecation Warning: network "regtest-nu7" is deprecated and will be removed in a future release. Regtest now activates NU7 by default. Mapping to "regtest".'
+      );
+      network = 'regtest';
+    }
+    if (config.regtestNu7 !== undefined) {
+      console.warn(
+        '[ZcashClient] Deprecation Warning: "regtestNu7" configuration option is deprecated and ignored. Regtest now activates NU7 by default.'
+      );
+    }
     this.config = { ...config, network };
     const protoPath = path.resolve(__dirname, '../proto/service.proto');
     const packageDefinition = protoLoader.loadSync(protoPath, {

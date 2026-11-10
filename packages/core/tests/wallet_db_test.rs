@@ -2,7 +2,8 @@
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use zcash_core::{
-    get_nu6_3_activation_height, get_nu6_3_branch_id, metadata_keys, WalletDb, WalletDbError,
+    get_ironwood_activation_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
+    get_nu7_activation_height, get_nu7_branch_id, metadata_keys, WalletDb, WalletDbError,
 };
 
 #[test]
@@ -12,6 +13,7 @@ fn test_nu6_3_activation_heights_from_consensus() {
     let mainnet_height = get_nu6_3_activation_height("mainnet").expect("mainnet activation height");
     let testnet_height = get_nu6_3_activation_height("testnet").expect("testnet activation height");
     let regtest_height = get_nu6_3_activation_height("regtest").expect("regtest activation height");
+    let ironwood_height = get_ironwood_activation_height("mainnet").expect("ironwood activation height");
     let branch_id = get_nu6_3_branch_id();
 
     println!("  Mainnet NU6.3 Activation Height: {}", mainnet_height);
@@ -22,7 +24,28 @@ fn test_nu6_3_activation_heights_from_consensus() {
     assert_eq!(mainnet_height, 3_428_143, "Mainnet NU6.3 must equal 3,428,143");
     assert_eq!(testnet_height, 4_134_000, "Testnet NU6.3 must equal 4,134,000");
     assert_eq!(regtest_height, 2, "Regtest NU6.3 must equal 2 (matching Zebra regtest schedule)");
+    assert_eq!(ironwood_height, 3_428_143, "Ironwood alias must equal NU6.3 activation height");
     assert_eq!(branch_id, 0x37a5_165b, "NU6.3 BranchId must equal 0x37a5165b");
+}
+
+#[test]
+fn test_nu7_activation_heights_from_consensus() {
+    println!("\n=== TEST: NU7 ACTIVATION HEIGHTS & BRANCH ID FROM CONSENSUS ===");
+
+    let mainnet_height = get_nu7_activation_height("mainnet").expect("mainnet activation height");
+    let testnet_height = get_nu7_activation_height("testnet").expect("testnet activation height");
+    let regtest_height = get_nu7_activation_height("regtest").expect("regtest activation height");
+    let branch_id = get_nu7_branch_id();
+
+    println!("  Mainnet NU7 Activation Height: {}", mainnet_height);
+    println!("  Testnet NU7 Activation Height: {}", testnet_height);
+    println!("  Regtest NU7 Activation Height: {}", regtest_height);
+    println!("  NU7 Consensus Branch ID:       0x{:08x}", branch_id);
+
+    assert_eq!(mainnet_height, 3_543_405, "Mainnet NU7 must equal 3,543,405");
+    assert_eq!(testnet_height, 4_465_026, "Testnet NU7 must equal 4,465,026");
+    assert_eq!(regtest_height, 2, "Regtest NU7 must equal 2 (matching Zebra regtest schedule)");
+    assert_eq!(branch_id, 0x7719_0ad9, "NU7 BranchId must equal 0x77190ad9");
 }
 
 #[test]
@@ -50,13 +73,13 @@ fn test_consensus_branch_id_derivation() {
     let mainnet_nu7 = get_consensus_branch_id_for_height("mainnet", 3_543_405).expect("branch");
     assert_eq!(mainnet_nu7, 0x7719_0ad9, "Mainnet 3,543,405 must derive Nu7 (0x77190ad9)");
 
-    // Regtest at height 2 -> 0x37a5165b (NU6.3 default)
+    // Regtest at height 2 -> 0x77190ad9 (NU7 default)
     let regtest_branch = get_consensus_branch_id_for_height("regtest", 2).expect("branch");
-    assert_eq!(regtest_branch, 0x37a5_165b, "Regtest default at height 2 must derive Nu6_3 (0x37a5165b)");
+    assert_eq!(regtest_branch, 0x7719_0ad9, "Regtest default at height 2 must derive Nu7 (0x77190ad9)");
 
-    // Regtest opt-in at height 2 -> 0x77190ad9 (NU7)
+    // Regtest opt-in / alias at height 2 -> 0x77190ad9 (NU7)
     let regtest_nu7_branch = get_consensus_branch_id_for_height("regtest-nu7", 2).expect("branch");
-    assert_eq!(regtest_nu7_branch, 0x7719_0ad9, "Regtest opt-in at height 2 must derive Nu7 (0x77190ad9)");
+    assert_eq!(regtest_nu7_branch, 0x7719_0ad9, "Regtest alias at height 2 must derive Nu7 (0x77190ad9)");
 }
 
 #[test]

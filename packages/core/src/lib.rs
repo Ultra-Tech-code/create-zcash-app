@@ -35,12 +35,12 @@ pub fn get_spending_key(handle: u32) -> Option<UnifiedSpendingKey> {
     map_guard.as_ref()?.get(&handle).cloned()
 }
 
-/// Returns a LocalNetwork configured for Z3 regtest (matching Zebra regtest schedule).
+/// Returns a LocalNetwork configured for regtest (matching Zebra regtest schedule).
 pub fn regtest_params() -> LocalNetwork {
     consensus::regtest_consensus_params()
 }
 
-/// Returns a LocalNetwork configured for Z3 regtest with explicit NU7 activation height.
+/// Returns a LocalNetwork configured for regtest with explicit NU7 activation height.
 pub fn regtest_params_with_nu7(nu7_activation: Option<u32>) -> LocalNetwork {
     consensus::regtest_consensus_params_with_nu7(nu7_activation)
 }
@@ -72,8 +72,7 @@ impl Parameters for DynamicNetwork {
 
 pub fn get_params_for_network(network_str: &str) -> DynamicNetwork {
     match network_str.to_lowercase().as_str() {
-        "regtest" => DynamicNetwork::Regtest(regtest_params()),
-        "regtest-nu7" | "regtest_nu7" => DynamicNetwork::Regtest(regtest_params_with_nu7(Some(2))),
+        "regtest" | "regtest-nu7" | "regtest_nu7" => DynamicNetwork::Regtest(regtest_params()),
         "testnet" | "test" => DynamicNetwork::Test(Network::TestNetwork),
         _ => DynamicNetwork::Main(Network::MainNetwork),
     }
@@ -393,6 +392,34 @@ mod napi_bindings {
         let branch = crate::consensus::get_consensus_branch_id_for_height(&network_str, height)
             .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))?;
         Ok(format!("{:08x}", branch))
+    }
+
+    #[napi]
+    pub fn get_nu7_activation_height(network_str: String) -> Result<u32> {
+        crate::consensus::get_nu7_activation_height(&network_str)
+            .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))
+    }
+
+    #[napi]
+    pub fn get_nu7_branch_id() -> Result<String> {
+        Ok(format!("{:08x}", crate::consensus::get_nu7_branch_id()))
+    }
+
+    #[napi]
+    pub fn get_nu6_3_activation_height(network_str: String) -> Result<u32> {
+        crate::consensus::get_nu6_3_activation_height(&network_str)
+            .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))
+    }
+
+    #[napi]
+    pub fn get_nu6_3_branch_id() -> Result<String> {
+        Ok(format!("{:08x}", crate::consensus::get_nu6_3_branch_id()))
+    }
+
+    #[napi]
+    pub fn get_ironwood_activation_height(network_str: String) -> Result<u32> {
+        crate::consensus::get_ironwood_activation_height(&network_str)
+            .map_err(|e| Error::new(Status::InvalidArg, e.to_string()))
     }
 
     #[napi]
@@ -730,8 +757,9 @@ pub mod wallet_db;
 pub mod wallet_handle;
 
 pub use consensus::{
-    get_consensus_branch_id_for_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
-    ConsensusError,
+    get_consensus_branch_id_for_height, get_ironwood_activation_height,
+    get_nu6_3_activation_height, get_nu6_3_branch_id, get_nu7_activation_height,
+    get_nu7_branch_id, ConsensusError,
 };
 pub use decrypted_tx::{
     internal_decode_transaction, internal_decrypt_transaction, parse_decrypted_memo,

@@ -141,32 +141,13 @@ describe('Chain Identity Guard', () => {
     await client.close();
   });
 
-  it('derives expected branch ID for regtest default (NU6.3) and opt-in (NU7) from crate params', async () => {
-    // 1. Default regtest: NU6.3 (0x37a5165b)
-    const clientDefault = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  it('derives expected branch ID for regtest default (NU7) from crate params', async () => {
+    // 1. Default regtest: NU7 (0x77190ad9)
+    const clientDefault = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
 
     vi.spyOn(clientDefault, 'getInfo').mockResolvedValue({
-      version: '0.10.0',
-      vendor: 'Zaino',
-      taddrSupport: true,
-      chainName: 'regtest',
-      saplingActivationHeight: '1',
-      consensusBranchId: '37a5165b',
-      blockHeight: '10',
-    });
-
-    const resultDefault = await clientDefault.assertChainIdentity();
-    expect(resultDefault.consensusBranchId).toBe('37a5165b');
-    expect(resultDefault.expectedBranchId).toBe('37a5165b');
-
-    await clientDefault.close();
-
-    // 2. Opt-in regtest: NU7 (0x77190ad9) via regtestNu7 flag
-    const clientNu7 = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest', regtestNu7: true });
-
-    vi.spyOn(clientNu7, 'getInfo').mockResolvedValue({
-      version: '0.10.2',
-      vendor: 'Zaino',
+      version: '7.0.0',
+      vendor: 'Zebra',
       taddrSupport: true,
       chainName: 'regtest',
       saplingActivationHeight: '1',
@@ -174,10 +155,50 @@ describe('Chain Identity Guard', () => {
       blockHeight: '10',
     });
 
-    const resultNu7 = await clientNu7.assertChainIdentity();
-    expect(resultNu7.consensusBranchId).toBe('77190ad9');
-    expect(resultNu7.expectedBranchId).toBe('77190ad9');
+    const resultDefault = await clientDefault.assertChainIdentity();
+    expect(resultDefault.consensusBranchId).toBe('77190ad9');
+    expect(resultDefault.expectedBranchId).toBe('77190ad9');
 
-    await clientNu7.close();
+    await clientDefault.close();
+  });
+
+  it('maps legacy "regtest-nu7" network alias to "regtest" with console.warn', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const clientAlias = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest-nu7' });
+    expect(clientAlias.config.network).toBe('regtest');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Deprecation Warning: network "regtest-nu7" is deprecated')
+    );
+
+    vi.spyOn(clientAlias, 'getInfo').mockResolvedValue({
+      version: '7.0.0',
+      vendor: 'Zebra',
+      taddrSupport: true,
+      chainName: 'regtest',
+      saplingActivationHeight: '1',
+      consensusBranchId: '77190ad9',
+      blockHeight: '10',
+    });
+
+    const resultAlias = await clientAlias.assertChainIdentity();
+    expect(resultAlias.consensusBranchId).toBe('77190ad9');
+    expect(resultAlias.expectedBranchId).toBe('77190ad9');
+
+    await clientAlias.close();
+    warnSpy.mockRestore();
+  });
+
+  it('ignores deprecated "regtestNu7" configuration option with console.warn', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const clientFlag = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest', regtestNu7: true });
+    expect(clientFlag.config.network).toBe('regtest');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Deprecation Warning: "regtestNu7" configuration option is deprecated')
+    );
+
+    await clientFlag.close();
+    warnSpy.mockRestore();
   });
 });

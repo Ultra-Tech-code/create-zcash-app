@@ -75,8 +75,8 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
   function createMockClient(): ZcashClient {
     return {
-      config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
-      getInfo: vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '37a5165b' }),
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
+      getInfo: vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' }),
       getTreeState: vi.fn().mockResolvedValue({
         network: 'regtest',
         height: '5',
@@ -308,8 +308,8 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
     const spendableWhilePending = wallet.querySpendableNotes(5, 1);
     expect(spendableWhilePending.length).toBe(0);
 
-    // 4. Case A: If transaction expires without being mined on chain (simulated chain advance past expiry_height)
-    runSql('DELETE FROM pending_spends WHERE expiry_height <= 51;');
+    // 4. Case A: If transaction expires without being mined on chain (simulated chain advance past expiry_height: targetHeight 11 + delta 120 = 131)
+    runSql('DELETE FROM pending_spends WHERE expiry_height <= 131;');
 
     const spendableAfterExpiry = wallet.querySpendableNotes(5, 1);
     expect(spendableAfterExpiry.length).toBe(1);
@@ -415,7 +415,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
     const mockClient = createMockClient();
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
-    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137'));
+    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:39067'));
 
     vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
       {
@@ -449,7 +449,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
     const mockClient = createMockClient();
     vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.alloc(32, 0x12));
-    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:28137'));
+    vi.spyOn(mockClient, 'getTreeState').mockRejectedValue(new Error('14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:39067'));
 
     vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
       {
@@ -637,8 +637,8 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
   describe('Consensus Branch Verification & Regtest Modes', () => {
     it('refuses with ConsensusBranchMismatchError when node branch does not match expected branch (fail closed)', async () => {
       const mockClient = createMockClient();
-      // Regtest expects 37a5165b, but node reports 77190ad9 (or anything mismatched)
-      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' });
+      // Regtest expects 77190ad9, but node reports 37a5165b (or anything mismatched)
+      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '37a5165b' });
 
       await expect(
         send({
@@ -651,10 +651,10 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       ).rejects.toThrow(ConsensusBranchMismatchError);
     });
 
-    it('accepts regtest default (NU6.3) when node reports 37a5165b', async () => {
+    it('accepts regtest default (NU7) when node reports 77190ad9', async () => {
       insertMockNote(21, 500_000_000, 2, '21'.repeat(32));
       const mockClient = createMockClient();
-      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '37a5165b' });
+      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' });
 
       vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
       vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
@@ -687,7 +687,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(buildSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('accepts regtest-nu7 opt-in when node reports 77190ad9', async () => {
+    it('accepts regtest-nu7 alias when node reports 77190ad9', async () => {
       insertMockNote(22, 500_000_000, 2, '22'.repeat(32));
       const mockClient = createMockClient();
       (mockClient.config as any).network = 'regtest-nu7';
@@ -735,7 +735,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(nu6_3_testnet_delta).toBe(40);
       expect(nu7_testnet_delta).toBe(120);
       expect(nu7_tip_delta).toBe(120);
-      expect(regtest_default_delta).toBe(40);
+      expect(regtest_default_delta).toBe(120);
       expect(regtest_nu7_delta).toBe(120);
 
       // 2. Through send() pipeline at NU6.3 height (asserts tip + 40 passed to buildReq)
@@ -946,7 +946,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(isWatchOnly(watchAcct)).toBe(true);
 
       const mockClient = {
-        config: { endpoint: '127.0.0.1:28137', network: 'regtest' },
+        config: { endpoint: '127.0.0.1:39067', network: 'regtest' },
         getInfo: vi.fn(),
         getTreeState: vi.fn(),
         sendTransaction: vi.fn(),

@@ -27,13 +27,12 @@ export namespace dev {
     if (client.config.network !== 'regtest' && client.config.network !== 'regtest-nu7') {
       throw new Error('mine is only available on regtest');
     }
-    const isNu7 = client.config.regtestNu7 || client.config.network === 'regtest-nu7' || client.config.endpoint?.includes('39067');
-    const rpcUrl = isNu7 ? 'http://127.0.0.1:39232' : 'http://127.0.0.1:8181';
+    const rpcUrl = process.env.ZCASH_ZEBRA_RPC || 'http://127.0.0.1:39232';
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    if (!isNu7) {
-      headers['Authorization'] = 'Basic ' + Buffer.from('zebra:zebra').toString('base64');
+    if (process.env.ZEBRA_RPC_AUTH) {
+      headers['Authorization'] = 'Basic ' + Buffer.from(process.env.ZEBRA_RPC_AUTH).toString('base64');
     }
 
     const res = await fetch(rpcUrl, {
@@ -211,7 +210,7 @@ export const testkit = {
     fn: (ctx: { client: ZcashClient; fund: typeof dev.fund }) => Promise<void>
   ): Promise<void> {
     const client = new ZcashClient({
-      endpoint: '127.0.0.1:28137',
+      endpoint: process.env.ZCASH_ENDPOINT || '127.0.0.1:39067',
       network: 'regtest',
     });
     try {

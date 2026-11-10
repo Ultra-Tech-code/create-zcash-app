@@ -1139,14 +1139,14 @@ fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
 }
 
 #[test]
-#[ignore = "requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)"]
+#[ignore = "requires live Zebra regtest node with NU7 on port 39232 (run under verify-live.sh)"]
 fn test_fee_acceptance_on_regtest_node() {
     println!("\n=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===");
 
     // Check if regtest node is reachable
     let check = Command::new("curl")
         .args([
-            "-s", "-X", "POST", "http://127.0.0.1:29232",
+            "-s", "-X", "POST", "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", r#"{"jsonrpc":"2.0","id":"1","method":"getstandardfee","params":[]}"#,
         ])
@@ -1155,7 +1155,7 @@ fn test_fee_acceptance_on_regtest_node() {
     let output = match check {
         Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).to_string(),
         _ => {
-            println!("SKIPPING: Zebra regtest node not reachable on port 29232");
+            println!("SKIPPING: Zebra regtest node not reachable on port 39232");
             return;
         }
     };
@@ -1255,7 +1255,7 @@ fn test_fee_acceptance_on_regtest_node() {
         );
         let res = Command::new("curl")
             .args([
-                "-s", "-X", "POST", "http://127.0.0.1:29232",
+                "-s", "-X", "POST", "http://127.0.0.1:39232",
                 "-H", "Content-Type: application/json",
                 "-d", &payload,
             ])
