@@ -209,14 +209,20 @@ High-level atomic transaction send pipeline:
 7. Marks reservation as broadcast.
 If building, proving, or broadcast fails, the reservation is canceled immediately.
 
+Returns a `Promise<SendResult>`. `SendResult.txid` contains the transaction identifier
+formatted in standard node and block explorer display order (byte-reversed relative to
+internal Zcash wire format), matching Zebra JSON-RPC (`getrawmempool`, `getblock`,
+`getrawtransaction`) and block explorer search queries.
+
+> [!WARNING] Breaking Change
+> Prior to `[Unreleased]` (see `CHANGELOG.md`), `send()` returned `txid` in raw wire-order
+> byte serialization. `send()` now returns the display-order txid directly, eliminating the
+> need for callers to manually reverse txid bytes. Internal core APIs (such as
+> `markBroadcastWithReservation()`) continue to consume wire order.
+
 ```typescript
 function send(opts: SendOptions): Promise<SendResult>;
 ```
-
-Returns a `Promise<SendResult>`. `SendResult.txid` contains the transaction identifier formatted in standard node and block explorer display order (byte-reversed relative to internal Zcash wire format), matching Zebra JSON-RPC (`getrawmempool`, `getblock`, `getrawtransaction`) and block explorer search queries.
-
-> [!WARNING] Breaking Change
-> Prior to `[Unreleased]` (see `CHANGELOG.md`), `send()` returned `txid` in raw wire-order byte serialization. `send()` now returns the display-order txid directly, eliminating the need for callers to manually reverse txid bytes. Internal core APIs (such as `markBroadcastWithReservation()`) continue to consume wire order.
 
 ### `normalizeBranchId()`
 
@@ -391,26 +397,6 @@ function startDashboardSync(client: ZcashClient, wallet: WalletHandle, options?:
 ### `interface SendOptions`
 
 ### `interface SendResult`
-
-```typescript
-interface SendResult {
-  /**
-   * Transaction identifier in standard node and explorer display order
-   * (byte-reversed relative to internal Zcash wire format).
-   * Aligns with Zebra JSON-RPC and block explorers.
-   * NOTE: Breaking change in [Unreleased]; see CHANGELOG.md.
-   */
-  txid: string;
-  /** ZIP-317 computed transaction fee in zatoshis */
-  fee: bigint;
-  /** Serialized raw transaction bytes broadcast to the network */
-  rawBytes: Buffer;
-  /** Total number of shielded actions in the transaction */
-  numActions: number;
-  /** Expiry block height for the transaction */
-  expiryHeight: number;
-}
-```
 
 ### `interface JsonRpcResponse`
 
