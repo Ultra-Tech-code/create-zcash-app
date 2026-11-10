@@ -9,13 +9,13 @@ import { redactSecretUrl } from './redact';
 export { redactSecretUrl, validateMnemonic, BIP39_WORDLIST };
 
 export const REMOTE_ENDPOINTS = {
-  regtest: '127.0.0.1:28137',
+  regtest: '127.0.0.1:39067',
   testnet: 'testnet.zec.rocks:443',
   mainnet: 'zec.rocks:443',
 };
 
 export const DEFAULT_ZEBRA_RPC = {
-  regtest: 'http://127.0.0.1:18232',
+  regtest: 'http://127.0.0.1:39232',
   testnet: 'http://127.0.0.1:18232',
   mainnet: 'http://127.0.0.1:18232',
 };
@@ -146,7 +146,7 @@ export function validateEndpoint(endpoint: string): void {
     throw new Error('Endpoint cannot be empty.');
   }
   if (trimmed.includes('://')) {
-    throw new Error('Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)');
+    throw new Error('Use host:port for the gRPC endpoint (e.g. 127.0.0.1:39067)');
   }
   if (/\s/.test(trimmed)) {
     throw new Error(`Invalid endpoint "${trimmed}": contains whitespace.`);
@@ -174,7 +174,7 @@ program
   .argument('[project-name]', 'Name of the project directory')
   .option('-t, --template <template>', 'Template to use (nextjs-fullstack)', 'nextjs-fullstack')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)')
-  .option('--regtest-stack <stack>', 'Regtest stack (nu7 | z3)')
+  .option('--regtest-stack <stack>', 'Regtest stack (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--remote', 'Use remote public RPC indexer without local node')
   .option('--key-source <source>', 'Key source (generate | import | ufvk | none)')
   .option('--ufvk <ufvk>', 'Unified Full Viewing Key for watch-only account')
@@ -257,33 +257,47 @@ program
             message: 'Which regtest stack do you want to use?',
             choices: [
               {
-                title: '⚡ NU7 Regtest (Default — Zebra 7.0.0 + lightwalletd, ZIP 259 branch 0x77190ad9)',
-                value: 'nu7',
+                title: '⚡ Lightwalletd (Default — Zebra 7.0.0 + lightwalletd, ZIP 259 branch 0x77190ad9)',
+                value: 'lightwalletd',
               },
               {
-                title: '🏛️  Z3 Regtest (Legacy — Zebra + Zaino + Zallet, NU6.3 branch 0x5b331005)',
-                value: 'z3',
+                title: '🧪 Zaino (Experimental — Zebra 7.0.0 + Zaino feat/nu7 built from source, gRPC :38137)',
+                value: 'zaino',
+              },
+              {
+                title: '🏛️  Full (Zebra 7.0.0 indexer + Zallet beta.4 + lightwalletd)',
+                value: 'full',
               },
             ],
             initial: 0,
           });
-          regtestStack = stackResponse.stack || 'nu7';
+          regtestStack = stackResponse.stack || 'lightwalletd';
         } else {
-          regtestStack = 'nu7';
+          regtestStack = 'lightwalletd';
         }
       }
       regtestStack = regtestStack.toLowerCase();
-      if (regtestStack !== 'nu7' && regtestStack !== 'z3') {
-        console.error(`Invalid --regtest-stack "${regtestStack}". Must be "nu7" or "z3".`);
+      if (regtestStack === 'nu7') {
+        regtestStack = 'lightwalletd';
+      } else if (regtestStack === 'z3' || regtestStack.includes('nu6')) {
+        console.error(
+          `Legacy Z3/NU6 regtest stacks have been removed in 0.1.0-alpha.5. Use "lightwalletd", "zaino", or "full".`
+        );
+        process.exit(1);
+      }
+      if (regtestStack !== 'lightwalletd' && regtestStack !== 'zaino' && regtestStack !== 'full') {
+        console.error(
+          `Invalid --regtest-stack "${regtestStack}". Must be "lightwalletd", "zaino", or "full".`
+        );
         process.exit(1);
       }
 
-      if (regtestStack === 'nu7') {
-        endpoint = endpoint || '127.0.0.1:39067';
+      if (regtestStack === 'zaino') {
+        endpoint = endpoint || '127.0.0.1:38137';
         zebraRpc = zebraRpc || 'http://127.0.0.1:39232';
       } else {
-        endpoint = endpoint || '127.0.0.1:28137';
-        zebraRpc = zebraRpc || DEFAULT_ZEBRA_RPC.regtest;
+        endpoint = endpoint || '127.0.0.1:39067';
+        zebraRpc = zebraRpc || 'http://127.0.0.1:39232';
       }
     } else {
       if (options.remote) {
@@ -543,8 +557,82 @@ program
     // 11. Optionally generate docker-compose.yml for local node
     if (generateDockerCompose) {
       let composeContent = '';
-      if (network === 'regtest' && regtestStack === 'nu7') {
-        composeContent = `services:
+      if (network === 'regtest') {
+        if (regtestStack === 'zaino') {
+          composeContent = `services:
+  zebra:
+    image: zfnd/zebra:7.0.0
+    restart: unless-stopped
+    ports:
+      - "39232:18232"
+      - "38080:8080"
+    environment:
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+
+  zaino:
+    image: zingodevops/zainod:latest
+    restart: unless-stopped
+    depends_on:
+      - zebra
+    ports:
+      - "38137:8137"
+    environment:
+      - ZAINO_ZEBRA_RPC=http://zebra:18232
+`;
+        } else if (regtestStack === 'full') {
+          composeContent = `services:
+  zebra:
+    image: zfnd/zebra:7.0.0
+    restart: unless-stopped
+    ports:
+      - "39232:18232"
+      - "8230:8230"
+      - "38080:8080"
+    environment:
+      - ZEBRA_NETWORK__NETWORK=Regtest
+      - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232
+      - ZEBRA_RPC__INDEXER_LISTEN_ADDR=0.0.0.0:8230
+      - ZEBRA_RPC__ENABLE_COOKIE_AUTH=false
+      - ZEBRA_HEALTH__LISTEN_ADDR=0.0.0.0:8080
+      - ZEBRA_HEALTH__MIN_CONNECTED_PEERS=0
+      - ZEBRA_HEALTH__ENFORCE_ON_TEST_NETWORKS=false
+      - ZEBRA_HEALTH__READY_MAX_BLOCKS_BEHIND=2
+
+  zallet:
+    image: zodlinc/zallet@sha256:682ba6f9a9931ac25f6a2eb2218f39e0bf5295c3cbe4d8dfa3fc275c34559506
+    restart: unless-stopped
+    depends_on:
+      - zebra
+    ports:
+      - "8182:28232"
+
+  lightwalletd:
+    image: electriccoinco/lightwalletd:latest
+    restart: unless-stopped
+    depends_on:
+      - zebra
+    ports:
+      - "39067:9067"
+      - "39068:9068"
+    command:
+      - --no-tls-very-insecure
+      - --grpc-bind-addr=0.0.0.0:9067
+      - --http-bind-addr=0.0.0.0:9068
+      - --rpchost=zebra
+      - --rpcport=18232
+      - --rpcuser=zebra
+      - --rpcpassword=zebra
+      - --no-backend-check
+`;
+        } else {
+          // default: lightwalletd
+          composeContent = `services:
   zebra:
     image: zfnd/zebra:7.0.0
     restart: unless-stopped
@@ -578,13 +666,13 @@ program
       - --rpcpassword=zebra
       - --no-backend-check
 `;
+        }
       } else {
         composeContent = `services:
   zebra:
     image: zfnd/zebra:7.0.0
     restart: unless-stopped
     ports:
-      - "8181:8181"
       - "18232:18232"
     environment:
       - NETWORK=${network}
@@ -593,7 +681,7 @@ program
     image: zingodevops/zainod:0.10.0-no-tls
     restart: unless-stopped
     ports:
-      - "${network === 'regtest' ? '28137:28137' : '8137:8137'}"
+      - "8137:8137"
     depends_on:
       - zebra
     environment:

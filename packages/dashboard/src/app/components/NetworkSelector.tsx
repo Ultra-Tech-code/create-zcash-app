@@ -16,7 +16,7 @@ export const NetworkSelector: React.FC<NetworkSelectorProps> = ({
   isConnected,
   endpoint,
 }) => {
-  const current = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-nu7'];
+  const current = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-lightwalletd'];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-end' }}>

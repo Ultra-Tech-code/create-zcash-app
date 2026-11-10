@@ -39,7 +39,7 @@ interface SyncStatus {
 
 export const TransactionsTab: React.FC<TransactionsTabProps> = ({
   network = 'regtest',
-  preset = 'regtest-nu7',
+  preset = 'regtest-lightwalletd',
   account = 'account0',
   onNavigateTx,
 }) => {

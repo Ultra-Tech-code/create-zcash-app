@@ -58,7 +58,7 @@ export function readOwnVersion(): string {
   return parsed.version;
 }
 
-export function getRegtestAccount0MinerAddress(network: string = 'regtest-nu7'): string {
+export function getRegtestAccount0MinerAddress(network: string = 'regtest'): string {
   if (network !== 'regtest' && network !== 'regtest-nu7') {
     throw new Error(
       `Security Error: Refusing miner address derivation for non-regtest network "${network}". KNOWN_TEST_MNEMONICS is strictly restricted to regtest.`
@@ -69,7 +69,7 @@ export function getRegtestAccount0MinerAddress(network: string = 'regtest-nu7'):
 }
 
 const REMOTE_ENDPOINTS: Record<string, string> = {
-  regtest: '127.0.0.1:28137',
+  regtest: '127.0.0.1:39067',
   testnet: 'testnet.zec.rocks:443',
   mainnet: 'zec.rocks:443',
 };
@@ -84,9 +84,9 @@ program
 program
   .command('info')
   .description('Get node & indexer status')
-  .option('-e, --endpoint <endpoint>', 'Zaino gRPC endpoint', '127.0.0.1:28137')
+  .option('-e, --endpoint <endpoint>', 'Lightwalletd / Zaino gRPC endpoint', '127.0.0.1:39067')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)', 'regtest')
-  .option('--nu7', 'Opt-in to NU7 consensus branch expectations on regtest')
+  .option('--nu7', 'Deprecated opt-in to NU7 on regtest (NU7 is now active by default)')
   .action(async (options) => {
     const client = createClient({
       endpoint: options.endpoint,
@@ -146,8 +146,8 @@ export async function executeSend(
   const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
   const regtestStack = (env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
   const endpoint = options.endpoint || env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
-  const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
-  const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
+  const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
+  const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
   const mnemonic = (env.ZCASH_MNEMONIC ?? '').trim();
   const ufvk = (env.ZCASH_UFVK ?? '').trim();
   const accountIndex = parseInt(env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -244,8 +244,8 @@ program
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
       const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
       const endpoint = process.env.ZCASH_ENDPOINT ?? '';
-      const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
-      const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
+      const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
+      const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
       const rawIndex = options.index ?? process.env.ZCASH_ACCOUNT_INDEX ?? '0';
       const accountIndex = parseInt(rawIndex, 10) || 0;
       const mnemonic = (process.env.ZCASH_MNEMONIC ?? '').trim();
@@ -309,8 +309,8 @@ program
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
       const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
       const endpoint = options.endpoint || process.env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
-      const isNu7 = network === 'regtest' && (regtestStack === 'nu7' || endpoint.includes('39067') || (!regtestStack && !endpoint.includes('28137')));
-      const effectiveNetwork = isNu7 ? 'regtest-nu7' : network;
+      const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
+      const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
       const birthdayRaw = (process.env.ZCASH_BIRTHDAY ?? '').trim();
       const birthday = /^\d+$/.test(birthdayRaw) ? parseInt(birthdayRaw, 10) : undefined;
       const accountIndex = parseInt(process.env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -411,7 +411,7 @@ export interface FundDependencies {
 
 export interface FundResult {
   txid: string;
-  stack: 'nu7' | 'z3';
+  stack: 'lightwalletd' | 'zaino' | 'full' | string;
   recipient: string;
   amountZec: string;
   zatoshis: bigint;
@@ -432,231 +432,135 @@ export async function executeFund(
   let stack = (options.stack || env.ZCASH_REGTEST_STACK || '').trim().toLowerCase();
   const endpointOpt = options.endpoint || env.ZCASH_ENDPOINT;
   if (!stack) {
-    if (endpointOpt && (endpointOpt.includes('39067') || endpointOpt.includes('39232'))) {
-      stack = 'nu7';
-    } else if (endpointOpt && (endpointOpt.includes('28137') || endpointOpt.includes('8181'))) {
-      stack = 'z3';
+    if (endpointOpt && endpointOpt.includes('38137')) {
+      stack = 'zaino';
     } else {
-      stack = 'nu7';
+      stack = 'lightwalletd';
     }
   }
 
-  if (stack !== 'nu7' && stack !== 'z3') {
-    throw new Error(`Invalid regtest stack "${stack}". Must be "nu7" or "z3".`);
+  if (stack === 'nu7') {
+    stack = 'lightwalletd';
+  }
+
+  if (stack === 'z3' || stack === 'nu6') {
+    throw new Error(
+      'The Z3 / NU6 stack has been removed in 0.1.0-alpha.5. Available stacks: lightwalletd (default), zaino (experimental), full.'
+    );
+  }
+
+  if (stack !== 'lightwalletd' && stack !== 'zaino' && stack !== 'full') {
+    throw new Error(`Invalid regtest stack "${stack}". Must be "lightwalletd", "zaino", or "full".`);
   }
 
   const zatoshis = parseZecToZatoshis(options.amount);
-  const effectiveFetch = deps?.fetchFn ?? fetch;
 
-  if (stack === 'nu7') {
-    const effectiveEndpoint = options.endpoint || env.ZCASH_ENDPOINT || '127.0.0.1:39067';
-    const minerAccount = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest-nu7');
-    const client = deps?.client ?? createClient({ endpoint: effectiveEndpoint, network: 'regtest-nu7' });
-    const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
-    const syncFn = deps?.syncWalletFn ?? syncWallet;
-    const sendFn = deps?.sendFn ?? send;
+  const defaultPort = stack === 'zaino' ? '38137' : '39067';
+  const effectiveEndpoint = options.endpoint || env.ZCASH_ENDPOINT || `127.0.0.1:${defaultPort}`;
+  const minerAccount = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest');
+  const client = deps?.client ?? createClient({ endpoint: effectiveEndpoint, network: 'regtest' });
+  const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
+  const syncFn = deps?.syncWalletFn ?? syncWallet;
+  const sendFn = deps?.sendFn ?? send;
 
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-fund-'));
-    const dbPath = path.join(tempDir, 'wallet.db');
-    let result;
-    try {
-      const wallet = openFn(
-        dbPath,
-        'regtest-nu7',
-        minerAccount.getUnifiedFullViewingKey(),
-        'miner0',
-        0
-      );
-      await syncFn(client, wallet);
-      result = await sendFn({
-        client,
-        wallet,
-        from: minerAccount,
-        to: options.address,
-        amount: zatoshis,
-      });
-    } catch (err: any) {
-      const msg = err.message || String(err);
-      if (msg.includes('ECONNREFUSED') || msg.includes('UNAVAILABLE') || msg.includes('connect')) {
-        throw new Error(
-          `Could not connect to NU7 lightwalletd indexer at ${redactSecretUrl(effectiveEndpoint)}. Is the NU7 stack running? Run: zcash-dev regtest up --stack nu7 (${msg})`
-        );
-      }
-      throw err;
-    } finally {
-      if (!deps?.client) {
-        await client.close().catch(() => {});
-      }
-      try {
-        fs.rmSync(tempDir, { recursive: true, force: true });
-      } catch {}
-    }
-
-    return {
-      txid: result.txid,
-      stack: 'nu7',
-      recipient: options.address,
-      amountZec: options.amount,
-      zatoshis,
-      endpoint: redactSecretUrl(effectiveEndpoint),
-    };
-  } else {
-    const rpcRouterUrl = 'http://127.0.0.1:8181';
-    let addrData: any;
-    try {
-      const addrRes = await effectiveFetch(rpcRouterUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
-        },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 'fund-listaddresses',
-          method: 'listaddresses',
-          params: [],
-        }),
-      });
-      if (!addrRes.ok) {
-        throw new Error(`Zallet HTTP ${addrRes.status}: ${addrRes.statusText}`);
-      }
-      addrData = await addrRes.json();
-    } catch (err: any) {
-      throw new Error(
-        `Could not connect to Z3 RPC router / Zallet at ${rpcRouterUrl}. Is the Z3 stack running? Run: zcash-dev regtest up --stack nu6 (${err.message || err})`
-      );
-    }
-
-    const accounts = addrData?.result?.[0]?.unified;
-    const senderUa = accounts?.[0]?.addresses?.[0]?.address;
-    if (!senderUa) {
-      throw new Error('No sender address found in Zallet regtest wallet');
-    }
-
-    const isNegative = zatoshis < 0n;
-    const abs = isNegative ? -zatoshis : zatoshis;
-    const whole = abs / 100_000_000n;
-    const frac = abs % 100_000_000n;
-    const amountZec = `${isNegative ? '-' : ''}${whole}.${frac.toString().padStart(8, '0')}`;
-
-    const sendRes = await effectiveFetch(rpcRouterUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 'fund-sendmany',
-        method: 'z_sendmany',
-        params: [senderUa, [{ address: options.address, amount: amountZec }]],
-      }),
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-fund-'));
+  const dbPath = path.join(tempDir, 'wallet.db');
+  let result;
+  try {
+    const wallet = openFn(
+      dbPath,
+      'regtest',
+      minerAccount.getUnifiedFullViewingKey(),
+      'miner0',
+      0
+    );
+    await syncFn(client, wallet);
+    result = await sendFn({
+      client,
+      wallet,
+      from: minerAccount,
+      to: options.address,
+      amount: zatoshis,
     });
-    if (!sendRes.ok) {
-      throw new Error(`Zallet z_sendmany HTTP ${sendRes.status}: ${sendRes.statusText}`);
+  } catch (err: any) {
+    const msg = err.message || String(err);
+    if (msg.includes('ECONNREFUSED') || msg.includes('UNAVAILABLE') || msg.includes('connect')) {
+      throw new Error(
+        `Could not connect to ${stack} indexer at ${redactSecretUrl(effectiveEndpoint)}. Is the ${stack} stack running? Run: zcash-dev regtest up --stack ${stack} (${msg})`
+      );
     }
-    const sendData: any = await sendRes.json();
-    if (sendData.error) {
-      throw new Error(`Zallet z_sendmany RPC error: ${sendData.error.message || JSON.stringify(sendData.error)}`);
+    throw err;
+  } finally {
+    if (!deps?.client) {
+      await client.close().catch(() => {});
     }
-    const txid = sendData.result;
-    return {
-      txid,
-      stack: 'z3',
-      recipient: options.address,
-      amountZec: options.amount,
-      zatoshis,
-      endpoint: rpcRouterUrl,
-    };
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {}
   }
+
+  return {
+    txid: result.txid,
+    stack,
+    recipient: options.address,
+    amountZec: options.amount,
+    zatoshis,
+    endpoint: redactSecretUrl(effectiveEndpoint),
+  };
 }
 
 program
   .command('mine')
   .description('Mine blocks on regtest')
   .argument('[blocks]', 'Number of blocks to mine', '1')
-  .option('-e, --endpoint <endpoint>', 'Zebra RPC or Zaino endpoint')
-  .option('--stack <stack>', 'Regtest stack (nu7 | z3)')
+  .option('-e, --endpoint <endpoint>', 'Zebra RPC endpoint')
+  .option('--stack <stack>', 'Regtest stack (lightwalletd | zaino | full)')
   .action(async (blocksStr, options) => {
     try {
       applyProjectEnv();
       const env = loadProjectEnv();
       const blocks = parseInt(blocksStr, 10);
       let stack = (options.stack || env.ZCASH_REGTEST_STACK || '').trim().toLowerCase();
-      const endpointOpt = options.endpoint || env.ZCASH_ENDPOINT;
-      const zebraRpcOpt = env.ZCASH_ZEBRA_RPC;
-
-      if (!stack) {
-        if ((endpointOpt && (endpointOpt.includes('39067') || endpointOpt.includes('39232'))) || (zebraRpcOpt && zebraRpcOpt.includes('39232'))) {
-          stack = 'nu7';
-        } else if ((endpointOpt && (endpointOpt.includes('28137') || endpointOpt.includes('8181'))) || (zebraRpcOpt && zebraRpcOpt.includes('18232'))) {
-          stack = 'z3';
-        } else {
-          stack = 'nu7';
-        }
+      if (stack === 'nu7') stack = 'lightwalletd';
+      if (stack === 'z3' || stack === 'nu6') {
+        throw new Error(
+          'The Z3 / NU6 stack has been removed in 0.1.0-alpha.5. Available stacks: lightwalletd (default), zaino (experimental), full.'
+        );
       }
+      if (!stack) stack = 'lightwalletd';
+
+      const zebraRpcOpt = env.ZCASH_ZEBRA_RPC;
+      const zebraUrl =
+        options.endpoint && options.endpoint.startsWith('http')
+          ? options.endpoint
+          : zebraRpcOpt || 'http://127.0.0.1:39232';
 
       console.log(`Mining ${blocks} block(s) on ${stack.toUpperCase()} regtest stack...`);
-      if (stack === 'nu7') {
-        const zebraUrl = (options.endpoint && options.endpoint.startsWith('http'))
-          ? options.endpoint
-          : (zebraRpcOpt || 'http://127.0.0.1:39232');
-        let res;
-        try {
-          res = await fetch(zebraUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              id: 'zcash-dev-mine',
-              method: 'generate',
-              params: [blocks],
-            }),
-          });
-        } catch (err: any) {
-          throw new Error(
-            `Could not connect to Zebra JSON-RPC at ${zebraUrl}. Is the NU7 stack running? Run: zcash-dev regtest up --stack nu7 (${err.message})`
-          );
-        }
-        if (!res.ok) {
-          throw new Error(`Zebra mining HTTP ${res.status}: ${res.statusText}`);
-        }
-        const data: any = await res.json();
-        if (data.error) {
-          throw new Error(`Zebra mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
-        }
-        console.log(`✅ Successfully mined ${blocks} block(s) on Zebra.`);
-      } else {
-        const rpcRouterUrl = 'http://127.0.0.1:8181';
-        let res;
-        try {
-          res = await fetch(rpcRouterUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: 'Basic ' + Buffer.from('zebra:zebra').toString('base64'),
-            },
-            body: JSON.stringify({
-              jsonrpc: '2.0',
-              id: 'zcash-dev-mine',
-              method: 'generate',
-              params: [blocks],
-            }),
-          });
-        } catch (err: any) {
-          throw new Error(
-            `Could not connect to Z3 RPC router at ${rpcRouterUrl}. Is the Z3 stack running? Run: zcash-dev regtest up --stack nu6 (${err.message})`
-          );
-        }
-        if (!res.ok) {
-          throw new Error(`Z3 mining HTTP ${res.status}: ${res.statusText}`);
-        }
-        const data: any = await res.json();
-        if (data.error) {
-          throw new Error(`Z3 mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
-        }
-        console.log(`✅ Successfully mined ${blocks} block(s) on Z3 stack.`);
+      let res;
+      try {
+        res = await fetch(zebraUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'zcash-dev-mine',
+            method: 'generate',
+            params: [blocks],
+          }),
+        });
+      } catch (err: any) {
+        throw new Error(
+          `Could not connect to Zebra JSON-RPC at ${zebraUrl}. Is the ${stack} stack running? Run: zcash-dev regtest up --stack ${stack} (${err.message})`
+        );
       }
+      if (!res.ok) {
+        throw new Error(`Zebra mining HTTP ${res.status}: ${res.statusText}`);
+      }
+      const data: any = await res.json();
+      if (data.error) {
+        throw new Error(`Zebra mining JSON-RPC error: ${data.error.message || JSON.stringify(data.error)}`);
+      }
+      console.log(`✅ Successfully mined ${blocks} block(s) on Zebra.`);
     } catch (err: any) {
       console.error('Mining failed:', err.message || err);
       process.exit(1);
@@ -668,8 +572,8 @@ program
   .description('Fund a Unified Address on regtest')
   .argument('<address>', 'Recipient Unified Address')
   .argument('[amount]', 'Amount in ZEC', '1.0')
-  .option('-e, --endpoint <endpoint>', 'Zaino / lightwalletd gRPC endpoint')
-  .option('--stack <stack>', 'Regtest stack (nu7 | z3)')
+  .option('-e, --endpoint <endpoint>', 'Lightwalletd / Zaino gRPC endpoint')
+  .option('--stack <stack>', 'Regtest stack (lightwalletd | zaino | full)')
   .action(async (address, amountStr, options) => {
     try {
       applyProjectEnv();
@@ -975,18 +879,18 @@ program
     }
 
     let connectionMode: 'local' | 'remote' = 'local';
-    let endpoint = '127.0.0.1:28137';
+    let endpoint = '127.0.0.1:39067';
 
     if (targetNetwork === 'regtest') {
       connectionMode = 'local';
-      endpoint = '127.0.0.1:28137';
+      endpoint = '127.0.0.1:39067';
     } else {
       if (options.remote) {
         connectionMode = 'remote';
         endpoint = REMOTE_ENDPOINTS[targetNetwork];
       } else if (options.local) {
         connectionMode = 'local';
-        endpoint = '127.0.0.1:8137';
+        endpoint = '127.0.0.1:39167';
       } else {
         const modeResponse = await prompts({
           type: 'select',
@@ -998,14 +902,14 @@ program
               value: 'remote',
             },
             {
-              title: `🐳 Local Z3 Node (127.0.0.1:8137) — Self-hosted node`,
+              title: `🐳 Local Testnet Node (127.0.0.1:39167) — Self-hosted node`,
               value: 'local',
             },
           ],
           initial: 0,
         });
         connectionMode = modeResponse.mode;
-        endpoint = connectionMode === 'remote' ? REMOTE_ENDPOINTS[targetNetwork] : '127.0.0.1:8137';
+        endpoint = connectionMode === 'remote' ? REMOTE_ENDPOINTS[targetNetwork] : '127.0.0.1:39167';
       }
     }
 
@@ -1017,7 +921,6 @@ program
 ZCASH_NETWORK=${targetNetwork}
 ZCASH_CONNECTION_MODE=${connectionMode}
 ZCASH_ENDPOINT=${endpoint}
-Z3_ZAINO_IMAGE=zingodevops/zainod:0.10.0-no-tls
 `;
     fs.writeFileSync(envPath, envContent);
 
@@ -1151,8 +1054,7 @@ program
       childEnv.ZCASH_ENDPOINT = childEnv.ZCASH_NETWORK === 'regtest' ? '127.0.0.1:39067' : 'testnet.zec.rocks:443';
     }
     if (!childEnv.ZCASH_ZEBRA_RPC && childEnv.ZCASH_NETWORK === 'regtest') {
-      const isZ3 = childEnv.ZCASH_REGTEST_STACK === 'z3' || childEnv.ZCASH_ENDPOINT.includes('28137');
-      childEnv.ZCASH_ZEBRA_RPC = isZ3 ? 'http://127.0.0.1:8181' : 'http://127.0.0.1:39232';
+      childEnv.ZCASH_ZEBRA_RPC = 'http://127.0.0.1:39232';
     }
     if (childEnv.ZCASH_ZEBRA_RPC && !childEnv.ZEBRA_RPC_URL) {
       childEnv.ZEBRA_RPC_URL = childEnv.ZCASH_ZEBRA_RPC;
@@ -1285,23 +1187,45 @@ testnetCmd
     });
   });
 
-export function resolveRegtestDir(explicitPath?: string, stack: string = 'nu6'): string {
+export function resolveRegtestDir(explicitPath?: string, stack: string = 'lightwalletd'): string {
   if (explicitPath && explicitPath.trim()) {
     return path.resolve(explicitPath.trim());
   }
   if (process.env.ZCASH_REGTEST_DIR && process.env.ZCASH_REGTEST_DIR.trim()) {
     return path.resolve(process.env.ZCASH_REGTEST_DIR.trim());
   }
-  const isNu7 = stack.toLowerCase() === 'nu7';
-  const folder = isNu7 ? 'regtest-nu7' : 'regtest';
-  const candidateBuilt = path.resolve(__dirname, `../docker/${folder}`);
+  let normalizedStack = stack.toLowerCase();
+  if (normalizedStack === 'nu7') normalizedStack = 'lightwalletd';
+  if (normalizedStack === 'nu6' || normalizedStack === 'z3') {
+    throw new Error(
+      'The Z3 / NU6 stack has been removed in 0.1.0-alpha.5. Available stacks: lightwalletd (default), zaino (experimental), full.'
+    );
+  }
+  if (!['lightwalletd', 'zaino', 'full'].includes(normalizedStack)) {
+    normalizedStack = 'lightwalletd';
+  }
+
+  const candidateBuilt = path.resolve(__dirname, `../docker/stacks/${normalizedStack}`);
   if (fs.existsSync(candidateBuilt) && fs.existsSync(path.join(candidateBuilt, 'docker-compose.yml'))) {
     return candidateBuilt;
   }
-  const candidateSrc = path.resolve(__dirname, `../../dev/docker/${folder}`);
+  const candidateSrc = path.resolve(__dirname, `../../dev/docker/stacks/${normalizedStack}`);
   if (fs.existsSync(candidateSrc) && fs.existsSync(path.join(candidateSrc, 'docker-compose.yml'))) {
     return candidateSrc;
   }
+
+  // Fallback to legacy regtest-nu7 directory if lightwalletd
+  if (normalizedStack === 'lightwalletd') {
+    const legacyBuilt = path.resolve(__dirname, '../docker/regtest-nu7');
+    if (fs.existsSync(legacyBuilt) && fs.existsSync(path.join(legacyBuilt, 'docker-compose.yml'))) {
+      return legacyBuilt;
+    }
+    const legacySrc = path.resolve(__dirname, '../../dev/docker/regtest-nu7');
+    if (fs.existsSync(legacySrc) && fs.existsSync(path.join(legacySrc, 'docker-compose.yml'))) {
+      return legacySrc;
+    }
+  }
+
   return candidateBuilt;
 }
 
@@ -1312,173 +1236,37 @@ const regtestCmd = program
 regtestCmd
   .command('up')
   .alias('setup')
-  .description('Configure and initialize regtest stack (default: z3 nu6, or --stack nu7)')
-  .option('--stack <stack>', 'Regtest stack to run (nu6 | nu7)', 'nu6')
+  .description('Configure and initialize regtest stack tier (default: lightwalletd, or --stack zaino | full)')
+  .option('--stack <stack>', 'Regtest stack tier to run (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
   .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .action(async (options) => {
-    const stack = (options.stack || 'nu6').toLowerCase();
-    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path, stack);
+    let stack = (options.stack || 'lightwalletd').toLowerCase();
+    if (stack === 'nu7') stack = 'lightwalletd';
+    if (stack === 'z3' || stack === 'nu6') {
+      console.error(
+        '❌ The Z3 / NU6 stack has been removed in 0.1.0-alpha.5. Available stacks: lightwalletd (default), zaino (experimental), full.'
+      );
+      process.exit(1);
+    }
+    const rawPath = options.regtestPath || options.z3Path;
+    let regtestDir: string;
+    try {
+      regtestDir = resolveRegtestDir(rawPath, stack);
+    } catch (err: any) {
+      console.error(`❌ ${err.message}`);
+      process.exit(1);
+    }
     if (!fs.existsSync(regtestDir)) {
       console.error(`❌ Could not locate regtest directory at: ${regtestDir}. Please specify with --regtest-path <path> or ZCASH_REGTEST_DIR.`);
       process.exit(1);
     }
 
-    if (stack === 'nu7') {
-      console.log(`\n=== 🛠️  Setting up NU7 Regtest (Zebra 7.0.0 + lightwalletd) in ${regtestDir} ===\n`);
-      const accountUa = getRegtestAccount0MinerAddress('regtest-nu7');
-      console.log(`✅ Using Account 0 Unified Address for NU7 mining:\n   ${accountUa}`);
+    console.log(`\n=== 🛠️  Setting up ${stack.toUpperCase()} Regtest in ${regtestDir} ===\n`);
+    const accountUa = getRegtestAccount0MinerAddress('regtest');
+    console.log(`✅ Using Account 0 Unified Address for mining:\n   ${accountUa}`);
 
-      const zebraTomlPath = path.join(regtestDir, 'zebra.toml');
-      if (fs.existsSync(zebraTomlPath)) {
-        let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
-        if (!zebraConfig.includes('[mining]')) {
-          zebraConfig += `\n[mining]\nminer_address = "${accountUa}"\nminer_memo = "regtest"\n`;
-        } else {
-          zebraConfig = zebraConfig.replace(/miner_address\s*=\s*".*"/, `miner_address = "${accountUa}"`);
-          if (zebraConfig.includes('miner_memo')) {
-            zebraConfig = zebraConfig.replace(/miner_memo\s*=\s*".*"/, `miner_memo = "regtest"`);
-          } else {
-            zebraConfig = zebraConfig.replace('[mining]', `[mining]\nminer_memo = "regtest"`);
-          }
-        }
-        fs.writeFileSync(zebraTomlPath, zebraConfig);
-        console.log(`✅ Updated ${path.basename(zebraTomlPath)} with Account 0 miner address.`);
-      }
-
-      console.log('\n🐳 Starting NU7 Regtest containers...');
-      const initScript = path.join(regtestDir, 'regtest-init.sh');
-      if (fs.existsSync(initScript)) {
-        try {
-          execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
-        } catch {
-          console.error('regtest-init.sh failed, see output above');
-          process.exit(1);
-        }
-      } else {
-        execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
-      }
-
-      const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
-      console.log(`\n⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
-      let ready = false;
-      for (let i = 0; i < 30; i++) {
-        try {
-          const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
-          });
-          if (res.ok) {
-            ready = true;
-            break;
-          }
-        } catch (e) {}
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-      if (!ready) {
-        console.error('❌ Zebra RPC did not become ready in time.');
-        process.exit(1);
-      }
-
-      const bciRes = await (await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] }),
-      })).json();
-      const currentHeight = Number(bciRes.result || 0);
-      console.log(`Current block height: ${currentHeight}`);
-      if (currentHeight < 105) {
-        const needed = 105 - currentHeight;
-        console.log(`Mining ${needed} blocks for coinbase maturity (target tip 105)...`);
-        await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [needed] }),
-        });
-        console.log('✅ Mined maturity blocks.');
-      }
-
-      console.log('\n🎉 NU7 Regtest setup completed successfully! Stack is ready for SDK testing.\n');
-      return;
-    }
-
-    console.log(`\n=== 🛠️  Setting up Regtest in ${regtestDir} ===\n`);
-
-    // Ensure docker stack is up
-    console.log('\n🐳 Starting Regtest containers...');
-    const initScript = path.join(regtestDir, 'regtest-init.sh');
-    if (fs.existsSync(initScript)) {
-      try {
-        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
-      } catch {
-        console.error('regtest-init.sh failed, see output above');
-        process.exit(1);
-      }
-    } else {
-      execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
-    }
-
-    // 3. Wait for Zallet / RPC router at http://127.0.0.1:8181
-    console.log('\n⏳ Waiting for RPC router at http://127.0.0.1:8181 ...');
-    let ready = false;
-    for (let i = 0; i < 30; i++) {
-      try {
-        const res = await fetch('http://127.0.0.1:8181', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
-        });
-        if (res.ok) {
-          ready = true;
-          break;
-        }
-      } catch (e) {}
-      await new Promise((r) => setTimeout(r, 1000));
-    }
-    if (!ready) {
-      console.error('❌ RPC router did not become ready in time.');
-      process.exit(1);
-    }
-
-    // 4. Check for existing Zallet accounts or create one if missing
-    console.log('\n🔍 Checking Zallet accounts...');
-    let listRes = await (await fetch('http://127.0.0.1:8181', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
-    })).json();
-
-    let accountUa: string | undefined;
-    let accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
-    if (accounts.length === 0) {
-      console.log('No Zallet account found. Creating new default account...');
-      const createRes = await (await fetch('http://127.0.0.1:8181', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'z_getnewaccount', params: ['default'] }),
-      })).json();
-      console.log('✅ Created account:', createRes.result);
-
-      listRes = await (await fetch('http://127.0.0.1:8181', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] }),
-      })).json();
-      accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
-    }
-
-    accountUa = accounts[0]?.address;
-    if (!accountUa) {
-      console.error('❌ Could not retrieve unified address from Zallet.');
-      process.exit(1);
-    }
-    console.log(`✅ Using Zallet Unified Address:\n   ${accountUa}`);
-
-    // 5. Configure zebra.toml with miner_address and miner_memo
-    const zebraTomlPath = fs.existsSync(path.join(regtestDir, 'zebra.toml'))
-      ? path.join(regtestDir, 'zebra.toml')
-      : path.join(regtestDir, 'config/regtest/zebra.toml');
+    const zebraTomlPath = path.join(regtestDir, 'zebra.toml');
     if (fs.existsSync(zebraTomlPath)) {
       let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
       if (!zebraConfig.includes('[mining]')) {
@@ -1492,47 +1280,55 @@ regtestCmd
         }
       }
       fs.writeFileSync(zebraTomlPath, zebraConfig);
-      console.log(`\n✅ Updated ${path.basename(zebraTomlPath)}:`);
-      console.log(`   - miner_address = "${accountUa}"`);
-      console.log(`   - miner_memo = "regtest"`);
+      console.log(`✅ Updated ${path.basename(zebraTomlPath)} with Account 0 miner address.`);
     }
 
-    // 6. Restart Zebra to apply mining configuration
-    console.log('\n🔄 Restarting Zebra container with new mining config...');
-    execSync(`cd "${regtestDir}" && docker compose up -d --force-recreate zebra`, { stdio: 'inherit' });
+    console.log(`\n🐳 Starting ${stack.toUpperCase()} Regtest containers...`);
+    const initScript = path.join(regtestDir, 'regtest-init.sh');
+    if (fs.existsSync(initScript)) {
+      try {
+        execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
+      } catch {
+        console.error('regtest-init.sh failed, see output above');
+        process.exit(1);
+      }
+    } else {
+      execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
+    }
 
-    // 7. Verify live config
-    const liveConfig = execSync(`docker exec z3-regtest-zebra-1 cat /home/zebra/.config/zebrad.toml`).toString();
-    console.log('\n--- Confirmed Live Zebrad Config ---');
-    const miningSection = liveConfig.match(/\[mining\][^\[]*/)?.[0] || 'N/A';
-    console.log(miningSection);
-
-    // 8. Wait for Zebra RPC to be ready after restart and check block height
-    console.log('⏳ Waiting for Zebra RPC to be ready after restart...');
-    let currentHeight = 0;
+    const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
+    console.log(`\n⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
+    let ready = false;
     for (let i = 0; i < 30; i++) {
       try {
-        const res = await fetch('http://127.0.0.1:8181', {
+        const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] }),
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
         });
         if (res.ok) {
-          const json: any = await res.json();
-          if (json.result !== undefined) {
-            currentHeight = Number(json.result);
-            break;
-          }
+          ready = true;
+          break;
         }
       } catch (e) {}
       await new Promise((r) => setTimeout(r, 1000));
     }
+    if (!ready) {
+      console.error('❌ Zebra RPC did not become ready in time.');
+      process.exit(1);
+    }
 
+    const bciRes = await (await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] }),
+    })).json();
+    const currentHeight = Number(bciRes.result || 0);
     console.log(`Current block height: ${currentHeight}`);
-    if (currentHeight < 101) {
-      const needed = 101 - currentHeight;
-      console.log(`Mining ${needed} initial blocks for coinbase maturity...`);
-      await fetch('http://127.0.0.1:8181', {
+    if (currentHeight < 110) {
+      const needed = 110 - currentHeight;
+      console.log(`Mining ${needed} blocks for coinbase maturity (target tip 110)...`);
+      await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [needed] }),
@@ -1540,27 +1336,49 @@ regtestCmd
       console.log('✅ Mined maturity blocks.');
     }
 
-    console.log('\n🎉 Regtest setup completed successfully! Stack is ready for dev.fund and SDK testing.\n');
+    console.log(`\n🎉 ${stack.toUpperCase()} Regtest setup completed successfully! Stack is ready for SDK testing.\n`);
+  });
+
+regtestCmd
+  .command('down')
+  .description('Stop regtest stack containers')
+  .option('--stack <stack>', 'Regtest stack tier to stop (lightwalletd | zaino | full)', 'lightwalletd')
+  .option('--regtest-path <path>', 'Path to regtest docker directory', '')
+  .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
+  .action((options) => {
+    let stack = (options.stack || 'lightwalletd').toLowerCase();
+    if (stack === 'nu7') stack = 'lightwalletd';
+    const rawPath = options.regtestPath || options.z3Path;
+    const regtestDir = resolveRegtestDir(rawPath, stack);
+    execSync(`cd "${regtestDir}" && docker compose down`, { stdio: 'inherit' });
+    console.log(`\n🛑 ${stack.toUpperCase()} regtest containers stopped.\n`);
   });
 
 regtestCmd
   .command('wipe')
   .alias('reset')
   .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
-  .option('--stack <stack>', 'Regtest stack to wipe (nu6 | nu7)', 'nu6')
+  .option('--stack <stack>', 'Regtest stack tier to wipe (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
   .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .option('-y, --yes', 'Confirm wiping regtest blockchain without interactive prompt')
   .option('--dry-run', 'Derive and print exact volumes/containers to be wiped without executing')
   .action(async (options) => {
-    const stack = (options.stack || 'nu6').toLowerCase();
-    const regtestDir = resolveRegtestDir(options.regtestPath || options.z3Path, stack);
+    let stack = (options.stack || 'lightwalletd').toLowerCase();
+    if (stack === 'nu7') stack = 'lightwalletd';
+    const rawPath = options.regtestPath || options.z3Path;
+    let regtestDir: string;
+    try {
+      regtestDir = resolveRegtestDir(rawPath, stack);
+    } catch (err: any) {
+      console.error(`❌ ${err.message}`);
+      process.exit(1);
+    }
     if (!fs.existsSync(regtestDir)) {
       console.error(`❌ Could not locate regtest directory at: ${regtestDir}. Please specify with --regtest-path <path> or ZCASH_REGTEST_DIR.`);
       process.exit(1);
     }
 
-    // Safety check: Verify docker-compose.yml exists in regtest directory
     const composePath = path.join(regtestDir, 'docker-compose.yml');
     if (!fs.existsSync(composePath)) {
       console.error(`❌ Refusing to wipe: ${composePath} not found. Must be executed against a valid regtest project.`);
@@ -1569,33 +1387,35 @@ regtestCmd
 
     const composeContent = fs.readFileSync(composePath, 'utf8');
     const projectNameMatch = composeContent.match(/^name:\s*(.+)$/m);
-    const projectName = projectNameMatch ? projectNameMatch[1].trim() : 'z3-regtest';
-    const ALLOWED_PROJECT_NAMES = ['z3-regtest', 'zcash-regtest-nu7'];
+    const projectName = projectNameMatch ? projectNameMatch[1].trim() : `zcash-regtest-${stack}`;
+    const ALLOWED_PROJECT_NAMES = [
+      'zcash-regtest-lightwalletd',
+      'zcash-regtest-zaino',
+      'zcash-regtest-full',
+      'zcash-regtest-nu7',
+      'z3-regtest',
+    ];
     if (!ALLOWED_PROJECT_NAMES.includes(projectName)) {
       console.error(`❌ Refusing to wipe: Expected name to be one of [${ALLOWED_PROJECT_NAMES.join(', ')}], but found "${projectName}". Only regtest environments may be wiped.`);
       process.exit(1);
     }
 
-    // Dynamically derive volumes and services from docker compose config at runtime
     let dynamicVolumes: string[] = [];
     let dynamicServices: string[] = [];
     try {
       const vOutput = execSync(`cd "${regtestDir}" && docker compose config --volumes`, { encoding: 'utf8' });
       dynamicVolumes = vOutput.split('\n').map((v: string) => v.trim()).filter(Boolean).map((v: string) => `${projectName}_${v}`);
-    } catch (e: any) {
-      dynamicVolumes = projectName === 'zcash-regtest-nu7'
-        ? [`${projectName}_zebra-data`]
-        : [`${projectName}_chain`, `${projectName}_zallet`, `${projectName}_cookie`, `${projectName}_zallet_ca_certificates`];
+    } catch {
+      dynamicVolumes = [`${projectName}_zebra-data`];
     }
 
     try {
       const sOutput = execSync(`cd "${regtestDir}" && docker compose config --services`, { encoding: 'utf8' });
       dynamicServices = sOutput.split('\n').map((s: string) => s.trim()).filter(Boolean);
-    } catch (e: any) {
-      dynamicServices = projectName === 'zcash-regtest-nu7' ? ['zebra', 'lightwalletd'] : ['zebra', 'cookie-permissions', 'zallet', 'rpc-router'];
+    } catch {
+      dynamicServices = ['zebra'];
     }
 
-    // Print dynamically derived resource deletion warning
     console.log('\n⚠️  WARNING: You are about to permanently destroy the regtest cluster data:');
     console.log(`   - Project Name:   ${projectName}`);
     console.log(`   - Docker Volumes: ${dynamicVolumes.join(', ')}`);
@@ -1633,126 +1453,40 @@ regtestCmd
     console.log(`\n=== 🧹 Wiping Regtest Blockchain in ${regtestDir} ===\n`);
     execSync(`cd "${regtestDir}" && docker compose down -v`, { stdio: 'inherit' });
 
-    if (projectName === 'zcash-regtest-nu7' || stack === 'nu7') {
-      console.log('\n=== 🛠️  Reinitializing fresh NU7 chain via regtest-init.sh ===\n');
-      const initScript = path.join(regtestDir, 'regtest-init.sh');
-      if (fs.existsSync(initScript)) {
-        try {
-          execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
-        } catch {
-          console.error('regtest-init.sh failed, see output above');
-          process.exit(1);
-        }
-      } else {
-        execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
-      }
-
-      const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
-      console.log(`⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
-      for (let i = 0; i < 30; i++) {
-        try {
-          const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
-          });
-          if (res.ok) break;
-        } catch (e) {}
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-
-      console.log('Mining 105 blocks for fresh regtest chain...');
-      await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [105] }),
-      });
-      console.log('✅ Fresh NU7 regtest chain created with tip height 105!\n');
-      return;
-    }
-
-    console.log('\n=== 🛠️  Reinitializing fresh chain via regtest-init.sh ===\n');
+    console.log(`\n=== 🛠️  Reinitializing fresh ${stack.toUpperCase()} chain via regtest-init.sh ===\n`);
     const initScript = path.join(regtestDir, 'regtest-init.sh');
-    const legacyInitScript = path.join(regtestDir, 'scripts/regtest-init.sh');
-    try {
-      if (fs.existsSync(initScript)) {
+    if (fs.existsSync(initScript)) {
+      try {
         execSync(`cd "${regtestDir}" && bash "${initScript}"`, { stdio: 'inherit' });
-      } else if (fs.existsSync(legacyInitScript)) {
-        execSync(`cd "${regtestDir}" && bash "${legacyInitScript}"`, { stdio: 'inherit' });
+      } catch {
+        console.error('regtest-init.sh failed, see output above');
+        process.exit(1);
       }
-    } catch {
-      console.error('regtest-init.sh failed, see output above');
-      process.exit(1);
-    }
-    execSync(`cd "${regtestDir}" && docker compose up -d && docker compose up -d zaino`, { stdio: 'inherit' });
-
-    const waitForRpc = async (payload: any, maxAttempts = 45): Promise<any> => {
-      for (let i = 0; i < maxAttempts; i++) {
-        try {
-          const res = await fetch('http://127.0.0.1:8181', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (json.result !== undefined || json.error !== undefined) {
-              return json;
-            }
-          }
-        } catch (e) {}
-        await new Promise((r) => setTimeout(r, 1000));
-      }
-      throw new Error(`RPC endpoint http://127.0.0.1:8181 failed to become ready for ${payload.method}`);
-    };
-
-    console.log('⏳ Waiting for RPC router at http://127.0.0.1:8181 ...');
-    await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
-
-    console.log('\nCreating new default Zallet account if needed...');
-    let listRes = await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
-    let accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
-    if (accounts.length === 0) {
-      await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'z_getnewaccount', params: ['default'] });
-      listRes = await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'listaddresses', params: [] });
-      accounts = listRes.result?.[0]?.unified?.[0]?.addresses || [];
-    }
-    const accountUa = accounts[0]?.address;
-    console.log(`✅ Using Zallet Unified Address: ${accountUa}`);
-
-    if (accountUa) {
-      const zebraTomlPath = fs.existsSync(path.join(regtestDir, 'zebra.toml'))
-        ? path.join(regtestDir, 'zebra.toml')
-        : path.join(regtestDir, 'config/regtest/zebra.toml');
-      if (fs.existsSync(zebraTomlPath)) {
-        let zebraConfig = fs.readFileSync(zebraTomlPath, 'utf8');
-        if (!zebraConfig.includes('[mining]')) {
-          zebraConfig += `\n[mining]\nminer_address = "${accountUa}"\nminer_memo = "regtest"\n`;
-        } else {
-          zebraConfig = zebraConfig.replace(/miner_address\s*=\s*".*"/, `miner_address = "${accountUa}"`);
-          if (zebraConfig.includes('miner_memo')) {
-            zebraConfig = zebraConfig.replace(/miner_memo\s*=\s*".*"/, `miner_memo = "regtest"`);
-          } else {
-            zebraConfig = zebraConfig.replace('[mining]', `[mining]\nminer_memo = "regtest"`);
-          }
-        }
-        fs.writeFileSync(zebraTomlPath, zebraConfig);
-      }
-
-      execSync(`cd "${regtestDir}" && docker compose up -d --force-recreate zebra`, { stdio: 'inherit' });
+    } else {
+      execSync(`cd "${regtestDir}" && docker compose up -d`, { stdio: 'inherit' });
     }
 
-    console.log('⏳ Waiting for Zebra RPC after restart...');
-    await waitForRpc({ jsonrpc: '2.0', id: 1, method: 'getblockcount', params: [] });
+    const zebraRpcPort = process.env.ZEBRA_RPC_PORT || '39232';
+    console.log(`⏳ Waiting for Zebra RPC on port ${zebraRpcPort}...`);
+    for (let i = 0; i < 30; i++) {
+      try {
+        const res = await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getblockchaininfo', params: [] }),
+        });
+        if (res.ok) break;
+      } catch (e) {}
+      await new Promise((r) => setTimeout(r, 1000));
+    }
 
-    console.log('Mining 105 blocks for fresh regtest chain...');
-    await fetch('http://127.0.0.1:8181', {
+    console.log('Mining 110 blocks for fresh regtest chain...');
+    await fetch(`http://127.0.0.1:${zebraRpcPort}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [105] }),
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'generate', params: [110] }),
     });
-    execSync(`cd "${regtestDir}" && docker compose up -d zaino`, { stdio: 'inherit' });
-    console.log('✅ Fresh regtest chain created with tip height 105!\n');
+    console.log(`✅ Fresh ${stack.toUpperCase()} regtest chain created with tip height 110!\n`);
   });
 
 const isEntrypoint =

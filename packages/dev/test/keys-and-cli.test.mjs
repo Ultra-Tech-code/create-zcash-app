@@ -575,21 +575,21 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
 
     // 11a. Protocol rejection
     assert.throws(
-      () => validateEndpoint('https://127.0.0.1:28137'),
+      () => validateEndpoint('https://127.0.0.1:39067'),
       {
-        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:39067)',
       }
     );
     assert.throws(
       () => validateEndpoint('http://testnet.zec.rocks:443'),
       {
-        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:39067)',
       }
     );
     assert.throws(
       () => validateEndpoint(`https://${qnTestHost}/SECRET123/`),
       {
-        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:28137)',
+        message: 'Use host:port for the gRPC endpoint (e.g. 127.0.0.1:39067)',
       }
     );
 
@@ -646,7 +646,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
           cliBinPath,
           'bad-zebrarpc-app',
           '--network', 'regtest',
-          '--endpoint', '127.0.0.1:28137',
+          '--endpoint', '127.0.0.1:39067',
           '--zebra-rpc', 'https://x.example:999999/SECRET',
         ],
         { cwd: tempDir, encoding: 'utf8' }
@@ -678,7 +678,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
           cliBinPath,
           'bad-ftp-app',
           '--network', 'regtest',
-          '--endpoint', '127.0.0.1:28137',
+          '--endpoint', '127.0.0.1:39067',
           '--zebra-rpc', 'ftp://x.example/SECRET',
         ],
         { cwd: tempDir, encoding: 'utf8' }
@@ -843,43 +843,106 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
     );
   });
 
-  it('15. Scaffolder regtest stack option: --regtest-stack nu7 vs --regtest-stack z3', () => {
+  it('15. Scaffolder regtest stack option: lightwalletd, zaino, full, and z3 rejection', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'stack-test-'));
     try {
-      // 15a. NU7 stack
-      const runNu7 = spawnSync(
+      // 15a. Lightwalletd stack (also alias nu7)
+      const runLwd = spawnSync(
         process.execPath,
         [
           cliBinPath,
-          'nu7-app',
+          'lwd-app',
           '--network', 'regtest',
-          '--regtest-stack', 'nu7',
+          '--regtest-stack', 'lightwalletd',
           '--key-source', 'generate',
         ],
         { cwd: tempDir, encoding: 'utf8' }
       );
-      assert.strictEqual(runNu7.status, 0, `Scaffolder NU7 failed: ${runNu7.stderr}`);
+      assert.strictEqual(runLwd.status, 0, `Scaffolder lightwalletd failed: ${runLwd.stderr}`);
 
-      const nu7Dir = path.join(tempDir, 'nu7-app');
-      const nu7Env = fs.readFileSync(path.join(nu7Dir, '.env.local'), 'utf8');
-      assert.ok(nu7Env.includes('ZCASH_NETWORK=regtest'));
-      assert.ok(nu7Env.includes('ZCASH_REGTEST_STACK=nu7'));
-      assert.ok(nu7Env.includes('ZCASH_ENDPOINT=127.0.0.1:39067'));
-      assert.ok(nu7Env.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:39232'));
+      const lwdDir = path.join(tempDir, 'lwd-app');
+      const lwdEnv = fs.readFileSync(path.join(lwdDir, '.env.local'), 'utf8');
+      assert.ok(lwdEnv.includes('ZCASH_NETWORK=regtest'));
+      assert.ok(lwdEnv.includes('ZCASH_REGTEST_STACK=lightwalletd'));
+      assert.ok(lwdEnv.includes('ZCASH_ENDPOINT=127.0.0.1:39067'));
+      assert.ok(lwdEnv.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:39232'));
 
-      const nu7Config = JSON.parse(fs.readFileSync(path.join(nu7Dir, 'zcash.config.json'), 'utf8'));
-      assert.strictEqual(nu7Config.network, 'regtest');
-      assert.strictEqual(nu7Config.regtestStack, 'nu7');
-      assert.strictEqual(nu7Config.endpoint, '127.0.0.1:39067');
-      assert.strictEqual(nu7Config.zebraRpc, 'http://127.0.0.1:39232');
+      const lwdConfig = JSON.parse(fs.readFileSync(path.join(lwdDir, 'zcash.config.json'), 'utf8'));
+      assert.strictEqual(lwdConfig.network, 'regtest');
+      assert.strictEqual(lwdConfig.regtestStack, 'lightwalletd');
+      assert.strictEqual(lwdConfig.endpoint, '127.0.0.1:39067');
+      assert.strictEqual(lwdConfig.zebraRpc, 'http://127.0.0.1:39232');
 
-      const nu7Compose = fs.readFileSync(path.join(nu7Dir, 'docker-compose.yml'), 'utf8');
-      assert.ok(nu7Compose.includes('zfnd/zebra:7.0.0'));
-      assert.ok(nu7Compose.includes('electriccoinco/lightwalletd:latest'));
-      assert.ok(nu7Compose.includes('39067:9067'));
-      assert.ok(nu7Compose.includes('39232:18232'));
+      const lwdCompose = fs.readFileSync(path.join(lwdDir, 'docker-compose.yml'), 'utf8');
+      assert.ok(lwdCompose.includes('zfnd/zebra:7.0.0'));
+      assert.ok(lwdCompose.includes('electriccoinco/lightwalletd:latest'));
+      assert.ok(lwdCompose.includes('39067:9067'));
+      assert.ok(lwdCompose.includes('39232:18232'));
 
-      // 15b. Z3 stack
+      // 15b. Zaino stack
+      const runZaino = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'zaino-app',
+          '--network', 'regtest',
+          '--regtest-stack', 'zaino',
+          '--key-source', 'generate',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(runZaino.status, 0, `Scaffolder Zaino failed: ${runZaino.stderr}`);
+
+      const zainoDir = path.join(tempDir, 'zaino-app');
+      const zainoEnv = fs.readFileSync(path.join(zainoDir, '.env.local'), 'utf8');
+      assert.ok(zainoEnv.includes('ZCASH_NETWORK=regtest'));
+      assert.ok(zainoEnv.includes('ZCASH_REGTEST_STACK=zaino'));
+      assert.ok(zainoEnv.includes('ZCASH_ENDPOINT=127.0.0.1:38137'));
+      assert.ok(zainoEnv.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:39232'));
+
+      const zainoConfig = JSON.parse(fs.readFileSync(path.join(zainoDir, 'zcash.config.json'), 'utf8'));
+      assert.strictEqual(zainoConfig.network, 'regtest');
+      assert.strictEqual(zainoConfig.regtestStack, 'zaino');
+      assert.strictEqual(zainoConfig.endpoint, '127.0.0.1:38137');
+      assert.strictEqual(zainoConfig.zebraRpc, 'http://127.0.0.1:39232');
+
+      const zainoCompose = fs.readFileSync(path.join(zainoDir, 'docker-compose.yml'), 'utf8');
+      assert.ok(zainoCompose.includes('zaino'));
+      assert.ok(zainoCompose.includes('38137:8137'));
+
+      // 15c. Full stack
+      const runFull = spawnSync(
+        process.execPath,
+        [
+          cliBinPath,
+          'full-app',
+          '--network', 'regtest',
+          '--regtest-stack', 'full',
+          '--key-source', 'generate',
+        ],
+        { cwd: tempDir, encoding: 'utf8' }
+      );
+      assert.strictEqual(runFull.status, 0, `Scaffolder full failed: ${runFull.stderr}`);
+
+      const fullDir = path.join(tempDir, 'full-app');
+      const fullEnv = fs.readFileSync(path.join(fullDir, '.env.local'), 'utf8');
+      assert.ok(fullEnv.includes('ZCASH_NETWORK=regtest'));
+      assert.ok(fullEnv.includes('ZCASH_REGTEST_STACK=full'));
+      assert.ok(fullEnv.includes('ZCASH_ENDPOINT=127.0.0.1:39067'));
+      assert.ok(fullEnv.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:39232'));
+
+      const fullConfig = JSON.parse(fs.readFileSync(path.join(fullDir, 'zcash.config.json'), 'utf8'));
+      assert.strictEqual(fullConfig.network, 'regtest');
+      assert.strictEqual(fullConfig.regtestStack, 'full');
+      assert.strictEqual(fullConfig.endpoint, '127.0.0.1:39067');
+      assert.strictEqual(fullConfig.zebraRpc, 'http://127.0.0.1:39232');
+
+      const fullCompose = fs.readFileSync(path.join(fullDir, 'docker-compose.yml'), 'utf8');
+      assert.ok(fullCompose.includes('zallet'));
+      assert.ok(fullCompose.includes('8182:28232'));
+      assert.ok(fullCompose.includes('39067:9067'));
+
+      // 15d. Legacy Z3 rejection
       const runZ3 = spawnSync(
         process.execPath,
         [
@@ -891,24 +954,8 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
         ],
         { cwd: tempDir, encoding: 'utf8' }
       );
-      assert.strictEqual(runZ3.status, 0, `Scaffolder Z3 failed: ${runZ3.stderr}`);
-
-      const z3Dir = path.join(tempDir, 'z3-app');
-      const z3Env = fs.readFileSync(path.join(z3Dir, '.env.local'), 'utf8');
-      assert.ok(z3Env.includes('ZCASH_NETWORK=regtest'));
-      assert.ok(z3Env.includes('ZCASH_REGTEST_STACK=z3'));
-      assert.ok(z3Env.includes('ZCASH_ENDPOINT=127.0.0.1:28137'));
-      assert.ok(z3Env.includes('ZCASH_ZEBRA_RPC=http://127.0.0.1:18232'));
-
-      const z3Config = JSON.parse(fs.readFileSync(path.join(z3Dir, 'zcash.config.json'), 'utf8'));
-      assert.strictEqual(z3Config.network, 'regtest');
-      assert.strictEqual(z3Config.regtestStack, 'z3');
-      assert.strictEqual(z3Config.endpoint, '127.0.0.1:28137');
-      assert.strictEqual(z3Config.zebraRpc, 'http://127.0.0.1:18232');
-
-      const z3Compose = fs.readFileSync(path.join(z3Dir, 'docker-compose.yml'), 'utf8');
-      assert.ok(z3Compose.includes('zingodevops/zainod:0.10.0-no-tls'));
-      assert.ok(z3Compose.includes('28137:28137'));
+      assert.strictEqual(runZ3.status, 1, 'Scaffolder must reject legacy z3 stack');
+      assert.match(runZ3.stderr, /Legacy Z3\/NU6 regtest stacks have been removed/);
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
@@ -956,125 +1003,144 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
     assert.strictEqual(res.isDryRun, false);
   });
 
-  it('17. executeFund unit tests: NU7 SDK send vs Z3 Zallet RPC router with stubbed dependencies', async () => {
+  it('17. executeFund unit tests: lightwalletd, zaino, full SDK send and Z3 rejection', async () => {
     const targetUa = 'uregtest1cjtspqcvw97evv27s0qfq55e347hwwp02s0hsvvgdfh05j5cydf7q2x6e09vd72776c5354h2v72zsw649w30cqq6jffwsv9h679f6m25p';
 
-    // 17a. NU7 stack funding via SDK send path
-    let nu7SyncCalled = false;
-    let nu7SendCalled = false;
-    const mockNu7Client = {
+    // 17a. lightwalletd stack funding via SDK send path
+    let lwdSyncCalled = false;
+    let lwdSendCalled = false;
+    const mockLwdClient = {
       close: async () => {},
-      config: { network: 'regtest-nu7', endpoint: '127.0.0.1:39067' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
     };
 
-    const nu7FundRes = await executeFund(
-      { address: targetUa, amount: '3.5', stack: 'nu7' },
-      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'nu7', ZCASH_ENDPOINT: '127.0.0.1:39067' },
+    const lwdFundRes = await executeFund(
+      { address: targetUa, amount: '3.5', stack: 'lightwalletd' },
+      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'lightwalletd', ZCASH_ENDPOINT: '127.0.0.1:39067' },
       {
-        client: mockNu7Client,
+        client: mockLwdClient,
         syncWalletFn: async (client, wallet) => {
-          nu7SyncCalled = true;
+          lwdSyncCalled = true;
           assert.ok(wallet);
         },
         sendFn: async (opts) => {
-          nu7SendCalled = true;
+          lwdSendCalled = true;
           assert.strictEqual(opts.to, targetUa);
           assert.strictEqual(opts.amount, 350000000n);
-          return { txid: 'mock-nu7-fund-txid-abcdef' };
+          return { txid: 'mock-lwd-fund-txid-abcdef' };
         },
       }
     );
 
-    assert.strictEqual(nu7SyncCalled, true);
-    assert.strictEqual(nu7SendCalled, true);
-    assert.strictEqual(nu7FundRes.stack, 'nu7');
-    assert.strictEqual(nu7FundRes.txid, 'mock-nu7-fund-txid-abcdef');
-    assert.strictEqual(nu7FundRes.amountZec, '3.5');
-    assert.strictEqual(nu7FundRes.zatoshis, 350000000n);
+    assert.strictEqual(lwdSyncCalled, true);
+    assert.strictEqual(lwdSendCalled, true);
+    assert.strictEqual(lwdFundRes.stack, 'lightwalletd');
+    assert.strictEqual(lwdFundRes.txid, 'mock-lwd-fund-txid-abcdef');
+    assert.strictEqual(lwdFundRes.amountZec, '3.5');
+    assert.strictEqual(lwdFundRes.zatoshis, 350000000n);
 
-    // 17b. Z3 stack funding via Zallet RPC router
-    const calls = [];
-    const mockZ3Fetch = async (url, init) => {
-      calls.push({ url, body: JSON.parse(init.body) });
-      const body = JSON.parse(init.body);
-      if (body.method === 'listaddresses') {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            result: [
-              {
-                unified: [
-                  {
-                    addresses: [
-                      { address: 'uregtest1_mock_zallet_sender_address' },
-                    ],
-                  },
-                ],
-              },
-            ],
-          }),
-        };
-      }
-      if (body.method === 'z_sendmany') {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({
-            result: 'mock-z3-fund-txid-998877',
-          }),
-        };
-      }
-      throw new Error(`Unexpected RPC method: ${body.method}`);
+    // 17b. zaino stack funding via SDK send path
+    let zainoSyncCalled = false;
+    let zainoSendCalled = false;
+    const mockZainoClient = {
+      close: async () => {},
+      config: { network: 'regtest', endpoint: '127.0.0.1:38137' },
     };
 
-    const z3FundRes = await executeFund(
-      { address: targetUa, amount: '1.25', stack: 'z3' },
-      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'z3', ZCASH_ENDPOINT: '127.0.0.1:28137' },
-      { fetchFn: mockZ3Fetch }
+    const zainoFundRes = await executeFund(
+      { address: targetUa, amount: '2.0', stack: 'zaino' },
+      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'zaino', ZCASH_ENDPOINT: '127.0.0.1:38137' },
+      {
+        client: mockZainoClient,
+        syncWalletFn: async (client, wallet) => {
+          zainoSyncCalled = true;
+          assert.ok(wallet);
+        },
+        sendFn: async (opts) => {
+          zainoSendCalled = true;
+          assert.strictEqual(opts.to, targetUa);
+          assert.strictEqual(opts.amount, 200000000n);
+          return { txid: 'mock-zaino-fund-txid-123456' };
+        },
+      }
     );
 
-    assert.strictEqual(calls.length, 2);
-    assert.strictEqual(calls[0].body.method, 'listaddresses');
-    assert.strictEqual(calls[1].body.method, 'z_sendmany');
-    assert.strictEqual(calls[1].body.params[0], 'uregtest1_mock_zallet_sender_address');
-    assert.strictEqual(calls[1].body.params[1][0].address, targetUa);
-    assert.strictEqual(calls[1].body.params[1][0].amount, '1.25000000');
-    assert.strictEqual(z3FundRes.stack, 'z3');
-    assert.strictEqual(z3FundRes.txid, 'mock-z3-fund-txid-998877');
-    assert.strictEqual(z3FundRes.amountZec, '1.25');
-    assert.strictEqual(z3FundRes.zatoshis, 125000000n);
+    assert.strictEqual(zainoSyncCalled, true);
+    assert.strictEqual(zainoSendCalled, true);
+    assert.strictEqual(zainoFundRes.stack, 'zaino');
+    assert.strictEqual(zainoFundRes.txid, 'mock-zaino-fund-txid-123456');
+    assert.strictEqual(zainoFundRes.amountZec, '2.0');
+    assert.strictEqual(zainoFundRes.zatoshis, 200000000n);
 
-    // 17c. Backend missing error handling
+    // 17c. full stack funding via SDK send path
+    let fullSyncCalled = false;
+    let fullSendCalled = false;
+    const mockFullClient = {
+      close: async () => {},
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
+    };
+
+    const fullFundRes = await executeFund(
+      { address: targetUa, amount: '1.25', stack: 'full' },
+      { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'full', ZCASH_ENDPOINT: '127.0.0.1:39067' },
+      {
+        client: mockFullClient,
+        syncWalletFn: async (client, wallet) => {
+          fullSyncCalled = true;
+          assert.ok(wallet);
+        },
+        sendFn: async (opts) => {
+          fullSendCalled = true;
+          assert.strictEqual(opts.to, targetUa);
+          assert.strictEqual(opts.amount, 125000000n);
+          return { txid: 'mock-full-fund-txid-789012' };
+        },
+      }
+    );
+
+    assert.strictEqual(fullSyncCalled, true);
+    assert.strictEqual(fullSendCalled, true);
+    assert.strictEqual(fullFundRes.stack, 'full');
+    assert.strictEqual(fullFundRes.txid, 'mock-full-fund-txid-789012');
+    assert.strictEqual(fullFundRes.amountZec, '1.25');
+    assert.strictEqual(fullFundRes.zatoshis, 125000000n);
+
+    // 17d. Z3 / NU6 legacy stack rejection
     await assert.rejects(
       async () => {
         await executeFund(
-          { address: targetUa, amount: '1.0', stack: 'nu7' },
-          { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'nu7', ZCASH_ENDPOINT: '127.0.0.1:39067' },
+          { address: targetUa, amount: '1.0', stack: 'z3' },
+          { ZCASH_NETWORK: 'regtest' }
+        );
+      },
+      /The Z3 \/ NU6 stack has been removed in 0\.1\.0-alpha\.5/
+    );
+
+    await assert.rejects(
+      async () => {
+        await executeFund(
+          { address: targetUa, amount: '1.0', stack: 'nu6' },
+          { ZCASH_NETWORK: 'regtest' }
+        );
+      },
+      /The Z3 \/ NU6 stack has been removed in 0\.1\.0-alpha\.5/
+    );
+
+    // 17e. Backend missing error handling
+    await assert.rejects(
+      async () => {
+        await executeFund(
+          { address: targetUa, amount: '1.0', stack: 'lightwalletd' },
+          { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'lightwalletd', ZCASH_ENDPOINT: '127.0.0.1:39067' },
           {
-            client: mockNu7Client,
+            client: mockLwdClient,
             syncWalletFn: async () => {
               throw new Error('connect ECONNREFUSED 127.0.0.1:39067');
             },
           }
         );
       },
-      /Could not connect to NU7 lightwalletd indexer at 127.0.0.1:39067\. Is the NU7 stack running\? Run: zcash-dev regtest up --stack nu7/
-    );
-
-    await assert.rejects(
-      async () => {
-        await executeFund(
-          { address: targetUa, amount: '1.0', stack: 'z3' },
-          { ZCASH_NETWORK: 'regtest', ZCASH_REGTEST_STACK: 'z3', ZCASH_ENDPOINT: '127.0.0.1:28137' },
-          {
-            fetchFn: async () => {
-              throw new Error('fetch failed ECONNREFUSED');
-            },
-          }
-        );
-      },
-      /Could not connect to Z3 RPC router \/ Zallet at http:\/\/127\.0\.0\.1:8181\. Is the Z3 stack running\? Run: zcash-dev regtest up --stack nu6/
+      /Could not connect to lightwalletd indexer at 127\.0\.0\.1:39067\. Is the lightwalletd stack running\? Run: zcash-dev regtest up --stack lightwalletd/
     );
   });
 
@@ -1194,7 +1260,7 @@ exit 0
 
     const cliRun = spawnSync(
       process.execPath,
-      [devBinPath, 'regtest', 'up', '--stack', 'nu7', '--regtest-path', dummyRegtestDir],
+      [devBinPath, 'regtest', 'up', '--stack', 'lightwalletd', '--regtest-path', dummyRegtestDir],
       { encoding: 'utf8' }
     );
 

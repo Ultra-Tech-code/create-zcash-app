@@ -7,13 +7,10 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { blocks = 1, endpoint = '127.0.0.1:28137', preset = 'regtest-z3' } = body;
+    const { blocks = 1, endpoint = '127.0.0.1:39067', preset = 'regtest-lightwalletd' } = body;
 
-    // Direct Zebra JSON-RPC target depending on preset
-    const rpcUrl =
-      preset === 'regtest-nu7' || endpoint.includes('39067')
-        ? 'http://127.0.0.1:39232'
-        : 'http://127.0.0.1:8181';
+    // Direct Zebra JSON-RPC target (all regtest tiers use port 39232)
+    const rpcUrl = process.env.ZCASH_ZEBRA_RPC || 'http://127.0.0.1:39232';
 
     const res = await fetch(rpcUrl, {
       method: 'POST',

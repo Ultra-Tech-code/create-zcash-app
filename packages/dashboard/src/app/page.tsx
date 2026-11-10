@@ -13,7 +13,7 @@ import { HealthTab } from './components/HealthTab';
 import { ExplorerTab } from './components/ExplorerTab';
 
 export default function Dashboard() {
-  const [activePreset, setActivePreset] = useState<PresetId>('regtest-nu7');
+  const [activePreset, setActivePreset] = useState<PresetId>('regtest-lightwalletd');
   const [activeTab, setActiveTab] = useState<'overview' | 'addresses' | 'transactions' | 'faucet' | 'send' | 'health' | 'explorer'>('overview');
   const [explorerInitialQuery, setExplorerInitialQuery] = useState<string>('');
   const [activeAccountIndex, setActiveAccountIndex] = useState<number>(0);
@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [sendSubmitting, setSendSubmitting] = useState<boolean>(false);
   const [sendReceipt, setSendReceipt] = useState<any>(null);
 
-  const currentPreset = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-nu7'];
+  const currentPreset = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-lightwalletd'];
   const network = currentPreset.network;
   const endpoint = currentPreset.endpoint;
 
@@ -175,18 +175,14 @@ export default function Dashboard() {
 
   const handleFund = async () => {
     if (network !== 'regtest') return;
-    if (activePreset === 'regtest-nu7') {
-      setActionStatus('Zallet funding proxy unavailable on standalone NU7 regtest. Use Mine 1 Block.');
-      return;
-    }
     if (!accountData?.unifiedAddress) return;
 
     try {
-      setActionStatus('Funding account with 1.0 ZEC from Zallet...');
+      setActionStatus('Funding account with 1.0 ZEC...');
       const res = await fetch('/api/fund', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: accountData.unifiedAddress, amount: '1.0' }),
+        body: JSON.stringify({ address: accountData.unifiedAddress, amount: '1.0', endpoint }),
       });
       const data = await res.json();
       if (data.success) {

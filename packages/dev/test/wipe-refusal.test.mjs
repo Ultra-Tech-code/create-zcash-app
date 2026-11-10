@@ -15,15 +15,15 @@ const cli = path.resolve(here, '../dist/cli.js');
  * prints the derived volumes, and only then asks for confirmation. With stdin not
  * attached to a TTY there is nobody to ask, so it must abort with exit code 1.
  */
-test('zcash-dev regtest wipe refuses to run without --yes (default z3-regtest)', () => {
+test('zcash-dev regtest wipe refuses to run without --yes (default lightwalletd stack: zcash-regtest-lightwalletd)', () => {
   assert.ok(fs.existsSync(cli), `built CLI missing at ${cli}; run pnpm --filter zcash-dev build`);
 
-  const z3Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-refusal-'));
-  fs.writeFileSync(path.join(z3Dir, 'docker-compose.yml'), 'name: z3-regtest\nservices: {}\n');
-  const marker = path.join(z3Dir, 'chain-marker');
+  const stackDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-refusal-'));
+  fs.writeFileSync(path.join(stackDir, 'docker-compose.yml'), 'name: zcash-regtest-lightwalletd\nservices: {}\n');
+  const marker = path.join(stackDir, 'chain-marker');
   fs.writeFileSync(marker, 'must survive the refused wipe\n');
 
-  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--z3-path', z3Dir], {
+  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--regtest-path', stackDir], {
     encoding: 'utf8',
     input: '',
     timeout: 120_000,
@@ -37,16 +37,16 @@ test('zcash-dev regtest wipe refuses to run without --yes (default z3-regtest)',
   assert.ok(fs.existsSync(marker), 'refused wipe must not delete project files');
   assert.equal(fs.readFileSync(marker, 'utf8'), 'must survive the refused wipe\n');
 
-  fs.rmSync(z3Dir, { recursive: true, force: true });
+  fs.rmSync(stackDir, { recursive: true, force: true });
 });
 
-test('zcash-dev regtest wipe refuses to run without --yes (nu7 stack: zcash-regtest-nu7)', () => {
-  const nu7Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-nu7-refusal-'));
-  fs.writeFileSync(path.join(nu7Dir, 'docker-compose.yml'), 'name: zcash-regtest-nu7\nservices: {}\n');
-  const marker = path.join(nu7Dir, 'chain-marker');
+test('zcash-dev regtest wipe refuses to run without --yes (zaino stack: zcash-regtest-zaino)', () => {
+  const zainoDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-zaino-refusal-'));
+  fs.writeFileSync(path.join(zainoDir, 'docker-compose.yml'), 'name: zcash-regtest-zaino\nservices: {}\n');
+  const marker = path.join(zainoDir, 'chain-marker');
   fs.writeFileSync(marker, 'must survive the refused wipe\n');
 
-  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--regtest-path', nu7Dir], {
+  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--regtest-path', zainoDir], {
     encoding: 'utf8',
     input: '',
     timeout: 120_000,
@@ -57,7 +57,7 @@ test('zcash-dev regtest wipe refuses to run without --yes (nu7 stack: zcash-regt
   assert.match(res.stderr, /--yes/);
 
   assert.ok(fs.existsSync(marker), 'refused wipe must not delete project files');
-  fs.rmSync(nu7Dir, { recursive: true, force: true });
+  fs.rmSync(zainoDir, { recursive: true, force: true });
 });
 
 test('zcash-dev regtest wipe refuses untrusted project name', () => {
@@ -78,21 +78,21 @@ test('zcash-dev regtest wipe refuses untrusted project name', () => {
   fs.rmSync(badDir, { recursive: true, force: true });
 });
 
-test('zcash-dev regtest wipe --dry-run accepts zcash-regtest-nu7 project name', () => {
-  const nu7Dir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-dryrun-'));
-  fs.writeFileSync(path.join(nu7Dir, 'docker-compose.yml'), 'name: zcash-regtest-nu7\nservices: {}\n');
+test('zcash-dev regtest wipe --dry-run accepts zcash-regtest-lightwalletd project name', () => {
+  const stackDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zcash-dev-wipe-dryrun-'));
+  fs.writeFileSync(path.join(stackDir, 'docker-compose.yml'), 'name: zcash-regtest-lightwalletd\nservices: {}\n');
 
-  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--regtest-path', nu7Dir, '--dry-run'], {
+  const res = spawnSync(process.execPath, [cli, 'regtest', 'wipe', '--regtest-path', stackDir, '--dry-run'], {
     encoding: 'utf8',
     input: '',
     timeout: 120_000,
   });
 
   assert.equal(res.status, 0, `expected exit 0, got ${res.status} (stderr: ${res.stderr})`);
-  assert.match(res.stdout, /Project Name:\s+zcash-regtest-nu7/);
+  assert.match(res.stdout, /Project Name:\s+zcash-regtest-lightwalletd/);
   assert.match(res.stdout, /Dry Run complete: zero destructive actions executed/);
 
-  fs.rmSync(nu7Dir, { recursive: true, force: true });
+  fs.rmSync(stackDir, { recursive: true, force: true });
 });
 
 test('miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks', async () => {

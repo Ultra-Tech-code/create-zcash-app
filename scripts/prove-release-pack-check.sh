@@ -51,14 +51,14 @@ sha256() {
   done
   echo
 
-  echo "--- step 2: pack all 9 tarballs into /tmp/release-packs using workflow steps ---"
+  echo "--- step 2: pack all 10 tarballs into /tmp/release-packs using workflow steps ---"
   rm -rf /tmp/release-packs
   mkdir -p /tmp/release-packs
 
   # Execute the workflow's own copy-LICENSE step across all packages
   (
     cd "$REPO_ROOT"
-    for dir in packages/core packages/sdk packages/dev packages/cli packages/core/npm/*/; do
+    for dir in packages/core packages/sdk packages/dashboard packages/dev packages/cli packages/core/npm/*/; do
       cp LICENSE "$dir/"
     done
   )
@@ -111,6 +111,7 @@ NODE
     cd "$REPO_ROOT"
     pnpm --filter @zcash-app/core pack --pack-destination /tmp/release-packs
     pnpm --filter @zcash-app/sdk pack --pack-destination /tmp/release-packs
+    pnpm --filter @zcash-app/dashboard pack --pack-destination /tmp/release-packs
     pnpm --filter zcash-dev pack --pack-destination /tmp/release-packs
     pnpm --filter create-zcash-app pack --pack-destination /tmp/release-packs
     for dir in packages/core/npm/*/; do
@@ -258,7 +259,7 @@ NODE
   rm -rf /tmp/release-packs
   cp -r "$BACKUP_PACKS" /tmp/release-packs
 
-  echo "--- step 8: control test D - only 8 tarballs (must exit 1) ---"
+  echo "--- step 8: control test D - missing tarball (must exit 1) ---"
   rm -f "$CLI_TGZ"
   echo "current tarball count: $(ls -1 /tmp/release-packs/*.tgz | wc -l | tr -d ' ')"
 
@@ -269,12 +270,12 @@ NODE
   )
   ctrl_d_rc=$?
   set -e
-  echo "-> only 8 tarballs exit code: $ctrl_d_rc"
+  echo "-> missing tarball exit code: $ctrl_d_rc"
   if [ "$ctrl_d_rc" -eq 0 ]; then
-    echo "ERROR: check unexpectedly passed with only 8 tarballs!" >&2
+    echo "ERROR: check unexpectedly passed with missing tarball!" >&2
     exit 1
   fi
-  echo "PASS: only 8 tarballs correctly triggered exit 1"
+  echo "PASS: missing tarball correctly triggered exit 1"
   echo
 
   # Restore clean tarballs
@@ -311,7 +312,7 @@ NODE
   echo "PASS: workspace range in tarball correctly triggered exit 1"
   echo
 
-  echo "RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_8=1, workspace_range=1)"
+  echo "RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_fail=1, workspace_range=1)"
 } 2>&1 | tee "$LOG"
 
 # Clean up /tmp/release-packs and temp work directory
