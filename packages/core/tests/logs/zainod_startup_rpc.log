@@ -1,0 +1,886 @@
+  [2m18:21:03.316[0m [32m INFO[0m [1;32mzainodlib[0m[32m: [32mzainod started, [1;32mversion[0m[32m: "0.10.1"[0m
+    [2;3mat[0m packages/zainod/src/lib.rs:30
+
+  [2m18:21:03.318[0m [32m INFO[0m [1;32mzainodlib::config[0m[32m: [32mconfig loaded and validated, [1;32mpath[0m[32m: packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml[0m
+    [2;3mat[0m packages/zainod/src/config.rs:490
+
+
+       ░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████▓░▒▒▒
+       ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒████▓▒▒▒▒
+       ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░▒▒▒▒▒▒
+       ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒▒
+       ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒██▓▒▒▒▒▒
+       ▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒██▓▒▒▒▒▒
+       ▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓███▓██▓▒▒▒▒▒
+       ▒▒▒▒▒▒▒▓▓▓▓▒███▓░▒▓▓████████████████▓▓▒▒▒▒▒▒▒
+       ▒▒▒▒▒▒▓▓▓▓▒▓████▓▓███████████████████▓▒▓▓▒▒▒▒
+       ▒▒▒▒▒▓▓▓▓▓▒▒▓▓▓▓████████████████████▓▒▓▓▓▒▒▒▒
+       ▒▒▒▒▒▓▓▓▓▓█████████████████████████▓▒▓▓▓▓▓▒▒▒
+       ▒▒▒▒▓▓▓▒▓█████████████████████████▓▓▓▓▓▓▓▓▒▒▒
+       ▒▒▒▒▒▓▓▓████████████████████████▓▓▓▓▓▓▓▓▓▒▒▒▒
+       ▒▒▒▒▒▓▒███████████████████████▒▓▓▓▓▓▓▓▓▓▓▒▒▒▒
+       ▒▒▒▒▒▒▓███████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒
+       ▒▒▒▒▒▒▓███████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒
+       ▒▒▒▒▒▒▓██████████▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒
+       ▒▒▒▒███▓▒▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒
+       ▒▒▒▓████▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+       ▒▒▒▒░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+       ▒▒▒▒░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+             Thank you for using ZingoLabs Zaino!
+
+       - Donate to us at https://free2z.cash/zingolabs.
+
+****** Please note Zaino is currently in development and should not be used to run mainnet nodes. ******
+    
+  [2m18:21:03.318[0m [32m INFO[0m [1;32mzainodlib::indexer[0m[32m: [32mStarting Zaino[0m
+    [2;3mat[0m packages/zainod/src/indexer.rs:38
+
+  [2m18:21:03.318[0m [32m INFO[0m [1;32mzainodlib::indexer[0m[32m: [32mChecking connection with node, [1;32maddress[0m[32m: 127.0.0.1:49232[0m
+    [2;3mat[0m packages/zainod/src/indexer.rs:47
+
+  [2m18:21:03.329[0m [32m INFO[0m [1;32mzainodlib::indexer[0m[32m: [32mConnected to node via JsonRPSee, [1;32muri[0m[32m: http://127.0.0.1:49232[0m
+    [2;3mat[0m packages/zainod/src/indexer.rs:62
+
+  [2m18:21:03.330[0m [32m INFO[0m [1;32mzaino_state::indexer::node_backed_indexer[0m[32m: [32mLaunching NodeBackedIndexerService, [1;32mrpc_address[0m[32m: 127.0.0.1:49232, [1;32mnetwork[0m[32m: Regtest[0m
+    [2;3mat[0m packages/zaino-state/src/indexer/node_backed_indexer.rs:140
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.338[0m [32m INFO[0m [1;32mzaino_state::chain_index::network_adoption[0m[32m: [32mAdopted activation heights from the validator, [1;32mheights[0m[32m: ActivationHeights { before_overwinter: None, overwinter: Some(1), sapling: Some(1), blossom: Some(1), heartwood: Some(1), canopy: Some(1), nu5: Some(2), nu6: Some(2), nu6_1: Some(2), nu6_2: Some(2), nu6_3: Some(2), nu7: Some(2) }[0m
+    [2;3mat[0m packages/zaino-state/src/chain_index/network_adoption.rs:99
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.344[0m [32m INFO[0m [1;32mzaino_state::indexer::node_backed_indexer[0m[32m: [32mConnected to Zcash node, [1;32mbuild[0m[32m: v7.0.0, [1;32msubversion[0m[32m: /Zebra:7.0.0/[0m
+    [2;3mat[0m packages/zaino-state/src/indexer/node_backed_indexer.rs:163
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.345[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store[0m[32m: [32mfinalised state running in PERSISTENT mode, [1;32mmode[0m[32m: persistent, [1;32mpath[0m[32m: /tmp/zaino-regtest-rpc-db[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store.rs:698
+    [2;3min[0m zaino_chain_store_zainodb::store::[1mFinalisedState::spawn[0m [2;3mwith[0m [1mdb_version[0m: 1
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.345[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store[0m[32m: [32mOpening FinalisedState from file, [1;32mversion[0m[32m: 1[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store.rs:716
+    [2;3min[0m zaino_chain_store_zainodb::store::[1mFinalisedState::spawn[0m [2;3mwith[0m [1mdb_version[0m: 1
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.345[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store::finalised_source::v1[0m[32m: [32mLaunching FinalisedState[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store/finalised_source/v1.rs:510
+    [2;3min[0m zaino_chain_store_zainodb::store::[1mFinalisedState::spawn[0m [2;3mwith[0m [1mdb_version[0m: 1
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.349[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store::finalised_source::v1[0m[32m: [32mvalidating finalised-state spent table integrity[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store/finalised_source/v1.rs:814
+
+  [2m18:21:03.349[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store::finalised_source::v1[0m[32m: [32mfinalised-state spent table integrity check passed, [1;32mentries[0m[32m: 0, [1;32melapsed[0m[32m: 167ns[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store/finalised_source/v1.rs:869
+
+  [2m18:21:03.349[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store::finalised_source::v1[0m[32m: [32minitial validation complete, [1;32mtip[0m[32m: 0[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store/finalised_source/v1.rs:720
+
+  [2m18:21:03.372[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mChainHead anchored, [1;32mheight[0m[32m: 0, [1;32mhash[0m[32m: 029f11d80ef9765602235e1bc9727e3eb6ba20839319f761fee920d63401e327[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:227
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::spawn[0m [2;3mwith[0m [1mmax_depth[0m: 1001
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.373[0m [32m INFO[0m [1;32mzaino_chain_store_zainodb::store::router[0m[32m: [32mfinalised state online: reads are now served by the persistent database, [1;32mmode[0m[32m: persistent[0m
+    [2;3mat[0m packages/zaino-chain-store-zainodb/src/store/router.rs:476
+    [2;3min[0m zaino_state::indexer::node_backed_indexer::[1mNodeBackedIndexerService::spawn[0m [2;3mwith[0m [1mnetwork[0m: Regtest
+
+  [2m18:21:03.384[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 1, [1;32mhash[0m[32m: 0b2d22318d044470f8d180121d54c961ea69de8ff726f4448c6aee8c19d1bb50[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.393[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 2, [1;32mhash[0m[32m: be28882daace17ab75683ff8894fe12cdb6d05b7d998dfdde96a295ae10ce40d[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.402[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 3, [1;32mhash[0m[32m: 525e26363711a61ab19cc56a58efbae8a6e569b7c774862c86132fb668e36657[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.412[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 4, [1;32mhash[0m[32m: a0962af8229a4e703cfca5fb6ff7df0a8df3fcbd69e68c7dc94e1bb1a04aff99[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.420[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 5, [1;32mhash[0m[32m: d25779376da86999e4f97ed7f588c51a4c80ee9d01e6fea5b62fc9e7086faef5[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.429[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 6, [1;32mhash[0m[32m: c7d5d403c00f136a83fa1c2271222a6cee489bc627bd12a4f845effe2db4ffdd[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.438[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 7, [1;32mhash[0m[32m: 35ab59ab4f2894c0746b23c39eba889028c1921c73fecd1375fbb28a89734098[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.446[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 8, [1;32mhash[0m[32m: c20aa44cb35624d5b189ec6a2c1bb23fe89d0c016fab56245bc43ef87d75659a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.456[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 9, [1;32mhash[0m[32m: c4cb66db2815e7678f3250076ede88df7add5001afad8d8e1ecb4f00ed8e3e98[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.464[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 10, [1;32mhash[0m[32m: 0131099eb206382d061337408b0afcebaa829a8f02597e76d275ae8a239fdb9a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.472[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 11, [1;32mhash[0m[32m: ad0cf27ae617c8cf4b41feed349d383047bc578b1af64801992de04d953fbb0f[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.480[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 12, [1;32mhash[0m[32m: 24e59843470ff1528202f9e806804de57e83e43b0189e1d0077563f44338941e[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.489[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 13, [1;32mhash[0m[32m: 088c0471c15e33915b442a9a4166fcdcf3bbeca4c10e8012c0634b9a978c55a8[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.496[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 14, [1;32mhash[0m[32m: d57545b823851f2b31014aadd265bf965b4a68ad79a62b34f389eed3c9eccc5d[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.504[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 15, [1;32mhash[0m[32m: 32915a98ccd2549be76ab3c9143cef0e6ca0fa5fba5c957f78342faca239077e[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.513[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 16, [1;32mhash[0m[32m: 6afa6ed24eb118f180362dbbf489efc86409d2377fd15f0584846fe5a6186988[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.521[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 17, [1;32mhash[0m[32m: a5c4034ca21a62f9127a733b40ac8c5655c3a902540e0b71bb7b4aea2a6ba040[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.529[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 18, [1;32mhash[0m[32m: deecfc5aedbcf8c67cf1095ef46200a81de4f52242fe0e258217742e93fdb6cc[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.537[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 19, [1;32mhash[0m[32m: e41ae0b31b0c1c16ee8ca0caa5133cd4afbf95871c87f8a64b3da2f058a1a3ce[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.544[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 20, [1;32mhash[0m[32m: 126028752dfe5824f3f01d472609dccc53b57d94f6b640d47eedcdf827b8f8af[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.552[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 21, [1;32mhash[0m[32m: 27b4f99434255c9dc6cc33543873ac51704f092af2b5a0c8064275e6da81de0a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.560[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 22, [1;32mhash[0m[32m: 05121a679e5c1efe4b9bf2207ff88a5021779f1360f5fd115d27a7d13a59c2e9[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.568[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 23, [1;32mhash[0m[32m: 278278b37bc736e960fb192fe79fc690c8d9280ddfe6fc5c6e474d820b4a8137[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.576[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 24, [1;32mhash[0m[32m: 9c0d083e055067c17f8e9dd90400d8b9da0463caa074d6378dbbcb32b6333dc4[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.586[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 25, [1;32mhash[0m[32m: b8a50d295a4965b2d0a2cc4f781326e8f189d50fd30985edbd6e02fd7dece191[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.593[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 26, [1;32mhash[0m[32m: b7491b7867efceee77a8d288e99264a94068d454787d09efe811c95697c8febd[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.601[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 27, [1;32mhash[0m[32m: f6f9c2cbb3b079b64b112f9acb29e71c2f712e2ece644e627a3615f558ab06e2[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.608[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 28, [1;32mhash[0m[32m: 96c70f9328362aca3fb94578dfe9babd985c4e796c5dcbe3e6ae312ddf0507e2[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.616[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 29, [1;32mhash[0m[32m: 66a8dce1e731c5f7dcb895835ac72cd27fb48d58c47682d1fbda28e740302824[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.623[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 30, [1;32mhash[0m[32m: 36425470cbb140a39f362823ece27295a5810e056f8a518c144840749dac76e4[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.631[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 31, [1;32mhash[0m[32m: 319748882d8dd82760a36bc76fb7cd86e67be48df58d3ad5727ac440f5a078ca[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.638[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 32, [1;32mhash[0m[32m: 116b3c70b7bc2b97506621689295d5a1cb29898c6eaa7902b0fdbe59d79665b6[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.645[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 33, [1;32mhash[0m[32m: b74b6bd0a25a5d51083a02735336e96fb7d47f0f80ee9103843d73ae88613bcf[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.652[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 34, [1;32mhash[0m[32m: 50f85eab305bdaf968b54ffc61dd1a4c1ae4ff81680373c57fcf6ca996b72242[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.660[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 35, [1;32mhash[0m[32m: 60e53494a01c124985d6abbed45d9cb2c577ebfc1fd1506c2859cfc2681c6b7a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.668[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 36, [1;32mhash[0m[32m: 38890113964ca611459d939c919362654755226e6e5caa5200f1091d18aba7a3[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.675[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 37, [1;32mhash[0m[32m: 0329645d6583157272b86088f4a165cbf934443804e677b2f01d514de2c3e4f2[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.682[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 38, [1;32mhash[0m[32m: 521dd93f3ff1f2514b4b53b72a67b6b201504f9c052ef88b35381ba79a10623b[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.690[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 39, [1;32mhash[0m[32m: 9cb95b48e48dea307c4883ab6ccb30fc01e216f726ae7a12e5d5e3a4da61f8eb[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.697[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 40, [1;32mhash[0m[32m: 57d946b840570cbc026dfb9b7f3d365b196f74acf23214bfd81419f14fe29cdc[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.704[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 41, [1;32mhash[0m[32m: 1f24e71a5b96151893af707dbc8dc1cd234cdad13100792d0304b33d7800a8dc[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.712[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 42, [1;32mhash[0m[32m: 6f9e5607bad40bea1722fc014690c7ddb345fbeb0211398f7478e951465676f9[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.719[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 43, [1;32mhash[0m[32m: 32d93bdc1f407b720b865859a4e0b67fda43cbda492fbdc6ab6cb3bc4d6001b7[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.727[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 44, [1;32mhash[0m[32m: eb7d4d6c7c02e3d2048843a7f1ea43483f15c28db466e22b6e0328135ea99152[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.734[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 45, [1;32mhash[0m[32m: 821c0ac4ccdf0a37fc8e5d3f3960def20997d04efd09dab420c1b6aee3e9db42[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.742[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 46, [1;32mhash[0m[32m: c19e9f26cbcccf4eb72b16e7ad4885ec2fb52b6dc7e7b644b93066b94e2007c3[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.749[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 47, [1;32mhash[0m[32m: bbe1e54a6363e2ee31c9071f20f9c70a96ce6e2f611a01b9e2c6fe568b79f777[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.762[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 48, [1;32mhash[0m[32m: 9c6af4c8e0a6d6c364c8b9125680418f1ec518cf1c80d7ad72488ffa1e5874c2[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.777[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 49, [1;32mhash[0m[32m: 2f60902a46de416ecbfbe93a422e6a67b6b3e071df6ea6a5c9106566fa829ea8[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.791[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 50, [1;32mhash[0m[32m: 42f2ff2d09c32cb071cf6c5458252bf440e3b14747b47a702ac615af889fccdd[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.804[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 51, [1;32mhash[0m[32m: ebecdeff220b2b7971cf7aa1e3365048a4b998ec3a17999282e07823596e22ad[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.812[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 52, [1;32mhash[0m[32m: 4c179929c3f586d9218f5a0dec278cd866d535f84c355bbe603602ef910046f4[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.819[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 53, [1;32mhash[0m[32m: 5c8594bf4cea32e117e7364dbdafaee147afe6b481e20bca9638ff3c61dd23cb[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.827[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 54, [1;32mhash[0m[32m: 7a94e86565174bcc74ea64af8a35147df7e1e18e00f940d514eb17357756a08a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.834[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 55, [1;32mhash[0m[32m: d5754669f63f274e47c39bee1759afe8826efd7928f9f54cf25906c118860dcd[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.841[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 56, [1;32mhash[0m[32m: 3683ee73ad6f97f7288f50bf2c52a158ad122e4241b367c7e7ff77957f7711fe[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.848[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 57, [1;32mhash[0m[32m: 7906ae5ed0f238b7d6c5410baab3b03c17bf33fea1aafaea38820493eca1c435[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.856[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 58, [1;32mhash[0m[32m: 732cc6a687577b148d283186b0f9a394f9bb700356f6f0fe8260de3d842f2911[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.863[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 59, [1;32mhash[0m[32m: 370e1529c1d172554eb73e87cf1c1f2d244faaa3c34a61d84bbf29c1bbe93411[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.870[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 60, [1;32mhash[0m[32m: 38c01b26cbdaa2cd222d5db919857fe3291e69c56575b41833471ab62b83b87b[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.877[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 61, [1;32mhash[0m[32m: 0d1ea2a58ac2a8a83c7c809ba600b47194ed8d4e3b8c05c7b539aba18840f4b5[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.884[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 62, [1;32mhash[0m[32m: 1991a49e669704e8aa79363ad30e59c5cbbb37b7b60855e7829ac89a07380c99[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.892[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 63, [1;32mhash[0m[32m: 2c138b4574d76750a3e00036ffe9f4b55ac47660c51189ba3d1ed5cbceecd621[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.899[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 64, [1;32mhash[0m[32m: 266d1ffeffd8c4b9a9536bef669c33edd1b386d07cabcfc3c48a8804867696ea[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.906[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 65, [1;32mhash[0m[32m: 6f459192b3e663762a000386280210fdf6180252cc6a05a27b040849f3230064[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.913[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 66, [1;32mhash[0m[32m: da782e1bee6bf8a5bac1def3d2d88fdfa28bebc5e3c9c1d8b2e33d7ba9e653e6[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.920[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 67, [1;32mhash[0m[32m: af883d12c9042395bca0f13b1e2d5be42173c6e5ed837f535c0d20215319fe57[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.927[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 68, [1;32mhash[0m[32m: 7834e6009392643dd97b9e2a6a932d3dbb6654b31b31c4df22e93a04fd06f2f1[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.935[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 69, [1;32mhash[0m[32m: b2a7fb0000c01d5e046633abc05ebc42bf9d16a8d530a2fcbb90ee8cb7d1cbf9[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.942[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 70, [1;32mhash[0m[32m: 2a5e97e4f24f1b2b7319b0e10d657734a67d9c0e8f68c613efb5a6a8764883db[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.949[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 71, [1;32mhash[0m[32m: f31d1d361f032d603b4f0ac3fa8b092b26bdc027fe9493e35bd491850ff98fdd[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.956[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 72, [1;32mhash[0m[32m: 40059200ef232895c91a8aceaf584f8beeafd19748434a391f3d6a2b9034e36c[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.963[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 73, [1;32mhash[0m[32m: 395f967ea20703c6205e4d4fc1435c7df8adb723421edd4b1ed42228d385cc6a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.970[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 74, [1;32mhash[0m[32m: 576bfd1d67c39d516140ca779b8455355e662365e683b8f048c21f427c9c44ab[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.977[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 75, [1;32mhash[0m[32m: 1e8dc64dae0a829f99cd407724dba6bab891177e63060e5f0e4c7398bd403ee1[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.984[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 76, [1;32mhash[0m[32m: 9b320cfe0076b47686fd7784ad1a7d9363eb4a5f0801b29e87a6afe3676ef994[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.991[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 77, [1;32mhash[0m[32m: 8b6a2ac071a4343f9c38fe8f8489334db8dae93be55e58db8aad8235fcaa9a57[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:03.998[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 78, [1;32mhash[0m[32m: 806a78fb3c09f81ae57be5dc8bba316ca8994edc582062ef1fd2ee26a7d9c006[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.005[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 79, [1;32mhash[0m[32m: 53ca59868f4dd46314e16ba44a0a0e603f25129475bdce6485079e7a98926c8a[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.012[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 80, [1;32mhash[0m[32m: 113a933583bf98181fb47541154e37128158d5a0ae6524072b5718b21705d8c5[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.019[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 81, [1;32mhash[0m[32m: 5b24fa50d2f92583daddb51917ef978f99933d765d4dd1210ae744933594dc1d[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.026[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 82, [1;32mhash[0m[32m: 7939db126ca5dfc281f506a0840f676af31204d1305ac190476048e23f43e201[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.032[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 83, [1;32mhash[0m[32m: 0f66c040c0052501c0c1d43a66dbfbc6f3778a889e9d8a4744dce5dfff653662[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.040[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 84, [1;32mhash[0m[32m: 02088bb21f8cd1090532b9862d01c1bf974661ea0b8c66365ae62ce943e56db3[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.047[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 85, [1;32mhash[0m[32m: 5e27e858e976966559d1a06c2459e6d25c69e204f454e1e8fbbc9e10c5530f94[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.055[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 86, [1;32mhash[0m[32m: 711b5d561a21e8b82fc1fd01e3fd0479b7d5c96b16b7f903a28b5c69fbb37161[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.062[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 87, [1;32mhash[0m[32m: fa17c494d0d50259e5e2d9f60725e8a644bf5e6ac9d1cf5c995eb50f00572c1b[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.069[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 88, [1;32mhash[0m[32m: 276a08e1a08940de3aa55618268170325f77d41e67d07112a09841376fa78059[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.076[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 89, [1;32mhash[0m[32m: 737199a09889d34fb2f9e39f8a3e88a6d233761446e11796b80b218aaee4067f[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.083[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 90, [1;32mhash[0m[32m: 9626b0fb85b0733805257de23aa43f718570f7c12de878c954bf49ed0cc75969[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.090[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 91, [1;32mhash[0m[32m: fb77f42a81c99ca3b669ca608c6b50332352906873362b568cc12b4609f15af3[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.098[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 92, [1;32mhash[0m[32m: 1b52fa94cbc7e9083f453d1657632023a16697445eea7c3dfee05400db72901f[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.105[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 93, [1;32mhash[0m[32m: a99a37b22383f68f1050bc60b97dff8aa9bc6725b3c2e1d51df9664d40481a34[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.112[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 94, [1;32mhash[0m[32m: 2870120f26c25b3084aa811504f9ccf0f29353650ccde3dc0359fcd0c92a43cc[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.120[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 95, [1;32mhash[0m[32m: 136e94788e8b287d7bf4d76d2bb56f3080f1940ee222a99843890cb8eb90f4d7[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.127[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 96, [1;32mhash[0m[32m: d769225227e6e8776e64b46cf6e4b9e3818c41b890ed99099066742c3b435a21[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.134[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 97, [1;32mhash[0m[32m: 6ce4774f056dd01aefff4a28437c4cb5e342460af4f9439091ae98dd853a6f9b[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.141[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 98, [1;32mhash[0m[32m: 94b1f7a0c1e4a4bac92f14805a3225f452bb6fc9b5d0d319af1b1f9f9afa9443[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.148[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 99, [1;32mhash[0m[32m: e727de8164692a7840fc5b77e8482baf9647cdd91676efa30df4ba75ea53e3ae[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.155[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 100, [1;32mhash[0m[32m: 1b659166c150e69d4c8d9a52e5939080351e0ea59711822c21e923bec7e4f1dc[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.162[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 101, [1;32mhash[0m[32m: e26ad7c93635cd4c59fd74933a6b36c8a6d08d38abf1b94b4f17bbdb47f9bf72[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.169[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 102, [1;32mhash[0m[32m: ac35070bcee111d7b2efef6064cd40385f2c4257989e93fe28f356d6cf92b1d9[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.176[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 103, [1;32mhash[0m[32m: d67ec6f5f9ad9616b4be0d528e5b56b2dc5230578b04fb0e5e2c25761865b8d6[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.183[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 104, [1;32mhash[0m[32m: 00ec26391f17bb8b66eceb9d3025aad5236ab29aaead53a83aeb1ac95c12087c[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.190[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 105, [1;32mhash[0m[32m: 16d9c3d6300a83cff55fefd9144633c978581fd65bc37e1821a1db3c9664dee1[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.190[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mChain head tip advanced, [1;32mold_height[0m[32m: 0, [1;32mnew_height[0m[32m: 105, [1;32mnew_hash[0m[32m: 16d9c3d6300a83cff55fefd9144633c978581fd65bc37e1821a1db3c9664dee1[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:1019
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:04.195[0m [32m INFO[0m [1;32mzainodlib[0m[32m: [32mZaino Indexer started successfully.[0m
+    [2;3mat[0m packages/zainod/src/lib.rs:52
+
+  [2m18:21:13.801[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_lightd_info"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:13.837[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_lightd_info"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:13.842[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_block_range"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.023[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.031[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.036[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.040[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.045[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.050[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.054[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.058[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.062[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.066[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.070[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.074[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.078[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.081[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.085[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.089[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.093[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.097[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.101[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.105[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.108[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.112[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.116[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.120[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.124[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.128[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.132[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.136[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.140[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.143[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.147[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.151[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.155[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.159[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.163[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.166[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.170[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.174[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.178[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.182[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.185[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.190[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.197[0m [32m INFO[0m [1;32mzainodlib::indexer[0m[32m: [32mZaino status check, [1;32mchain_state[0m[32m: Ready, [1;32mfs_mode[0m[32m: persistent, [1;32mjson_rpc[0m[32m: Offline, [1;32mgrpc[0m[32m: Ready[0m
+    [2;3mat[0m packages/zainod/src/indexer.rs:333
+
+  [2m18:21:14.197[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.201[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.204[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.207[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.211[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.217[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.232[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.240[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.243[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.246[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.249[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.252[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.256[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.259[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.262[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.265[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.268[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.271[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.274[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.277[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.280[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.283[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.286[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.289[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.293[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.296[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.299[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.302[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.305[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.308[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.311[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.315[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.318[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.321[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.324[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.327[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.330[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.333[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.336[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.339[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.342[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.345[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.348[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.351[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.353[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.356[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.359[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.363[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.366[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.369[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.373[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.378[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.382[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.386[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.388[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.391[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.394[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.397[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.400[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.403[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.406[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.409[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.423[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_tree_state"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.435[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_lightd_info"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.437[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_block_range"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.667[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_tree_state"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:14.690[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_lightd_info"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:15.386[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_tree_state"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:16.730[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "send_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:17.956[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_block"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:18.281[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mSyncing block, [1;32mheight[0m[32m: 106, [1;32mhash[0m[32m: 7a04e15cd84058224260f73463601a42f4b9c64a7dbcb6d693e3feefbee71228[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:483
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:18.282[0m [32m INFO[0m [1;32mzaino_chain_head_service::service[0m[32m: [32mChain head tip advanced, [1;32mold_height[0m[32m: 105, [1;32mnew_height[0m[32m: 106, [1;32mnew_hash[0m[32m: 7a04e15cd84058224260f73463601a42f4b9c64a7dbcb6d693e3feefbee71228[0m
+    [2;3mat[0m packages/zaino-chain-head-service/src/service.rs:1019
+    [2;3min[0m zaino_chain_head_service::service::[1mChainHeadService::tick[0m
+
+  [2m18:21:18.961[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_block"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:18.970[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_lightd_info"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:18.976[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_block_range"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:19.007[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_transaction"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+
+  [2m18:21:19.023[0m [32m INFO[0m [1;32mzaino_serve::rpc::grpc::service[0m[32m: [32m[TEST] received call, [1;32mmethod[0m[32m: "get_tree_state"[0m
+    [2;3mat[0m packages/zaino-serve/src/rpc/grpc/service.rs:157
+

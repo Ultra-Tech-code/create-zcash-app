@@ -256,7 +256,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
 
     const [scanRes, sendRes] = await Promise.all([scanPromise, sendPromise]);
     expect(scanRes).toBeDefined();
-    expect(sendRes.txid).toBe('1122334455667788112233445566778811223344556677881122334455667788');
+    expect(sendRes.txid).toBe(reverseTxid('1122334455667788112233445566778811223344556677881122334455667788'));
   });
 
   it('Scenario 4: Pending note stays excluded until mined or expires', async () => {
@@ -297,7 +297,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       amount: 150_000_000n,
     });
 
-    expect(result.txid).toBe('9988776655443322998877665544332299887766554433229988776655443322');
+    expect(result.txid).toBe(reverseTxid('9988776655443322998877665544332299887766554433229988776655443322'));
 
     // 2. Verify note is recorded with state 'broadcast'
     const row = runSql('SELECT state, expiry_height FROM pending_spends WHERE note_id = 4;');
@@ -481,7 +481,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       allowUnverifiedAnchor: true,
     });
 
-    expect(result.txid).toBe('aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899');
+    expect(result.txid).toBe(reverseTxid('aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899'));
     expect(buildSpy).toHaveBeenCalledTimes(1);
     expect(runSql('SELECT state FROM pending_spends WHERE note_id = 8;')).toBe('broadcast');
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('NOT verified against the node'));
@@ -580,7 +580,7 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       amount: 100_000_000n,
     });
 
-    expect(result.txid).toBe('c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00');
+    expect(result.txid).toBe(reverseTxid('c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00'));
     expect(buildSpy).toHaveBeenCalledTimes(1);
     expect(runSql('SELECT state FROM pending_spends WHERE note_id = 10;')).toBe('broadcast');
   });

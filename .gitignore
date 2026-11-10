@@ -20,6 +20,7 @@ packages/core/src/real_tx_v6.hex
 packages/core/tests/wallet_integration_run/
 packages/sdk/scratch/
 docs/book/
+.build/
 .env.*
 !.env.example
 !.env.sample

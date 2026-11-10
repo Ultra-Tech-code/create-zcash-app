@@ -1,0 +1,102 @@
+======================================================================
+=== DOCKER INSPECT REMOTE NODE OPERATION PROOF                     ===
+=== Scope: separate container and network, no shared volume,       ===
+===        same machine; not tested across hosts                   ===
+======================================================================
+
+--- 1. Zebra 7.0.0 Container (zebra-spike) ---
+COMMAND: docker inspect zebra-spike | jq '.[0] | {Name: .Name, Mounts: .Mounts, Networks: .NetworkSettings.Networks}'
+OUTPUT:
+{
+  "Name": "/zebra-spike",
+  "Mounts": [
+    {
+      "Type": "volume",
+      "Name": "zallet-spike-zebra-data",
+      "Source": "/var/lib/docker/volumes/zallet-spike-zebra-data/_data",
+      "Destination": "/home/zebra/.cache/zebra",
+      "Driver": "local",
+      "Mode": "z",
+      "RW": true,
+      "Propagation": ""
+    },
+    {
+      "Type": "bind",
+      "Source": "/host_mnt/Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/spikes/zallet-beta4/zebra.toml",
+      "Destination": "/home/zebra/.config/zebrad.toml",
+      "Mode": "ro",
+      "RW": false,
+      "Propagation": "rprivate"
+    }
+  ],
+  "Networks": {
+    "zallet-spike-net": {
+      "IPAMConfig": null,
+      "Links": null,
+      "Aliases": null,
+      "DriverOpts": null,
+      "GwPriority": 0,
+      "NetworkID": "208aea1458b03ad6b7b6331fd7bf2c56fb6886c2dddb808d429ab6629665d5a4",
+      "EndpointID": "57458d0e7a2a52f7850ba19d61871146a9ae316fc5154bfa622547e06b5e4db9",
+      "Gateway": "172.22.0.1",
+      "IPAddress": "172.22.0.2",
+      "MacAddress": "fe:0f:ab:d0:01:ed",
+      "IPPrefixLen": 16,
+      "IPv6Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "DNSNames": [
+        "zebra-spike",
+        "e6e0ef6819b4"
+      ]
+    }
+  }
+}
+
+--- 2. Zaino RPC-Only Mode Process Isolation ---
+COMMAND: ps -o pid,args -p 32362
+OUTPUT:
+  PID ARGS
+32362 /tmp/zaino-check/target/release/zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
+
+COMMAND: lsof -p 32362 | grep -i zebra
+OUTPUT:
+(exit code 1 - no open files matching "zebra")
+
+COMMAND: grep -n "config loaded" packages/core/tests/logs/zainod_startup_rpc.log
+OUTPUT:
+4:  18:21:03.318  INFO zainodlib::config: config loaded and validated, path: packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
+
+--- 3. Lightwalletd Container (zcash-regtest-nu7-lightwalletd-1) ---
+COMMAND: docker inspect zcash-regtest-nu7-lightwalletd-1 | jq '.[0] | {Name: .Name, Mounts: .Mounts, Networks: .NetworkSettings.Networks}'
+OUTPUT:
+{
+  "Name": "/zcash-regtest-nu7-lightwalletd-1",
+  "Mounts": [],
+  "Networks": {
+    "zcash-regtest-nu7_default": {
+      "IPAMConfig": null,
+      "Links": null,
+      "Aliases": [
+        "zcash-regtest-nu7-lightwalletd-1",
+        "lightwalletd"
+      ],
+      "DriverOpts": null,
+      "GwPriority": 0,
+      "NetworkID": "1fd5e3a16d65bc92e89e138dd6b16d78e7aaa01a74021a1e4ecbed544c998e29",
+      "EndpointID": "a31d9819a89c7bafeb6e2c3ef1ab0416c79c4fb3d241b0cabddb8908141939e4",
+      "Gateway": "172.23.0.1",
+      "IPAddress": "172.23.0.3",
+      "MacAddress": "56:52:69:24:ab:d5",
+      "IPPrefixLen": 16,
+      "IPv6Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "DNSNames": [
+        "zcash-regtest-nu7-lightwalletd-1",
+        "lightwalletd",
+        "877a4bfdcb12"
+      ]
+    }
+  }
+}

@@ -84,11 +84,11 @@ async function main() {
   });
   const durationMs = Date.now() - startTime;
 
-  const displayTxid = Buffer.from(sendResult.txid, 'hex').reverse().toString('hex');
+  // send() returns the txid in node/explorer display order directly
+  const displayTxid = sendResult.txid;
 
   console.log('Transaction built, proven, and broadcast successfully!');
   console.log(`  Broadcast TxID (node display order): ${displayTxid}`);
-  console.log(`  Internal TxID (raw byte order):      ${sendResult.txid}`);
   console.log(`  Fee:           ${sendResult.fee} zatoshis`);
   console.log(`  Num Actions:   ${sendResult.numActions}`);
   console.log(`  Expiry Height: ${sendResult.expiryHeight}`);

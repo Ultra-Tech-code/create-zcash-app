@@ -2,6 +2,11 @@
 
 All notable changes to `create-zcash-app` and its workspace packages will be documented in this file.
 
+## [Unreleased]
+
+### Breaking Changes
+- **SDK `send()` Returns Display-Order TxID**: `send()` (`@zcash-app/sdk`) now returns `txid` in standard node/explorer display order (byte-reversed relative to internal Zcash wire format). This aligns with Zebra JSON-RPC (`getrawmempool`, `getblock`, `getrawtransaction`), block explorers, and user expectations. Previously, `send()` returned the internal wire-order byte string, requiring manual calls to `reverseTxid()`. Internal wallet functions (such as `markBroadcastWithReservation()`) continue to consume wire order as required by native core bindings.
+
 ## [0.1.0-alpha.4] - 2026-11-05
 
 ### Developer Dashboard (`@zcash-app/dashboard`)

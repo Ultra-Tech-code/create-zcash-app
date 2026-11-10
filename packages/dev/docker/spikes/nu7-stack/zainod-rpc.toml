@@ -1,0 +1,18 @@
+backend = "rpc"
+network = "Regtest"
+
+[grpc_settings]
+listen_address = "127.0.0.1:8137"
+
+[validator_settings]
+validator_jsonrpc_listen_address = "127.0.0.1:49232"
+validator_user = "xxxxxx"
+validator_password = "xxxxxx"
+
+[storage.cache]
+capacity = 10000
+shard_power = 4
+
+[storage.database]
+path = "/tmp/zaino-regtest-rpc-db"
+

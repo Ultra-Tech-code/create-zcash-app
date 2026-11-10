@@ -1,0 +1,73 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION: LIGHTWALLETD =====
+===============================================================
+backend mode:      lightwalletd
+config file name:  packages/dev/docker/regtest-nu7/docker-compose.yml
+Lightwalletd listen port: 39067
+Zebra RPC port:    39232
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=114)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Light Client gRPC Service ---
+lightwalletd git commit (from GetLightdInfo): e7436d2adb9ab5828eb8a27de534e16218841fc2
+Vendor:            ECC LightWalletD
+Version:           v0.6.0
+Branch ID:         77190ad9
+Tip Height:        114
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Block height matches Zebra tip (height=114)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 114...
+Scanned: 114/114
+Discovered unspent notes: 113
+Total spendable balance: 23341114629 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=113)
+[PASS] Account 0 has spendable balance (balance=23341114629)
+
+--- 3b. Verifying Ironwood Notes & Tree State ---
+Account 0 discovered Ironwood notes: 120
+Sample Ironwood note: pool=ironwood, value=208333333, txid=2e2f8e5cd3310967a495c8b314b3a7945c9267dd97f3a99a06e1fe20a44afb58
+[PASS] SDK discovered Ironwood note (ironwoodNotes=120)
+GetTreeState(114) ironwoodTree: 01610aa2809151f8eb2a36c1fb1fa6061126cd80e53731cbf9271c6a1483de2a0d001f01ea245c0671e7c8e5529183af06c4dc0e05f98990d47493c57c25be7ee2bb9a230172dd1ce199258db9ff0029ab627797103bf13781461fee8b5d359859c137d5370131b47f17a3aa66c48f04c218d4d434af0ec6cec764a687e7da1ec7f3ff58db1101a52e6a00eb6718594694beaf98aea6a91035ce4a377bdf427a479e3fc28cbb01015473d1245068a0c86ccc58887200210af4eb8658d4c8c7ef19594afe92dc313801917b78d096118c5fe558125c2e0806ef9292db0887865d84524d5c754716ca3f00000000000000000000000000000000000000000000000000
+GetTreeState(114) decoded Ironwood root: 967981f47cbc74562b0776b4ff7c47a06da5eb1b36fb368a63963db5d87b6d3f
+[PASS] GetTreeState returns non-empty Ironwood root (root=967981f47cbc74562b0776b4ff7c47a06da5eb1b36fb368a63963db5d87b6d3f)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+Send TxID: 466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 235
+[PASS] Send returned valid txid (txid=466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=235, expected=235)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae)
+TxID 466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae appears verbatim in Zebra mempool
+Mined block hash: accfdfbd4ec503ba0923560499f8070dcb972674abeb483fd81a1a84c8572199
+[PASS] Block successfully mined (blockHash=accfdfbd4ec503ba0923560499f8070dcb972674abeb483fd81a1a84c8572199)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+TxID 466c8a658f4ced25384225ef4dfeba9732e961bf1085ab73bc62527eaf5e6bae appears verbatim in mined block 115 tx list
+Waiting for service to index mined block 115...
+Service indexed block 115
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 115/115
+Recipient Unspent Notes: 4
+Recipient Balance: 300100000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=4)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=300100000)
+
+======================================================================
+=== LIGHTWALLETD NU7 REGTEST END-TO-END VERIFIED: 21/21 ASSERTIONS PASSED ✅ ===
+======================================================================
+

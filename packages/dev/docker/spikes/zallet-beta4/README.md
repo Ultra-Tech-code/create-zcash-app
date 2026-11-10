@@ -63,7 +63,7 @@ docker compose up -d zallet
 
 1. **NU7 Shielded Support**:
    - `getwalletinfo` returns account-level balances cleanly.
-   - `z_listunspent` correctly recognizes mature NU7 Ironwood-pool notes (`pool: "ironwood"`, value `2.08333333` ZEC).
+   - `z_listunspent` correctly recognizes NU7 Ironwood-pool notes (`pool: "ironwood"`, value `2.08333333` ZEC).
    - `z_sendmany` successfully constructs, performs Halo 2 proving, and broadcasts version 6 (v6) Ironwood shielded transactions (verified in block 116, txid `30c108ab1881fc8c945f37fb96d4c478230d25c6e951fc402d3b33961769b558`).
 2. **Upstream `z_listtransactions` Crash**:
    - Calling `z_listtransactions` fails with:
