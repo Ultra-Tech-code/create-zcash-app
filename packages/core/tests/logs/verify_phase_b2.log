@@ -1,0 +1,1035 @@
+=== [1/8] Checking Log Provenance & Integrity against MANIFEST ===
+=== Checking Log Provenance & Integrity against MANIFEST ===
+✅ All 115 log files match MANIFEST sha256, tracked in git, and recorded provenance commands cleanly.
+=== [2/8] Running Cargo Tests ===
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.34s
+     Running unittests src/lib.rs (target/debug/deps/zcash_core-66997c169da359cf)
+
+running 3 tests
+test tests::test_decrypt_action_computes_nullifier ... ok
+test tests::test_internal_ironwood_change_note_decryption ... ok
+test tests::test_derive_account_regtest ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/decrypt_transaction_test.rs (target/debug/deps/decrypt_transaction_test-410059c1dc771c62)
+
+running 6 tests
+test test_stranger_sees_nothing ... ok
+test test_recipient_ivk_decrypts_incoming_note_and_memo ... ok
+test test_sender_ovk_recovers_outgoing_and_internal_change ... ok
+test test_decrypt_transaction_fee_ironwood_only ... ok
+test test_ovk_policy_none_prevents_sender_recovery ... ok
+test test_decrypt_transaction_fee_with_transparent_part ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 30.77s
+
+     Running tests/full_suite_test.rs (target/debug/deps/full_suite_test-6a5cffc702fb7ebc)
+
+running 19 tests
+test test_decode_real_regtest_funding_block_with_ironwood_actions ... ok
+test test_decode_real_regtest_compact_block_and_missing_field_rejection ... ok
+test test_ironwood_isolation_rejects_orchard_v2_notes ... ok
+test test_chain_reset_first_scanned_hash_mismatch ... ok
+test test_activation_scan_prevents_unseeded_tree_gap ... ok
+test test_ordinary_reorg_resolves_common_ancestor_in_window ... ok
+test test_atomicity_fault_injection_between_notes_and_checkpoint ... ok
+test test_reorg_orphaned_note_with_pending_spend_remined_at_new_height ... ok
+test test_reorg_depth_exceeded_beyond_100_block_window ... ok
+test test_atomicity_crash_rollback_on_batch_failure ... ok
+test test_ironwood_isolation_ignores_orchard_actions_completely ... ok
+test test_persisted_vs_rescan_close_reopen_parity ... ok
+test test_periodic_root_check_mismatch_and_recovery ... ok
+test test_restart_fetches_zero_old_blocks ... ok
+test test_persisted_equals_rescan_bit_for_bit ... ok
+test test_real_child_process_sigkill_mid_batch_and_clean_resume ... ok
+test test_time_bounded_batch_interruption_and_clean_resume_parity ... ok
+test test_sliding_window_prunes_headers_without_deleting_notes ... ok
+test test_time_bounded_batching_yields_write_lock_under_slow_scan ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.32s
+
+     Running tests/pending_spends_test.rs (target/debug/deps/pending_spends_test-6c753490d8ac1e70)
+
+running 3 tests
+test test_stale_reservation_and_expired_tx_cleanup ... ok
+test test_slow_proving_heartbeat_refresh_preserves_reservation ... ok
+test test_reserve_notes_and_state_transitions ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/reorg_test.rs (target/debug/deps/reorg_test-21fe1b171de37ead)
+
+running 3 tests
+test test_chain_identity_reset_error ... ok
+test test_reorg_preserves_in_flight_reservation_on_valid_note ... ok
+test test_reorg_detection_and_resolution_walkback ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+     Running tests/scanner_test.rs (target/debug/deps/scanner_test-9627c5c054eb350d)
+
+running 5 tests
+test test_scanner_detects_tree_size_gap ... ok
+test test_scanner_rejects_missing_metadata ... ok
+test test_scanner_rejects_malformed_action ... ok
+test test_scanner_dual_scope_and_positions_and_spend_detection ... ok
+test test_synthetic_chain_benchmark_and_concurrent_send_safety ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.52s
+
+     Running tests/shard_store_test.rs (target/debug/deps/shard_store_test-f4d99ca86a044941)
+
+running 5 tests
+test test_live_zebra_gettreestate_window_comparison ... ignored
+test test_decode_zaino_frontier_hex ... ok
+test test_decode_zaino_tampered_frontier_fails_or_mismatches ... ok
+test test_shard_store_matches_memory_shard_store_roundtrip ... ok
+test test_p1_vs_p2_anchor_comparison ... ok
+
+test result: ok. 4 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 5.46s
+
+     Running tests/spendable_test.rs (target/debug/deps/spendable_test-fa3ae72d421fb0a1)
+
+running 4 tests
+test test_reorg_orphaned_reservation_blocks_spending_before_relink ... ok
+test test_builder_note_query_rejects_spent_above_anchor_and_unwitnessed_notes ... ok
+test test_spendable_notes_confirmation_boundaries_and_anchor_filtering ... ok
+test test_builder_integration_with_spendable_notes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 22.36s
+
+     Running tests/transaction_test.rs (target/debug/deps/transaction_test-9ff6d36e52e46560)
+
+running 14 tests
+test test_c_live_regtest_broadcast_and_mine ... ignored
+test test_fee_acceptance_on_regtest_node ... ignored, requires live Zebra regtest node with NU7 on port 39232 (run under verify-live.sh)
+test test_default_tx_expiry_delta_for_nu6_3_and_nu7 ... ok
+test test_p6_zip317_fee_parity_with_crate_feerule ... ok
+test test_p4_analyze_crate_support_and_two_bundles ... ok
+test test_amendment2_zip302_default_memo ... ok
+test test_a_pure_rust_multi_input_multi_output has been running for over 60 seconds
+test test_amendment1_zip317_fee_strictness has been running for over 60 seconds
+test test_amendment3_ovk_policy has been running for over 60 seconds
+test test_amendment4_action_padding has been running for over 60 seconds
+test test_amendment5_anchor_and_expiry has been running for over 60 seconds
+test test_amendments_6_and_7_security_and_error_handling has been running for over 60 seconds
+test test_b_round_trip_transaction_read_and_txid has been running for over 60 seconds
+test test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id has been running for over 60 seconds
+test test_amendment3_ovk_policy ... ok
+test test_amendment4_action_padding ... ok
+test test_amendment1_zip317_fee_strictness ... ok
+test test_amendments_6_and_7_security_and_error_handling ... ok
+test test_build_testnet_tx_at_nu7_height_has_nu7_consensus_branch_id ... ok
+test test_amendment5_anchor_and_expiry ... ok
+test test_a_pure_rust_multi_input_multi_output ... ok
+test test_b_round_trip_transaction_read_and_txid ... ok
+
+test result: ok. 12 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 72.19s
+
+     Running tests/tree_frontier_init_test.rs (target/debug/deps/tree_frontier_init_test-b53b400e523a50cd)
+
+running 4 tests
+test test_tree_frontier_init_empty_frontier_rejection ... ok
+test test_tree_frontier_init_size_mismatch_rejection ... ok
+test test_tree_frontier_init_from_captured_fixture ... ok
+test test_tree_frontier_init_idempotent ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/wallet_db_test.rs (target/debug/deps/wallet_db_test-1e20b6d0a85113cf)
+
+running 10 tests
+test test_consensus_branch_id_derivation ... ok
+test test_nu7_activation_heights_from_consensus ... ok
+test test_nu6_3_activation_heights_from_consensus ... ok
+test test_address_equivalence_in_code ... ok
+test test_schema_v2_to_v3_migration_in_place ... ok
+test test_schema_v1_to_v2_migration_in_place_preserves_reservations ... ok
+test test_notes_unique_txid_action_constraint ... ok
+test test_schema_initialization_and_permissions ... ok
+test test_metadata_binding_and_mismatch ... ok
+test test_legacy_regtest_nu7_metadata_migration ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/wallet_handle_test.rs (target/debug/deps/wallet_handle_test-92b0cb07094b1df3)
+
+running 1 test
+test test_wallet_handle_lifecycle_and_async_scan ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+   Doc-tests zcash_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+=== [3/8] Running Cargo Clippy ===
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.32s
+=== [4/8] Running SDK Tests ===
+$ napi build --platform --release
+    Finished `release` profile [optimized] target(s) in 0.17s
+$ vitest run
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/0xblackadam/Downloads/zcash_scafolder/packages/sdk
+
+ ✓ src/consensus.test.ts (5 tests) 3ms
+ ✓ src/spend-tracking.test.ts (2 tests) 6ms
+ ✓ src/decrypted-tx.test.ts (3 tests) 86ms
+ ✓ src/mainnet-guard.test.ts (4 tests) 7ms
+stdout | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
+[Sync] (127.0.0.1:39067) (local) Starting sync from height 50 to target 50 (tip: 50, batch size: 1000, throttle: 50ms)...
+
+ ✓ src/client.test.ts (11 tests) 147ms
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > makes zero block requests when already at tip, and requests only >= last_scanned+1 on advance
+[Sync] (undefined) (third-party server) Wallet already synced at height 0 (target end: 0). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 15 (target end: 15). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Starting sync from height 16 to target 25 (tip: 25, batch size: 10, throttle: 50ms)...
+
+stdout | src/sync.test.ts > SDK syncWallet, Mock Block Streamer, and GetTreeState Verification > negative test: tampered GetTreeState ironwoodTree frontier yields treeStateMatched = false
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+[Sync] (undefined) (third-party server) Wallet already synced at height 10 (target end: 10). Fetching 0 blocks.
+
+ ✓ src/sync.test.ts (2 tests) 51ms
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 1: Two concurrent send() calls on the same note: exactly 1 succeeds, other fails with insufficient funds
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
+[Sync] (127.0.0.1:39067) (local) Failed to fetch full transaction aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa (attempted 3x): Connection timeout to node
+
+stdout | src/sync-tx-fetch.test.ts > Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts
+[Sync] (127.0.0.1:39067) (local) Height: 50/50 (100.0%) | Req: 5 | Speed: 1.6 blocks/s
+
+ ✓ src/sync-tx-fetch.test.ts (4 tests) 646ms
+   ✓ Stage 2b: Offline Unit Tests - Full Tx Fetching, Deduplication, Reorg & Permissions > retries failed GetTransaction fetches, never drops them silently, and surfaces pending/failed counts 616ms
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 2: Failed build releases reservation (notes returned to spendable)
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 3: Send during a running sync (verifies non-blocking write lock yield)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 3: Send during a running sync (verifies non-blocking write lock yield)
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 4: Pending note stays excluded until mined or expires
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 4: Pending note stays excluded until mined or expires
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 5: send() aborts before build when the anchor root differs from the node GetTreeState root
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 6: an undecodable node frontier aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Warning: GetTreeState verification returned error: Failed to parse commitment tree: Non-canonical encoding of Pallas base field value.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 7: an unreachable node aborts before build and leaves no reservation
+[Sync] (undefined) (third-party server) Warning: GetTreeState verification returned error: 14 UNAVAILABLE: connect ECONNREFUSED 127.0.0.1:39067
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 8: an unreachable node with allowUnverifiedAnchor=true proceeds with the local root
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 9: a node reporting an EMPTY Ironwood tree aborts when the wallet has commitments
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   000000
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Scenario 10: an empty local checkpoint matches the node empty-tree marker (check passes)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   000000
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > forbids allowUnverifiedAnchor on testnet with AnchorVerificationError
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4465030 (tip: 4465030, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4465030):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > forbids allowUnverifiedAnchor on testnet with AnchorVerificationError
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest default (NU7) when node reports 77190ad9
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest default (NU7) when node reports 77190ad9
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest-nu7 alias when node reports 77190ad9
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 10 (tip: 10, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(10):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > accepts regtest-nu7 alias when node reports 77190ad9
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > computes correct branch default expiry delta (+40 for NU6.3, +120 for NU7) through send pipeline and core NAPI
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4465024 (tip: 4465024, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4465024):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4542238 (tip: 4542238, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4542238):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > computes correct branch default expiry delta (+40 for NU6.3, +120 for NU7) through send pipeline and core NAPI
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+stdout | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > enforces network upgrade boundaries: refuses to build 1 block before activation and computes for tip+1 (testnet & mainnet)
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4465024 (tip: 4465024, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4465024):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 4465026 (tip: 4465026, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(4465026):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 3543403 (tip: 3543403, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(3543403):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+[Sync] (undefined) (third-party server) Starting sync from height 2 to target 3543405 (tip: 3543405, batch size: 1000, throttle: 50ms)...
+[Sync] (undefined) (third-party server) Verified against GetTreeState(3543405):
+  Wallet Ironwood Root:  null
+  Remote ironwoodTree:   0100000000000000000000000000000000000000000000000000000000000000000000
+  Derived Remote Root:   b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[send] (127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+stderr | src/send.test.ts > P5: Async Proving, Send Pipeline, and Pending-Spend Tracking > Consensus Branch Verification & Regtest Modes > enforces network upgrade boundaries: refuses to build 1 block before activation and computes for tip+1 (testnet & mainnet)
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+[Sync] (undefined) (third-party server) Mismatch! Wallet root null != Remote frontier root b8c1075a80a80965c2398f711fe73e05b4edaedef162f261d4eed7cd72748d17
+
+ ✓ src/send.test.ts (21 tests) 573ms
+ ✓ src/explorer.test.ts (18 tests) 8699ms
+   ✓ Phase 3 Explorer Offline Tests > Security: request with ?zebraRpc=... query param must NOT cause any call to that listener 3940ms
+   ✓ Phase 3 Explorer Offline Tests > Security: without ZCASH_ALLOW_CUSTOM_ENDPOINT=1, ?customEndpoint=... causes zero connections to a canary listener for /api/explorer, /api/status, and /api/account 1332ms
+   ✓ Phase 3 Explorer Offline Tests > Phase 3 Follow-up #2 (2): calls real /api/explorer handler across tx hit, block hit, not-found, node-unreachable with secret tokens and asserts zero leaks in body or headers 3141ms
+
+ Test Files  9 passed (9)
+      Tests  70 passed (70)
+   Start at  09:02:49
+   Duration  10.19s (transform 603ms, setup 0ms, collect 8.86s, tests 10.22s, environment 1ms, prepare 733ms)
+
+=== [5/8] Running zcash-dev CLI Tests ===
+$ tsc
+$ tsc
+$ tsc
+$ node --test test/*.test.mjs
+TAP version 13
+# Subtest: Private-Key & RPC Configuration (create-zcash-app & zcash-dev)
+    # Subtest: 1. Env parser precedence: process.env wins > .env.local > .env
+    ok 1 - 1. Env parser precedence: process.env wins > .env.local > .env
+      ---
+      duration_ms: 1.389416
+      type: 'test'
+      ...
+    # Subtest: 2. Redaction: secret URLs and mnemonics are scrubbed from outputs and errors
+    ok 2 - 2. Redaction: secret URLs and mnemonics are scrubbed from outputs and errors
+      ---
+      duration_ms: 0.233125
+      type: 'test'
+      ...
+    # Subtest: 3. .gitignore guard: verifies .gitignore protects .env.local
+    ok 3 - 3. .gitignore guard: verifies .gitignore protects .env.local
+      ---
+      duration_ms: 0.693875
+      type: 'test'
+      ...
+    # Subtest: 4. File mode 0600: .env.local permissions are restricted to owner read/write
+    ok 4 - 4. File mode 0600: .env.local permissions are restricted to owner read/write
+      ---
+      duration_ms: 45.686917
+      type: 'test'
+      ...
+    # Subtest: 5. Mainnet key policy: refuses to write mnemonic to disk without explicit flag
+    ok 5 - 5. Mainnet key policy: refuses to write mnemonic to disk without explicit flag
+      ---
+      duration_ms: 89.234792
+      type: 'test'
+      ...
+    # Subtest: 6. Argv safety: assert NO --mnemonic or -m option exists in CLI programs
+    ok 6 - 6. Argv safety: assert NO --mnemonic or -m option exists in CLI programs
+      ---
+      duration_ms: 0.285167
+      type: 'test'
+      ...
+    # Subtest: 7. Template route: testnet/mainnet error without key, UFVK watch-only rejects send
+    ok 7 - 7. Template route: testnet/mainnet error without key, UFVK watch-only rejects send
+      ---
+      duration_ms: 65.073375
+      type: 'test'
+      ...
+    # Subtest: 8. send command: default dry run quotes fee and never calls broadcast
+    ok 8 - 8. send command: default dry run quotes fee and never calls broadcast
+      ---
+      duration_ms: 0.596542
+      type: 'test'
+      ...
+    # Subtest: 9. Scaffold e2e: non-interactive scaffold for regtest and testnet in temp dir
+    ok 9 - 9. Scaffold e2e: non-interactive scaffold for regtest and testnet in temp dir
+      ---
+      duration_ms: 97.499792
+      type: 'test'
+      ...
+    # Subtest: 10. Grep test: sentinel secret mnemonic never appears in CLI output or logs
+    ok 10 - 10. Grep test: sentinel secret mnemonic never appears in CLI output or logs
+      ---
+      duration_ms: 205.294791
+      type: 'test'
+      ...
+    # Subtest: 11. validateEndpoint: rejects values containing "://" with exact message and validates endpoint formats
+    ok 11 - 11. validateEndpoint: rejects values containing "://" with exact message and validates endpoint formats
+      ---
+      duration_ms: 133.20425
+      type: 'test'
+      ...
+    # Subtest: 12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit
+    ok 12 - 12. validateMnemonic: tests invalid words, wrong checksum, 15-word phrase, valid 24-word phrase, and CLI exit
+      ---
+      duration_ms: 42.974417
+      type: 'test'
+      ...
+    # Subtest: 13. Secret URL and credential redaction: secrets appear only in .env.local and are redacted in zcash.config.json
+    ok 13 - 13. Secret URL and credential redaction: secrets appear only in .env.local and are redacted in zcash.config.json
+      ---
+      duration_ms: 46.1925
+      type: 'test'
+      ...
+    # Subtest: 14. BIP-39 wordlist SHA-256 integrity: hash equals 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
+    ok 14 - 14. BIP-39 wordlist SHA-256 integrity: hash equals 2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda
+      ---
+      duration_ms: 0.4505
+      type: 'test'
+      ...
+    # Subtest: 15. Scaffolder regtest stack option: lightwalletd, zaino, full, and z3 rejection
+    ok 15 - 15. Scaffolder regtest stack option: lightwalletd, zaino, full, and z3 rejection
+      ---
+      duration_ms: 166.74675
+      type: 'test'
+      ...
+    # Subtest: 16. Unbound WalletHandle.open regression test: executeSend with default openFn exercises receiver binding
+    ok 16 - 16. Unbound WalletHandle.open regression test: executeSend with default openFn exercises receiver binding
+      ---
+      duration_ms: 11.796583
+      type: 'test'
+      ...
+    # Subtest: 17. executeFund unit tests: lightwalletd, zaino, full SDK send and Z3 rejection
+    ok 17 - 17. executeFund unit tests: lightwalletd, zaino, full SDK send and Z3 rejection
+      ---
+      duration_ms: 62.704917
+      type: 'test'
+      ...
+    # Subtest: 18. regtest-init.sh retry logic & CLI execSync error handling
+    ok 18 - 18. regtest-init.sh retry logic & CLI execSync error handling
+      ---
+      duration_ms: 7955.842333
+      type: 'test'
+      ...
+    # Subtest: 19. Scaffolder honesty: generated package.json has "dashboard" script and README mentions "pnpm dashboard"
+    ok 19 - 19. Scaffolder honesty: generated package.json has "dashboard" script and README mentions "pnpm dashboard"
+      ---
+      duration_ms: 53.753625
+      type: 'test'
+      ...
+    # Subtest: 20. Dashboard launch resolution: chooses packaged next start when @zcash-app/dashboard is built, dev for monorepo, error when none
+    ok 20 - 20. Dashboard launch resolution: chooses packaged next start when @zcash-app/dashboard is built, dev for monorepo, error when none
+      ---
+      duration_ms: 0.227417
+      type: 'test'
+      ...
+    1..20
+ok 1 - Private-Key & RPC Configuration (create-zcash-app & zcash-dev)
+  ---
+  duration_ms: 8980.80775
+  type: 'suite'
+  ...
+# Subtest: Pretty RPC & Formatters Unit Tests
+    # Subtest: Rule 1: BigInt Zatoshis End-to-End
+        # Subtest: formats zatoshis to exact ZEC string without floating point drift
+        ok 1 - formats zatoshis to exact ZEC string without floating point drift
+          ---
+          duration_ms: 0.325083
+          type: 'test'
+          ...
+        # Subtest: parses ZEC decimal string to BigInt zatoshis without float pitfalls
+        ok 2 - parses ZEC decimal string to BigInt zatoshis without float pitfalls
+          ---
+          duration_ms: 0.141083
+          type: 'test'
+          ...
+        # Subtest: formats zatoshis with comma thousand separators
+        ok 3 - formats zatoshis with comma thousand separators
+          ---
+          duration_ms: 0.121833
+          type: 'test'
+          ...
+        # Subtest: extracts zatoshis reliably via toZatoshis
+        ok 4 - extracts zatoshis reliably via toZatoshis
+          ---
+          duration_ms: 0.081375
+          type: 'test'
+          ...
+        1..4
+    ok 1 - Rule 1: BigInt Zatoshis End-to-End
+      ---
+      duration_ms: 0.994042
+      type: 'suite'
+      ...
+    # Subtest: Rule 2: Pool Lookup by ID and Unknown Pool Handling
+        # Subtest: looks up pools by id regardless of array ordering
+        ok 1 - looks up pools by id regardless of array ordering
+          ---
+          duration_ms: 0.266166
+          type: 'test'
+          ...
+        # Subtest: handles missing pools without crashing
+        ok 2 - handles missing pools without crashing
+          ---
+          duration_ms: 1.784375
+          type: 'test'
+          ...
+        # Subtest: handles unknown future pools cleanly with their id
+        ok 3 - handles unknown future pools cleanly with their id
+          ---
+          duration_ms: 0.202667
+          type: 'test'
+          ...
+        1..3
+    ok 2 - Rule 2: Pool Lookup by ID and Unknown Pool Handling
+      ---
+      duration_ms: 2.584709
+      type: 'suite'
+      ...
+    # Subtest: Rule 3: UTC ISO-8601 vs Local Timestamps
+        # Subtest: formats default timestamp as UTC ISO-8601 ending with Z
+        ok 1 - formats default timestamp as UTC ISO-8601 ending with Z
+          ---
+          duration_ms: 1.135291
+          type: 'test'
+          ...
+        # Subtest: formats local timestamp with timezone offset when local=true
+        ok 2 - formats local timestamp with timezone offset when local=true
+          ---
+          duration_ms: 0.376584
+          type: 'test'
+          ...
+        # Subtest: handles missing or invalid timestamps gracefully
+        ok 3 - handles missing or invalid timestamps gracefully
+          ---
+          duration_ms: 0.356125
+          type: 'test'
+          ...
+        1..3
+    ok 3 - Rule 3: UTC ISO-8601 vs Local Timestamps
+      ---
+      duration_ms: 2.102459
+      type: 'suite'
+      ...
+    # Subtest: Rule 4: Ironwood Pool Detection & Display
+        # Subtest: detects Ironwood in NU7 coinbase transaction
+        ok 1 - detects Ironwood in NU7 coinbase transaction
+          ---
+          duration_ms: 1.3135
+          type: 'test'
+          ...
+        # Subtest: detects Ironwood in NU7 payment transaction
+        ok 2 - detects Ironwood in NU7 payment transaction
+          ---
+          duration_ms: 0.175417
+          type: 'test'
+          ...
+        1..2
+    ok 4 - Rule 4: Ironwood Pool Detection & Display
+      ---
+      duration_ms: 1.553042
+      type: 'suite'
+      ...
+    # Subtest: Rule 5: Fee Calculation & Unresolved Transparent Inputs
+        # Subtest: calculates fee accurately for shielded Ironwood transaction
+        ok 1 - calculates fee accurately for shielded Ironwood transaction
+          ---
+          duration_ms: 0.076083
+          type: 'test'
+          ...
+        # Subtest: calculates coinbase fee as subsidy - outputs
+        ok 2 - calculates coinbase fee as subsidy - outputs
+          ---
+          duration_ms: 0.046708
+          type: 'test'
+          ...
+        # Subtest: outputs "fee: n/a (transparent inputs not resolved)" when prevouts are unresolved
+        ok 3 - outputs "fee: n/a (transparent inputs not resolved)" when prevouts are unresolved
+          ---
+          duration_ms: 0.198166
+          type: 'test'
+          ...
+        # Subtest: computes exact fee when transparent inputs are resolved
+        ok 4 - computes exact fee when transparent inputs are resolved
+          ---
+          duration_ms: 0.055166
+          type: 'test'
+          ...
+        1..4
+    ok 5 - Rule 5: Fee Calculation & Unresolved Transparent Inputs
+      ---
+      duration_ms: 0.426917
+      type: 'suite'
+      ...
+    # Subtest: Rule 6: Pure Functions & Concurrency without Temp Files
+        # Subtest: produces identical output across concurrent runs without filesystem side-effects
+        ok 1 - produces identical output across concurrent runs without filesystem side-effects
+          ---
+          duration_ms: 1.561458
+          type: 'test'
+          ...
+        1..1
+    ok 6 - Rule 6: Pure Functions & Concurrency without Temp Files
+      ---
+      duration_ms: 1.589959
+      type: 'suite'
+      ...
+    # Subtest: Rule 7: Mempool vs Mined Transactions
+        # Subtest: formats mined transaction with block height and confirmations
+        ok 1 - formats mined transaction with block height and confirmations
+          ---
+          duration_ms: 0.113458
+          type: 'test'
+          ...
+        # Subtest: formats mempool transaction with "In mempool (0 confirmations)" without crashing
+        ok 2 - formats mempool transaction with "In mempool (0 confirmations)" without crashing
+          ---
+          duration_ms: 0.074292
+          type: 'test'
+          ...
+        # Subtest: handles summary line for both mined and mempool transactions
+        ok 3 - handles summary line for both mined and mempool transactions
+          ---
+          duration_ms: 0.080625
+          type: 'test'
+          ...
+        1..3
+    ok 7 - Rule 7: Mempool vs Mined Transactions
+      ---
+      duration_ms: 0.30775
+      type: 'suite'
+      ...
+    # Subtest: Rule 8: Colors and Visual String Width Alignment
+        # Subtest: disables ANSI escapes when noColor is set
+        ok 1 - disables ANSI escapes when noColor is set
+          ---
+          duration_ms: 0.122
+          type: 'test'
+          ...
+        # Subtest: calculates column alignment based on visual string length, ignoring ANSI codes
+        ok 2 - calculates column alignment based on visual string length, ignoring ANSI codes
+          ---
+          duration_ms: 0.047
+          type: 'test'
+          ...
+        # Subtest: formats peers list and mempool list accurately
+        ok 3 - formats peers list and mempool list accurately
+          ---
+          duration_ms: 0.133292
+          type: 'test'
+          ...
+        1..3
+    ok 8 - Rule 8: Colors and Visual String Width Alignment
+      ---
+      duration_ms: 0.342875
+      type: 'suite'
+      ...
+    # Subtest: Security & URL Redaction
+        # Subtest: redacts credentials in ZebraRpcClient and never echoes secrets
+        ok 1 - redacts credentials in ZebraRpcClient and never echoes secrets
+          ---
+          duration_ms: 0.805959
+          type: 'test'
+          ...
+        1..1
+    ok 9 - Security & URL Redaction
+      ---
+      duration_ms: 0.842916
+      type: 'suite'
+      ...
+    # Subtest: Import Graph Isolation (No Native Binding or SDK Dependency)
+        # Subtest: imports dist/pretty/index.js cleanly in a fresh process that throws on @zcash-app/sdk or native binding
+        ok 1 - imports dist/pretty/index.js cleanly in a fresh process that throws on @zcash-app/sdk or native binding
+          ---
+          duration_ms: 43.156416
+          type: 'test'
+          ...
+        # Subtest: verifies compiled files in dist/pretty do not reference @zcash-app/sdk or core
+        ok 2 - verifies compiled files in dist/pretty do not reference @zcash-app/sdk or core
+          ---
+          duration_ms: 0.462042
+          type: 'test'
+          ...
+        1..2
+    ok 10 - Import Graph Isolation (No Native Binding or SDK Dependency)
+      ---
+      duration_ms: 43.680083
+      type: 'suite'
+      ...
+    1..10
+ok 2 - Pretty RPC & Formatters Unit Tests
+  ---
+  duration_ms: 54.995083
+  type: 'suite'
+  ...
+# Subtest: Local Testnet Lightwalletd Helper (v0.6.0 Flags & Secret Redaction)
+    # Subtest: builds genuine v0.6.0 lightwalletd arguments with exact required flags
+    ok 1 - builds genuine v0.6.0 lightwalletd arguments with exact required flags
+      ---
+      duration_ms: 0.689542
+      type: 'test'
+      ...
+    # Subtest: strictly refuses to build arguments without an RPC password / cookie token
+    ok 2 - strictly refuses to build arguments without an RPC password / cookie token
+      ---
+      duration_ms: 0.194666
+      type: 'test'
+      ...
+    # Subtest: redacts cookie token and replaces home directory paths for safe logging
+    ok 3 - redacts cookie token and replaces home directory paths for safe logging
+      ---
+      duration_ms: 0.135375
+      type: 'test'
+      ...
+    # Subtest: reads and parses Zebra cookie file by code, handling restarts and invalid formats
+    ok 4 - reads and parses Zebra cookie file by code, handling restarts and invalid formats
+      ---
+      duration_ms: 1.124917
+      type: 'test'
+      ...
+    # Subtest: zcash-dev testnet lightwalletd --dry-run prints redacted flags and never reveals token in output
+    ok 5 - zcash-dev testnet lightwalletd --dry-run prints redacted flags and never reveals token in output
+      ---
+      duration_ms: 114.213875
+      type: 'test'
+      ...
+    1..5
+ok 3 - Local Testnet Lightwalletd Helper (v0.6.0 Flags & Secret Redaction)
+  ---
+  duration_ms: 116.868541
+  type: 'suite'
+  ...
+# Subtest: Port Uniqueness Across Local Stacks & Presets
+    # Subtest: ensures local presets in endpoints.ts have expected ports
+    ok 1 - ensures local presets in endpoints.ts have expected ports
+      ---
+      duration_ms: 0.528209
+      type: 'test'
+      ...
+    # Subtest: ensures each docker-compose stack has no internal port collisions and does not collide with testnet-local
+    ok 2 - ensures each docker-compose stack has no internal port collisions and does not collide with testnet-local
+      ---
+      duration_ms: 1.554292
+      type: 'test'
+      ...
+    1..2
+ok 4 - Port Uniqueness Across Local Stacks & Presets
+  ---
+  duration_ms: 3.26725
+  type: 'suite'
+  ...
+# Subtest: zcash-dev regtest wipe refuses to run without --yes (default lightwalletd stack: zcash-regtest-lightwalletd)
+ok 5 - zcash-dev regtest wipe refuses to run without --yes (default lightwalletd stack: zcash-regtest-lightwalletd)
+  ---
+  duration_ms: 379.014833
+  type: 'test'
+  ...
+# Subtest: zcash-dev regtest wipe refuses to run without --yes (zaino stack: zcash-regtest-zaino)
+ok 6 - zcash-dev regtest wipe refuses to run without --yes (zaino stack: zcash-regtest-zaino)
+  ---
+  duration_ms: 207.214625
+  type: 'test'
+  ...
+# Subtest: zcash-dev regtest wipe refuses untrusted project name
+ok 7 - zcash-dev regtest wipe refuses untrusted project name
+  ---
+  duration_ms: 84.004666
+  type: 'test'
+  ...
+# Subtest: zcash-dev regtest wipe --dry-run accepts zcash-regtest-lightwalletd project name
+ok 8 - zcash-dev regtest wipe --dry-run accepts zcash-regtest-lightwalletd project name
+  ---
+  duration_ms: 229.462375
+  type: 'test'
+  ...
+# Subtest: miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks
+ok 9 - miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks
+  ---
+  duration_ms: 72.168875
+  type: 'test'
+  ...
+1..9
+# tests 58
+# suites 14
+# pass 58
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9305.124625
+=== [6/8] Running Dashboard Tests ===
+$ node --test test/*.test.mjs
+TAP version 13
+# Subtest: Dashboard Node Sync Percentage & Status Calculation
+    # Subtest: calculateSyncStatus edge cases
+        # Subtest: handles synced state when percentage >= 99.9%
+        ok 1 - handles synced state when percentage >= 99.9%
+          ---
+          duration_ms: 0.420584
+          type: 'test'
+          ...
+        # Subtest: handles synced state when blocks >= headers and within 2 blocks of estimate
+        ok 2 - handles synced state when blocks >= headers and within 2 blocks of estimate
+          ---
+          duration_ms: 0.126
+          type: 'test'
+          ...
+        # Subtest: handles syncing state when sync percentage < 99.9%
+        ok 3 - handles syncing state when sync percentage < 99.9%
+          ---
+          duration_ms: 0.067417
+          type: 'test'
+          ...
+        # Subtest: handles regtest network: tip estimate is irrelevant, returns syncState="regtest" and syncPercent=null
+        ok 4 - handles regtest network: tip estimate is irrelevant, returns syncState="regtest" and syncPercent=null
+          ---
+          duration_ms: 0.063333
+          type: 'test'
+          ...
+        # Subtest: falls back to verification_progress * 100 when estimated_height is missing or zero
+        ok 5 - falls back to verification_progress * 100 when estimated_height is missing or zero
+          ---
+          duration_ms: 0.051708
+          type: 'test'
+          ...
+        # Subtest: handles estimated_height < blocks gracefully (clamps at 100%)
+        ok 6 - handles estimated_height < blocks gracefully (clamps at 100%)
+          ---
+          duration_ms: 0.050792
+          type: 'test'
+          ...
+        # Subtest: handles unreachable RPC or null/empty input without faking 0% or 100%
+        ok 7 - handles unreachable RPC or null/empty input without faking 0% or 100%
+          ---
+          duration_ms: 0.148625
+          type: 'test'
+          ...
+        # Subtest: calculates indexer lag correctly and clamps negative differences to 0
+        ok 8 - calculates indexer lag correctly and clamps negative differences to 0
+          ---
+          duration_ms: 0.133166
+          type: 'test'
+          ...
+        1..8
+    ok 1 - calculateSyncStatus edge cases
+      ---
+      duration_ms: 1.545583
+      type: 'suite'
+      ...
+    # Subtest: redactSecretUrl helper
+        # Subtest: redacts basic auth credentials from URL
+        ok 1 - redacts basic auth credentials from URL
+          ---
+          duration_ms: 0.225792
+          type: 'test'
+          ...
+        # Subtest: redacts secret paths (QuickNode style)
+        ok 2 - redacts secret paths (QuickNode style)
+          ---
+          duration_ms: 0.157125
+          type: 'test'
+          ...
+        # Subtest: redacts URLs with query string secrets
+        ok 3 - redacts URLs with query string secrets
+          ---
+          duration_ms: 0.051292
+          type: 'test'
+          ...
+        # Subtest: preserves clean local URLs without secrets or auth
+        ok 4 - preserves clean local URLs without secrets or auth
+          ---
+          duration_ms: 0.033208
+          type: 'test'
+          ...
+        1..4
+    ok 2 - redactSecretUrl helper
+      ---
+      duration_ms: 0.595167
+      type: 'suite'
+      ...
+    # Subtest: round helper
+        # Subtest: rounds numbers to 2 decimal places by default
+        ok 1 - rounds numbers to 2 decimal places by default
+          ---
+          duration_ms: 0.040333
+          type: 'test'
+          ...
+        1..1
+    ok 3 - round helper
+      ---
+      duration_ms: 0.063958
+      type: 'suite'
+      ...
+    # Subtest: Local Zebra live RPC integration
+        # Subtest: queries local testnet Zebra if reachable and computes real sync percentage
+        ok 1 - queries local testnet Zebra if reachable and computes real sync percentage
+          ---
+          duration_ms: 22.648458
+          type: 'test'
+          ...
+        1..1
+    ok 4 - Local Zebra live RPC integration
+      ---
+      duration_ms: 22.8325
+      type: 'suite'
+      ...
+    1..4
+ok 1 - Dashboard Node Sync Percentage & Status Calculation
+  ---
+  duration_ms: 25.412958
+  type: 'suite'
+  ...
+1..1
+# tests 14
+# suites 5
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 309.865083
+=== [7/8] Running Documentation Drift & Link Check ===
+$ node scripts/docs-check.mjs
+=== Running Documentation Check (pnpm docs:check) ===
+--- Step 1: Checking Generated Reference Docs Drift ---
+=== Running Documentation Generator (pnpm docs:gen) ===
+✅ Generated docs/src/known-issues.md
+✅ Generated docs/src/reference/scaffolder.md
+✅ Generated docs/src/reference/zcash-dev.md
+✅ Generated docs/src/reference/sdk.md
+✅ Generated docs/src/reference/dashboard-api.md
+✅ Generated docs/src/reference/rpc.md
+=== Documentation Generation Complete! ===
+✅ Generated reference files & known-issues.md match committed repository state.
+--- Step 2: Checking for Machine-Specific Absolute Paths (/Users/, /home/, /root/) ---
+✅ No machine-specific absolute paths found across 20 docs files.
+--- Step 3: Validating CLI Commands & Flags in Prose Chapters ---
+✅ All CLI commands and flags across 14 prose files match the command trees.
+--- Step 4: Validating Internal Markdown Links & Anchors ---
+✅ All internal links and anchor references are valid across 20 docs files.
+--- Step 5: Checking Mermaid Diagram Preprocessing & Rendered Containers ---
+✅ All 2 Mermaid diagram block(s) have valid rendered containers and scripts in the book output.
+--- Step 6: External Web Link Check Skipped (offline default; pass --external to run) ---
+=== All Documentation Checks Passed Cleanly! ===
+
+ INFO Book building has started
+Warning: The mdbook-mermaid preprocessor was built against version 0.5.0 of mdbook, but we're being called from version 0.5.4
+ INFO Running the html backend
+ INFO HTML book written to `/Users/0xblackadam/Downloads/zcash_scafolder/docs/book`
+=== Verifying Mermaid Diagram Rendering via Headless Browser ===
+
+Checking Mermaid diagram in: ch03-concepts.html
+  ✓ Verified SVG rendering. Contains: BIP-39 Mnemonic Seed, Unified Address, Unified Full Viewing Key
+  ✓ Raw "flowchart TD" is NOT visible
+  ✓ Screenshot saved to: /tmp/mermaid-concepts.png
+Checking Mermaid diagram in: ch01-introduction.html
+  ✓ Verified SVG rendering. Contains: Next.js Application, TypeScript SDK, Zebra Consensus Node
+  ✓ Raw "flowchart TD" is NOT visible
+  ✓ Screenshot saved to: /tmp/mermaid-intro.png
+
+🎉 All Mermaid diagrams render to valid SVGs with correct labels and no raw syntax leak!
+
+=== [8/8] Running Gitleaks Scan ===
+
+    ○
+    │╲
+    │ ○
+    ○ ░
+    ░    gitleaks
+
+[90m9:03AM[0m [32mINF[0m [1m219 commits scanned.[0m
+[90m9:03AM[0m [32mINF[0m [1mscanned ~7705981 bytes (7.71 MB) in 8.5s[0m
+[90m9:03AM[0m [32mINF[0m [1mno leaks found[0m
+=== VERIFY SUCCESS: All 8 checks passed cleanly! ===

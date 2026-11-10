@@ -88,11 +88,15 @@ The Lightwalletd stack (`--stack lightwalletd`, default) runs a standalone Zebra
 
 ### Tier 2: Zaino (Experimental)
 
-The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from source (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) and runs it against Zebra 7.0.0. Initial build takes ~3+ minutes.
+The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from source (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) and runs it against Zebra 7.0.0 using an RPC backend (works against a remote Zebra RPC; direct state-reader mode is not offered in this stack; direct mode exists upstream and is documented only in the spike). Initial build takes ~3+ minutes.
+
+> [!WARNING]
+> **Unencrypted Plain-Text gRPC (Regtest Only)**:
+> This Zaino build uses the `no_tls_use_unencrypted_traffic` feature; gRPC communication is plain-text. The stack is **REGTEST ONLY**, bound strictly to `127.0.0.1` on the host (`127.0.0.1:38137`). Never expose it or use it for testnet/mainnet.
 
 - **Zebra JSON-RPC**: `127.0.0.1:39232`
 - **Zebra Health**: `127.0.0.1:38080`
-- **Zaino gRPC**: `127.0.0.1:38137` (gRPC `CompactTxStreamer`)
+- **Zaino gRPC**: `127.0.0.1:38137` (gRPC `CompactTxStreamer`, unencrypted)
 
 ### Tier 3: Full Stack (Zallet + Lightwalletd)
 

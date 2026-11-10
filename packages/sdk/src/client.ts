@@ -81,9 +81,10 @@ export class ZcashClient {
 
   constructor(config: ClientConfig) {
     let network = config.network;
+    // DEPRECATED: 'regtest-nu7' network alias is deprecated and will be removed in the next release after alpha.5.
     if (network === 'regtest-nu7') {
       console.warn(
-        '[ZcashClient] Deprecation Warning: network "regtest-nu7" is deprecated and will be removed in a future release. Regtest now activates NU7 by default. Mapping to "regtest".'
+        '[ZcashClient] Deprecation Warning: network "regtest-nu7" is deprecated and will be removed in the next release after alpha.5. Regtest now activates NU7 by default. Mapping to "regtest".'
       );
       network = 'regtest';
     }

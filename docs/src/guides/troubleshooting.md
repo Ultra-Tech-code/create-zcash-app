@@ -58,6 +58,7 @@ Legacy Z3 regtest stacks configured for Network Upgrade 6 (NU6 / NU6.3) have bee
 - **Use the Default Lightwalletd Stack**: Run `zcash-dev regtest up --stack lightwalletd`, which runs Zebra 7.0.0 + Lightwalletd with NU7 active at block 2.
 - **Fund Accounts via CLI**: Use `zcash-dev fund <address>` (which builds and mines transactions directly using the TypeScript SDK miner send pipeline).
 - **Consult Known Issues**: See [known-issues.md](../known-issues.md) for a full matrix of stack compatibility.
+- **Upgrader Instructions**: When upgrading from older alpha releases, run `zcash-dev regtest wipe --yes` and delete old regtest SQLite wallet databases (e.g. `~/.zcash-app/dashboard/` or project cache directories) because stacks, ports, volumes, and chain state changed. While `@zcash-app/core` automatically normalizes legacy `'regtest-nu7'` network metadata to `'regtest'`, old chain blocks cannot be reused.
 
 ---
 

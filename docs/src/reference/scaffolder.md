@@ -24,7 +24,7 @@ npx create-zcash-app [project-name] [options]
 | :--- | :--- | :--- |
 | `-t, --template <template>` | Template to use (nextjs-fullstack) | `nextjs-fullstack` |
 | `-n, --network <network>` | Network (regtest \| testnet \| mainnet) | None (interactive prompt) |
-| `--regtest-stack <stack>` | Regtest stack (lightwalletd \| zaino \| full) | `lightwalletd` |
+| `--regtest-stack <stack>` | Regtest stack: lightwalletd (default), zaino (experimental RPC backend; unencrypted plain-text gRPC regtest-only), full (Zallet + lightwalletd) | `lightwalletd` |
 | `--remote` | Use remote public RPC indexer without local node | None (interactive prompt) |
 | `--key-source <source>` | Key source (generate \| import \| ufvk \| none) | None (interactive prompt) |
 | `--ufvk <ufvk>` | Unified Full Viewing Key for watch-only account | None (interactive prompt) |

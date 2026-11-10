@@ -114,5 +114,6 @@ ac653ff776b0b025423d6c1ff2b3ceed25d2abf07752c6750eccfefafa01aa1b  docker_inspect
 4f3199d36e19b4ed7b2c0fb0399ae3209cfaaa2a844f583c2152817a1706eddf  zaino_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
 4b833b12f46eac5f9b826aa0ad5ebc6e8e76f6a5ed8f9d9f3d1ef1dc01c3849a  regtest_lightwalletd_live.log  |  zcash-dev regtest up --stack lightwalletd && node scripts/zaino_nu7_spike.mjs
 19f793a0b804688676033efa7078588ee9bcbdec285b0f59edff6510b3b0a3c1  regtest_zaino_live.log  |  zcash-dev regtest up --stack zaino && node scripts/zaino_nu7_spike.mjs
-6f4adc91f3659de20e898bb0c84cd479a372534077b88b536c9fe3491a08309b  regtest_full_live.log  |  zcash-dev regtest up --stack full && node scripts/zaino_zallet_coexistence.mjs
+a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_live.log  |  zcash-dev regtest up --stack full && node scripts/zaino_zallet_coexistence.mjs
 0411f0f3f1861fe4419838aaff03b9918a3a3bdb64e65bb89c967d4d2b4eb605  verify_phase_b.log  |  bash scripts/verify.sh
+4182400ab00964827a0116747730545c19afccb7f7965c678f7845b77b0efc65  verify_phase_b2.log  |  bash scripts/verify.sh

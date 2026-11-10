@@ -33,10 +33,11 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
   },
   'regtest-zaino': {
     id: 'regtest-zaino',
-    label: 'Regtest - Zaino (Experimental, 127.0.0.1:38137)',
+    label: 'Regtest - Zaino (Experimental RPC, 127.0.0.1:38137)',
     network: 'regtest',
     endpoint: '127.0.0.1:38137',
-    description: 'Tier 2: Zebra 7.0.0 + Zaino feat/nu7 (built from source)',
+    description:
+      'Tier 2: Zebra 7.0.0 + Zaino feat/nu7 (RPC backend; works against remote Zebra RPC; direct state-reader mode not offered in this stack; unencrypted plain-text gRPC regtest-only)',
     isLocal: true,
     miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: false,
@@ -51,12 +52,13 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
     miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: true,
   },
+  // DEPRECATED: 'regtest-nu7' preset ID is deprecated and will be removed in the next release after alpha.5. Use 'regtest-lightwalletd'.
   'regtest-nu7': {
     id: 'regtest-nu7',
-    label: 'Regtest - Lightwalletd (Alias, 127.0.0.1:39067)',
+    label: 'Regtest - Lightwalletd (Deprecated Alias, 127.0.0.1:39067)',
     network: 'regtest',
     endpoint: '127.0.0.1:39067',
-    description: 'Alias for regtest-lightwalletd',
+    description: 'Deprecated alias for regtest-lightwalletd (will be removed in the next release after alpha.5)',
     isLocal: true,
     miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: false,

@@ -174,7 +174,11 @@ program
   .argument('[project-name]', 'Name of the project directory')
   .option('-t, --template <template>', 'Template to use (nextjs-fullstack)', 'nextjs-fullstack')
   .option('-n, --network <network>', 'Network (regtest | testnet | mainnet)')
-  .option('--regtest-stack <stack>', 'Regtest stack (lightwalletd | zaino | full)', 'lightwalletd')
+  .option(
+    '--regtest-stack <stack>',
+    'Regtest stack: lightwalletd (default), zaino (experimental RPC backend; unencrypted plain-text gRPC regtest-only), full (Zallet + lightwalletd)',
+    'lightwalletd'
+  )
   .option('--remote', 'Use remote public RPC indexer without local node')
   .option('--key-source <source>', 'Key source (generate | import | ufvk | none)')
   .option('--ufvk <ufvk>', 'Unified Full Viewing Key for watch-only account')
@@ -261,7 +265,7 @@ program
                 value: 'lightwalletd',
               },
               {
-                title: '🧪 Zaino (Experimental — Zebra 7.0.0 + Zaino feat/nu7 built from source, gRPC :38137)',
+                title: '🧪 Zaino (Experimental RPC backend — Zebra 7.0.0 + Zaino feat/nu7, gRPC :38137; direct mode not offered in this stack; unencrypted regtest-only)',
                 value: 'zaino',
               },
               {
@@ -315,7 +319,7 @@ program
               value: 'remote',
             },
             {
-              title: `🐳 Local Z3 Node (Docker: Zebra + Zaino) — Full self-hosted privacy`,
+              title: `🐳 Local Node (Docker: Zebra + Zaino) — Full self-hosted privacy`,
               value: 'local',
             },
           ],

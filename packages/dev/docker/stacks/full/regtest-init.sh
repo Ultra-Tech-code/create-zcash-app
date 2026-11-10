@@ -91,18 +91,26 @@ for i in $(seq 1 30); do
 done
 
 echo "==> Waiting for zallet on port ${ZALLET_PORT}..."
+SEEDFP=""
 for i in $(seq 1 30); do
-  if nc -z 127.0.0.1 "${ZALLET_PORT}" 2>/dev/null; then
-    echo "   zallet is reachable."
+  SEEDFP="$(curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"getwalletinfo","params":[],"id":1}' "http://127.0.0.1:${ZALLET_PORT}" 2>/dev/null | grep -o 'zip32seedfp1[a-z0-9]*' | head -n 1 || true)"
+  if [ -n "$SEEDFP" ]; then
+    echo "   zallet is reachable (seedfp: $SEEDFP)."
     break
   fi
   sleep 1
 done
 
 # Ensure Account 0 is registered in Zallet with the imported seedfp
-SEEDFP="$(curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"getwalletinfo","params":[],"id":1}' "http://127.0.0.1:${ZALLET_PORT}" | grep -o 'zip32seedfp1[a-z0-9]*' | head -n 1 || true)"
 if [ -n "$SEEDFP" ]; then
-  curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"method\":\"z_getnewaccount\",\"params\":[\"$SEEDFP\"],\"id\":1}" "http://127.0.0.1:${ZALLET_PORT}" > /dev/null 2>&1 || true
+  for i in $(seq 1 10); do
+    RESP="$(curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"method\":\"z_getnewaccount\",\"params\":[\"$SEEDFP\"],\"id\":1}" "http://127.0.0.1:${ZALLET_PORT}" 2>/dev/null || true)"
+    if echo "$RESP" | grep -q "account_uuid"; then
+      echo "   Registered Account 0 in Zallet."
+      break
+    fi
+    sleep 1
+  done
 fi
 
 echo "==> Tier 3 (Full) Regtest stack initialized successfully."

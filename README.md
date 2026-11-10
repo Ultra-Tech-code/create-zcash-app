@@ -166,7 +166,7 @@ the native addon fails instead of silently falling back to a slower implementati
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
    - **Local Regtest Mode (Three Tiers, only one active at a time)**:
      - **Tier 1: Lightwalletd (Default)**: Zebra 7.0.0 + Lightwalletd on `127.0.0.1:39067` (Zebra RPC on `39232`).
-     - **Tier 2: Zaino (Experimental)**: Zebra 7.0.0 + Zaino `feat/nu7` on `127.0.0.1:38137` (built from source).
+     - **Tier 2: Zaino (Experimental)**: Zebra 7.0.0 + Zaino `feat/nu7` on `127.0.0.1:38137` (built from source with RPC backend; works against a remote Zebra RPC; direct state-reader mode is not offered in this stack, though direct mode exists upstream and is documented only in the spike). Uses unencrypted plain-text gRPC (`no_tls_use_unencrypted_traffic`) strictly for local regtest; never expose or use for testnet/mainnet.
      - **Tier 3: Full Stack**: Zebra 7.0.0 indexer + Zallet beta.4 (`8182`) + Lightwalletd (`39067`).
 
 ---

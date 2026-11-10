@@ -1,3 +1,7 @@
+# NOTE: This Zaino build uses the `no_tls_use_unencrypted_traffic` feature; gRPC is plain-text.
+# This stack is REGTEST ONLY, bound to 127.0.0.1 on the host; never expose it or use it for testnet/mainnet.
+# RPC backend (works against a remote Zebra RPC; direct state-reader mode is not offered in this stack).
+
 backend = "rpc"
 network = "Regtest"
 

@@ -746,3 +746,88 @@ fn test_schema_v2_to_v3_migration_in_place() {
     println!("  SUCCESS: In-place migration v2 -> v3 preserves existing v2 data and initializes wallet_transactions table!");
 }
 
+#[test]
+fn test_legacy_regtest_nu7_metadata_migration() {
+    println!("\n=== TEST: LEGACY REGTEST-NU7 METADATA MIGRATION ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+
+    // Case (a): Legacy 'regtest-nu7' DB opened as 'regtest' succeeds and stored network becomes 'regtest'
+    let db_path_a = temp_dir.path().join("wallet_nu7.db");
+    {
+        let db = WalletDb::open_or_create(&db_path_a, "regtest-nu7", "fp_legacy", Some(10))
+            .expect("create legacy regtest-nu7 db");
+        assert_eq!(
+            db.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest-nu7"),
+            "Initial network should be regtest-nu7"
+        );
+    }
+    {
+        let migrated = WalletDb::open_or_create(&db_path_a, "regtest", "fp_legacy", None)
+            .expect("reopening regtest-nu7 with regtest should succeed and migrate");
+        assert_eq!(
+            migrated.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest"),
+            "Migrated stored network should be rewritten to regtest"
+        );
+    }
+
+    // Also verify 'regtest_nu7' variant:
+    let db_path_underscore = temp_dir.path().join("wallet_underscore.db");
+    {
+        let db = WalletDb::open_or_create(&db_path_underscore, "regtest_nu7", "fp_legacy2", Some(10))
+            .expect("create legacy regtest_nu7 db");
+        assert_eq!(
+            db.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest_nu7")
+        );
+    }
+    {
+        let migrated = WalletDb::open_or_create(&db_path_underscore, "regtest", "fp_legacy2", None)
+            .expect("reopening regtest_nu7 with regtest should succeed and migrate");
+        assert_eq!(
+            migrated.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest"),
+            "Migrated stored network should be rewritten to regtest"
+        );
+    }
+
+    // Case (b): 'regtest' DB opened as 'testnet' still fails with existing mismatch error
+    let db_path_b = temp_dir.path().join("wallet_regtest.db");
+    {
+        let _ = WalletDb::open_or_create(&db_path_b, "regtest", "fp_b", Some(10))
+            .expect("create regtest db");
+    }
+    {
+        let mismatch_testnet = WalletDb::open_or_create(&db_path_b, "testnet", "fp_b", None);
+        match mismatch_testnet {
+            Err(WalletDbError::MetadataMismatch { key, expected, found }) => {
+                assert_eq!(key, "network");
+                assert_eq!(expected, "testnet");
+                assert_eq!(found, "regtest");
+            }
+            other => panic!("Expected MetadataMismatch error for regtest -> testnet, got {:?}", other),
+        }
+    }
+
+    // Case (c): 'regtest-nu7' DB opened as 'mainnet' still fails
+    let db_path_c = temp_dir.path().join("wallet_nu7_c.db");
+    {
+        let _ = WalletDb::open_or_create(&db_path_c, "regtest-nu7", "fp_c", Some(10))
+            .expect("create legacy regtest-nu7 db for case c");
+    }
+    {
+        let mismatch_mainnet = WalletDb::open_or_create(&db_path_c, "mainnet", "fp_c", None);
+        match mismatch_mainnet {
+            Err(WalletDbError::MetadataMismatch { key, expected, found }) => {
+                assert_eq!(key, "network");
+                assert_eq!(expected, "mainnet");
+                assert_eq!(found, "regtest-nu7");
+            }
+            other => panic!("Expected MetadataMismatch error for regtest-nu7 -> mainnet, got {:?}", other),
+        }
+    }
+    println!("  SUCCESS: test_legacy_regtest_nu7_metadata_migration verified all cases!");
+}
+
+
