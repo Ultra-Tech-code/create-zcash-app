@@ -12,18 +12,18 @@ This document describes the release procedure for `create-zcash-app`, `@zcash-ap
 
 ---
 
-## Release Procedure (0.1.0-alpha.4)
+## Release Procedure (0.1.0-alpha.5)
 
 ### 1. Merge Release Preparation PR to `main`
-Ensure the release preparation branch (`release/v0.1.0-alpha.4` or PR branch) has been merged into `main` after all continuous integration checks pass.
+Ensure the release preparation branch (`release/v0.1.0-alpha.5` or PR branch) has been merged into `main` after all continuous integration checks pass.
 
 ### 2. Tag the Merged Commit
 Fetch latest `main`, create an annotated git tag matching the package version, and push the tag to `origin`:
 ```bash
 git checkout main
 git pull origin main
-git tag -a v0.1.0-alpha.4 -m "create-zcash-app 0.1.0-alpha.4"
-git push origin v0.1.0-alpha.4
+git tag -a v0.1.0-alpha.5 -m "create-zcash-app 0.1.0-alpha.5"
+git push origin v0.1.0-alpha.5
 ```
 
 ### 3. Dry-Run Workflow Dispatch
@@ -54,18 +54,18 @@ npm view @zcash-app/core@next version
 ### 6. Promote `latest` Dist-Tag
 The GitHub release workflow publishes with `--tag next` to keep prerelease builds isolated. To ensure that users running the documented standard quickstart commands (such as plain `npx create-zcash-app`) receive the new release, the repository owner must promote the five user-facing packages to `latest`:
 ```bash
-npm dist-tag add create-zcash-app@0.1.0-alpha.4 latest
-npm dist-tag add @zcash-app/sdk@0.1.0-alpha.4 latest
-npm dist-tag add @zcash-app/dashboard@0.1.0-alpha.4 latest
-npm dist-tag add zcash-dev@0.1.0-alpha.4 latest
-npm dist-tag add @zcash-app/core@0.1.0-alpha.4 latest
+npm dist-tag add create-zcash-app@0.1.0-alpha.5 latest
+npm dist-tag add @zcash-app/sdk@0.1.0-alpha.5 latest
+npm dist-tag add @zcash-app/dashboard@0.1.0-alpha.5 latest
+npm dist-tag add zcash-dev@0.1.0-alpha.5 latest
+npm dist-tag add @zcash-app/core@0.1.0-alpha.5 latest
 ```
 
 > [!NOTE]
 > Do not update the dist-tags on the per-platform packages (`@zcash-app/core-*`). They are resolved automatically by `@zcash-app/core` through direct optional dependency version requirements.
 
 ### 7. Confirm Dist-Tags
-Verify that both `latest` and `next` now point to `0.1.0-alpha.4`:
+Verify that both `latest` and `next` now point to `0.1.0-alpha.5`:
 ```bash
 npm dist-tag ls create-zcash-app
 npm dist-tag ls @zcash-app/sdk
