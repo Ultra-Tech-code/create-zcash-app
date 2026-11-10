@@ -2,14 +2,20 @@ name: zcash-regtest-full
 
 services:
   zebra:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ${ZEBRA_IMAGE:-zebra:7.0.0-indexer}
+    command: ["zebrad", "-c", "/home/zebra/.config/zebrad.toml", "start"]
     ports:
       - "127.0.0.1:${ZEBRA_RPC_PORT:-39232}:18232"
       - "127.0.0.1:${ZEBRA_INDEXER_PORT:-8230}:8230"
       - "127.0.0.1:${ZEBRA_HEALTH_PORT:-38080}:8080"
     volumes:
       - zebra-data:/home/zebra/.cache/zebra
+      - zebra-data:/root/.cache/zebra
       - ./zebra.toml:/home/zebra/.config/zebrad.toml:ro
+      - ./zebra.toml:/root/.config/zebrad.toml:ro
     environment:
       - ZEBRA_NETWORK__NETWORK=Regtest
       - ZEBRA_RPC__LISTEN_ADDR=0.0.0.0:18232

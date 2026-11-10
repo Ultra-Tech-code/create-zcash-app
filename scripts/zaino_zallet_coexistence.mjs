@@ -31,9 +31,9 @@ const {
   decodeIronwoodFrontierRoot,
 } = await import(`${projectRoot}/packages/sdk/dist/index.js`);
 
-const ZEBRA_RPC_PORT = process.env.ZEBRA_RPC_PORT || '49232';
-const ZALLET_RPC_PORT = process.env.ZALLET_RPC_PORT || '48232';
-const ZAINO_GRPC_PORT = process.env.ZAINO_GRPC_PORT || '8137';
+const ZEBRA_RPC_PORT = process.env.ZEBRA_RPC_PORT || '39232';
+const ZALLET_RPC_PORT = process.env.ZALLET_RPC_PORT || '8182';
+const ZAINO_GRPC_PORT = process.env.ZAINO_GRPC_PORT || '39067';
 const OUTPUT_LOG = process.env.COEXISTENCE_LOG || path.join(projectRoot, 'packages/core/tests/logs/zaino_zallet_coexistence.log');
 
 async function zebraRpc(method, params = []) {
@@ -144,7 +144,9 @@ async function main() {
   // 4. SDK Sync & Ironwood Note Discovery via Zaino
   append('\n--- 4. SDK Sync & Ironwood Tree State via Zaino ---');
   const acct0 = accountFromMnemonic(KNOWN_TEST_MNEMONICS[0], 0, 'regtest-nu7');
-  const dbPath0 = path.join(projectRoot, 'packages/core/tests/logs/zaino_coexistence_wallet0.db');
+  const dbDir = path.join(projectRoot, 'node_modules/.cache/coexistence-spike');
+  fs.mkdirSync(dbDir, { recursive: true });
+  const dbPath0 = path.join(dbDir, 'wallet0.db');
   if (fs.existsSync(dbPath0)) fs.unlinkSync(dbPath0);
 
   const wallet0 = WalletHandle.open(dbPath0, 'regtest-nu7', acct0.getUnifiedFullViewingKey());

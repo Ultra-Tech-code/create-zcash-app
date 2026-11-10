@@ -1,0 +1,73 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION: RPC =====
+===============================================================
+backend mode:      rpc
+config file name:  packages/dev/docker/stacks/zaino/zainod.toml
+Zaino listen port: 38137
+Zebra RPC port:    39232
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=110)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Light Client gRPC Service ---
+zainod git commit (from GetLightdInfo): aaf8122a703704e05147d984f08ff82c789860ad
+Vendor:            ZingoLabs ZainoD
+Version:           0.10.1
+Branch ID:         77190ad9
+Tip Height:        110
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Block height matches Zebra tip (height=110)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 110...
+Scanned: 110/110
+Discovered unspent notes: 109
+Total spendable balance: 22708333297 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=109)
+[PASS] Account 0 has spendable balance (balance=22708333297)
+
+--- 3b. Verifying Ironwood Notes & Tree State ---
+Account 0 discovered Ironwood notes: 109
+Sample Ironwood note: pool=ironwood, value=208333333, txid=3ada860e1502117565d969c7c5b20491a363fdc4a0e3b3d9772714d41434a747
+[PASS] SDK discovered Ironwood note (ironwoodNotes=109)
+GetTreeState(110) ironwoodTree: 01e977c17279cd147ed4d9020c748fee2d4e667903efd7372cce18ae6a826fea28001f00014dfa199f3e14d8ae6750449376b0317fd2353231cdae9b31a855d8c918f1232501094e905c46a8f0c2b9b7fdabb6e46691ca2b3cb29b64e7f1f5fc3437e4d42e2a000153688ff5888d5d45b29857d9469f1f8aa6ce6e92d6e8316002a252b0a155741501dd018969e84a8dcc53a1e152f02d7b25e1b592032a5135123ebe45de9f990a0b00000000000000000000000000000000000000000000000000
+GetTreeState(110) decoded Ironwood root: bf4aaa20879b6afeb6131df0b3643f8ba0bc83975b432d14bfb4d7de91e5443b
+[PASS] GetTreeState returns non-empty Ironwood root (root=bf4aaa20879b6afeb6131df0b3643f8ba0bc83975b432d14bfb4d7de91e5443b)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+Send TxID: 0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 231
+[PASS] Send returned valid txid (txid=0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=231, expected=231)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d)
+TxID 0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d appears verbatim in Zebra mempool
+Mined block hash: 0b1b9f59ec358600d2ac326c32994ae1ee782fab7d564ddf2a24eb1775605824
+[PASS] Block successfully mined (blockHash=0b1b9f59ec358600d2ac326c32994ae1ee782fab7d564ddf2a24eb1775605824)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+TxID 0abff1a94f147837bff2fe32667a18804360dcfc913d763ed75cd954f53c685d appears verbatim in mined block 111 tx list
+Waiting for service to index mined block 111...
+Service indexed block 111
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 111/111
+Recipient Unspent Notes: 1
+Recipient Balance: 100000000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=1)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=100000000)
+
+======================================================================
+=== RPC NU7 REGTEST END-TO-END VERIFIED: 21/21 ASSERTIONS PASSED ✅ ===
+======================================================================
+

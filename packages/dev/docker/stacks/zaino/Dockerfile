@@ -2,10 +2,18 @@
 # Pins commit aaf8122a703704e05147d984f08ff82c789860ad (Rust 1.96.0 toolchain required)
 FROM rust:1.96.0-bookworm AS builder
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    clang \
+    libclang-dev \
+    protobuf-compiler \
+    ca-certificates \
+    git && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/zaino
 RUN git clone https://github.com/zingolabs/zaino.git . && \
     git checkout aaf8122a703704e05147d984f08ff82c789860ad && \
-    cargo build --release -p zainod
+    cargo build --release -p zainod --features no_tls_use_unencrypted_traffic
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl netcat-openbsd && rm -rf /var/lib/apt/lists/*

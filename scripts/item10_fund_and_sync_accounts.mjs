@@ -7,7 +7,7 @@ import os from 'os';
 async function main() {
   console.log('=== FUND AND SYNC ACCOUNT 0 & ACCOUNT 1 ON REGTEST (IDEMPOTENT) ===\n');
 
-  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:28137';
+  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
   const client = createClient({ endpoint, network: 'regtest' });
 
   // 1. Derive Account 0 and Account 1 from constants.ts mnemonics

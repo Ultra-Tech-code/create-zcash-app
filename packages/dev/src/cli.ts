@@ -1239,7 +1239,6 @@ regtestCmd
   .description('Configure and initialize regtest stack tier (default: lightwalletd, or --stack zaino | full)')
   .option('--stack <stack>', 'Regtest stack tier to run (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
-  .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .action(async (options) => {
     let stack = (options.stack || 'lightwalletd').toLowerCase();
     if (stack === 'nu7') stack = 'lightwalletd';
@@ -1249,7 +1248,7 @@ regtestCmd
       );
       process.exit(1);
     }
-    const rawPath = options.regtestPath || options.z3Path;
+    const rawPath = options.regtestPath;
     let regtestDir: string;
     try {
       regtestDir = resolveRegtestDir(rawPath, stack);
@@ -1260,6 +1259,50 @@ regtestCmd
     if (!fs.existsSync(regtestDir)) {
       console.error(`❌ Could not locate regtest directory at: ${regtestDir}. Please specify with --regtest-path <path> or ZCASH_REGTEST_DIR.`);
       process.exit(1);
+    }
+
+    // Single active stack enforcement: verify no other regtest containers are running
+    try {
+      const runningOut = execSync('docker ps --filter "name=zcash-regtest-" --format "{{.Names}}"', { encoding: 'utf8' }).trim();
+      if (runningOut) {
+        const activeContainers = runningOut.split('\n').map((s: string) => s.trim()).filter(Boolean);
+        const foreignContainers = activeContainers.filter((name: string) => !name.includes(`zcash-regtest-${stack}`));
+        if (foreignContainers.length > 0) {
+          console.error(
+            `❌ Cannot start regtest stack "${stack}": another regtest stack is already running:\n` +
+            foreignContainers.map((c: string) => `   - ${c}`).join('\n') +
+            `\nOnly one regtest stack can run at a time due to shared host port 39232 (single active stack rule).\n` +
+            `Stop the active stack first (e.g. zcash-dev regtest down) before starting another tier.`
+          );
+          process.exit(1);
+        }
+      }
+    } catch {}
+
+    // Verify or build stack images
+    if (stack === 'zaino') {
+      const zainoImg = process.env.ZAINO_IMAGE || 'zaino:nu7-aaf8122a';
+      let hasImage = false;
+      try {
+        execSync(`docker image inspect "${zainoImg}"`, { stdio: 'ignore' });
+        hasImage = true;
+      } catch {}
+      if (!hasImage) {
+        console.log(`\n📦 Image "${zainoImg}" not found locally. Building Zaino feat/nu7 from source (~3+ minutes)...`);
+        execSync(`cd "${regtestDir}" && docker compose build zaino`, { stdio: 'inherit' });
+      }
+    } else if (stack === 'full') {
+      const zebraIndexerImg = process.env.ZEBRA_IMAGE || 'zebra:7.0.0-indexer';
+      let hasImage = false;
+      try {
+        execSync(`docker image inspect "${zebraIndexerImg}"`, { stdio: 'ignore' });
+        hasImage = true;
+      } catch {}
+      if (!hasImage) {
+        console.log(`\n📦 Image "${zebraIndexerImg}" not found locally.`);
+        console.log(`🔨 Building Zebra 7.0.0 with indexer features (~8 minutes on initial build)...`);
+        execSync(`cd "${regtestDir}" && docker compose build zebra`, { stdio: 'inherit' });
+      }
     }
 
     console.log(`\n=== 🛠️  Setting up ${stack.toUpperCase()} Regtest in ${regtestDir} ===\n`);
@@ -1344,11 +1387,10 @@ regtestCmd
   .description('Stop regtest stack containers')
   .option('--stack <stack>', 'Regtest stack tier to stop (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
-  .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .action((options) => {
     let stack = (options.stack || 'lightwalletd').toLowerCase();
     if (stack === 'nu7') stack = 'lightwalletd';
-    const rawPath = options.regtestPath || options.z3Path;
+    const rawPath = options.regtestPath;
     const regtestDir = resolveRegtestDir(rawPath, stack);
     execSync(`cd "${regtestDir}" && docker compose down`, { stdio: 'inherit' });
     console.log(`\n🛑 ${stack.toUpperCase()} regtest containers stopped.\n`);
@@ -1360,13 +1402,12 @@ regtestCmd
   .description('Wipe and reset the regtest blockchain, indexer, and wallet data')
   .option('--stack <stack>', 'Regtest stack tier to wipe (lightwalletd | zaino | full)', 'lightwalletd')
   .option('--regtest-path <path>', 'Path to regtest docker directory', '')
-  .option('--z3-path <path>', 'Deprecated alias for --regtest-path', '')
   .option('-y, --yes', 'Confirm wiping regtest blockchain without interactive prompt')
   .option('--dry-run', 'Derive and print exact volumes/containers to be wiped without executing')
   .action(async (options) => {
     let stack = (options.stack || 'lightwalletd').toLowerCase();
     if (stack === 'nu7') stack = 'lightwalletd';
-    const rawPath = options.regtestPath || options.z3Path;
+    const rawPath = options.regtestPath;
     let regtestDir: string;
     try {
       regtestDir = resolveRegtestDir(rawPath, stack);
@@ -1393,7 +1434,6 @@ regtestCmd
       'zcash-regtest-zaino',
       'zcash-regtest-full',
       'zcash-regtest-nu7',
-      'z3-regtest',
     ];
     if (!ALLOWED_PROJECT_NAMES.includes(projectName)) {
       console.error(`❌ Refusing to wipe: Expected name to be one of [${ALLOWED_PROJECT_NAMES.join(', ')}], but found "${projectName}". Only regtest environments may be wiped.`);

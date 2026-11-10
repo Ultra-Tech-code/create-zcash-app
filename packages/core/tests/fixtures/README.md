@@ -2,7 +2,7 @@
 
 The `.bin` files here are **committed** because `cargo test` reads them: a fresh clone or a CI
 runner must be able to run the suite without a live node. They are public regtest chain data
-(no keys, no secrets) captured from the local Z3 regtest stack described in `SESSION_HANDOFF.md`
+(no keys, no secrets) captured from the local regtest stack
 with the commands below. Earlier revisions of this file called them "gitignored on purpose",
 which is what broke the GitHub Actions matrix; they are now tracked.
 
@@ -21,8 +21,8 @@ node scripts/capture_real_block.mjs 108 real_funding_block.bin
 ```
 
 Arguments: `<height> [outputFileName]`. The default output name is `real_regtest_block.bin`;
-files are written to this directory. Requires the Z3 regtest stack with Zaino on
-`127.0.0.1:28137` (override with `ZCASH_ENDPOINT`).
+files are written to this directory. Requires the local regtest stack with Lightwalletd on
+`127.0.0.1:39067` or Zaino on `127.0.0.1:38137` (override with `ZCASH_ENDPOINT`).
 
 ## Files and the tests that use them
 

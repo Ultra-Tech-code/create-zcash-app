@@ -55,6 +55,26 @@ if [ "$GEN_SUCCESS" -ne 1 ]; then
 fi
 echo "   Blocks mined. NU7 is now active."
 
+echo "==> Initializing Zallet encryption identity and keystore..."
+$COMPOSE run --rm zallet -d /data -c /etc/zallet/zallet.toml generate-encryption-identity
+$COMPOSE run --rm zallet -d /data -c /etc/zallet/zallet.toml init-wallet-encryption
+
+echo "==> Importing Account 0 mnemonic into Zallet keystore..."
+python3 -c "
+import pty, os, subprocess
+master, slave = pty.openpty()
+proc = subprocess.Popen(
+    ['docker', 'compose', 'run', '--rm', 'zallet', '-d', '/data', '-c', '/etc/zallet/zallet.toml', 'import-mnemonic'],
+    stdin=slave, stdout=slave, stderr=slave, close_fds=True
+)
+os.close(slave)
+os.write(master, b'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about\n\n')
+try:
+    while os.read(master, 1024): pass
+except OSError: pass
+proc.wait()
+" || true
+
 echo "==> Starting zallet and lightwalletd services..."
 $COMPOSE up -d zallet lightwalletd
 
@@ -78,6 +98,12 @@ for i in $(seq 1 30); do
   fi
   sleep 1
 done
+
+# Ensure Account 0 is registered in Zallet with the imported seedfp
+SEEDFP="$(curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"getwalletinfo","params":[],"id":1}' "http://127.0.0.1:${ZALLET_PORT}" | grep -o 'zip32seedfp1[a-z0-9]*' | head -n 1 || true)"
+if [ -n "$SEEDFP" ]; then
+  curl -s -u zebra:zebra -X POST -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"method\":\"z_getnewaccount\",\"params\":[\"$SEEDFP\"],\"id\":1}" "http://127.0.0.1:${ZALLET_PORT}" > /dev/null 2>&1 || true
+fi
 
 echo "==> Tier 3 (Full) Regtest stack initialized successfully."
 

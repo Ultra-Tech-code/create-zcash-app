@@ -1,0 +1,73 @@
+===============================================================
+=== NU7 REGTEST STACK END-TO-END VERIFICATION: LIGHTWALLETD =====
+===============================================================
+backend mode:      lightwalletd
+config file name:  packages/dev/docker/stacks/lightwalletd/docker-compose.yml
+Lightwalletd listen port: 39067
+Zebra RPC port:    39232
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 105 (height=110)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Light Client gRPC Service ---
+lightwalletd git commit (from GetLightdInfo): e7436d2adb9ab5828eb8a27de534e16218841fc2
+Vendor:            ECC LightWalletD
+Version:           v0.6.0
+Branch ID:         77190ad9
+Tip Height:        110
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Block height matches Zebra tip (height=110)
+
+--- 3. Syncing Account 0 (Miner Recipient) to Tip ---
+Starting sync from height 1 to target 110...
+Scanned: 110/110
+Discovered unspent notes: 109
+Total spendable balance: 22708333297 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=109)
+[PASS] Account 0 has spendable balance (balance=22708333297)
+
+--- 3b. Verifying Ironwood Notes & Tree State ---
+Account 0 discovered Ironwood notes: 109
+Sample Ironwood note: pool=ironwood, value=208333333, txid=6e024a35f5f7a41f42baf6a433430114585ec3a66a592774ba7dca978ece507e
+[PASS] SDK discovered Ironwood note (ironwoodNotes=109)
+GetTreeState(110) ironwoodTree: 014ee243876f5a57c15558bb97625496f20fb9bd7b5f6652ac63d7c24062173632001f0001ec045f9c6da995c78f2bba56e76ee5bdf1f05784b69106b0faa2c8480435211601eba9da09fc05fe9fb6d87089e7d1e37b65829f98db014be6caad7c279227650100013092d491400ae17a5cd2bb8efe5f3d75c0cc6ea0d9c2dfd94e64bf9f3bbb5e1a0174399d4830264ce8118a64aaec8ee4f61670381fc9181382f74c91a060542c2400000000000000000000000000000000000000000000000000
+GetTreeState(110) decoded Ironwood root: 448d7331a3822359afda75e09ae17a704494416ddb81023d6008b08e72696e07
+[PASS] GetTreeState returns non-empty Ironwood root (root=448d7331a3822359afda75e09ae17a704494416ddb81023d6008b08e72696e07)
+
+--- 4. Executing send() from Account 0 to Account 1 ---
+Send TxID: 9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9
+Send Fee: 10000 zatoshis
+Send Actions: 2
+Send Expiry: 231
+[PASS] Send returned valid txid (txid=9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9)
+[PASS] Send fee is standard 10000 zatoshis
+[PASS] Send numActions is 2
+[PASS] Send expiry height equals target height + 120 (expiry=231, expected=231)
+
+--- 5. Verifying mempool and mining block ---
+Mempool contents: ["9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9"]
+[PASS] Transaction is present in Zebra mempool (explorerTxid=9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9)
+TxID 9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9 appears verbatim in Zebra mempool
+Mined block hash: 30482a6683dd456bc7960443ab6722e101510deb59a74d797b0be1472c798b80
+[PASS] Block successfully mined (blockHash=30482a6683dd456bc7960443ab6722e101510deb59a74d797b0be1472c798b80)
+[PASS] Mined block height incremented
+[PASS] Mined block includes the sent transaction
+TxID 9bcf005ef99dc16b6eb8748fb8f0f41b47cfe154b7c086f06b2864c8f6236fc9 appears verbatim in mined block 111 tx list
+Waiting for service to index mined block 111...
+Service indexed block 111
+
+--- 6. Syncing Account 1 (Recipient) to confirm receipt ---
+Recipient Scanned: 111/111
+Recipient Unspent Notes: 1
+Recipient Balance: 100000000 zatoshis
+[PASS] Account 1 scanned to new tip
+[PASS] Account 1 has unspent notes (notes=1)
+[PASS] Account 1 balance is at least 1.0 ZEC (100,000,000 zatoshis) (balance=100000000)
+
+======================================================================
+=== LIGHTWALLETD NU7 REGTEST END-TO-END VERIFIED: 21/21 ASSERTIONS PASSED ✅ ===
+======================================================================
+

@@ -773,15 +773,15 @@ describe('Phase 3 Explorer Offline Tests', () => {
     });
 
     it('reports one of the five source values per backend', () => {
-      expect(isLoopbackEndpoint('127.0.0.1:28137')).toBe(true);
+      expect(isLoopbackEndpoint('127.0.0.1:39067')).toBe(true);
       expect(isLoopbackEndpoint('http://localhost:3050')).toBe(true);
-      expect(isLoopbackEndpoint('http://user:pass@127.0.0.1:8181')).toBe(true);
+      expect(isLoopbackEndpoint('http://user:pass@127.0.0.1:39232')).toBe(true);
       expect(isLoopbackEndpoint('testnet.zec.rocks:443')).toBe(false);
       expect(isLoopbackEndpoint('https://quicknode.example.com/x?token=1')).toBe(false);
 
-      expect(sourceForLightwalletd('127.0.0.1:28137')).toBe('local-lightwalletd');
+      expect(sourceForLightwalletd('127.0.0.1:39067')).toBe('local-lightwalletd');
       expect(sourceForLightwalletd('testnet.zec.rocks:443')).toBe('third-party-lightwalletd');
-      expect(sourceForRpc('http://127.0.0.1:8181')).toBe('local-zebra-rpc');
+      expect(sourceForRpc('http://127.0.0.1:39232')).toBe('local-zebra-rpc');
       expect(sourceForRpc('https://quicknode.example.com')).toBe('third-party-rpc');
     });
 

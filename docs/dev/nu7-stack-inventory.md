@@ -13,7 +13,7 @@ in preparation for the NU7-only stack restructure and three-tier regtest archite
 
 | File | Status | Classification & Action |
 |------|--------|-------------------------|
-| `src/consensus.rs` | Modified | Added `Nu7` branch ID (`0x77190ad9`) and activation height exports (`get_nu7_activation_height`, `get_nu7_branch_id`, `get_ironwood_activation_height`). Updated Regtest consensus parameters so NU7 activates at block 2 by default. Retained `Nu6_3` branch ID (`0x5b331005`) and `get_nu6_3_activation_height` / `get_nu6_3_branch_id` for backwards compatibility. |
+| `src/consensus.rs` | Modified | Added `Nu7` branch ID (`0x77190ad9`) and activation height exports (`get_nu7_activation_height`, `get_nu7_branch_id`). `get_ironwood_activation_height` aliases `get_nu6_3_activation_height`. Updated Regtest consensus parameters so NU7 activates at block 2 by default. Retained `Nu6_3` branch ID (`0x37a5165b`) and `get_nu6_3_activation_height` / `get_nu6_3_branch_id` for backwards compatibility. |
 | `src/lib.rs` | Modified | Exported `get_nu7_activation_height`, `get_nu7_branch_id`, and `get_ironwood_activation_height` via NAPI. Preserved `get_nu6_3_activation_height` and `get_nu6_3_branch_id`. |
 | `src/wallet_handle.rs` | Preserved | Anchors wallet scan birthday height via `get_nu6_3_activation_height` (`wallet_handle.rs:385`). Preserved intact to prevent scanning from genesis on older accounts. |
 | `src/transaction.rs` | Inspected / Preserved | Contains transaction builder consensus branch ID selection logic. On regtest, target height >= 2 correctly yields NU7 branch ID `0x77190ad9`. |
@@ -143,3 +143,4 @@ in preparation for the NU7-only stack restructure and three-tier regtest archite
 | `scripts/verify_testnet.mjs` | Preserved | Testnet verification script. |
 | `scripts/verify-live.sh` | Preserved | Live verification script. |
 | `scripts/docs-gen.mjs` | Preserved | Documentation generator script from source JSDoc. |
+

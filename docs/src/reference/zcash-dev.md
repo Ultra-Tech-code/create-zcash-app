@@ -317,7 +317,6 @@ Configure and initialize regtest stack tier (default: lightwalletd, or --stack z
 | :--- | :--- | :--- |
 | `--stack <stack>` | Regtest stack tier to run (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--regtest-path <path>` | Path to regtest docker directory | `` |
-| `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
 
 #### `zcash-dev regtest down`
 
@@ -329,7 +328,6 @@ Stop regtest stack containers
 | :--- | :--- | :--- |
 | `--stack <stack>` | Regtest stack tier to stop (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--regtest-path <path>` | Path to regtest docker directory | `` |
-| `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
 
 #### `zcash-dev regtest wipe`
 
@@ -343,7 +341,6 @@ Wipe and reset the regtest blockchain, indexer, and wallet data
 | :--- | :--- | :--- |
 | `--stack <stack>` | Regtest stack tier to wipe (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--regtest-path <path>` | Path to regtest docker directory | `` |
-| `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
 | `-y, --yes` | Confirm wiping regtest blockchain without interactive prompt | None |
 | `--dry-run` | Derive and print exact volumes/containers to be wiped without executing | None |
 

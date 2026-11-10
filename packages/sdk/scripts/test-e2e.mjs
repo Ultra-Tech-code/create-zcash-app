@@ -5,7 +5,7 @@ async function main() {
 
   // 1. Client setup & GetInfo
   const client = createClient({
-    endpoint: '127.0.0.1:28137',
+    endpoint: '127.0.0.1:39067',
     network: 'regtest',
   });
 

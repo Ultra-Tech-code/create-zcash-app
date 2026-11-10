@@ -11,7 +11,7 @@ const cli = path.resolve(here, '../dist/cli.js');
 
 /**
  * `zcash-dev regtest wipe` must never delete anything without an explicit --yes.
- * The CLI resolves the z3 project from --z3-path, verifies COMPOSE_PROJECT_NAME,
+ * The CLI resolves the regtest project from --regtest-path, verifies COMPOSE_PROJECT_NAME,
  * prints the derived volumes, and only then asks for confirmation. With stdin not
  * attached to a TTY there is nobody to ask, so it must abort with exit code 1.
  */
@@ -72,7 +72,7 @@ test('zcash-dev regtest wipe refuses untrusted project name', () => {
 
   assert.equal(res.status, 1, `expected exit 1, got ${res.status}`);
   assert.match(res.stderr, /Refusing to wipe: Expected name to be one of/);
-  assert.match(res.stderr, /z3-regtest/);
+  assert.match(res.stderr, /zcash-regtest-lightwalletd/);
   assert.match(res.stderr, /zcash-regtest-nu7/);
 
   fs.rmSync(badDir, { recursive: true, force: true });

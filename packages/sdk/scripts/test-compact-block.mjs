@@ -1,12 +1,12 @@
 import { createClient } from '../dist/index.js';
 
 async function main() {
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const height = 219;
   const stream = client.getBlockRange(height, height);
 
   for await (const block of stream) {
-    console.log('=== COMPACT BLOCK FROM ZAINO (gRPC 127.0.0.1:28137) ===');
+    console.log('=== COMPACT BLOCK FROM ZAINO (gRPC 127.0.0.1:39067) ===');
     const blockData = {
       height: block.height,
       hash: Buffer.from(block.hash).reverse().toString('hex'),

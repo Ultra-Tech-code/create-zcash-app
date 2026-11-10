@@ -1,7 +1,7 @@
 import { createClient, dev } from '../dist/index.js';
 
 async function testItem1() {
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const acct = dev.fixtures.account(3, 'regtest');
   const targetUa = acct.getUnifiedAddress();
 
@@ -21,7 +21,8 @@ async function testItem1() {
   console.log('fee (type):', typeof result.fee);
 
   // Also query z_viewtransaction directly to display raw Zallet output
-  const viewRes = await fetch('http://127.0.0.1:8181', {
+  const zalletRpc = process.env.ZALLET_RPC_URL || process.env.ZALLET_RPC || 'http://127.0.0.1:8182';
+  const viewRes = await fetch(zalletRpc, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

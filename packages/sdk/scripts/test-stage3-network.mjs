@@ -5,7 +5,7 @@ async function main() {
   console.log('=== STAGE S3: NETWORK BROADCAST & ON-CHAIN SPEND PROOF ===');
   console.log('=======================================================');
 
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const acct0 = dev.fixtures.account(0, 'regtest');
   const acct3 = dev.fixtures.account(3, 'regtest');
   const ufvk0 = acct0.getUnifiedFullViewingKey();

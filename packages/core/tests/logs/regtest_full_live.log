@@ -1,0 +1,71 @@
+===============================================================
+=== NU7 REGTEST STACK COEXISTENCE: ZAINO + ZALLET BETA.4 ======
+===============================================================
+Date:              2026-11-10T07:30:58.770Z
+Zebra RPC:         http://127.0.0.1:39232
+Zaino gRPC:        127.0.0.1:39067
+Zallet RPC:        http://127.0.0.1:8182
+Output log:        packages/core/tests/logs/regtest_full_live.log
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 110 (height=110)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Zaino gRPC Service ---
+Zaino version:     v0.6.0
+Zaino git commit:  e7436d2adb9ab5828eb8a27de534e16218841fc2
+Zaino branch ID:   77190ad9
+Zaino blockHeight: 110
+Zaino chainName:   test
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Zaino reports height >= 110 (height=110)
+[PASS] Zaino reports correct git commit (commit=e7436d2adb9ab5828eb8a27de534e16218841fc2)
+
+--- 3. Verifying Zallet JSON-RPC Service ---
+Zallet seedfp:     zip32seedfp1y8kn67yzcl3hlcqjk49xgzqyspyvkztc949jjwrp0kne8nxj0q2sttdegg
+[PASS] Zallet getwalletinfo returned seedfp
+Zallet accounts:   1
+[PASS] Zallet has Account 0 registered
+Account 0 UUID:    65c13110-fbab-4e70-8339-ad2783b7b398
+Account 0 UA:      uregtest1cjtspq0p660zrmhwn8uhzug...
+
+--- 4. SDK Sync & Ironwood Tree State via Zaino ---
+Syncing Account 0 from height 1 to 110...
+Scanned: 110/110
+Discovered unspent notes: 109
+Spendable balance: 22708333297 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=109)
+[PASS] Account 0 has spendable balance (balance=22708333297)
+Discovered Ironwood notes via Zaino: 109
+Sample Ironwood note: pool=ironwood, value=208333333, txid=1a541a20bbdd5d1e0d42a96661c8fd9b1f661196f2961e3884154e7450851f53
+[PASS] SDK discovered Ironwood note via Zaino (ironwoodNotes=109)
+GetTreeState(110) ironwoodTree: 01b0ff47f609a9c2ea993c1ee0735cc2c6252353a9a3eb28c28e67f943536cc81e001f000139c64a91553d785f52519611faf6e2549cd10fcb402cb8624f816150a2e79f2f01d215e6276d5777785e5309a58d16ef496966fecbdd319c29ab713219380f390a000135956f55a934d5d449fa92fe95ecedb15b40843db01d73782535aae8e3f4840e0141f1c426d0696747d51f3eb813a56d5c0523658fa050ef6c1329827b8ec6070100000000000000000000000000000000000000000000000000
+Decoded Ironwood root: cd127020854bef23db1c289573926bbddce4db05a3fca4caea5b398cb5f6c43c
+[PASS] GetTreeState returns non-empty Ironwood root (root=cd127020854bef23db1c289573926bbddce4db05a3fca4caea5b398cb5f6c43c)
+
+--- 5. Executing send() via Zaino ---
+Send TxID: 77f8d8e7e4139b68a38c9dbaf76bca2df33053d29e2736fc9de8f6536253118a
+Send Fee:  10000 zatoshis
+[PASS] Send returned valid txid (txid=77f8d8e7e4139b68a38c9dbaf76bca2df33053d29e2736fc9de8f6536253118a)
+
+--- 6. Mining block on Zebra to confirm send ---
+Mined block: 126d9e420ba98e91957d5f61629cae123181ca5585a16eb08daf4962b7316459
+[PASS] Zebra mined block confirming send
+
+--- 7. Querying Zallet z_listunspent ---
+Zallet unspent notes count: 50
+Sample Zallet note txid:    c44620359cacf23a833403c870b438752ff6f5d187e72f02bfca8184ffb7984b
+Sample Zallet note pool:    ironwood
+Sample Zallet note confs:   50
+Sample Zallet note value:   2.08333333 ZEC (208333333 zatoshis)
+[PASS] Zallet z_listunspent returned unspent notes (notes=50)
+[PASS] Zallet reports Ironwood pool note in z_listunspent
+
+===============================================================
+=== COEXISTENCE SUMMARY: ALL ASSERTIONS PASSED ================
+Total assertions: 17
+Passed:           17
+Failed:           0
+===============================================================

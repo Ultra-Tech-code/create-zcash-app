@@ -65,8 +65,10 @@ export namespace dev {
       throw new Error('fund is only available on regtest');
     }
 
+    const zalletRpc = process.env.ZALLET_RPC_URL || process.env.ZALLET_RPC || 'http://127.0.0.1:8182';
+
     // 1. Get sender UA from Zallet
-    const addrRes = await fetch('http://127.0.0.1:8181', {
+    const addrRes = await fetch(zalletRpc, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +96,7 @@ export namespace dev {
     const frac = abs % 100_000_000n;
     const amountZec = `${isNegative ? '-' : ''}${whole}.${frac.toString().padStart(8, '0')}`;
 
-    const sendRes = await fetch('http://127.0.0.1:8181', {
+    const sendRes = await fetch(zalletRpc, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -121,7 +123,7 @@ export namespace dev {
     let txid = '';
     for (let attempts = 0; attempts < 30; attempts++) {
       await new Promise((r) => setTimeout(r, 1000));
-      const statusRes = await fetch('http://127.0.0.1:8181', {
+      const statusRes = await fetch(zalletRpc, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +154,7 @@ export namespace dev {
     // 4. Query z_viewtransaction for the real fee reported by Zallet
     let fee = quoteFee(2);
     try {
-      const viewRes = await fetch('http://127.0.0.1:8181', {
+      const viewRes = await fetch(zalletRpc, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
