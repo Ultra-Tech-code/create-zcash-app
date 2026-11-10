@@ -19,8 +19,7 @@ const devCliPath = path.resolve(__dirname, '../../packages/dev/dist/cli.js');
 
 const ENDPOINT = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
 const rawNetwork = process.env.ZCASH_NETWORK || 'regtest';
-const isNu7 = rawNetwork === 'regtest-nu7' || ENDPOINT.includes('39067');
-const NETWORK = isNu7 ? 'regtest-nu7' : rawNetwork;
+const NETWORK = rawNetwork === 'regtest-nu7' ? 'regtest' : rawNetwork;
 
 /**
  * @typedef {Object} Order

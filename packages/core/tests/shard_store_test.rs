@@ -303,7 +303,7 @@ fn test_decode_zaino_tampered_frontier_fails_or_mismatches() {
 #[ignore]
 fn test_live_zebra_gettreestate_window_comparison() {
     println!("\n=== LIVE TEST: COMPARE WALLET SHARDTREE ROOT TO RAW ZEBRA GETTREESTATE ===");
-    let rpc_url = "http://127.0.0.1:8181";
+    let rpc_url = "http://127.0.0.1:39232";
 
     let curl_rpc = |payload: &str| -> serde_json::Value {
         let output = std::process::Command::new("curl")

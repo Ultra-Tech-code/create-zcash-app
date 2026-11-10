@@ -1,8 +1,10 @@
 export type Network = 'regtest' | 'testnet' | 'mainnet';
 
 export type PresetId =
+  | 'regtest-lightwalletd'
+  | 'regtest-zaino'
+  | 'regtest-full'
   | 'regtest-nu7'
-  | 'regtest-z3'
   | 'testnet'
   | 'testnet-local'
   | 'mainnet';
@@ -19,25 +21,47 @@ export interface NetworkPreset {
 }
 
 export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
-  'regtest-nu7': {
-    id: 'regtest-nu7',
-    label: 'Regtest - NU7 (Zebra+lightwalletd, 127.0.0.1:39067)',
+  'regtest-lightwalletd': {
+    id: 'regtest-lightwalletd',
+    label: 'Regtest - Lightwalletd (Default, 127.0.0.1:39067)',
     network: 'regtest',
     endpoint: '127.0.0.1:39067',
-    description: 'Standalone Zebra 7.0.0 + Lightwalletd with NU7 active at block 1',
+    description: 'Tier 1: Zebra 7.0.0 + Lightwalletd with NU7 active at block 2',
     isLocal: true,
     miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: false,
   },
-  'regtest-z3': {
-    id: 'regtest-z3',
-    label: 'Regtest - Z3 NU6.3 (Zaino, 127.0.0.1:28137)',
+  'regtest-zaino': {
+    id: 'regtest-zaino',
+    label: 'Regtest - Zaino (Experimental RPC, 127.0.0.1:38137)',
     network: 'regtest',
-    endpoint: '127.0.0.1:28137',
-    description: 'Z3 stack with Zebra 7 + Zaino + Zallet (NU6.3)',
+    endpoint: '127.0.0.1:38137',
+    description:
+      'Tier 2: Zebra 7.0.0 + Zaino feat/nu7 (RPC backend; works against remote Zebra RPC; direct state-reader mode not offered in this stack; unencrypted plain-text gRPC regtest-only)',
     isLocal: true,
-    miningRpcUrl: 'http://127.0.0.1:8181',
+    miningRpcUrl: 'http://127.0.0.1:39232',
+    supportsZalletFaucet: false,
+  },
+  'regtest-full': {
+    id: 'regtest-full',
+    label: 'Regtest - Full Stack (Zallet + Lightwalletd, 127.0.0.1:39067)',
+    network: 'regtest',
+    endpoint: '127.0.0.1:39067',
+    description: 'Tier 3: Zebra 7.0.0 indexer + Zallet beta.4 (:8182) + Lightwalletd (:39067)',
+    isLocal: true,
+    miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: true,
+  },
+  // DEPRECATED: 'regtest-nu7' preset ID is deprecated and will be removed in the next release after alpha.5. Use 'regtest-lightwalletd'.
+  'regtest-nu7': {
+    id: 'regtest-nu7',
+    label: 'Regtest - Lightwalletd (Deprecated Alias, 127.0.0.1:39067)',
+    network: 'regtest',
+    endpoint: '127.0.0.1:39067',
+    description: 'Deprecated alias for regtest-lightwalletd (will be removed in the next release after alpha.5)',
+    isLocal: true,
+    miningRpcUrl: 'http://127.0.0.1:39232',
+    supportsZalletFaucet: false,
   },
   testnet: {
     id: 'testnet',
@@ -70,8 +94,8 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
 
 export const ALLOWED_ENDPOINTS = [
   '127.0.0.1:39067',
+  '127.0.0.1:38137',
   '127.0.0.1:39167',
-  '127.0.0.1:28137',
   'testnet.zec.rocks:443',
   'zec.rocks:443',
 ];

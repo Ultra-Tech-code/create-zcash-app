@@ -1,7 +1,7 @@
 import { createClient, getBalance, dev } from '../dist/index.js';
 
 async function testItem4() {
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const acct = dev.fixtures.account(3, 'regtest');
   const info = await client.getInfo();
   console.log('=== ITEM 4: getBalance minConf & CONFIRMED/PENDING SPLIT ===');

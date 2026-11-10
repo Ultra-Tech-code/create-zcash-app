@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Opt-in LIVE regtest verification. This is NOT part of scripts/verify.sh.
 #
-# It destroys the local z3-regtest cluster (chain, indexes, wallet), rebuilds it,
+# It destroys the local regtest cluster (chain, indexes, wallet), rebuilds it,
 # funds Account 0 and Account 1 exactly once, and runs the P3 cross-account payment.
 # It refuses to run without --yes and always prints what it is about to wipe first.
 set -euo pipefail
@@ -14,7 +14,7 @@ if [[ "${1:-}" != "--yes" ]]; then
 REFUSING TO RUN: scripts/verify-live.sh destroys the local regtest cluster.
 
 It will:
-  1. Wipe the z3-regtest Docker project: chain volume, Zallet wallet volume,
+  1. Wipe the regtest Docker project: chain volume, Zallet wallet volume,
      cookie volume and Zallet CA certificates (see the dry run below)
   2. Re-initialise genesis state, recreate the miner account and mine a fresh chain
   3. Fund Account 0 with 5 ZEC and Account 1 with 3 ZEC exactly once

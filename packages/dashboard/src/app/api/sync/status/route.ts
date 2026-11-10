@@ -123,10 +123,7 @@ async function handleSyncRequest(request: Request, isPost = false) {
   }
 
   try {
-    const effectiveAccountId =
-      presetParam === 'regtest-z3' && accountId === 'account0'
-        ? 'account0_z3'
-        : accountId;
+    const effectiveAccountId = accountId;
     const wallet = getDashboardWallet(network, effectiveAccountId, ufvk, birthday);
 
     if (shouldStart) {

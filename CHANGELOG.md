@@ -2,10 +2,32 @@
 
 All notable changes to `create-zcash-app` and its workspace packages will be documented in this file.
 
-## [Unreleased]
+## [0.1.0-alpha.5] - 2026-11-10
 
 ### Breaking Changes
-- **SDK `send()` Returns Display-Order TxID**: `send()` (`@zcash-app/sdk`) now returns `txid` in standard node/explorer display order (byte-reversed relative to internal Zcash wire format). This aligns with Zebra JSON-RPC (`getrawmempool`, `getblock`, `getrawtransaction`), block explorers, and user expectations. Previously, `send()` returned the internal wire-order byte string, requiring manual calls to `reverseTxid()`. Internal wallet functions (such as `markBroadcastWithReservation()`) continue to consume wire order as required by native core bindings.
+- **Removal of Legacy Z3 / NU6 Regtest Stacks**: The legacy Z3 and NU6.3/NU6.4 regtest stacks (`--regtest-stack z3`, `--regtest-stack nu6`, `packages/dev/docker/regtest/`) have been removed. All regtest environments now follow NU7 (ZIP 259 branch ID `0x77190ad9`) activating at block 2 by default. Attempting to start or configure the removed `z3` or `nu6` stacks yields a clear migration error.
+- **Port Allocations Updated for Regtest**:
+  - Default regtest gRPC indexer port changed from `28137` to `39067` (`lightwalletd` and `full` tiers) or `38137` (`zaino` tier).
+  - Default regtest Zebra JSON-RPC port changed from `8181` / `18232` to `39232`.
+- **`regtest-nu7` Network Deprecation**: The canonical network identifier for regtest is now `'regtest'`. The previous transitional identifier `'regtest-nu7'` (and dashboard preset `'regtest-nu7'`) is retained as a compatibility alias for one release, logging a deprecation warning (`console.warn`) and mapping automatically to `'regtest'`. Both are deprecated and will be removed in the next release after `alpha.5`. The client option `regtestNu7` is deprecated, ignored, and triggers a warning.
+- **Upgrader Instructions**: Upgraders should run `zcash-dev regtest wipe` and delete old regtest wallet DBs (`~/.zcash-app/dashboard/` or project caches) because stacks, ports, volumes, and chain history changed. The core SQLite database migration normalizes legacy network metadata to avoid open errors, but cannot preserve obsolete chain data across network upgrades.
+- **SDK `send()` Returns Display-Order TxID**: `send()` (`@zcash-app/sdk`) returns `txid` in standard node/explorer display byte order (reversed relative to internal Zcash wire format). This aligns with Zebra JSON-RPC (`getrawmempool`, `getblock`, `getrawtransaction`), block explorers, and user expectations. Internal wallet methods continue to handle raw wire-order bytes internally.
+- **Regtest Transaction Expiry Delta**: Default expiry delta on regtest now follows NU7 consensus rules (+120 blocks, rather than the legacy NU6 +40 delta).
+
+### Three-Tier Regtest Architecture (`zcash-dev`, `create-zcash-app`, `@zcash-app/dashboard`)
+- **Tier 1: Lightwalletd (Default)**: Standalone Zebra 7.0.0 paired directly with Lightwalletd. Host ports: `39232` (Zebra RPC), `38080` (health), `39067` (gRPC), `39068` (HTTP metrics).
+- **Tier 2: Zaino (Experimental)**: Standalone Zebra 7.0.0 paired with Zaino built from source on branch `feat/nu7` (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) using an RPC backend (works against a remote Zebra RPC; direct state-reader mode is not offered in this stack; direct mode exists upstream and is documented only in the spike). Host ports: `39232`, `38080`, `38137` (gRPC). Initial run builds Zaino inside Docker (~3+ min) with `no_tls_use_unencrypted_traffic` for plain-text gRPC strictly bound to `127.0.0.1` on regtest; never expose or use for testnet/mainnet.
+- **Tier 3: Full Stack (Zallet + Lightwalletd)**: Zebra 7.0.0 in indexer mode, Zallet `v0.1.0-beta.4`, and Lightwalletd coexisting against shared state. Host ports: `39232`, `8230` (indexer), `38080`, `8182` (Zallet RPC), `39067`, `39068`.
+- **Single Active Stack Constraint**: Documented that only one regtest tier can run at a time due to shared host port `39232`.
+
+### Core Rust Library & Native Bindings (`@zcash-app/core`)
+- **NU7 Consensus Exports**: Added and exported `get_nu7_activation_height`, `get_nu7_branch_id`, and `get_ironwood_activation_height`.
+- **Activation Schedule**: Regtest activates NU7 at block 2. Preserved `Nu6_3` branch ID knowledge and `get_nu6_3_activation_height` to maintain wallet scan birthday height anchors.
+- **Wallet DB Metadata Migration**: `open_or_create` normalizes stored `'regtest-nu7'` or `'regtest_nu7'` database network metadata to `'regtest'` when opening with requested network `'regtest'`, rewriting the stored row in place while continuing to enforce strict mismatch errors across unrelated networks.
+
+### Developer Dashboard (`@zcash-app/dashboard`)
+- **Updated Presets**: Configured `regtest-lightwalletd` (default, `39067`), `regtest-zaino` (`38137`), and `regtest-full` (`39067`/`8182`). Removed `regtest-z3`.
+- **Multi-Tier Funding & Mining**: Faucet supports direct Zallet funding on `regtest-full`, and TypeScript SDK miner funding / coinbase block generation across all tiers. All tiers target Zebra JSON-RPC on `http://127.0.0.1:39232`.
 
 ## [0.1.0-alpha.4] - 2026-11-05
 

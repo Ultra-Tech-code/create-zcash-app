@@ -533,7 +533,7 @@ fn test_c_live_regtest_broadcast_and_mine() {
         .args([
             "-s",
             "-X", "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", r#"{"jsonrpc":"2.0","id":"1","method":"getblockchaininfo","params":[]}"#,
         ])
@@ -542,7 +542,7 @@ fn test_c_live_regtest_broadcast_and_mine() {
     let output = match check_rpc {
         Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).to_string(),
         _ => {
-            println!("SKIPPING: Zebra RPC not reachable at http://127.0.0.1:8181");
+            println!("SKIPPING: Zebra RPC not reachable at http://127.0.0.1:39232");
             return;
         }
     };
@@ -703,7 +703,7 @@ fn test_c_live_regtest_broadcast_and_mine() {
         .args([
             "-s",
             "-X", "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", &broadcast_payload,
         ])
@@ -718,7 +718,7 @@ fn test_c_live_regtest_broadcast_and_mine() {
         .args([
             "-s",
             "-X", "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", r#"{"jsonrpc":"2.0","id":"mine","method":"generate","params":[1]}"#,
         ])
@@ -735,7 +735,7 @@ fn test_c_live_regtest_broadcast_and_mine() {
         .args([
             "-s",
             "-X", "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", &get_tx_payload,
         ])
@@ -761,7 +761,7 @@ fn zebra_regtest_rpc_reachable() -> bool {
             "3",
             "-X",
             "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H",
             "Content-Type: application/json",
             "-d",
@@ -784,7 +784,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
     // This test ends in a live broadcast to Zebra, so it must not depend on a running chain.
     if !zebra_regtest_rpc_reachable() {
         println!(
-            "SKIP: no Zebra regtest node answered getblockchaininfo at http://127.0.0.1:8181; \
+            "SKIP: no Zebra regtest node answered getblockchaininfo at http://127.0.0.1:39232; \
              skipping the P4 two-bundle build and live broadcast. Start the Z3 regtest stack to exercise this test."
         );
         return;
@@ -960,7 +960,7 @@ fn test_p4_analyze_crate_support_and_two_bundles() {
         .args([
             "-s",
             "-X", "POST",
-            "http://127.0.0.1:8181",
+            "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", &broadcast_payload,
         ])
@@ -1139,14 +1139,14 @@ fn test_default_tx_expiry_delta_for_nu6_3_and_nu7() {
 }
 
 #[test]
-#[ignore = "requires live Zebra regtest node with NU7 on port 29232 (run under verify-live.sh)"]
+#[ignore = "requires live Zebra regtest node with NU7 on port 39232 (run under verify-live.sh)"]
 fn test_fee_acceptance_on_regtest_node() {
     println!("\n=== TEST: FEE ACCEPTANCE ON REGTEST NODE (CRATE FEE vs GETSTANDARDFEE vs 1 ZAT BELOW) ===");
 
     // Check if regtest node is reachable
     let check = Command::new("curl")
         .args([
-            "-s", "-X", "POST", "http://127.0.0.1:29232",
+            "-s", "-X", "POST", "http://127.0.0.1:39232",
             "-H", "Content-Type: application/json",
             "-d", r#"{"jsonrpc":"2.0","id":"1","method":"getstandardfee","params":[]}"#,
         ])
@@ -1155,7 +1155,7 @@ fn test_fee_acceptance_on_regtest_node() {
     let output = match check {
         Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).to_string(),
         _ => {
-            println!("SKIPPING: Zebra regtest node not reachable on port 29232");
+            println!("SKIPPING: Zebra regtest node not reachable on port 39232");
             return;
         }
     };
@@ -1255,7 +1255,7 @@ fn test_fee_acceptance_on_regtest_node() {
         );
         let res = Command::new("curl")
             .args([
-                "-s", "-X", "POST", "http://127.0.0.1:29232",
+                "-s", "-X", "POST", "http://127.0.0.1:39232",
                 "-H", "Content-Type: application/json",
                 "-d", &payload,
             ])

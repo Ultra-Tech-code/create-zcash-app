@@ -1,7 +1,7 @@
 {
   "name": "@zcash-app/sdk",
-  "version": "0.1.0-alpha.4",
-  "description": "TypeScript SDK for building shielded Zcash apps on the Z3 stack",
+  "version": "0.1.0-alpha.5",
+  "description": "TypeScript SDK for building shielded Zcash apps with NU7 and Ironwood support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -21,8 +21,7 @@
     "ironwood",
     "nu7",
     "sdk",
-    "typescript",
-    "z3"
+    "typescript"
   ],
   "files": [
     "dist",

@@ -1,7 +1,7 @@
 import { createClient, getBalance, detectIncoming, dev } from '../dist/index.js';
 
 async function main() {
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const acct0 = dev.fixtures.account(0, 'regtest');
   const acct2 = dev.fixtures.account(2, 'regtest');
 

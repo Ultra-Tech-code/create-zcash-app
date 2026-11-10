@@ -1,3 +1,7 @@
+# Zallet v0.1.0-beta.4 configuration for Tier 3 (Full) stack on NU7 regtest.
+
+backend = "zebra"
+
 [builder.limits]
 orchard_actions = 250
 
@@ -14,6 +18,7 @@ regtest_nuparams = [
     "4dec4df0:2",      # NU6.1
     "5437f330:2",      # NU6.2
     "37a5165b:2",      # NU6.3 (Ironwood)
+    "77190ad9:2",      # NU7
 ]
 
 [database]
@@ -21,7 +26,7 @@ regtest_nuparams = [
 [external]
 
 [features]
-as_of_version = "0.1.0-beta.1"
+as_of_version = "0.1.0-beta.4"
 
 [features.deprecated]
 
@@ -32,15 +37,21 @@ validator_address = "zebra:18232"
 validator_user = "zebra"
 validator_password = "zebra"
 
+[indexer.read_state_service]
+grpc_address = "zebra:8230"
+zebra_state_path = "/zebra-cache"
+
 [keystore]
-encryption_identity = "/var/lib/zallet/identity.txt"
+encryption_identity = "/data/identity.txt"
 
 [note_management]
 
 [rpc]
 bind = ["0.0.0.0:28232"]
+allow_insecure_remote_bind = true
 timeout = 30
 
 [[rpc.auth]]
 user = "zebra"
 pwhash = "7998bac165a18a9bd37850f47e9f99d9$9040698a94619c779afff312bb1417731a2e0d750c8e8313943fc34fb152f389"
+

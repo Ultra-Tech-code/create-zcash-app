@@ -71,8 +71,8 @@ export async function GET(request: Request) {
 
     // Determine network string for expected branch derivation
     const derivationNetwork =
-      network === 'regtest' && (presetParam === 'regtest-nu7' || endpoint.includes('39067'))
-        ? 'regtest-nu7'
+      network === 'regtest' || (network as string) === 'regtest-nu7'
+        ? 'regtest'
         : network;
 
     const expectedBranchId = getExpectedBranchId(derivationNetwork, blockHeight);

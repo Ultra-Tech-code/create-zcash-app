@@ -86,7 +86,7 @@ b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/st
 
 
 
-a98dfeb4bbdd996396341b398653ec6aa6dc3d7c910060282b608d4f2fec9f9c  release_pack_check.log  |  bash scripts/prove-release-pack-check.sh
+46082b327ceee3126d8c9e4919def79088580db895ecc7a56e54b41a5fcbd747  release_pack_check.log  |  bash scripts/prove-release-pack-check.sh
 19744f44c15cc8a9097f6e950435646cae1bc9b6787aaa25c52ff5a1abcd1363  scan_timing_proof.log  |  12x "dd bs=64k count=64 conv=fsync" loops + 100x "yes > /dev/null" busy loops, then <old-binary> 3x and <new-binary> 3x: --exact test_reorg_depth_exceeded_beyond_100_block_window --nocapture --test-threads=1
 b1abd8e064050ea7f0b61159b7d04fb70ec96f3eefcc28ff16f18f8504a3fc1d  verify_dashboard_sync_and_theme.log  |  git worktree add /tmp/cza-clean-dashboard HEAD && cd /tmp/cza-clean-dashboard && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_dashboard_sync_and_theme.log
 21fccecfaad75966970abfd300f4fc678255cea897b624b6cf9aeb1be8098b23  verify_docs_book_stage1.log  |  git worktree add /tmp/cza-clean-verify HEAD && cd /tmp/cza-clean-verify && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_docs_book_stage1.log
@@ -111,3 +111,10 @@ de353e4f15275de0773bbf244b02c09ca362a9cbd70f29e2567d4ecb4d7a30bc  lightwalletd_n
 a7f9d5d17ce1384884be3089c9b9aac9f7e2b704503d97d2307fac62a5641277  zainod_startup_direct.log  |  zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-direct.toml
 066fe3cfc58686acb851f0594439ad4b7a1725d83aed852a5b640d15e58cde59  zaino_zallet_coexistence.log  |  node scripts/zaino_zallet_coexistence.mjs
 ac653ff776b0b025423d6c1ff2b3ceed25d2abf07752c6750eccfefafa01aa1b  docker_inspect_remote_proof.log  |  docker inspect zebra-spike && docker inspect zcash-regtest-nu7-lightwalletd-1
+4f3199d36e19b4ed7b2c0fb0399ae3209cfaaa2a844f583c2152817a1706eddf  zaino_nu7_spike.log  |  node scripts/zaino_nu7_spike.mjs
+4b833b12f46eac5f9b826aa0ad5ebc6e8e76f6a5ed8f9d9f3d1ef1dc01c3849a  regtest_lightwalletd_live.log  |  zcash-dev regtest up --stack lightwalletd && node scripts/zaino_nu7_spike.mjs
+19f793a0b804688676033efa7078588ee9bcbdec285b0f59edff6510b3b0a3c1  regtest_zaino_live.log  |  zcash-dev regtest up --stack zaino && node scripts/zaino_nu7_spike.mjs
+a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_live.log  |  zcash-dev regtest up --stack full && node scripts/zaino_zallet_coexistence.mjs
+0411f0f3f1861fe4419838aaff03b9918a3a3bdb64e65bb89c967d4d2b4eb605  verify_phase_b.log  |  bash scripts/verify.sh
+4182400ab00964827a0116747730545c19afccb7f7965c678f7845b77b0efc65  verify_phase_b2.log  |  bash scripts/verify.sh
+3e1248b28e57f5d8c44e6a17cc203af711cc51c755e4bde29b3de4d2291d973d  verify_phase_b3.log  |  bash scripts/verify.sh

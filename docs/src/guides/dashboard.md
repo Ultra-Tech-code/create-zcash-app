@@ -101,8 +101,9 @@ The dashboard provides pre-configured network configurations defined in [`packag
 
 | Preset ID | Label | Network | Endpoint | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| `regtest-nu7` | Regtest - NU7 | `regtest` | `127.0.0.1:39067` | Standalone Zebra 7.0.0 + Lightwalletd with NU7 active at block 1/2 |
-| `regtest-z3` | Regtest - Z3 NU6.3 | `regtest` | `127.0.0.1:28137` | Z3 stack with Zebra 7 + Zaino + Zallet (NU6.3) |
+| `regtest-lightwalletd` | Regtest - Lightwalletd | `regtest` | `127.0.0.1:39067` | Tier 1: Zebra 7.0.0 + Lightwalletd with NU7 active at block 2 |
+| `regtest-zaino` | Regtest - Zaino | `regtest` | `127.0.0.1:38137` | Tier 2: Zebra 7.0.0 + Zaino feat/nu7 (built from source) |
+| `regtest-full` | Regtest - Full Stack | `regtest` | `127.0.0.1:39067` | Tier 3: Zebra 7.0.0 indexer + Zallet beta.4 (:8182) + Lightwalletd |
 | `testnet` | Testnet | `testnet` | `testnet.zec.rocks:443` | Public Lightwalletd on Zcash testnet |
 | `testnet-local`| Testnet - local | `testnet` | `127.0.0.1:39167` | Local lightwalletd connected to local testnet Zebra node |
 | `mainnet` | Mainnet | `mainnet` | `zec.rocks:443` | Public Lightwalletd on Zcash mainnet (strictly watch-only) |

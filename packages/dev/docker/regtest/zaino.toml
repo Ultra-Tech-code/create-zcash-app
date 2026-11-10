@@ -1,6 +1,0 @@
-# Zaino config for regtest — auth via username/password (no cookie auth)
-backend = "fetch"
-
-[validator_settings]
-validator_user = "zebra"
-validator_password = "zebra"

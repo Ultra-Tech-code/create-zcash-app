@@ -11,8 +11,8 @@ Applications scaffolded by `create-zcash-app` manage their environment configura
 | Variable | Description | Example Values | Format / Constraints |
 | :--- | :--- | :--- | :--- |
 | `ZCASH_NETWORK` | Target Zcash network | `regtest`, `testnet`, `mainnet` | Case-insensitive; defaults to `regtest` |
-| `ZCASH_ENDPOINT` | gRPC service endpoint for lightwalletd or Zaino | `127.0.0.1:28137`, `testnet.zec.rocks:443` | Must be `host:port`. **Must NOT contain `://`** |
-| `ZCASH_ZEBRA_RPC` | JSON-RPC URL for Zebra full node | `http://127.0.0.1:18232`, `https://rpc.example.com/TOKEN` | Valid `http:` or `https:` URL |
+| `ZCASH_ENDPOINT` | gRPC service endpoint for lightwalletd or Zaino | `127.0.0.1:39067`, `testnet.zec.rocks:443` | Must be `host:port`. **Must NOT contain `://`** |
+| `ZCASH_ZEBRA_RPC` | JSON-RPC URL for Zebra full node | `http://127.0.0.1:39232`, `https://rpc.example.com/TOKEN` | Valid `http:` or `https:` URL |
 | `ZCASH_BIRTHDAY` | Wallet birthday block height | `4465026` (testnet NU7), `3543405` (mainnet) | Non-negative integer. Optimization checkpoint |
 | `ZCASH_BIRTHDAY_HEIGHT`| Supported alias for `ZCASH_BIRTHDAY` | `4465026` | Non-negative integer |
 | `ZCASH_MNEMONIC` | BIP-39 mnemonic seed phrase (spending key) | `word1 word2 ... word24` | 12 or 24 words from standard BIP-39 wordlist |

@@ -29,7 +29,7 @@ async function main() {
   let infoBefore;
   for (let i = 0; i < 30; i++) {
     try {
-      client = new ZcashClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+      client = new ZcashClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
       infoBefore = await client.getInfo();
       if (infoBefore && infoBefore.blockHeight) break;
     } catch (e) {
@@ -54,7 +54,7 @@ async function main() {
   let infoAfter;
   for (let i = 0; i < 30; i++) {
     try {
-      client = new ZcashClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+      client = new ZcashClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
       infoAfter = await client.getInfo();
       if (infoAfter && infoAfter.blockHeight) break;
     } catch (e) {

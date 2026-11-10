@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
 type Network = 'regtest' | 'testnet' | 'mainnet';
 
 const DEFAULT_ENDPOINTS: Record<Network, string> = {
-  regtest: '127.0.0.1:28137',
+  regtest: '127.0.0.1:39067',
   testnet: 'testnet.zec.rocks:443',
   mainnet: 'zec.rocks:443',
 };

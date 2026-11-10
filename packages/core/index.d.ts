@@ -111,6 +111,16 @@ export declare function getDefaultTxExpiryDelta(networkStr: string, height: numb
 
 export declare function getExpectedBranchId(networkStr: string, height: number): string
 
+export declare function getIronwoodActivationHeight(networkStr: string): number
+
+export declare function getNu63ActivationHeight(networkStr: string): number
+
+export declare function getNu63BranchId(): string
+
+export declare function getNu7ActivationHeight(networkStr: string): number
+
+export declare function getNu7BranchId(): string
+
 export declare function getTransparentAddressFromUfvk(ufvkStr: string, networkStr: string): string | null
 
 /**

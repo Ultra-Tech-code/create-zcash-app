@@ -12,7 +12,7 @@ async function main() {
   console.log('ITEM 11: LIVE REGTEST TS SDK & WALLET HANDLE INTEGRATION TEST');
   console.log('================================================================\n');
 
-  const endpoint = '127.0.0.1:28137';
+  const endpoint = '127.0.0.1:39067';
   const client = createClient({ endpoint, network: 'regtest' });
 
   // 1. Check Zaino node connectivity and tip

@@ -35,7 +35,6 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
     }
   };
 
-  const isNu7Regtest = preset === 'regtest-nu7';
   const isWatchOnly = network !== 'regtest';
   const isError = accountData?.status === 'error';
   const isSyncing = accountData?.status === 'syncing';
@@ -319,7 +318,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         {!isWatchOnly && (
           <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
             <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-              Developer Controls ({isNu7Regtest ? 'NU7 Regtest' : 'Z3 Regtest'}):
+              Developer Controls ({preset}):
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }} onClick={() => onMine(1)}>
@@ -328,15 +327,9 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <button className="btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }} onClick={() => onMine(10)}>
                 Mine 10 Blocks
               </button>
-              {!isNu7Regtest ? (
-                <button className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }} onClick={onFund}>
-                  Fund 1 ZEC
-                </button>
-              ) : (
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', alignSelf: 'center' }}>
-                  (Zallet fund disabled on pure Zebra NU7)
-                </span>
-              )}
+              <button className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }} onClick={onFund}>
+                Fund 1 ZEC
+              </button>
             </div>
           </div>
         )}

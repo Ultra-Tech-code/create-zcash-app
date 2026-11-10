@@ -1,6 +1,6 @@
 {
   "name": "@zcash-app/dashboard",
-  "version": "0.1.0-alpha.4",
+  "version": "0.1.0-alpha.5",
   "description": "Developer dashboard for shielded Zcash apps",
   "license": "Apache-2.0",
   "repository": {

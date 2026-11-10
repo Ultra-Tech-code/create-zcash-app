@@ -8,7 +8,7 @@ async function main() {
   console.log('=== PHASE 3 (P3): CROSS-ACCOUNT PAYMENT VIA SDK send() ONLY ===');
   console.log('===============================================================\n');
 
-  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:28137';
+  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
   const client = createClient({ endpoint, network: 'regtest' });
 
   // 1. Account Setup
@@ -142,8 +142,9 @@ async function main() {
   console.log(`Querying broadcast txid: ${displayTxid}`);
 
   let rpcData;
+  const zebraRpc = process.env.ZEBRA_RPC || 'http://127.0.0.1:39232';
   for (let i = 0; i < 10; i++) {
-    const rpcRes = await fetch('http://127.0.0.1:8181', {
+    const rpcRes = await fetch(zebraRpc, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

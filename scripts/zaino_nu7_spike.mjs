@@ -19,7 +19,7 @@ const {
 } = await import(`${projectRoot}/packages/sdk/dist/index.js`);
 
 const BACKEND_MODE = process.env.ZAINO_BACKEND_MODE || 'rpc';
-const CONFIG_FILE = process.env.ZAINO_CONFIG_FILE || (BACKEND_MODE === 'direct' ? 'zainod-direct.toml' : 'zainod-rpc.toml');
+const CONFIG_FILE = process.env.ZAINO_CONFIG_FILE || process.env.CONFIG_FILE || (BACKEND_MODE === 'direct' ? 'packages/dev/docker/spikes/nu7-stack/zainod-direct.toml' : (BACKEND_MODE === 'lightwalletd' ? 'packages/dev/docker/stacks/lightwalletd/docker-compose.yml' : 'packages/dev/docker/stacks/zaino/zainod.toml'));
 const OUTPUT_LOG = process.env.SPIKE_OUTPUT_LOG || `packages/core/tests/logs/zaino_nu7_spike_${BACKEND_MODE}.log`;
 const ZEBRA_RPC_PORT = process.env.ZEBRA_RPC_PORT || '49232';
 const ZAINO_GRPC_PORT = process.env.ZAINO_GRPC_PORT || '8137';

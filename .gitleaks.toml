@@ -30,4 +30,7 @@ paths = [
     '''packages/dev/test/pretty-rpc\.test\.mjs''',
     '''packages/dev/docker/spikes/.*'''
 ]
+stopwords = [
+    "zebra:zebra"
+]
 

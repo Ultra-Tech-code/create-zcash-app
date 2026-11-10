@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function main() {
-  const client = createClient({ endpoint: '127.0.0.1:28137', network: 'regtest' });
+  const client = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest' });
   const info = await client.getInfo();
   const currentHeight = parseInt(info.blockHeight, 10);
   console.log(`Current block height: ${currentHeight}`);

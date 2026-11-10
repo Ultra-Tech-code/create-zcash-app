@@ -1,7 +1,7 @@
 === create-zcash-app release pack-check proof ===
-date:        2026-11-01T08:44:12Z
+date:        2026-11-10T06:22:58Z
 repo:        /Users/0xblackadam/Downloads/zcash_scafolder
-work dir:    /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-pack-check-proof.f5SDh0
+work dir:    /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-pack-check-proof.kepSKA
 node:        v22.22.2
 pnpm:        11.5.3
 
@@ -12,21 +12,21 @@ sandbox addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 sandbox addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 sandbox addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
 
---- step 2: pack all 9 tarballs into /tmp/release-packs using workflow steps ---
+--- step 2: pack all 10 tarballs into /tmp/release-packs using workflow steps ---
 copied LICENSE to all package directories
 temporary placeholder: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 temporary placeholder: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 temporary placeholder: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 temporary placeholder: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-package: @zcash-app/core@0.1.0-alpha.1
+package: @zcash-app/core@0.1.0-alpha.5
 Tarball Contents
 index.d.ts
 index.js
 LICENSE
 package.json
 Tarball Details
-/tmp/release-packs/zcash-app-core-0.1.0-alpha.1.tgz
-package: @zcash-app/sdk@0.1.0-alpha.1
+/tmp/release-packs/zcash-app-core-0.1.0-alpha.5.tgz
+package: @zcash-app/sdk@0.1.0-alpha.5
 Tarball Contents
 dist/client.d.ts
 dist/client.js
@@ -63,32 +63,228 @@ package.json
 proto/compact_formats.proto
 proto/service.proto
 Tarball Details
-/tmp/release-packs/zcash-app-sdk-0.1.0-alpha.1.tgz
-package: zcash-dev@0.1.0-alpha.1
+/tmp/release-packs/zcash-app-sdk-0.1.0-alpha.5.tgz
+package: @zcash-app/dashboard@0.1.0-alpha.5
+Tarball Contents
+.next/app-path-routes-manifest.json
+.next/BUILD_ID
+.next/build-manifest.json
+.next/export-marker.json
+.next/images-manifest.json
+.next/next-minimal-server.js.nft.json
+.next/next-server.js.nft.json
+.next/package.json
+.next/prerender-manifest.json
+.next/react-loadable-manifest.json
+.next/required-server-files.js
+.next/required-server-files.json
+.next/routes-manifest.json
+.next/server/app-paths-manifest.json
+.next/server/app/_global-error.html
+.next/server/app/_global-error.meta
+.next/server/app/_global-error.rsc
+.next/server/app/_global-error.segments/_full.segment.rsc
+.next/server/app/_global-error.segments/_global-error/__PAGE__.segment.rsc
+.next/server/app/_global-error.segments/_tree.segment.rsc
+.next/server/app/_global-error/page_client-reference-manifest.js
+.next/server/app/_global-error/page.js
+.next/server/app/_global-error/page.js.nft.json
+.next/server/app/_not-found.html
+.next/server/app/_not-found.meta
+.next/server/app/_not-found.rsc
+.next/server/app/_not-found.segments/_full.segment.rsc
+.next/server/app/_not-found.segments/_not-found/__PAGE__.segment.rsc
+.next/server/app/_not-found.segments/_tree.segment.rsc
+.next/server/app/_not-found/page_client-reference-manifest.js
+.next/server/app/_not-found/page.js
+.next/server/app/_not-found/page.js.nft.json
+.next/server/app/api/account/forget-key/route_client-reference-manifest.js
+.next/server/app/api/account/forget-key/route.js
+.next/server/app/api/account/forget-key/route.js.nft.json
+.next/server/app/api/account/import-key/route_client-reference-manifest.js
+.next/server/app/api/account/import-key/route.js
+.next/server/app/api/account/import-key/route.js.nft.json
+.next/server/app/api/account/route_client-reference-manifest.js
+.next/server/app/api/account/route.js
+.next/server/app/api/account/route.js.nft.json
+.next/server/app/api/config/route_client-reference-manifest.js
+.next/server/app/api/config/route.js
+.next/server/app/api/config/route.js.nft.json
+.next/server/app/api/explorer/route_client-reference-manifest.js
+.next/server/app/api/explorer/route.js
+.next/server/app/api/explorer/route.js.nft.json
+.next/server/app/api/fund/route_client-reference-manifest.js
+.next/server/app/api/fund/route.js
+.next/server/app/api/fund/route.js.nft.json
+.next/server/app/api/mine/route_client-reference-manifest.js
+.next/server/app/api/mine/route.js
+.next/server/app/api/mine/route.js.nft.json
+.next/server/app/api/status/route_client-reference-manifest.js
+.next/server/app/api/status/route.js
+.next/server/app/api/status/route.js.nft.json
+.next/server/app/api/sync/status/route_client-reference-manifest.js
+.next/server/app/api/sync/status/route.js
+.next/server/app/api/sync/status/route.js.nft.json
+.next/server/app/api/transactions/route_client-reference-manifest.js
+.next/server/app/api/transactions/route.js
+.next/server/app/api/transactions/route.js.nft.json
+.next/server/app/explorer/[txid]/page_client-reference-manifest.js
+.next/server/app/explorer/[txid]/page.js
+.next/server/app/explorer/[txid]/page.js.nft.json
+.next/server/app/favicon.ico.body
+.next/server/app/favicon.ico.meta
+.next/server/app/favicon.ico/route.js
+.next/server/app/favicon.ico/route.js.nft.json
+.next/server/app/index.html
+.next/server/app/index.meta
+.next/server/app/index.rsc
+.next/server/app/index.segments/__PAGE__.segment.rsc
+.next/server/app/index.segments/_full.segment.rsc
+.next/server/app/index.segments/_tree.segment.rsc
+.next/server/app/page_client-reference-manifest.js
+.next/server/app/page.js
+.next/server/app/page.js.nft.json
+.next/server/chunks/323.js
+.next/server/chunks/336.js
+.next/server/chunks/470.js
+.next/server/chunks/507.js
+.next/server/chunks/744.js
+.next/server/functions-config-manifest.json
+.next/server/interception-route-rewrite-manifest.js
+.next/server/middleware-build-manifest.js
+.next/server/middleware-manifest.json
+.next/server/middleware-react-loadable-manifest.js
+.next/server/next-font-manifest.js
+.next/server/next-font-manifest.json
+.next/server/pages-manifest.json
+.next/server/pages/404.html
+.next/server/pages/500.html
+.next/server/prefetch-hints.json
+.next/server/preview-props.json
+.next/server/server-reference-manifest.js
+.next/server/server-reference-manifest.json
+.next/server/webpack-runtime.js
+.next/static/chunks/084437a8-cb0364bd25a66e58.js
+.next/static/chunks/686-44d257662a155548.js
+.next/static/chunks/738-2040892d404c5e90.js
+.next/static/chunks/776-5b7d5d20aa95cea5.js
+.next/static/chunks/app/_global-error/page-896be96ff4cc4b20.js
+.next/static/chunks/app/_not-found/page-52a7a3c8b10d2d8b.js
+.next/static/chunks/app/api/account/forget-key/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/account/import-key/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/account/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/config/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/explorer/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/fund/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/mine/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/status/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/sync/status/route-896be96ff4cc4b20.js
+.next/static/chunks/app/api/transactions/route-896be96ff4cc4b20.js
+.next/static/chunks/app/explorer/[txid]/page-39aa6d915f9604b4.js
+.next/static/chunks/app/layout-c2125c09f9ee4736.js
+.next/static/chunks/app/page-0302189d5abd5c8b.js
+.next/static/chunks/framework-66a12bbff6ab453a.js
+.next/static/chunks/main-8f70e8b7415c8a48.js
+.next/static/chunks/main-app-2fb96e868c7965f2.js
+.next/static/chunks/next/dist/client/components/builtin/app-error-896be96ff4cc4b20.js
+.next/static/chunks/next/dist/client/components/builtin/forbidden-896be96ff4cc4b20.js
+.next/static/chunks/next/dist/client/components/builtin/global-error-aab16f55f6ab5e77.js
+.next/static/chunks/next/dist/client/components/builtin/not-found-896be96ff4cc4b20.js
+.next/static/chunks/next/dist/client/components/builtin/unauthorized-896be96ff4cc4b20.js
+.next/static/chunks/polyfills-42372ed130431b0a.js
+.next/static/chunks/webpack-7399a6496fdd6038.js
+.next/static/css/07e8f49f2a9b9da1.css
+.next/static/IZsXNK7bUrkAxCjWbz3vf/_buildManifest.js
+.next/static/IZsXNK7bUrkAxCjWbz3vf/_ssgManifest.js
+.next/static/media/013b72fa676f92e0-s.woff2
+.next/static/media/22a5144ee8d83bca-s.p.woff2
+.next/static/media/2b5b02fc7e511755-s.woff2
+.next/static/media/65f03d54ccadf4a8-s.woff2
+.next/static/media/7d4881bb7e1bf84d-s.p.woff2
+.next/static/media/9766a7e9e2e0ad5a-s.woff2
+.next/static/media/aa016aab0e6d1295-s.woff2
+.next/static/media/b66cf8e69499582a-s.woff2
+.next/static/media/b9408752a0c24fb9-s.woff2
+.next/static/media/e038a29029a234f2-s.woff2
+.next/static/media/f639721981034f88-s.woff2
+LICENSE
+next.config.mjs
+package.json
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
+README.md
+Tarball Details
+/tmp/release-packs/zcash-app-dashboard-0.1.0-alpha.5.tgz
+package: zcash-dev@0.1.0-alpha.5
 Tarball Contents
 dist/cli.d.ts
 dist/cli.js
+dist/env.d.ts
+dist/env.js
 dist/index.d.ts
 dist/index.js
+dist/pretty/block.d.ts
+dist/pretty/block.js
+dist/pretty/client.d.ts
+dist/pretty/client.js
+dist/pretty/format.d.ts
+dist/pretty/format.js
+dist/pretty/index.d.ts
+dist/pretty/index.js
+dist/pretty/mempool.d.ts
+dist/pretty/mempool.js
+dist/pretty/peers.d.ts
+dist/pretty/peers.js
+dist/pretty/supply.d.ts
+dist/pretty/supply.js
+dist/pretty/tx.d.ts
+dist/pretty/tx.js
+dist/pretty/types.d.ts
+dist/pretty/types.js
+dist/redact.d.ts
+dist/redact.js
 dist/testnet-lightwalletd.d.ts
 dist/testnet-lightwalletd.js
 docker/regtest-nu7/docker-compose.yml
 docker/regtest-nu7/regtest-init.sh
 docker/regtest-nu7/zebra.toml
-docker/regtest/.env.regtest
-docker/regtest/docker-compose.yml
-docker/regtest/regtest-init.sh
-docker/regtest/zaino.toml
-docker/regtest/zallet.toml
-docker/regtest/zebra.toml
+docker/spikes/nu7-stack/README.md
+docker/spikes/nu7-stack/zainod-direct.toml
+docker/spikes/nu7-stack/zainod-rpc.toml
+docker/spikes/nu7-stack/zallet.toml
+docker/spikes/nu7-stack/zebra.toml
+docker/spikes/zallet-beta4/docker-compose.yml
+docker/spikes/zallet-beta4/README.md
+docker/spikes/zallet-beta4/run-spike.sh
+docker/spikes/zallet-beta4/zallet.toml
+docker/spikes/zallet-beta4/zebra.toml
+docker/stacks/full/docker-compose.yml
+docker/stacks/full/regtest-init.sh
+docker/stacks/full/zallet.toml
+docker/stacks/full/zebra.toml
+docker/stacks/lightwalletd/docker-compose.yml
+docker/stacks/lightwalletd/regtest-init.sh
+docker/stacks/lightwalletd/zebra.toml
+docker/stacks/zaino/docker-compose.yml
+docker/stacks/zaino/Dockerfile
+docker/stacks/zaino/regtest-init.sh
+docker/stacks/zaino/zainod.toml
+docker/stacks/zaino/zebra.toml
 LICENSE
 package.json
 Tarball Details
-/tmp/release-packs/zcash-dev-0.1.0-alpha.1.tgz
-package: create-zcash-app@0.1.0-alpha.1
+/tmp/release-packs/zcash-dev-0.1.0-alpha.5.tgz
+package: create-zcash-app@0.1.0-alpha.5
 Tarball Contents
+dist/bip39.d.ts
+dist/bip39.js
 dist/index.d.ts
 dist/index.js
+dist/redact.d.ts
+dist/redact.js
 LICENSE
 package.json
 template/app/api/account/route.ts
@@ -100,70 +296,71 @@ template/package.json.tmpl
 template/pnpm-workspace.yaml
 template/tsconfig.json
 Tarball Details
-/tmp/release-packs/create-zcash-app-0.1.0-alpha.1.tgz
-package: @zcash-app/core-darwin-arm64@0.1.0-alpha.1
+/tmp/release-packs/create-zcash-app-0.1.0-alpha.5.tgz
+package: @zcash-app/core-darwin-arm64@0.1.0-alpha.5
 Tarball Contents
 LICENSE
 package.json
 README.md
 zcash-core.darwin-arm64.node
 Tarball Details
-/tmp/release-packs/zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz
+/tmp/release-packs/zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["darwin"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
-package: @zcash-app/core-darwin-x64@0.1.0-alpha.1
+package: @zcash-app/core-darwin-x64@0.1.0-alpha.5
 Tarball Contents
 LICENSE
 package.json
 README.md
 zcash-core.darwin-x64.node
 Tarball Details
-/tmp/release-packs/zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz
+/tmp/release-packs/zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz
 [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
 [WARN] Unsupported platform: wanted: {"cpu":["arm64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
-package: @zcash-app/core-linux-arm64-gnu@0.1.0-alpha.1
+package: @zcash-app/core-linux-arm64-gnu@0.1.0-alpha.5
 Tarball Contents
 LICENSE
 package.json
 README.md
 zcash-core.linux-arm64-gnu.node
 Tarball Details
-/tmp/release-packs/zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz
+/tmp/release-packs/zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["linux"],"libc":["glibc"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
-package: @zcash-app/core-linux-x64-gnu@0.1.0-alpha.1
+package: @zcash-app/core-linux-x64-gnu@0.1.0-alpha.5
 Tarball Contents
 LICENSE
 package.json
 README.md
 zcash-core.linux-x64-gnu.node
 Tarball Details
-/tmp/release-packs/zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz
+/tmp/release-packs/zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["win32"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
 [WARN] Unsupported platform: wanted: {"cpu":["x64"],"os":["win32"],"libc":["any"]} (current: {"os":"darwin","cpu":"arm64","libc":"unknown"})
-package: @zcash-app/core-win32-x64-msvc@0.1.0-alpha.1
+package: @zcash-app/core-win32-x64-msvc@0.1.0-alpha.5
 Tarball Contents
 LICENSE
 package.json
 README.md
 zcash-core.win32-x64-msvc.node
 Tarball Details
-/tmp/release-packs/zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz
+/tmp/release-packs/zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz
 
 packed tarballs in /tmp/release-packs:
-create-zcash-app-0.1.0-alpha.1.tgz
-zcash-app-core-0.1.0-alpha.1.tgz
-zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz
-zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz
-zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz
-zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz
-zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz
-zcash-app-sdk-0.1.0-alpha.1.tgz
-zcash-dev-0.1.0-alpha.1.tgz
-total tarballs: 9
+create-zcash-app-0.1.0-alpha.5.tgz
+zcash-app-core-0.1.0-alpha.5.tgz
+zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz
+zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz
+zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz
+zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz
+zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz
+zcash-app-dashboard-0.1.0-alpha.5.tgz
+zcash-app-sdk-0.1.0-alpha.5.tgz
+zcash-dev-0.1.0-alpha.5.tgz
+total tarballs: 10
 
 --- step 3: extract pack-check script from release.yml unchanged ---
-Extracted script to /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-pack-check-proof.f5SDh0/extracted-pack-check.js (5284 bytes)
+Extracted script to /var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T//cza-pack-check-proof.kepSKA/extracted-pack-check.js (5465 bytes)
 
 --- step 4: run extracted script against baseline (must exit 0) ---
 platform addon: packages/core/npm/darwin-arm64/zcash-core.darwin-arm64.node
@@ -171,19 +368,21 @@ platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-tarball check ok: create-zcash-app-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-sdk-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-dev-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-zcash-app-core-0.1.0-alpha.1.tgz: @zcash-app/core@0.1.0-alpha.1, 5 entries, 5 optional deps
-zcash-app-sdk-0.1.0-alpha.1.tgz: @zcash-app/sdk@0.1.0-alpha.1, 35 entries, 0 optional deps
-zcash-dev-0.1.0-alpha.1.tgz: zcash-dev@0.1.0-alpha.1, 18 entries, 0 optional deps
-create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 13 entries, 0 optional deps
+tarball check ok: create-zcash-app-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-dashboard-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-dev-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+zcash-app-core-0.1.0-alpha.5.tgz: @zcash-app/core@0.1.0-alpha.5, 5 entries, 5 optional deps
+zcash-app-sdk-0.1.0-alpha.5.tgz: @zcash-app/sdk@0.1.0-alpha.5, 35 entries, 0 optional deps
+zcash-app-dashboard-0.1.0-alpha.5.tgz: @zcash-app/dashboard@0.1.0-alpha.5, 151 entries, 0 optional deps
+zcash-dev-0.1.0-alpha.5.tgz: zcash-dev@0.1.0-alpha.5, 56 entries, 0 optional deps
+create-zcash-app-0.1.0-alpha.5.tgz: create-zcash-app@0.1.0-alpha.5, 17 entries, 0 optional deps
 -> baseline exit code: 0
 PASS: baseline pack-check succeeded with exit 0
 
@@ -193,20 +392,22 @@ platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-MISSING package/LICENSE in create-zcash-app-0.1.0-alpha.1.tgz
-tarball check ok: create-zcash-app-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-sdk-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-dev-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-zcash-app-core-0.1.0-alpha.1.tgz: @zcash-app/core@0.1.0-alpha.1, 5 entries, 5 optional deps
-zcash-app-sdk-0.1.0-alpha.1.tgz: @zcash-app/sdk@0.1.0-alpha.1, 35 entries, 0 optional deps
-zcash-dev-0.1.0-alpha.1.tgz: zcash-dev@0.1.0-alpha.1, 18 entries, 0 optional deps
-create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 18 entries, 0 optional deps
+MISSING package/LICENSE in create-zcash-app-0.1.0-alpha.5.tgz
+tarball check ok: create-zcash-app-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-dashboard-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-dev-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+zcash-app-core-0.1.0-alpha.5.tgz: @zcash-app/core@0.1.0-alpha.5, 5 entries, 5 optional deps
+zcash-app-sdk-0.1.0-alpha.5.tgz: @zcash-app/sdk@0.1.0-alpha.5, 35 entries, 0 optional deps
+zcash-app-dashboard-0.1.0-alpha.5.tgz: @zcash-app/dashboard@0.1.0-alpha.5, 151 entries, 0 optional deps
+zcash-dev-0.1.0-alpha.5.tgz: zcash-dev@0.1.0-alpha.5, 56 entries, 0 optional deps
+create-zcash-app-0.1.0-alpha.5.tgz: create-zcash-app@0.1.0-alpha.5, 22 entries, 0 optional deps
 -> missing LICENSE exit code: 1
 PASS: missing LICENSE correctly triggered exit 1
 
@@ -216,20 +417,22 @@ platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-INVALID REPOSITORY in create-zcash-app-0.1.0-alpha.1.tgz: expected git+https://github.com/Ultra-Tech-code/create-zcash-app.git, found git+https://github.com/evil-org/create-zcash-app.git
-tarball check ok: create-zcash-app-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-sdk-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-dev-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-zcash-app-core-0.1.0-alpha.1.tgz: @zcash-app/core@0.1.0-alpha.1, 5 entries, 5 optional deps
-zcash-app-sdk-0.1.0-alpha.1.tgz: @zcash-app/sdk@0.1.0-alpha.1, 35 entries, 0 optional deps
-zcash-dev-0.1.0-alpha.1.tgz: zcash-dev@0.1.0-alpha.1, 18 entries, 0 optional deps
-create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 19 entries, 0 optional deps
+INVALID REPOSITORY in create-zcash-app-0.1.0-alpha.5.tgz: expected git+https://github.com/Ultra-Tech-code/create-zcash-app.git, found git+https://github.com/evil-org/create-zcash-app.git
+tarball check ok: create-zcash-app-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-dashboard-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-dev-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+zcash-app-core-0.1.0-alpha.5.tgz: @zcash-app/core@0.1.0-alpha.5, 5 entries, 5 optional deps
+zcash-app-sdk-0.1.0-alpha.5.tgz: @zcash-app/sdk@0.1.0-alpha.5, 35 entries, 0 optional deps
+zcash-app-dashboard-0.1.0-alpha.5.tgz: @zcash-app/dashboard@0.1.0-alpha.5, 151 entries, 0 optional deps
+zcash-dev-0.1.0-alpha.5.tgz: zcash-dev@0.1.0-alpha.5, 56 entries, 0 optional deps
+create-zcash-app-0.1.0-alpha.5.tgz: create-zcash-app@0.1.0-alpha.5, 23 entries, 0 optional deps
 -> wrong repository.url exit code: 1
 PASS: wrong repository.url correctly triggered exit 1
 
@@ -239,33 +442,35 @@ platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-INVALID LICENSE in create-zcash-app-0.1.0-alpha.1.tgz: expected Apache-2.0, found GPL-3.0
-tarball check ok: create-zcash-app-0.1.0-alpha.1.tgz (workspace ranges: 0, license: GPL-3.0)
-tarball check ok: zcash-app-core-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-sdk-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-dev-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-zcash-app-core-0.1.0-alpha.1.tgz: @zcash-app/core@0.1.0-alpha.1, 5 entries, 5 optional deps
-zcash-app-sdk-0.1.0-alpha.1.tgz: @zcash-app/sdk@0.1.0-alpha.1, 35 entries, 0 optional deps
-zcash-dev-0.1.0-alpha.1.tgz: zcash-dev@0.1.0-alpha.1, 18 entries, 0 optional deps
-create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 19 entries, 0 optional deps
+INVALID LICENSE in create-zcash-app-0.1.0-alpha.5.tgz: expected Apache-2.0, found GPL-3.0
+tarball check ok: create-zcash-app-0.1.0-alpha.5.tgz (workspace ranges: 0, license: GPL-3.0)
+tarball check ok: zcash-app-core-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-dashboard-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-dev-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+zcash-app-core-0.1.0-alpha.5.tgz: @zcash-app/core@0.1.0-alpha.5, 5 entries, 5 optional deps
+zcash-app-sdk-0.1.0-alpha.5.tgz: @zcash-app/sdk@0.1.0-alpha.5, 35 entries, 0 optional deps
+zcash-app-dashboard-0.1.0-alpha.5.tgz: @zcash-app/dashboard@0.1.0-alpha.5, 151 entries, 0 optional deps
+zcash-dev-0.1.0-alpha.5.tgz: zcash-dev@0.1.0-alpha.5, 56 entries, 0 optional deps
+create-zcash-app-0.1.0-alpha.5.tgz: create-zcash-app@0.1.0-alpha.5, 23 entries, 0 optional deps
 -> wrong license exit code: 1
 PASS: wrong license correctly triggered exit 1
 
---- step 8: control test D - only 8 tarballs (must exit 1) ---
-current tarball count: 8
+--- step 8: control test D - missing tarball (must exit 1) ---
+current tarball count: 9
 platform addon: packages/core/npm/darwin-arm64/zcash-core.darwin-arm64.node
 platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-EXPECTED exactly 9 tarballs in /tmp/release-packs, found 8
--> only 8 tarballs exit code: 1
-PASS: only 8 tarballs correctly triggered exit 1
+EXPECTED exactly 10 tarballs in /tmp/release-packs, found 9
+-> missing tarball exit code: 1
+PASS: missing tarball correctly triggered exit 1
 
 --- step 9: control test E - workspace range in platform tarball (must exit 1) ---
 platform addon: packages/core/npm/darwin-arm64/zcash-core.darwin-arm64.node
@@ -273,21 +478,23 @@ platform addon: packages/core/npm/darwin-x64/zcash-core.darwin-x64.node
 platform addon: packages/core/npm/linux-x64-gnu/zcash-core.linux-x64-gnu.node
 platform addon: packages/core/npm/linux-arm64-gnu/zcash-core.linux-arm64-gnu.node
 platform addon: packages/core/npm/win32-x64-msvc/zcash-core.win32-x64-msvc.node
-tarball check ok: create-zcash-app-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-WORKSPACE RANGE IN zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz: @zcash-app/core=workspace:*
-tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-app-sdk-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-tarball check ok: zcash-dev-0.1.0-alpha.1.tgz (workspace ranges: 0, license: Apache-2.0)
-zcash-app-core-0.1.0-alpha.1.tgz: @zcash-app/core@0.1.0-alpha.1, 5 entries, 5 optional deps
-zcash-app-sdk-0.1.0-alpha.1.tgz: @zcash-app/sdk@0.1.0-alpha.1, 35 entries, 0 optional deps
-zcash-dev-0.1.0-alpha.1.tgz: zcash-dev@0.1.0-alpha.1, 18 entries, 0 optional deps
-create-zcash-app-0.1.0-alpha.1.tgz: create-zcash-app@0.1.0-alpha.1, 13 entries, 0 optional deps
+tarball check ok: create-zcash-app-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+WORKSPACE RANGE IN zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz: @zcash-app/core=workspace:*
+tarball check ok: zcash-app-core-darwin-arm64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-darwin-x64-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-arm64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-linux-x64-gnu-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-core-win32-x64-msvc-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-dashboard-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-app-sdk-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+tarball check ok: zcash-dev-0.1.0-alpha.5.tgz (workspace ranges: 0, license: Apache-2.0)
+zcash-app-core-0.1.0-alpha.5.tgz: @zcash-app/core@0.1.0-alpha.5, 5 entries, 5 optional deps
+zcash-app-sdk-0.1.0-alpha.5.tgz: @zcash-app/sdk@0.1.0-alpha.5, 35 entries, 0 optional deps
+zcash-app-dashboard-0.1.0-alpha.5.tgz: @zcash-app/dashboard@0.1.0-alpha.5, 151 entries, 0 optional deps
+zcash-dev-0.1.0-alpha.5.tgz: zcash-dev@0.1.0-alpha.5, 56 entries, 0 optional deps
+create-zcash-app-0.1.0-alpha.5.tgz: create-zcash-app@0.1.0-alpha.5, 17 entries, 0 optional deps
 -> workspace range in platform package exit code: 1
 PASS: workspace range in tarball correctly triggered exit 1
 
-RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_8=1, workspace_range=1)
+RESULT: all pack-check controls verified (baseline=0, missing_license=1, wrong_repo=1, wrong_license=1, count_fail=1, workspace_range=1)

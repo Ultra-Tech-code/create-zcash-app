@@ -114,7 +114,7 @@ fn get_fixture() -> &'static TestFixture {
             .with_ovk_policy(OvkPolicy::SenderFvk);
 
         let tip = BlockHeight::from_u32(100);
-        let config = TransactionConfig::new(BranchId::Nu6_3, anchor, tip, None);
+        let config = TransactionConfig::new(BranchId::Nu7, anchor, tip, None);
         let pk = get_shared_proving_key();
 
         println!("  Building transaction 1 with OvkPolicy::SenderFvk...");
@@ -155,7 +155,7 @@ fn get_fixture() -> &'static TestFixture {
         let out_change2 = OutputSpec::new(sender_change_addr, NoteValue::from_raw(390_000))
             .with_ovk_policy(OvkPolicy::SenderFvk);
 
-        let config2 = TransactionConfig::new(BranchId::Nu6_3, anchor2, tip, None);
+        let config2 = TransactionConfig::new(BranchId::Nu7, anchor2, tip, None);
         let tx2_ovk_none = build_and_prove_v6_ironwood_tx(
             orchard_sk_sender,
             vec![spend2],
@@ -184,8 +184,8 @@ fn test_sender_ovk_recovers_outgoing_and_internal_change() {
 
     assert_eq!(dec.txid, f.tx1_sender_fvk.txid.to_string());
     assert_eq!(dec.fee, Some(10_000));
-    assert_eq!(dec.expiry_height, 141);
-    assert_eq!(dec.consensus_branch_id, "37a5165b");
+    assert_eq!(dec.expiry_height, 221);
+    assert_eq!(dec.consensus_branch_id, "77190ad9");
 
     // Recover outgoing payment to recipient
     assert_eq!(dec.outgoing.len(), 1, "Sender must recover exactly 1 outgoing output");
@@ -285,9 +285,9 @@ fn test_decrypt_transaction_fee_with_transparent_part() {
 
     let iw_bundle = orig_tx.ironwood_bundle().cloned().expect("ironwood bundle");
     let tx_data: TransactionData<Authorized> = TransactionData::from_parts_v6(
-        BranchId::Nu6_3,
+        BranchId::Nu7,
         0,
-        BlockHeight::from_u32(141),
+        BlockHeight::from_u32(221),
         Some(transparent_bundle_with_input),
         None,
         None,
@@ -328,9 +328,9 @@ fn test_decrypt_transaction_fee_with_transparent_part() {
         .expect("map value balance");
 
     let tx_data_t_out: TransactionData<Authorized> = TransactionData::from_parts_v6(
-        BranchId::Nu6_3,
+        BranchId::Nu7,
         0,
-        BlockHeight::from_u32(141),
+        BlockHeight::from_u32(221),
         Some(transparent_bundle_output_only),
         None,
         None,

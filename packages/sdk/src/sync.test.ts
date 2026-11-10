@@ -33,7 +33,7 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
     const requestedRanges: Array<{ start: number; end: number }> = [];
 
     const mockClient = {
-      config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
       getInfo: vi.fn().mockResolvedValue({ blockHeight: '0' }),
       getRawBlockRange: vi.fn().mockImplementation((start: number, end: number) => {
         requestedRanges.push({ start, end });
@@ -116,7 +116,7 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
 
     // 1. Positive case: authentic frontier matches wallet root
     const mockClientMatching = {
-      config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
       getInfo: vi.fn().mockResolvedValue({ blockHeight: '10' }),
       getRawBlockRange: vi.fn().mockImplementation(() => ({
         [Symbol.asyncIterator]: async function* () {},
@@ -140,7 +140,7 @@ describe('SDK syncWallet, Mock Block Streamer, and GetTreeState Verification', (
     const tamperedFrontier = frontierWithLeaf(0x01);
     expect(decodeIronwoodFrontierRoot(tamperedFrontier)).not.toBe(authenticRootHex);
     const mockClientTampered = {
-      config: { network: 'regtest', endpoint: '127.0.0.1:28137' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
       getInfo: vi.fn().mockResolvedValue({ blockHeight: '10' }),
       getRawBlockRange: vi.fn().mockImplementation(() => ({
         [Symbol.asyncIterator]: async function* () {},

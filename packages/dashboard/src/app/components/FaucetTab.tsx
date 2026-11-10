@@ -20,9 +20,9 @@ export const FaucetTab: React.FC<FaucetTabProps> = ({
   onFund,
   actionStatus,
 }) => {
-  const isNu7Regtest = preset === 'regtest-nu7';
-  const isZ3Regtest = preset === 'regtest-z3';
-  const isWatchOnly = network !== 'regtest';
+  const isFullRegtest = preset === 'regtest-full';
+  const isRegtest = network === 'regtest';
+  const isWatchOnly = !isRegtest;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -30,10 +30,8 @@ export const FaucetTab: React.FC<FaucetTabProps> = ({
       <div className="glass-card">
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Regtest Block Generation</h2>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-          {isNu7Regtest
+          {isRegtest
             ? 'Calls Zebra generate RPC on 127.0.0.1:39232 directly. Mining coinbase rewards are paid to Account 0.'
-            : isZ3Regtest
-            ? 'Calls Zebra generate RPC via router on 127.0.0.1:8181. Mining coinbase rewards are paid to the configured miner address.'
             : 'Mining is only available on local regtest networks.'}
         </p>
 
@@ -65,27 +63,24 @@ export const FaucetTab: React.FC<FaucetTabProps> = ({
       <div className="glass-card">
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.5rem' }}>Account Funding</h2>
 
-        {isNu7Regtest ? (
-          <div
-            id="zallet-disabled-banner"
-            style={{
-              padding: '1rem 1.25rem',
-              background: 'var(--alert-warning-bg)',
-              border: '1px solid var(--alert-warning-border)',
-              borderRadius: '8px',
-              color: 'var(--alert-warning-text)',
-              fontSize: '0.85rem',
-              lineHeight: '1.5',
-            }}
-          >
-            ℹ️ <strong>Fund from Zallet is unavailable on the standalone NU7 regtest preset:</strong>
-            <br />
-            This preset runs pure Zebra 7.0.0 + Lightwalletd without a Zallet instance. To fund this environment, use <strong>"Mine 1 Block"</strong> above—Zebra automatically credits coinbase mining rewards directly to Account 0 (<code className="mono-text">{accountData?.unifiedAddress?.slice(0, 16)}...</code>).
-          </div>
-        ) : isZ3Regtest ? (
+        {isFullRegtest ? (
           <div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
               Transfers 1.0 ZEC from Zallet regtest wallet to the active account and auto-mines 1 block to confirm.
+            </p>
+            <button
+              id="fund-account-btn"
+              className="btn-primary"
+              onClick={onFund}
+              disabled={!accountData?.unifiedAddress}
+            >
+              Fund 1.0 ZEC to Current Account
+            </button>
+          </div>
+        ) : isRegtest ? (
+          <div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+              Transfers 1.0 ZEC from Account 0 miner balance via the TypeScript SDK send pipeline to the active account.
             </p>
             <button
               id="fund-account-btn"

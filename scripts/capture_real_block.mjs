@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
   const targetHeight = process.argv[2] ? parseInt(process.argv[2], 10) : 2;
-  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:28137';
+  const endpoint = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
 
   console.log(`=== CAPTURING RAW gRPC BYTES FROM ZAINO (${endpoint}) FOR BLOCK ${targetHeight} ===\n`);
 

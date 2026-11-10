@@ -18,7 +18,7 @@ export async function GET() {
     process.env.ZCASH_ENDPOINT ||
     (network === 'regtest' ? '127.0.0.1:39067' : 'testnet.zec.rocks:443');
 
-  let preset: PresetId = 'regtest-nu7';
+  let preset: PresetId = 'regtest-lightwalletd';
   if (process.env.ZCASH_PRESET && NETWORK_PRESETS[process.env.ZCASH_PRESET as PresetId]) {
     preset = process.env.ZCASH_PRESET as PresetId;
   } else if (network === 'testnet') {
@@ -26,7 +26,7 @@ export async function GET() {
   } else if (network === 'mainnet') {
     preset = 'mainnet';
   } else if (network === 'regtest') {
-    preset = endpoint.includes('28137') ? 'regtest-z3' : 'regtest-nu7';
+    preset = endpoint.includes('38137') ? 'regtest-zaino' : 'regtest-lightwalletd';
   }
 
   return NextResponse.json({

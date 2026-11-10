@@ -15,13 +15,13 @@ export default function ExplorerTxPage() {
   const qPreset = searchParams.get('preset') as PresetId | null;
   const qNetwork = searchParams.get('network');
 
-  // Synchronously initialize preset if available in query params, or default to regtest-nu7
+  // Synchronously initialize preset if available in query params, or default to regtest-lightwalletd
   const [activePreset, setActivePreset] = useState<PresetId>(() => {
     if (qPreset && NETWORK_PRESETS[qPreset]) return qPreset;
-    if (qNetwork === 'regtest') return 'regtest-nu7';
+    if (qNetwork === 'regtest') return 'regtest-lightwalletd';
     if (qNetwork === 'testnet') return 'testnet';
     if (qNetwork === 'mainnet') return 'mainnet';
-    return 'regtest-nu7';
+    return 'regtest-lightwalletd';
   });
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function ExplorerTxPage() {
             return;
           }
           if (data.config.network === 'regtest') {
-            setActivePreset(data.config.endpoint?.includes('28137') ? 'regtest-z3' : 'regtest-nu7');
+            setActivePreset(data.config.endpoint?.includes('38137') ? 'regtest-zaino' : 'regtest-lightwalletd');
             return;
           }
         }
@@ -56,7 +56,7 @@ export default function ExplorerTxPage() {
       .catch(() => {});
   }, [searchParams]);
 
-  const presetObj = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-nu7'];
+  const presetObj = NETWORK_PRESETS[activePreset] || NETWORK_PRESETS['regtest-lightwalletd'];
   const network = presetObj.network;
 
   return (

@@ -2,7 +2,8 @@
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use zcash_core::{
-    get_nu6_3_activation_height, get_nu6_3_branch_id, metadata_keys, WalletDb, WalletDbError,
+    get_ironwood_activation_height, get_nu6_3_activation_height, get_nu6_3_branch_id,
+    get_nu7_activation_height, get_nu7_branch_id, metadata_keys, WalletDb, WalletDbError,
 };
 
 #[test]
@@ -12,6 +13,7 @@ fn test_nu6_3_activation_heights_from_consensus() {
     let mainnet_height = get_nu6_3_activation_height("mainnet").expect("mainnet activation height");
     let testnet_height = get_nu6_3_activation_height("testnet").expect("testnet activation height");
     let regtest_height = get_nu6_3_activation_height("regtest").expect("regtest activation height");
+    let ironwood_height = get_ironwood_activation_height("mainnet").expect("ironwood activation height");
     let branch_id = get_nu6_3_branch_id();
 
     println!("  Mainnet NU6.3 Activation Height: {}", mainnet_height);
@@ -22,7 +24,28 @@ fn test_nu6_3_activation_heights_from_consensus() {
     assert_eq!(mainnet_height, 3_428_143, "Mainnet NU6.3 must equal 3,428,143");
     assert_eq!(testnet_height, 4_134_000, "Testnet NU6.3 must equal 4,134,000");
     assert_eq!(regtest_height, 2, "Regtest NU6.3 must equal 2 (matching Zebra regtest schedule)");
+    assert_eq!(ironwood_height, 3_428_143, "Ironwood alias must equal NU6.3 activation height");
     assert_eq!(branch_id, 0x37a5_165b, "NU6.3 BranchId must equal 0x37a5165b");
+}
+
+#[test]
+fn test_nu7_activation_heights_from_consensus() {
+    println!("\n=== TEST: NU7 ACTIVATION HEIGHTS & BRANCH ID FROM CONSENSUS ===");
+
+    let mainnet_height = get_nu7_activation_height("mainnet").expect("mainnet activation height");
+    let testnet_height = get_nu7_activation_height("testnet").expect("testnet activation height");
+    let regtest_height = get_nu7_activation_height("regtest").expect("regtest activation height");
+    let branch_id = get_nu7_branch_id();
+
+    println!("  Mainnet NU7 Activation Height: {}", mainnet_height);
+    println!("  Testnet NU7 Activation Height: {}", testnet_height);
+    println!("  Regtest NU7 Activation Height: {}", regtest_height);
+    println!("  NU7 Consensus Branch ID:       0x{:08x}", branch_id);
+
+    assert_eq!(mainnet_height, 3_543_405, "Mainnet NU7 must equal 3,543,405");
+    assert_eq!(testnet_height, 4_465_026, "Testnet NU7 must equal 4,465,026");
+    assert_eq!(regtest_height, 2, "Regtest NU7 must equal 2 (matching Zebra regtest schedule)");
+    assert_eq!(branch_id, 0x7719_0ad9, "NU7 BranchId must equal 0x77190ad9");
 }
 
 #[test]
@@ -50,13 +73,13 @@ fn test_consensus_branch_id_derivation() {
     let mainnet_nu7 = get_consensus_branch_id_for_height("mainnet", 3_543_405).expect("branch");
     assert_eq!(mainnet_nu7, 0x7719_0ad9, "Mainnet 3,543,405 must derive Nu7 (0x77190ad9)");
 
-    // Regtest at height 2 -> 0x37a5165b (NU6.3 default)
+    // Regtest at height 2 -> 0x77190ad9 (NU7 default)
     let regtest_branch = get_consensus_branch_id_for_height("regtest", 2).expect("branch");
-    assert_eq!(regtest_branch, 0x37a5_165b, "Regtest default at height 2 must derive Nu6_3 (0x37a5165b)");
+    assert_eq!(regtest_branch, 0x7719_0ad9, "Regtest default at height 2 must derive Nu7 (0x77190ad9)");
 
-    // Regtest opt-in at height 2 -> 0x77190ad9 (NU7)
+    // Regtest opt-in / alias at height 2 -> 0x77190ad9 (NU7)
     let regtest_nu7_branch = get_consensus_branch_id_for_height("regtest-nu7", 2).expect("branch");
-    assert_eq!(regtest_nu7_branch, 0x7719_0ad9, "Regtest opt-in at height 2 must derive Nu7 (0x77190ad9)");
+    assert_eq!(regtest_nu7_branch, 0x7719_0ad9, "Regtest alias at height 2 must derive Nu7 (0x77190ad9)");
 }
 
 #[test]
@@ -722,4 +745,89 @@ fn test_schema_v2_to_v3_migration_in_place() {
 
     println!("  SUCCESS: In-place migration v2 -> v3 preserves existing v2 data and initializes wallet_transactions table!");
 }
+
+#[test]
+fn test_legacy_regtest_nu7_metadata_migration() {
+    println!("\n=== TEST: LEGACY REGTEST-NU7 METADATA MIGRATION ===");
+    let temp_dir = tempfile::tempdir().expect("tempdir");
+
+    // Case (a): Legacy 'regtest-nu7' DB opened as 'regtest' succeeds and stored network becomes 'regtest'
+    let db_path_a = temp_dir.path().join("wallet_nu7.db");
+    {
+        let db = WalletDb::open_or_create(&db_path_a, "regtest-nu7", "fp_legacy", Some(10))
+            .expect("create legacy regtest-nu7 db");
+        assert_eq!(
+            db.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest-nu7"),
+            "Initial network should be regtest-nu7"
+        );
+    }
+    {
+        let migrated = WalletDb::open_or_create(&db_path_a, "regtest", "fp_legacy", None)
+            .expect("reopening regtest-nu7 with regtest should succeed and migrate");
+        assert_eq!(
+            migrated.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest"),
+            "Migrated stored network should be rewritten to regtest"
+        );
+    }
+
+    // Also verify 'regtest_nu7' variant:
+    let db_path_underscore = temp_dir.path().join("wallet_underscore.db");
+    {
+        let db = WalletDb::open_or_create(&db_path_underscore, "regtest_nu7", "fp_legacy2", Some(10))
+            .expect("create legacy regtest_nu7 db");
+        assert_eq!(
+            db.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest_nu7")
+        );
+    }
+    {
+        let migrated = WalletDb::open_or_create(&db_path_underscore, "regtest", "fp_legacy2", None)
+            .expect("reopening regtest_nu7 with regtest should succeed and migrate");
+        assert_eq!(
+            migrated.get_metadata(metadata_keys::NETWORK).unwrap().as_deref(),
+            Some("regtest"),
+            "Migrated stored network should be rewritten to regtest"
+        );
+    }
+
+    // Case (b): 'regtest' DB opened as 'testnet' still fails with existing mismatch error
+    let db_path_b = temp_dir.path().join("wallet_regtest.db");
+    {
+        let _ = WalletDb::open_or_create(&db_path_b, "regtest", "fp_b", Some(10))
+            .expect("create regtest db");
+    }
+    {
+        let mismatch_testnet = WalletDb::open_or_create(&db_path_b, "testnet", "fp_b", None);
+        match mismatch_testnet {
+            Err(WalletDbError::MetadataMismatch { key, expected, found }) => {
+                assert_eq!(key, "network");
+                assert_eq!(expected, "testnet");
+                assert_eq!(found, "regtest");
+            }
+            other => panic!("Expected MetadataMismatch error for regtest -> testnet, got {:?}", other),
+        }
+    }
+
+    // Case (c): 'regtest-nu7' DB opened as 'mainnet' still fails
+    let db_path_c = temp_dir.path().join("wallet_nu7_c.db");
+    {
+        let _ = WalletDb::open_or_create(&db_path_c, "regtest-nu7", "fp_c", Some(10))
+            .expect("create legacy regtest-nu7 db for case c");
+    }
+    {
+        let mismatch_mainnet = WalletDb::open_or_create(&db_path_c, "mainnet", "fp_c", None);
+        match mismatch_mainnet {
+            Err(WalletDbError::MetadataMismatch { key, expected, found }) => {
+                assert_eq!(key, "network");
+                assert_eq!(expected, "mainnet");
+                assert_eq!(found, "regtest-nu7");
+            }
+            other => panic!("Expected MetadataMismatch error for regtest-nu7 -> mainnet, got {:?}", other),
+        }
+    }
+    println!("  SUCCESS: test_legacy_regtest_nu7_metadata_migration verified all cases!");
+}
+
 

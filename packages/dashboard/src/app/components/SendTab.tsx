@@ -32,8 +32,7 @@ export const SendTab: React.FC<SendTabProps> = ({
   actionStatus,
   onSend,
 }) => {
-  const isZ3Regtest = preset === 'regtest-z3';
-  const isNu7Regtest = preset === 'regtest-nu7';
+  const isFullRegtest = preset === 'regtest-full';
   const isWatchOnly = network !== 'regtest';
 
   if (isWatchOnly) {
@@ -47,14 +46,14 @@ export const SendTab: React.FC<SendTabProps> = ({
     );
   }
 
-  if (isNu7Regtest) {
+  if (!isFullRegtest) {
     return (
       <div className="glass-card">
         <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Send Transaction</h2>
-        <div style={{ padding: '1.25rem', background: 'var(--alert-warning-bg)', border: '1px solid var(--alert-warning-border)', borderRadius: '8px', color: 'var(--alert-warning-text)', fontSize: '0.85rem', lineHeight: '1.5' }}>
-          ℹ️ <strong>Zallet Funding Proxy Unavailable on NU7 Regtest:</strong>
+        <div style={{ padding: '1.25rem', background: 'var(--alert-info-bg)', border: '1px solid var(--alert-info-border)', borderRadius: '8px', color: 'var(--alert-info-text)', fontSize: '0.85rem', lineHeight: '1.5' }}>
+          ℹ️ <strong>Zallet Funding Proxy Available on Full Stack:</strong>
           <br />
-          The standalone NU7 regtest stack productizes Zebra 7.0.0 + Lightwalletd without a Zallet instance. To generate funds on this stack, use the Faucet tab to mine blocks directly to Account 0.
+          The active preset is running without a Zallet instance. To test custom recipient transfers from Zallet, switch to the <strong>Regtest - Full Stack</strong> preset, or use the <strong>Faucet</strong> tab to fund the active account or mine blocks.
         </div>
       </div>
     );

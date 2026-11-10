@@ -101,11 +101,15 @@ impl WalletDb {
         // Validate or set network
         if let Some(existing) = Self::get_metadata_raw(conn, metadata_keys::NETWORK)? {
             if existing != network {
-                return Err(WalletDbError::MetadataMismatch {
-                    key: metadata_keys::NETWORK.to_string(),
-                    expected: network.to_string(),
-                    found: existing,
-                });
+                if (existing == "regtest-nu7" || existing == "regtest_nu7") && network == "regtest" {
+                    Self::set_metadata_raw(conn, metadata_keys::NETWORK, "regtest")?;
+                } else {
+                    return Err(WalletDbError::MetadataMismatch {
+                        key: metadata_keys::NETWORK.to_string(),
+                        expected: network.to_string(),
+                        found: existing,
+                    });
+                }
             }
         } else {
             Self::set_metadata_raw(conn, metadata_keys::NETWORK, network)?;

@@ -61,12 +61,12 @@ describe('Consensus Upgrade Name Helper', () => {
     const testnetNu7 = getExpectedBranchId('testnet', 4548000);
     expect(testnetNu7).toBe('77190ad9');
 
-    // Regtest NU6.3
-    const regtestNu6_3 = getExpectedBranchId('regtest', 10);
-    expect(regtestNu6_3).toBe('37a5165b');
-
-    // Regtest NU7
-    const regtestNu7 = getExpectedBranchId('regtest-nu7', 10);
+    // Regtest default is NU7 (0x77190ad9) at height >= 2
+    const regtestNu7 = getExpectedBranchId('regtest', 10);
     expect(regtestNu7).toBe('77190ad9');
+
+    // Regtest NU7 alias ('regtest-nu7')
+    const regtestNu7Alias = getExpectedBranchId('regtest-nu7', 10);
+    expect(regtestNu7Alias).toBe('77190ad9');
   });
 });

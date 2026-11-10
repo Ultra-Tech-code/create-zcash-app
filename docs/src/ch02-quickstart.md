@@ -58,18 +58,18 @@ Transparent:      tmT96bXJukAhyno6uG71aAsAD4qPjqp9DA3
 
 ---
 
-## Step 3: Launch Local Regtest Devnet (`--stack nu7`)
+## Step 3: Launch Local Regtest Devnet (`--stack lightwalletd`)
 
-To test locally without spending real or testnet funds, launch the isolated NU7 regtest environment (powered by Zebra 7.0.0 and lightwalletd):
+To test locally without spending real or testnet funds, launch the isolated regtest environment (powered by Zebra 7.0.0 and lightwalletd):
 
 ```bash
-npx zcash-dev regtest up --stack nu7
+npx zcash-dev regtest up --stack lightwalletd
 ```
 
 This command:
 1. Configures `zebra.toml` with the miner address from Account 0.
 2. Starts the Zebra and lightwalletd Docker containers.
-3. Automatically mines 105 initial blocks to satisfy coinbase maturity requirements (coinbase outputs require 100 confirmations to spend).
+3. Automatically mines 110 initial blocks to satisfy coinbase maturity requirements (coinbase outputs require 100 confirmations to spend).
 
 Verify running containers:
 
@@ -80,8 +80,8 @@ docker ps --format '{{.Names}} {{.Image}} {{.Ports}}'
 Output:
 
 ```text
-zcash-regtest-nu7-lightwalletd-1 electriccoinco/lightwalletd 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
-zcash-regtest-nu7-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+zcash-regtest-lightwalletd-lightwalletd-1 electriccoinco/lightwalletd 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
+zcash-regtest-lightwalletd-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
 ```
 
 ---
