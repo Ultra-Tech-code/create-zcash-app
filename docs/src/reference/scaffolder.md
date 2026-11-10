@@ -4,7 +4,7 @@
 
 The `create-zcash-app` CLI bootstraps new production-ready shielded Zcash applications with Next.js App Router, Tailwind CSS, TypeScript, and the `@zcash-app/sdk`.
 
-**CLI Version**: `0.1.0-alpha.4` (as of November 2026)
+**CLI Version**: `0.1.0-alpha.5` (as of November 2026)
 
 ## Synopsis
 
@@ -24,7 +24,7 @@ npx create-zcash-app [project-name] [options]
 | :--- | :--- | :--- |
 | `-t, --template <template>` | Template to use (nextjs-fullstack) | `nextjs-fullstack` |
 | `-n, --network <network>` | Network (regtest \| testnet \| mainnet) | None (interactive prompt) |
-| `--regtest-stack <stack>` | Regtest stack (nu7 \| z3) | None (interactive prompt) |
+| `--regtest-stack <stack>` | Regtest stack (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--remote` | Use remote public RPC indexer without local node | None (interactive prompt) |
 | `--key-source <source>` | Key source (generate \| import \| ufvk \| none) | None (interactive prompt) |
 | `--ufvk <ufvk>` | Unified Full Viewing Key for watch-only account | None (interactive prompt) |
@@ -42,7 +42,7 @@ When options are omitted, `create-zcash-app` defaults to the following endpoints
 
 | Network | Default gRPC Endpoint (`ZCASH_ENDPOINT`) | Default Zebra JSON-RPC (`ZCASH_ZEBRA_RPC`) |
 | :--- | :--- | :--- |
-| `regtest` | `127.0.0.1:28137` | `http://127.0.0.1:18232` |
+| `regtest` | `127.0.0.1:39067` | `http://127.0.0.1:39232` |
 | `testnet` | `testnet.zec.rocks:443` | `http://127.0.0.1:18232` |
 | `mainnet` | `zec.rocks:443` | `http://127.0.0.1:18232` |
 

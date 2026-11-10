@@ -1,6 +1,6 @@
 # Default Ports & Network Configuration
 
-This reference documents all default network ports used across the `create-zcash-app` ecosystem, including the scaffolded end-user application, the developer diagnostic dashboard, and the local Docker Compose devnet stacks.
+This reference documents all default network ports used across the `create-zcash-app` ecosystem, including the scaffolded end-user application, the developer diagnostic dashboard, and the three local Docker Compose regtest devnet tiers.
 
 ---
 
@@ -10,21 +10,24 @@ This reference documents all default network ports used across the `create-zcash
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **`3000`** | **Scaffolded Next.js App** | HTTP | `127.0.0.1:3000` | Scaffolded projects | `PORT=3000` / `next dev -p 3000` |
 | **`3050`** | **Developer Dashboard** | HTTP | `127.0.0.1:3050` | Scaffolded projects & Monorepo | `PORT=3050` / `pnpm dashboard` / `zcash-dev dashboard -p 3050` |
-| **`39067`** | **Lightwalletd gRPC (NU7)** | gRPC / HTTP/2 | `127.0.0.1:39067` | NU7 regtest stack | `LIGHTWALLETD_GRPC_PORT` / `ZCASH_ENDPOINT` |
-| **`39232`** | **Zebra JSON-RPC (NU7)** | HTTP JSON-RPC | `127.0.0.1:39232` | NU7 regtest stack | `ZEBRA_RPC_PORT` / `ZCASH_ZEBRA_RPC` |
-| **`38080`** | **Zebra Health Check (NU7)** | HTTP | `127.0.0.1:38080` | NU7 regtest stack | `ZEBRA_HEALTH_PORT` |
-| **`39068`** | **Lightwalletd HTTP (NU7)** | HTTP | `127.0.0.1:39068` | NU7 regtest stack | `LIGHTWALLETD_HTTP_PORT` |
-| **`28137`** | **Zaino Indexer gRPC (Z3)** | gRPC / HTTP/2 | `127.0.0.1:28137` | Z3 legacy stack | `docker-compose.yml` / `ZCASH_ENDPOINT` |
-| **`8181`** | **RPC Router (Zallet+Zebra)** | HTTP JSON-RPC | `127.0.0.1:8181` | Z3 legacy stack | `docker-compose.yml` / `LISTEN_PORT` |
-| **`29232`** | **Zebra JSON-RPC (Z3)** | HTTP JSON-RPC | `127.0.0.1:29232` | Z3 legacy stack | `docker-compose.yml` / `zebra.toml` |
+| **`39232`** | **Zebra JSON-RPC (Regtest)** | HTTP JSON-RPC | `127.0.0.1:39232` | All 3 regtest tiers | `ZEBRA_RPC_PORT` / `ZCASH_ZEBRA_RPC` |
+| **`38080`** | **Zebra Health Check** | HTTP | `127.0.0.1:38080` | All 3 regtest tiers | `ZEBRA_HEALTH_PORT` |
+| **`39067`** | **Lightwalletd gRPC** | gRPC / HTTP/2 | `127.0.0.1:39067` | Tier 1 (Lightwalletd) & Tier 3 (Full) | `LIGHTWALLETD_GRPC_PORT` / `ZCASH_ENDPOINT` |
+| **`39068`** | **Lightwalletd HTTP** | HTTP | `127.0.0.1:39068` | Tier 1 (Lightwalletd) & Tier 3 (Full) | `LIGHTWALLETD_HTTP_PORT` |
+| **`38137`** | **Zaino Indexer gRPC** | gRPC / HTTP/2 | `127.0.0.1:38137` | Tier 2 (Zaino, Experimental) | `ZAINO_GRPC_PORT` / `ZCASH_ENDPOINT` |
+| **`8182`** | **Zallet Wallet RPC** | HTTP JSON-RPC | `127.0.0.1:8182` | Tier 3 (Full Stack) | `ZALLET_RPC_PORT` |
+| **`8230`** | **Zebra Indexer Port** | Internal RPC | `127.0.0.1:8230` | Tier 3 (Full Stack, Zallet sync) | `ZEBRA_INDEXER_PORT` |
 | **`39167`** | **Local Testnet Lightwalletd** | gRPC / HTTP/2 | `127.0.0.1:39167` | Local testnet stack | `zcash-dev testnet lightwalletd --port` |
+| **`39168`** | **Local Testnet Lightwalletd HTTP**| HTTP | `127.0.0.1:39168` | Local testnet stack | `zcash-dev testnet lightwalletd --http-port` |
 | **`18232`** | **Local Testnet Zebra RPC** | HTTP JSON-RPC | `127.0.0.1:18232` | Local testnet stack | `zebrad.toml` / cookie auth |
+
+> [!IMPORTANT]
+> **Single Active Regtest Stack Rule**:
+> Only **one** regtest stack can run at a time on a machine because all three tiers share host port **`39232`** for Zebra JSON-RPC (as well as `38080` for healthchecks and `39067` for lightwalletd on Tiers 1 and 3). Before starting a different tier, tear down the running stack with `zcash-dev regtest down` or `docker compose down`.
 
 ---
 
 ## 2. Web Applications: Scaffolded App vs. Developer Dashboard
-
-A common source of confusion is the distinction between your scaffolded web application and the repository's internal Developer Dashboard:
 
 ### Scaffolded Application (Port 3000)
 - **What it is**: Your standalone production Next.js application generated with `npx create-zcash-app`.
@@ -43,14 +46,8 @@ A common source of confusion is the distinction between your scaffolded web appl
       "dev": "next dev -p 3001"
     }
     ```
-  - Via environment variable:
-    ```bash
-    PORT=3001 pnpm dev
-    ```
-  - Via command-line argument:
-    ```bash
-    pnpm dev -- -p 3001
-    ```
+  - Via environment variable: `PORT=3001 pnpm dev`
+  - Via command-line argument: `pnpm dev -- -p 3001`
 
 ### Developer Dashboard (Port 3050)
 - **What it is**: An internal diagnostic cockpit and health monitor maintained in `@zcash-app/dashboard`. It provides multi-pool balance breakdown (Transparent, Sapling, Orchard, Ironwood), live block synchronization percentage tracking, diversified Unified Address generation, and transaction inspection.
@@ -69,17 +66,8 @@ A common source of confusion is the distinction between your scaffolded web appl
     cd create-zcash-app
     pnpm install && pnpm build
     pnpm --filter @zcash-app/dashboard run dev
-    # Or with zcash-dev CLI:
-    # pnpm --filter zcash-dev exec zcash-dev dashboard --port 3050
     ```
-- **Build & Network Requirements**: Building `@zcash-app/dashboard` from source executes `next build --webpack`, which downloads Google Fonts at build time via `next/font/google` (`Geist`, `Geist_Mono`) and requires internet connectivity during the build. Packaged production releases run fully offline.
 - **How to change the port**:
-  - In `packages/dashboard/package.json` (monorepo):
-    ```json
-    "scripts": {
-      "dev": "next dev -p 3055 --webpack"
-    }
-    ```
   - Via CLI option:
     ```bash
     zcash-dev dashboard --port 3055
@@ -87,60 +75,35 @@ A common source of confusion is the distinction between your scaffolded web appl
 
 ---
 
-## 3. Local Regtest Devnet Stacks
+## 3. Three-Tier Regtest Devnet Stacks
 
-### NU7 Devnet Stack (Default)
+### Tier 1: Lightwalletd (Default)
 
-The NU7 stack (`--regtest-stack nu7`) runs a standalone Zebra 7.0.0 node coupled directly to a Lightwalletd indexer.
+The Lightwalletd stack (`--stack lightwalletd`, default) runs a standalone Zebra 7.0.0 node coupled directly to a Lightwalletd indexer. NU7 activates at block 2 by default.
 
-#### 1. Lightwalletd gRPC Server (`39067`)
-- **Protocol**: gRPC (`CompactTxStreamer`)
-- **Purpose**: Used by `@zcash-app/sdk` (`createClient`) and `zcash-dev` to fetch compact blocks, query tree states, and broadcast transactions.
-- **How to change**:
-  1. In `docker/regtest-nu7/docker-compose.yml` (or your project's `docker-compose.yml`), adjust the host port mapping:
-     ```yaml
-     ports:
-       - "127.0.0.1:39077:9067"
-     ```
-  2. Set `LIGHTWALLETD_GRPC_PORT=39077` in your environment or compose `.env`.
-  3. Update `ZCASH_ENDPOINT=127.0.0.1:39077` in your application's `.env.local` or pass `--endpoint 127.0.0.1:39077` to CLI commands.
+- **Zebra JSON-RPC**: `127.0.0.1:39232` (HTTP JSON-RPC 2.0, mining via `zcash-dev mine`)
+- **Zebra Health**: `127.0.0.1:38080` (HTTP healthcheck)
+- **Lightwalletd gRPC**: `127.0.0.1:39067` (gRPC `CompactTxStreamer`)
+- **Lightwalletd HTTP**: `127.0.0.1:39068` (HTTP metrics/health)
 
-#### 2. Zebra JSON-RPC Server (`39232`)
-- **Protocol**: HTTP JSON-RPC 2.0 (no auth required on local regtest)
-- **Purpose**: Used by `zcash-dev mine`, `zcash-dev info`, `zcash-dev rpc`, `zcash-dev block`, and `zcash-dev supply` to trigger block generation and inspect node state.
-- **How to change**:
-  1. In `docker/regtest-nu7/docker-compose.yml`, adjust the host port mapping:
-     ```yaml
-     ports:
-       - "127.0.0.1:39242:18232"
-     ```
-  2. Set `ZEBRA_RPC_PORT=39242` in your environment or compose `.env`.
-  3. Update `ZCASH_ZEBRA_RPC=http://127.0.0.1:39242` in `.env.local` or pass `--zebra-rpc http://127.0.0.1:39242` to CLI commands.
+### Tier 2: Zaino (Experimental)
 
-#### 3. Auxiliary NU7 Ports
-- **`38080`** (`ZEBRA_HEALTH_PORT`): Zebra HTTP healthcheck server (`http://127.0.0.1:38080/`).
-- **`39068`** (`LIGHTWALLETD_HTTP_PORT`): Lightwalletd HTTP healthcheck and metrics endpoint (`http://127.0.0.1:39068/`).
+The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from source (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) and runs it against Zebra 7.0.0. Initial build takes ~3+ minutes.
 
----
+- **Zebra JSON-RPC**: `127.0.0.1:39232`
+- **Zebra Health**: `127.0.0.1:38080`
+- **Zaino gRPC**: `127.0.0.1:38137` (gRPC `CompactTxStreamer`)
 
-### Z3 Legacy Devnet Stack
+### Tier 3: Full Stack (Zallet + Lightwalletd)
 
-The Z3 stack (`--regtest-stack z3`) runs a Zebra 7.0.0 node, Zaino indexer, and Zallet wallet daemon with an RPC router.
+The Full stack (`--stack full`) runs Zebra 7.0.0 in indexer mode, Zallet `v0.1.0-beta.4`, and Lightwalletd together against the same state.
 
-#### 1. Zaino gRPC Indexer (`28137`)
-- **Protocol**: gRPC (`CompactTxStreamer`)
-- **Purpose**: Indexer endpoint for Z3 applications.
-- **How to change**: In `docker/regtest/docker-compose.yml`, edit the `zaino` service port mapping `127.0.0.1:28137:8137` and update `ZCASH_ENDPOINT` in `.env.local`.
-
-#### 2. RPC Router (`8181`)
-- **Protocol**: HTTP JSON-RPC 2.0
-- **Purpose**: Proxies JSON-RPC calls to both Zebra (`18232`) and Zallet (`28232`), enabling `z_sendmany` faucet funding.
-- **How to change**: In `docker/regtest/docker-compose.yml`, edit the `rpc-router` port mapping `127.0.0.1:8181:8181` and the `LISTEN_PORT` environment variable.
-
-#### 3. Zebra JSON-RPC (`29232`)
-- **Protocol**: HTTP JSON-RPC 2.0
-- **Purpose**: Direct JSON-RPC access to Zebra on the Z3 stack.
-- **How to change**: In `docker/regtest/docker-compose.yml`, edit the `zebra` service port mapping `127.0.0.1:29232:18232`.
+- **Zebra JSON-RPC**: `127.0.0.1:39232`
+- **Zebra Indexer**: `127.0.0.1:8230` (used internally by Zallet)
+- **Zebra Health**: `127.0.0.1:38080`
+- **Zallet RPC**: `127.0.0.1:8182` (direct JSON-RPC to Zallet daemon)
+- **Lightwalletd gRPC**: `127.0.0.1:39067`
+- **Lightwalletd HTTP**: `127.0.0.1:39068`
 
 ---
 
@@ -154,15 +117,18 @@ If you encounter `EADDRINUSE` errors when starting services:
    lsof -i :3050  # Check for running Developer Dashboard
    lsof -i :39067 # Check for running lightwalletd
    lsof -i :39232 # Check for running Zebra
+   lsof -i :38137 # Check for running Zaino
+   lsof -i :8182  # Check for running Zallet
    ```
 
 2. **Stop orphan docker containers**:
    ```bash
    docker compose down --remove-orphans
+   # Or tear down the dev stack:
+   npx zcash-dev regtest down
    # Or wipe regtest containers and volumes:
    npx zcash-dev regtest wipe --yes
    ```
 
 3. **Verify port isolation**:
-   Every local stack and service in the repository is automated to bind to distinct, non-overlapping ports so that the NU7 stack, Z3 stack, and web applications can coexist without collision.
-
+   Within any single stack, services bind to distinct non-overlapping host ports. Testnet-local ports (`39167`, `39168`) do not collide with regtest ports.

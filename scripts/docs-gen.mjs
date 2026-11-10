@@ -480,7 +480,7 @@ export async function generateDashboardApiRef() {
   "isWatchOnly": false,
   "birthdayHeight": 1,
   "accountIndex": 0,
-  "endpoint": "127.0.0.1:28137"
+  "endpoint": "127.0.0.1:39067"
 }`,
     },
     {
@@ -507,7 +507,7 @@ export async function generateDashboardApiRef() {
     {
       path: '/api/mine',
       methods: ['POST'],
-      description: 'Mines blocks on a regtest chain (Z3 or NU7).',
+      description: 'Mines blocks on a regtest chain (lightwalletd, zaino, or full).',
       params: 'JSON body: `{ "blocks": 1 }`',
       response: `{ "success": true, "mined": 1 }`,
     },
@@ -641,14 +641,14 @@ export async function generateRpcRef() {
     {
       protocol: 'Zallet RPC',
       method: '`listaddresses`',
-      caller: '`packages/dev/src/cli.ts` (Z3 regtest setup & wipe)',
-      purpose: 'Query active accounts and addresses managed by Zallet in NU6.3 regtest',
+      caller: '`packages/dev/src/cli.ts` (full regtest setup & wipe)',
+      purpose: 'Query active accounts and addresses managed by Zallet in full tier regtest',
       spec: '[Zallet Repository](https://github.com/zcash/zallet)',
     },
     {
       protocol: 'Zallet RPC',
       method: '`z_getnewaccount`',
-      caller: '`packages/dev/src/cli.ts` (Z3 regtest setup & wipe)',
+      caller: '`packages/dev/src/cli.ts` (full regtest setup & wipe)',
       purpose: 'Derive a new spending account in Zallet',
       spec: '[Zallet Repository](https://github.com/zcash/zallet)',
     },

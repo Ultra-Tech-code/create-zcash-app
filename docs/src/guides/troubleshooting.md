@@ -52,16 +52,16 @@ Error: Invalid consensus branch ID: expected 0xc2d6d0b4 (NU6), got 0x77190ad9 (N
 ```
 
 ### Cause
-The legacy Z3 regtest stack (`--stack z3`) runs Zaino and Zallet on top of Zebra configured for Network Upgrade 6 (NU6 / NU6.3). Zaino 0.10.x and the Z3 stack do not support the canonical NU7 consensus branch ID (`0x77190ad9`).
+Legacy Z3 regtest stacks configured for Network Upgrade 6 (NU6 / NU6.3) have been removed in 0.1.0-alpha.5. All active regtest tiers now follow the canonical NU7 consensus branch ID (`0x77190ad9`) activating at block 2.
 
 ### Solution
-- **Use the NU7 Stack**: Run `zcash-dev regtest up --stack nu7`, which runs Zebra 7.0.0 + Lightwalletd with NU7 active at block 1/2.
-- **Fund Accounts via CLI**: Use `zcash-dev fund <address>` (which builds and mines transactions directly against Zebra without Zallet).
+- **Use the Default Lightwalletd Stack**: Run `zcash-dev regtest up --stack lightwalletd`, which runs Zebra 7.0.0 + Lightwalletd with NU7 active at block 2.
+- **Fund Accounts via CLI**: Use `zcash-dev fund <address>` (which builds and mines transactions directly using the TypeScript SDK miner send pipeline).
 - **Consult Known Issues**: See [known-issues.md](../known-issues.md) for a full matrix of stack compatibility.
 
 ---
 
-## 4. Connection Refused on Port 39067 vs. 28137
+## 4. Connection Refused on Regtest Endpoints (39067 vs. 38137)
 
 ### Symptom
 CLI commands or SDK clients fail with `ECONNREFUSED` or:
@@ -70,27 +70,31 @@ CLI commands or SDK clients fail with `ECONNREFUSED` or:
 ```
 
 ### Cause
-The two regtest stacks use different gRPC and JSON-RPC port mappings to allow side-by-side execution:
+The regtest tiers use specific gRPC and JSON-RPC port mappings:
 
-| Stack | Service | Port | Endpoint String |
+| Stack Tier | Service | Port | Endpoint String |
 | :--- | :--- | :--- | :--- |
-| **NU7 Stack** (`--stack nu7`) | lightwalletd (gRPC) | `39067` | `127.0.0.1:39067` |
-| **NU7 Stack** (`--stack nu7`) | Zebra RPC (JSON-RPC) | `39232` | `http://127.0.0.1:39232` |
-| **Z3 Stack** (`--stack z3`) | Zaino (gRPC) | `28137` | `127.0.0.1:28137` |
-| **Z3 Stack** (`--stack z3`) | Zebra RPC (JSON-RPC) | `8181` | `http://127.0.0.1:8181` |
+| **Tier 1: Lightwalletd** (`--stack lightwalletd`) | lightwalletd (gRPC) | `39067` | `127.0.0.1:39067` |
+| **Tier 1: Lightwalletd** (`--stack lightwalletd`) | Zebra RPC (JSON-RPC) | `39232` | `http://127.0.0.1:39232` |
+| **Tier 2: Zaino** (`--stack zaino`) | Zaino (gRPC) | `38137` | `127.0.0.1:38137` |
+| **Tier 2: Zaino** (`--stack zaino`) | Zebra RPC (JSON-RPC) | `39232` | `http://127.0.0.1:39232` |
+| **Tier 3: Full Stack** (`--stack full`) | lightwalletd (gRPC) | `39067` | `127.0.0.1:39067` |
+| **Tier 3: Full Stack** (`--stack full`) | Zallet (JSON-RPC) | `8182` | `http://127.0.0.1:8182` |
+| **Tier 3: Full Stack** (`--stack full`) | Zebra RPC (JSON-RPC) | `39232` | `http://127.0.0.1:39232` |
 
-Connecting to port `39067` while running the Z3 stack (or vice versa) results in an immediate connection refusal.
+Connecting to port `39067` while running the Zaino stack (on `38137`) results in a connection refusal.
+Remember: only one regtest stack can run at a time due to shared port `39232`.
 
 ### Solution
-Update your project configuration in `.env.local`:
+Ensure the target stack is running, and configure `.env.local` appropriately:
 ```bash
-# For NU7 Stack:
+# For Tier 1 (Lightwalletd) & Tier 3 (Full Stack):
 ZCASH_ENDPOINT=127.0.0.1:39067
 ZCASH_ZEBRA_RPC=http://127.0.0.1:39232
 
-# For Z3 Stack:
-ZCASH_ENDPOINT=127.0.0.1:28137
-ZCASH_ZEBRA_RPC=http://127.0.0.1:8181
+# For Tier 2 (Zaino):
+ZCASH_ENDPOINT=127.0.0.1:38137
+ZCASH_ZEBRA_RPC=http://127.0.0.1:39232
 ```
 
 ---

@@ -4,7 +4,7 @@
 
 `zcash-dev` is the developer harness, regtest orchestrator, and operational CLI for shielded Zcash applications.
 
-**CLI Version**: `0.1.0-alpha.4` (as of November 2026)
+**CLI Version**: `0.1.0-alpha.5` (as of November 2026)
 
 ## Overview of Commands
 
@@ -38,9 +38,9 @@ Get node & indexer status
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-e, --endpoint <endpoint>` | Zaino gRPC endpoint | `127.0.0.1:28137` |
+| `-e, --endpoint <endpoint>` | Lightwalletd / Zaino gRPC endpoint | `127.0.0.1:39067` |
 | `-n, --network <network>` | Network (regtest \| testnet \| mainnet) | `regtest` |
-| `--nu7` | Opt-in to NU7 consensus branch expectations on regtest | None |
+| `--nu7` | Deprecated opt-in to NU7 on regtest (NU7 is now active by default) | None |
 
 ---
 
@@ -99,8 +99,8 @@ Mine blocks on regtest
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-e, --endpoint <endpoint>` | Zebra RPC or Zaino endpoint | None |
-| `--stack <stack>` | Regtest stack (nu7 \| z3) | None |
+| `-e, --endpoint <endpoint>` | Zebra RPC endpoint | None |
+| `--stack <stack>` | Regtest stack (lightwalletd \| zaino \| full) | None |
 
 ---
 
@@ -119,8 +119,8 @@ Fund a Unified Address on regtest
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `-e, --endpoint <endpoint>` | Zaino / lightwalletd gRPC endpoint | None |
-| `--stack <stack>` | Regtest stack (nu7 \| z3) | None |
+| `-e, --endpoint <endpoint>` | Lightwalletd / Zaino gRPC endpoint | None |
+| `--stack <stack>` | Regtest stack (lightwalletd \| zaino \| full) | None |
 
 ---
 
@@ -307,7 +307,7 @@ Regtest environment management commands
 
 #### `zcash-dev regtest up`
 
-Configure and initialize regtest stack (default: z3 nu6, or --stack nu7)
+Configure and initialize regtest stack tier (default: lightwalletd, or --stack zaino | full)
 
 **Alias**: `setup`
 
@@ -315,7 +315,19 @@ Configure and initialize regtest stack (default: z3 nu6, or --stack nu7)
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--stack <stack>` | Regtest stack to run (nu6 \| nu7) | `nu6` |
+| `--stack <stack>` | Regtest stack tier to run (lightwalletd \| zaino \| full) | `lightwalletd` |
+| `--regtest-path <path>` | Path to regtest docker directory | `` |
+| `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
+
+#### `zcash-dev regtest down`
+
+Stop regtest stack containers
+
+**Options**:
+
+| Option | Description | Default |
+| :--- | :--- | :--- |
+| `--stack <stack>` | Regtest stack tier to stop (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--regtest-path <path>` | Path to regtest docker directory | `` |
 | `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
 
@@ -329,7 +341,7 @@ Wipe and reset the regtest blockchain, indexer, and wallet data
 
 | Option | Description | Default |
 | :--- | :--- | :--- |
-| `--stack <stack>` | Regtest stack to wipe (nu6 \| nu7) | `nu6` |
+| `--stack <stack>` | Regtest stack tier to wipe (lightwalletd \| zaino \| full) | `lightwalletd` |
 | `--regtest-path <path>` | Path to regtest docker directory | `` |
 | `--z3-path <path>` | Deprecated alias for --regtest-path | `` |
 | `-y, --yes` | Confirm wiping regtest blockchain without interactive prompt | None |

@@ -1,35 +1,35 @@
 # Chapter 4: Operations by Stack
 
-Different Zcash environments (local devnets, public testnet, and mainnet) support distinct operational capabilities. This chapter provides a definitive matrix of operations across all four stacks, citing the implementing codebase files and functions, and noting where an operation is not available.
+Different Zcash environments (local devnets, public testnet, and mainnet) support distinct operational capabilities. This chapter provides a definitive matrix of operations across all stacks, citing the implementing codebase files and functions, and noting where an operation is not available.
 
 ---
 
 ## Operations Matrix
 
-| Operation | Z3 NU6.3 Regtest | NU7 Regtest | Testnet | Mainnet | Implementing SDK / CLI Source |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Mine Blocks** | ✅ Supported | ✅ Supported | ❌ Not available (PoW) | ❌ Not available (PoW) | `zcash-dev mine`, `dev.mine()` in `packages/sdk/src/dev.ts` |
-| **Account / Address Derivation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev address`, `accountFromMnemonic()`, `accountFromUfvk()` in `packages/sdk/src/keys.ts` |
-| **Balance Calculation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev balance`, `getBalance()` in `packages/sdk/src/sync.ts` |
-| **Testnet / Devnet Faucet Funding** | ✅ Supported (Zallet) | ✅ Supported (Account 0 Miner) | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `executeFund()` in `packages/dev/src/cli.ts` |
-| **Send / Broadcast Transaction** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported (with `--mainnet`) | `zcash-dev send`, `send()` in `packages/sdk/src/send.ts` |
-| **Decrypted Tx & Memo Inspection** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `decryptTransaction()`, `decodeTransaction()` in `packages/sdk/src/decrypted-tx.ts` |
-| **Unified Full Viewing Keys (UFVK)** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `account.getUnifiedFullViewingKey()` in `packages/sdk/src/keys.ts` |
-| **Partially Created Zcash Tx (PCZT)** | ⚠️ Zallet RPC only | ❌ Not available | ❌ Not available | ❌ Not available | Upstream Zallet RPC methods `pczt_create`; not yet exposed in `@zcash-app/sdk` v0.1.0 |
-| **Encrypted Keystore on Disk** | ⚠️ Zallet backend only | ❌ Not available | ❌ Not available | ❌ Not available | Zallet `init-wallet-encryption`; `@zcash-app/sdk` stores keys in `.env.local` or environment variables |
+| Operation | Tier 1 (Lightwalletd) | Tier 2 (Zaino) | Tier 3 (Full Stack) | Testnet | Mainnet | Implementing SDK / CLI Source |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Mine Blocks** | ✅ Supported | ✅ Supported | ✅ Supported | ❌ Not available (PoW) | ❌ Not available (PoW) | `zcash-dev mine`, `dev.mine()` in `packages/sdk/src/dev.ts` |
+| **Account / Address Derivation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev address`, `accountFromMnemonic()`, `accountFromUfvk()` in `packages/sdk/src/keys.ts` |
+| **Balance Calculation** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `zcash-dev balance`, `getBalance()` in `packages/sdk/src/sync.ts` |
+| **Testnet / Devnet Faucet Funding** | ✅ Supported (Miner Send) | ✅ Supported (Miner Send) | ✅ Supported (Miner / Zallet) | ❌ Not available via CLI | ❌ Not available (Real ZEC) | `zcash-dev fund`, `executeFund()` in `packages/dev/src/cli.ts` |
+| **Send / Broadcast Transaction** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported (with `--mainnet`) | `zcash-dev send`, `send()` in `packages/sdk/src/send.ts` |
+| **Decrypted Tx & Memo Inspection** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `decryptTransaction()`, `decodeTransaction()` in `packages/sdk/src/decrypted-tx.ts` |
+| **Unified Full Viewing Keys (UFVK)** | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | ✅ Supported | `account.getUnifiedFullViewingKey()` in `packages/sdk/src/keys.ts` |
+| **Partially Created Zcash Tx (PCZT)** | ❌ Not available | ❌ Not available | ⚠️ Zallet RPC only | ❌ Not available | ❌ Not available | Upstream Zallet RPC methods `pczt_create`; not yet exposed in `@zcash-app/sdk` v0.1.0 |
+| **Encrypted Keystore on Disk** | ❌ Not available | ❌ Not available | ⚠️ Zallet backend only | ❌ Not available | ❌ Not available | Zallet `init-wallet-encryption`; `@zcash-app/sdk` stores keys in `.env.local` or environment variables |
 
 ---
 
 ## Detailed Operations Breakdown
 
 ### 1. Mining (`mine`)
-- **Regtest**: Mining is available on both local devnet stacks by calling the node's JSON-RPC `generate` method (`dev.mine(client, blocks)` in `packages/sdk/src/dev.ts`). On regtest, blocks are mined instantaneously without proof-of-work difficulty delays.
+- **Regtest**: Mining is available on all three local devnet tiers by calling Zebra's JSON-RPC `generate` method (`http://127.0.0.1:39232`). On regtest, blocks are mined instantaneously without proof-of-work difficulty delays.
 - **Testnet & Mainnet**: Mining cannot be performed via the CLI or SDK because these chains use public Proof of Work (Equihash 200,9). Under NU7 (activated at block 3,543,405 on mainnet and 4,465,026 on testnet), target block spacing is 25 seconds (reduced from 75 seconds), tripling block production speed according to global network hash rate.
 
 ### 2. Account & Address Derivation (`address`)
 - Implemented in `packages/sdk/src/keys.ts` via `accountFromMnemonic(mnemonic, accountIndex, network)` and `accountFromUfvk(ufvk, network)`.
 - Derives ZIP-316 Unified Addresses containing transparent, Sapling, and Orchard receivers with appropriate human-readable prefixes (`uregtest1...`, `utest1...`, `u1...`).
-- Supported identically across all four networks.
+- Supported identically across all networks.
 
 ### 3. Balance Query (`balance`)
 - Implemented in `packages/sdk/src/sync.ts` via `getBalance(client, account, options)`.
@@ -37,14 +37,16 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 - Identical behavior across all stacks.
 
 ### 4. Faucet & Funding (`fund`)
-- **Z3 NU6.3 Regtest**: Supported via `zcash-dev fund <address> [amount] --stack z3`. Funds are drawn from the pre-mined Zallet test account via `z_sendmany`. Note: The Z3 stack is NU6.3-only. Zaino (0.10.1 and 0.10.2; checked 2026-11-06) cannot index past NU7 activation (open [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731); [PR #1655](https://github.com/zingolabs/zaino/pull/1655) unmerged and unreleased as of 2026-11-06). While [Zallet v0.1.0-beta.4](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.4) (released Nov 2, 2026) supports NU7, it removed the `zaino` backend entirely (PR #900) and requires `zebrad >= 7.0.0` built with the `indexer` feature and state cache v29.0.0. The Z3 stack can therefore not be upgraded to NU7 simply by replacing Zallet.
-- **NU7 Regtest**: Supported via `zcash-dev fund <address> [amount]`. Since Zallet is not present on the NU7 stack, `zcash-dev fund` uses the SDK client to fund target accounts directly from the Account 0 miner fixture (`KNOWN_TEST_MNEMONICS[0]`), which receives Zebra block rewards. After mining at least 105 blocks for coinbase maturity, `zcash-dev fund` transfers mature shielded notes to the recipient Unified Address via lightwalletd.
+- **Tier 1 (Lightwalletd)**: Supported via `zcash-dev fund <address> [amount] --stack lightwalletd`. Uses the TypeScript SDK send pipeline to transfer mature funds from the Account 0 miner fixture (`KNOWN_TEST_MNEMONICS[0]`) through lightwalletd on `127.0.0.1:39067`.
+- **Tier 2 (Zaino)**: Supported via `zcash-dev fund <address> [amount] --stack zaino`. Uses the TypeScript SDK send pipeline through Zaino's gRPC indexer on `127.0.0.1:38137`.
+- **Tier 3 (Full Stack)**: Supported via `zcash-dev fund <address> [amount] --stack full` (using SDK send) or directly via Zallet's `z_sendmany` RPC on `http://127.0.0.1:8182`.
 - **Testnet & Mainnet**: CLI faucet funding is not available. Testnet users must obtain TAZ from public community faucets (such as `https://faucet.zecpages.com`), while mainnet requires real ZEC.
 
 ### 5. Send & Transaction Broadcast (`send`)
 - Implemented in `packages/sdk/src/send.ts` via `send(options)` and surfaced in `zcash-dev send`.
+- **TxID Display Order**: Returns `txid` in standard node/explorer display order (byte-reversed relative to internal wire order), matching Zebra mempool and block explorers.
 - **Dry-Run Mode**: When invoked without `--yes`, the CLI performs an offline dry run, deriving inputs, quoting ZIP-317 fees, and returning the estimated transaction structure without broadcasting.
-- **Broadcast Mode**: When `--yes` is supplied, the SDK builds the transaction, generates zero-knowledge proofs via native `@zcash-app/core` Halo 2 provers, and submits the serialized transaction to the mempool via `SendTransaction` (gRPC) or `sendrawtransaction` (JSON-RPC).
+- **Broadcast Mode**: When `--yes` is supplied, the SDK builds the transaction, generates zero-knowledge proofs via native `@zcash-app/core` Halo 2 provers, and submits the serialized transaction to the mempool via `SendTransaction` (gRPC).
 - **Mainnet Safeguard**: Broadcasting on mainnet strictly requires passing `--mainnet` in addition to `--yes`.
 
 ### 6. Decrypted Transaction Inspection (`view tx`)
@@ -57,8 +59,4 @@ Different Zcash environments (local devnets, public testnet, and mainnet) suppor
 - Enables watch-only account operation across all stacks without custody risk.
 
 ### 8. Partially Created Zcash Transactions (`PCZT`)
-- **Status in v0.1.0**: Partially Created Zcash Transactions (ZIP 370 / PCZT) allow offline signers and hardware wallets to construct, inspect, and sign transactions in multi-party or air-gapped environments. While the upstream Zallet beta.3 backend includes RPC methods for PCZTs (`pczt_create`), the high-level `@zcash-app/sdk` client does not yet expose a standalone PCZT creation and combining pipeline. This is planned for Stage 2.
-
-### 9. Encrypted Keystores on Disk
-- **Status in v0.1.0**: Full node keystores like Zallet support on-disk encrypted keystores using Age encryption (`init-wallet-encryption`). The current `@zcash-app/sdk` application template relies on standard modern 12-factor application secrets management: sensitive keys reside in `.env.local` or process environment variables with strict file permissions (`0600`) and `.gitignore` drift checks.
-
+- **Status in v0.1.0**: Partially Created Zcash Transactions (ZIP 370 / PCZT) allow offline signers and hardware wallets to construct, inspect, and sign transactions in multi-party or air-gapped environments. While the upstream Zallet beta.4 backend includes RPC methods for PCZTs (`pczt_create`), the high-level `@zcash-app/sdk` client does not yet expose a standalone PCZT creation and combining pipeline.

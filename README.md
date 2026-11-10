@@ -128,8 +128,9 @@ npx zcash-dev regtest setup
 
 | Preset | Network | Consensus / Upgrade | Status | Endpoint | Mining / RPC |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `regtest-nu7` | `regtest` | **NU7** (Default at block 1) | Active | `127.0.0.1:39067` | `http://127.0.0.1:39232` |
-| `regtest-z3` | `regtest` | **NU6.3** | **Regtest-Only** | `127.0.0.1:28137` | `http://127.0.0.1:8181` |
+| `regtest-lightwalletd` | `regtest` | **NU7** (Active at block 2) | Active (Default) | `127.0.0.1:39067` | `http://127.0.0.1:39232` |
+| `regtest-zaino` | `regtest` | **NU7** | Experimental | `127.0.0.1:38137` | `http://127.0.0.1:39232` |
+| `regtest-full` | `regtest` | **NU7** | Active (Zallet + lwd) | `127.0.0.1:39067` | `http://127.0.0.1:39232` / `:8182` |
 | `testnet` | `testnet` | **NU7** | Active | `testnet.zec.rocks:443` | QuickNode / Secondary |
 | `testnet-local` | `testnet` | **NU7** | Active (Local) | `127.0.0.1:39167` | `http://127.0.0.1:18232` (cookie auth) |
 | `mainnet` | `mainnet` | **NU7** | ⚠️ **Experimental** | `zec.rocks:443` | Public indexer |
@@ -163,9 +164,10 @@ the native addon fails instead of silently falling back to a slower implementati
 3. **pnpm**: `v9+` or `v11+` (`corepack enable`).
 4. **Node & Indexer (Optional for Remote Mode)**:
    - **Remote Mode (testnet / mainnet)**: No local node required. Connects directly over TLS to public indexers (`testnet.zec.rocks:443`, `zec.rocks:443`).
-   - **Local Regtest Mode**:
-     - **NU7 Standalone (Default)**: Zebra 7.0.0 + Lightwalletd on `127.0.0.1:39067`.
-     - **Z3 Stack (Regtest-Only)**: Zebra 7.0.0 on `127.0.0.1:8181` + Zaino on `127.0.0.1:28137` (NU6.3).
+   - **Local Regtest Mode (Three Tiers, only one active at a time)**:
+     - **Tier 1: Lightwalletd (Default)**: Zebra 7.0.0 + Lightwalletd on `127.0.0.1:39067` (Zebra RPC on `39232`).
+     - **Tier 2: Zaino (Experimental)**: Zebra 7.0.0 + Zaino `feat/nu7` on `127.0.0.1:38137` (built from source).
+     - **Tier 3: Full Stack**: Zebra 7.0.0 indexer + Zallet beta.4 (`8182`) + Lightwalletd (`39067`).
 
 ---
 

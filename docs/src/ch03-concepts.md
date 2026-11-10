@@ -10,10 +10,9 @@ Zcash operates across several distinct network contexts, each serving a specific
 
 | Network | Chain ID / Network Name | Status & Purpose | Consensus Branch ID |
 | :--- | :--- | :--- | :--- |
-| **NU7 Regtest** | `regtest` | Isolated local devnet for NU7 testing (Zebra 7.0.0 + lightwalletd) | `0x77190ad9` |
-| **Z3 NU6.3 Regtest** | `regtest` | Isolated local devnet with Zallet faucet (Zebra + Zaino + Zallet) | `0x5b331005` |
+| **NU7 Regtest** | `regtest` | Isolated local devnet for NU7 testing (3 tiers: Lightwalletd, Zaino, Full) | `0x77190ad9` (at block 2) |
 | **Testnet** | `testnet` | Public staging network (free testnet TAZ) | `0x77190ad9` (post-NU7) |
-| **Mainnet** | `mainnet` | Production blockchain with real economic value | `0x77190ad9` (at activation) |
+| **Mainnet** | `mainnet` | Production blockchain with real economic value | `0x77190ad9` (post-NU7) |
 
 ---
 
@@ -36,17 +35,18 @@ The specifications for Network Upgrade 7 (NU7) are defined in [ZIP 259: Deployme
   - **Transaction Version 4 Deprecation & Sprout Freeze**: Support for version 4 (v4) transactions was disallowed; transactions must use version 5 (v5) or version 6 (v6 Ironwood), as specified in [ZIP 2003: Disallow version 4 transactions (Proposed)](https://zips.z.cash/zip-2003) and [ZIP 259 (Proposed)](https://zips.z.cash/zip-0259). Because Sprout transfers can only be represented in version 4 transactions, remaining funds in the Sprout pool can no longer be spent and are frozen at the protocol level.
   - **Network Sustainability Mechanism (NSM)**: Miners retain 40% of transaction fees, while 60% are removed from circulation to the NSM Value Balance, as specified in [ZIP 235: Remove 60% of Transaction Fees From Circulation (Proposed)](https://zips.z.cash/zip-0235), [ZIP 233: Network Sustainability Mechanism: Removing Funds From Circulation (Draft)](https://zips.z.cash/zip-0233), and reported by [Unchained](https://unchainedcrypto.com/zcash-activates-nu7-taking-60-of-transaction-fees-out-of-circulation/). This is not a permanent destruction of funds; removed fees enter the NSM Value Balance and are intended to be reissued through future block subsidies. Per consensus, reissuance begins at `NSM_REISSUANCE_HEIGHT`: Mainnet block `8,939,664`, as specified in [ZIP 259 (Proposed)](https://zips.z.cash/zip-0259) and derived from the formula in [ZIP 237: Network Sustainability Mechanism: Halving-Preserving Issuance (Proposed)](https://zips.z.cash/zip-0237) ($16{,}026{,}474 - 2A = 16{,}026{,}474 - 2(3{,}543{,}405) = 8{,}939{,}664$), projected for ~2031 per Unchained.
 
-### Why the NU7 Devnet Uses Zebra + lightwalletd (Not Zaino/Zallet)
+### Three-Tier Regtest Architecture
 
-Developers working with `zcash-dev` can select between two local regtest stacks:
-- `--stack nu7` (Zebra 7.0.0 + lightwalletd)
-- `--stack z3` (Zebra + Zaino + Zallet RPC router)
+Developers working with `zcash-dev` can select between three local regtest tiers:
+- `--stack lightwalletd` (default): Zebra 7.0.0 + Lightwalletd (`127.0.0.1:39067`)
+- `--stack zaino` (experimental): Zebra 7.0.0 + Zaino `feat/nu7` built from source (`127.0.0.1:38137`)
+- `--stack full`: Zebra 7.0.0 indexer + Zallet beta.4 + Lightwalletd (`127.0.0.1:39067` / `8182`)
 
-Understanding why the NU7 path uses Zebra + lightwalletd instead of Zaino and Zallet is essential:
+The three tiers accommodate different integration needs:
 
-1. **Zallet beta.4 Dropped Zaino and Requires Co-located zebrad**: [Zallet v0.1.0-beta.4](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.4) (published Nov 2, 2026, checked 2026-11-06; container image `zodlinc/zallet@sha256:682ba6f9a9931ac25f6a2eb2218f39e0bf5295c3cbe4d8dfa3fc275c34559506`) introduced NU7 support on Mainnet (height 3,543,405) and Testnet (height 4,465,026). However, PR #900 removed the `zaino` backend entirely. Zallet's `zebra` backend requires a co-located `zebrad >= 7.0.0` with Zebra's on-disk database format v29.0.0 and indexer gRPC endpoint. Note that Zebra's stock published Docker images (`zfnd/zebra:7.0.0`) omit the Cargo `indexer` build feature; while the gRPC endpoint responds to `indexer_listen_addr`, Zebra does not build the spending-transaction index on disk, so Zallet reads an empty spending-transaction index (disabling transparent spend tracking). Tracking issue [Zallet #890](https://github.com/zcash/zallet/issues/890) remains open/lagging. Zallet can no longer be paired with Zaino. Experimental standalone reproduction files are available in `packages/dev/docker/spikes/zallet-beta4/`.
-2. **Zaino 0.10.x Stops at NU7**: Upstream [Zaino 0.10.1 and 0.10.2](https://github.com/zingolabs/zaino/releases/tag/0.10.1) cannot index past the pre-NU7 activation block. On chains activating NU7 (`0x77190ad9`), Zaino 0.10.x retries indefinitely with `validator unavailable: deserialize: parse error: invalid consensus branch id` (tracked in open [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731), open since Nov 1, 2026, checked 2026-11-06). The fix in [Zaino PR #1655](https://github.com/zingolabs/zaino/pull/1655) remains open, unmerged, and unreleased as of 2026-11-06.
-3. **Zebra 7.0.0 & lightwalletd Support NU7**: [Zebra 7.0.0](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0) (published October 22, 2026) and official `lightwalletd` include complete, verified support for the NU7 consensus branch ID `0x77190ad9`. Therefore, `create-zcash-app` routes all NU7 development and testing through the Zebra + lightwalletd container stack.
+1. **Lightwalletd (Default)**: Official, reliable, and fast to launch. Standard light-client stack using [Zebra 7.0.0](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0) and official `lightwalletd`, with full verified support for the NU7 consensus branch ID `0x77190ad9`.
+2. **Zaino (Experimental)**: Upstream Zaino 0.10.x releases and `dev` branch still carry placeholder branch ID `0xfffffffe` (open [Zaino Issue #1731](https://github.com/zingolabs/zaino/issues/1731); unmerged [PR #1655](https://github.com/zingolabs/zaino/pull/1655)). The unreleased `feat/nu7` branch (pinned to commit `aaf8122a703704e05147d984f08ff82c789860ad`) resolves this and supports NU7. Running `--stack zaino` compiles Zaino from source in Docker using Rust 1.96.0 (~3+ min build).
+3. **Full Stack (Zallet + Lightwalletd)**: [Zallet v0.1.0-beta.4](https://github.com/zcash/zallet/releases/tag/v0.1.0-beta.4) dropped the `zaino` backend (PR #900) and requires a co-located `zebrad >= 7.0.0` indexer. The full tier runs Zebra with the internal indexer enabled (`8230`), Zallet (`8182`), and Lightwalletd (`39067`) together against the same chain state.
 
 ---
 

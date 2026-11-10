@@ -65,7 +65,7 @@ Returns configured account keys, addresses, birthday height, and watch-only stat
   "isWatchOnly": false,
   "birthdayHeight": 1,
   "accountIndex": 0,
-  "endpoint": "127.0.0.1:28137"
+  "endpoint": "127.0.0.1:39067"
 }
 ```
 
@@ -115,7 +115,7 @@ Reads or updates project settings in `zcash.config.json` and `.env.local`.
 
 ### `POST /api/mine`
 
-Mines blocks on a regtest chain (Z3 or NU7).
+Mines blocks on a regtest chain (lightwalletd, zaino, or full).
 
 **Parameters**: JSON body: `{ "blocks": 1 }`
 
