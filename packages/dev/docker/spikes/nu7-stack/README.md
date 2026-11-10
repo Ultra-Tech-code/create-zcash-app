@@ -164,25 +164,19 @@ ZAINO_BACKEND_MODE=direct ZAINO_CONFIG_FILE=zainod-direct.toml ZEBRA_RPC_PORT=49
 4. **Zaino Dev Branch vs `feat/nu7`**:
    - Upstream Zaino `dev` branch contains placeholder NU7 branch ID `0xfffffffe` and fails on NU7 activation. Full NU7 support is located exclusively in the unreleased `feat/nu7` branch (pinned commit `aaf8122a703704e05147d984f08ff82c789860ad`).
    - Note: Earlier test runs and logs recorded zainod git commit as `03f015c781fb1b83872064fba5721fdda8fbeeb9`. That commit and merge tip `aaf8122a703704e05147d984f08ff82c789860ad` share the identical git tree object (`a2ffb592...`), ensuring identical source code and build artifacts.
-5. **Account 0 Seed & Miner Address Linkage (110 Unspent Notes)**:
-   - In the coexistence spike, both Zallet (`z_listunspent`) and the TypeScript SDK (`syncWallet`) report discovering exactly 110 unspent shielded notes.
-   - This identity is directly established by the seed and address derivation:
-     - Zebra's block template generator in `zebra.toml` directs coinbase rewards to `miner_address = "uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k"`.
-     - This Unified Address is deterministically generated from `KNOWN_TEST_MNEMONICS[0]` (`"abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"`) at Account index 0 on `regtest-nu7`.
-     - Zallet imported `KNOWN_TEST_MNEMONICS[0]` as Account 0, and the TypeScript SDK initialized its wallet handle from `KNOWN_TEST_MNEMONICS[0]` at Account index 0.
-     - Because Zebra mined exactly 110 blocks to this miner address, exactly 110 coinbase notes were created for this account. Both Zallet and the SDK fully scan the 110-block history, discovering the exact same 110 notes.
 
 ---
 
 ## 7. Capability Matrix
 
-> **Remote Proof Scope**: separate container and network, no shared volume, same machine; not tested across hosts.
+> **Remote Proof Scope**: separate container and network, no shared volume, same machine; not tested across hosts.  
+> **Note on Note Counts**: In the coexistence run (`zaino_zallet_coexistence.log:36,63`), both SDK (`syncWallet`: 110) and Zallet (`z_listunspent`: 110) report 110 unspent notes; this count equality is unexplained without a captured per-note txid and pool dump from the same run (e.g. Zallet lists the Sapling block-1 coinbase whereas the SDK counts Ironwood only; the per-pool breakdown and set difference remain unverified).
 
 | Capability | `lightwalletd` | Zaino (`backend="rpc"`) | Zaino (`backend="direct"`) | Zaino + Zallet Coexistence |
 | :--- | :--- | :--- | :--- | :--- |
 | **NU7 Consensus Activation (`0x77190ad9`)** | **PASS** (`lightwalletd_nu7_spike.log:12`) | **PASS** (`zaino_nu7_spike_rpc.log:12`) | **PASS** (`zaino_nu7_spike_direct.log:12`) | **PASS** (`zaino_zallet_coexistence.log:13`) |
 | **GetLightdInfo / Branch ID Negotiation** | **PASS** (`lightwalletd_nu7_spike.log:20`) | **PASS** (`zaino_nu7_spike_rpc.log:20`) | **PASS** (`zaino_nu7_spike_direct.log:20`) | **PASS** (`zaino_zallet_coexistence.log:21`) |
-| **Remote Node Operation (No Shared State)** | **PASS** (`docker_inspect_remote_proof.log:70`) | **PASS** (`docker_inspect_remote_proof.log:57-63`) | **NOT TESTED** (direct requires state) | **NOT TESTED** (Zallet requires state) |
+| **Remote Node Operation (No Shared State)** | **PASS** (`docker_inspect_remote_proof.log:75`) | **PASS** (`docker_inspect_remote_proof.log:56-68`) | **NOT TESTED** (direct requires state) | **NOT TESTED** (Zallet requires state) |
 | **Compact Block Streaming & Sync** | **PASS** (`lightwalletd_nu7_spike.log:28`) | **PASS** (`zaino_nu7_spike_rpc.log:28`) | **PASS** (`zaino_nu7_spike_direct.log:28`) | **PASS** (`zaino_zallet_coexistence.log:38`) |
 | **Ironwood Notes & Tree State** | **PASS** (`lightwalletd_nu7_spike.log:35`) | **PASS** (`zaino_nu7_spike_rpc.log:35`) | **PASS** (`zaino_nu7_spike_direct.log:35`) | **PASS** (`zaino_zallet_coexistence.log:43`) |
 | **SDK send() with Explorer-Order TxID** | **PASS** (`lightwalletd_nu7_spike.log:45`) | **PASS** (`zaino_nu7_spike_rpc.log:45`) | **PASS** (`zaino_nu7_spike_direct.log:45`) | **NOT TESTED** (standalone logs prove them) |
@@ -210,4 +204,4 @@ ZAINO_BACKEND_MODE=direct ZAINO_CONFIG_FILE=zainod-direct.toml ZEBRA_RPC_PORT=49
 - **Zaino + Zallet Coexistence Verification Log**: `packages/core/tests/logs/zaino_zallet_coexistence.log`  
   SHA-256: `066fe3cfc58686acb851f0594439ad4b7a1725d83aed852a5b640d15e58cde59`
 - **Docker Inspect Remote Operation Proof Log**: `packages/core/tests/logs/docker_inspect_remote_proof.log`  
-  SHA-256: `a47d114c8d47d3ea71612f256eadd278a14403df233072e2b1e3b82beb4df1f7`
+  SHA-256: `ac653ff776b0b025423d6c1ff2b3ceed25d2abf07752c6750eccfefafa01aa1b`

@@ -54,13 +54,18 @@ OUTPUT:
 }
 
 --- 2. Zaino RPC-Only Mode Process Isolation ---
-COMMAND: zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
-ISOLATION PROOF:
-- Zaino was executed as a native host binary outside Docker containers (PID tracking).
-- Network: Reached Zebra strictly over HTTP JSON-RPC at published/bridged port 127.0.0.1:49232 (mapped to zebra:18232).
-- Filesystem: ZERO shared volume mounts, zero shared directories, and no filesystem access to Zebra's RocksDB cache (/home/zebra/.cache/zebra).
-- State: Local SQLite state maintained independently in /tmp/zaino-regtest-rpc-db.
-- Effective config verification: zainod_startup_rpc.log records backend = "rpc", rpc_url = "http://127.0.0.1:49232".
+COMMAND: ps -o pid,args -p 32362
+OUTPUT:
+  PID ARGS
+32362 /tmp/zaino-check/target/release/zainod start -c packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
+
+COMMAND: lsof -p 32362 | grep -i zebra
+OUTPUT:
+(exit code 1 - no open files matching "zebra")
+
+COMMAND: grep -n "config loaded" packages/core/tests/logs/zainod_startup_rpc.log
+OUTPUT:
+4:  18:21:03.318  INFO zainodlib::config: config loaded and validated, path: packages/dev/docker/spikes/nu7-stack/zainod-rpc.toml
 
 --- 3. Lightwalletd Container (zcash-regtest-nu7-lightwalletd-1) ---
 COMMAND: docker inspect zcash-regtest-nu7-lightwalletd-1 | jq '.[0] | {Name: .Name, Mounts: .Mounts, Networks: .NetworkSettings.Networks}'
