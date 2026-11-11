@@ -91,6 +91,7 @@ b9b835619d5027d3f6dd3938f9a764de215dd002ef7eac70dbbc98098bdbbb1c  screenshots/st
 b1abd8e064050ea7f0b61159b7d04fb70ec96f3eefcc28ff16f18f8504a3fc1d  verify_dashboard_sync_and_theme.log  |  git worktree add /tmp/cza-clean-dashboard HEAD && cd /tmp/cza-clean-dashboard && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_dashboard_sync_and_theme.log
 21fccecfaad75966970abfd300f4fc678255cea897b624b6cf9aeb1be8098b23  verify_docs_book_stage1.log  |  git worktree add /tmp/cza-clean-verify HEAD && cd /tmp/cza-clean-verify && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_docs_book_stage1.log
 0970803c98b69f1639a38dd62d899c27ba6e7d444d66e121277f644a857d2abd  quickstart_nu7.log  |  bash scripts/record-quickstart-nu7.sh 2>&1 | tee packages/core/tests/logs/quickstart_nu7.log
+db6deb5c5f05cbcfa59dfca7da00af08e26ea8d398235ee9a21b04836c3a5687  quickstart_alpha5.log  |  bash scripts/record-quickstart-alpha5.sh 2>&1 | tee packages/core/tests/logs/quickstart_alpha5.log
 071d924529538eca25d4dce642a51db02fd2b45a250984712c59cea4fa5e7e46  release_cleanroom_alpha2.log  |  bash scripts/record-release-cleanroom.sh
 b7f0e342df4693472ca117df4b4b72b963bc0fbef84f62845f5227f72246f339  verify_release_alpha2.log  |  git worktree add /tmp/cza-clean-verify-alpha2 HEAD && cd /tmp/cza-clean-verify-alpha2 && git clean -xfd && pnpm install --frozen-lockfile && bash scripts/verify.sh 2>&1 | tee packages/core/tests/logs/verify_release_alpha2.log
 a078748788e8ede926b7fc7a914eecaa27fbbe5f52952048421ac4c177412724  recipe_checkout_nu7.log  |  node scripts/run_recipes_regtest.mjs
@@ -119,3 +120,4 @@ a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_l
 4182400ab00964827a0116747730545c19afccb7f7965c678f7845b77b0efc65  verify_phase_b2.log  |  bash scripts/verify.sh
 3e1248b28e57f5d8c44e6a17cc203af711cc51c755e4bde29b3de4d2291d973d  verify_phase_b3.log  |  bash scripts/verify.sh
 74a98650a0e42473411f6540b6f764463d8e6ad3538b81ddffa24efab2d1fd24  verify_docs_nu7.log  |  bash scripts/verify.sh
+63bb394a08731b0ba1e4952e8d9e764e3c7aae67caf8749a46ea9dc24e87b35d  verify_docs_nu7b.log  |  bash scripts/verify.sh

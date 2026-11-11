@@ -52,8 +52,8 @@ Example output:
 --- Configured Account Address ---
 Network:          regtest
 Account Index:    0
-Unified Address:  uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
-Transparent:      tmT96bXJukAhyno6uG71aAsAD4qPjqp9DA3
+Unified Address:  uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
+Transparent:      tmPjvZk15G2tbhjTamFfCygS8yvDPyfYQQR
 ```
 
 ---
@@ -91,24 +91,24 @@ zcash-regtest-lightwalletd-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 1
 To fund any Unified Address on the devnet from the miner account, execute:
 
 ```bash
-npx zcash-dev fund uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy 5.0
+npx zcash-dev fund uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4 5.0
 ```
 
 Output:
 
 ```text
-[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 105 (tip: 105, batch size: 1000, throttle: 50ms)...
-[Sync] (http://127.0.0.1:39067) (local) Height: 105/105 (100.0%) | Req: 106 | Speed: 92.8 blocks/s
-[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(105):
-  Wallet Ironwood Root:  fc49cc9d82fe07368882d114a351ba8a43958dd46510146c2a9ec8f9bc7c9633
-  Remote ironwoodTree:   01938725621c955d324b6ffe9b7ced282b9b5dd11f8e08cbbcce7bb91475e3da3201be2703abf46ca358c9cc09dbba50f116172a8678f51ca1076c0fbb2053cc20221f01d2bf3a0ac32264340e454d392b4912ef2d9eff6d30a22a25e22102cf6e375a13019244bce713f91beff73211846f11a5a75ad0098f9432c61d84d67cff514ea70c00000175ed1d5065fc9a855044e440f906e66ed240fd53bb2d1cfa9d04c939bc45150d01f9fbaa9f049a7243b66bf87599c9ea477278c1a2c7f94c5ff3eb5ede64f7412500000000000000000000000000000000000000000000000000
-  Derived Remote Root:   fc49cc9d82fe07368882d114a351ba8a43958dd46510146c2a9ec8f9bc7c9633
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 112/112 (100.0%) | Req: 113 | Speed: 123.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  0ccbfbd545b379f9cf6f1a762f9ffb89459957e2af0015be958deaaf451d023d
+  Remote ironwoodTree:   010a972047a8ab8776bb376e3135da5a2977dac561a1a7ebd2d0d17b77c836c12c001f01c7aede353ca76cc34fd173b9b87264b831db6fbc3f2c8271a134b93625789231019297a05de6ad2b28ac4df7df9188ee841c21dfd94c9afcea00c64e62fce72435013e0fb883fa871d7a71ea4e83667cb7d4588054955c8ebfce36deba9936254b2b00011291417a11e7be287beeb2e43e1f4544884e7b4cdf8871b44a2fa478de649a0801a772cfc93e2f2cafaa37863ca4a3d43ccff881c77cf5a35f8d209dc64c06991c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   0ccbfbd545b379f9cf6f1a762f9ffb89459957e2af0015be958deaaf451d023d
 [send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
 
 ✅ Funded successfully via LIGHTWALLETD stack!
-Recipient: uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
+Recipient: uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
 Amount:    5.0 ZEC (500000000 zatoshis)
-Txid:      0d50c1f1eba9d290a61e343941c6c46014fba0e07028410ba7bf02a408b9baaa
+Txid:      f82252b1f01a3aa8a04214850b492e77e6a66c7c4a6af1b58292b6afca8efff7
 ```
 
 Mine 1 block to confirm the funding transaction:
@@ -120,7 +120,7 @@ npx zcash-dev mine 1
 Output:
 
 ```text
-Mining 1 block(s) on NU7 regtest stack...
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
 ✅ Successfully mined 1 block(s) on Zebra.
 ```
 
@@ -157,7 +157,7 @@ Pending:     0.00000000 ZEC
 Before spending funds or broadcasting to the network, perform a safe dry run to compute the ZIP-317 proportional fee:
 
 ```bash
-npx zcash-dev send --to uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy --amount 0.1 --memo "Coffee payment"
+npx zcash-dev send --to uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4 --amount 0.1 --memo "Coffee payment"
 ```
 
 Output:
@@ -165,7 +165,7 @@ Output:
 ```text
 === Transaction Dry Run ===
 Network:   regtest
-Recipient: uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
+Recipient: uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
 Amount:    0.1 ZEC (10000000 zatoshis)
 Fee:       0.00010000 ZEC (10000 zatoshis) [estimated (ZIP-317, 2 outputs assumed)]
 Endpoint:  127.0.0.1:39067
@@ -177,22 +177,22 @@ Pass --yes to sign and broadcast this transaction.
 To sign and broadcast the payment across the regtest network, pass the `--yes` flag:
 
 ```bash
-npx zcash-dev send --to uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy --amount 0.1 --memo "Coffee payment" --yes
+npx zcash-dev send --to uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4 --amount 0.1 --memo "Coffee payment" --yes
 ```
 
 Output:
 
 ```text
-[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 106 (tip: 106, batch size: 1000, throttle: 50ms)...
-[Sync] (http://127.0.0.1:39067) (local) Height: 106/106 (100.0%) | Req: 3 | Speed: 1381.6 blocks/s
-[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(106):
-  Wallet Ironwood Root:  bc85897b39e8f1b36972efa5cd19b750f330a9394c85e0f469f42c3584d65a29
-  Remote ironwoodTree:   01ceb285bddfc22645c2778f5d954ed554b6a92b022e452f23aeac0aee4337d60a015cf20fa3344759410b147d82cd6f128fa5f8209ca745990346016b65d764cd1e1f014a4f9dff47be4aa401d412315cc88775da0365b3c66fa91aa2e5a106a0da412800014182a315a2325d1514fa9f451f8b542e288edcbfd68be6f8f9579a6d7c4b630a000175ed1d5065fc9a855044e440f906e66ed240fd53bb2d1cfa9d04c939bc45150d01f9fbaa9f049a7243b66bf87599c9ea477278c1a2c7f94c5ff3eb5ede64f7412500000000000000000000000000000000000000000000000000
-  Derived Remote Root:   bc85897b39e8f1b36972efa5cd19b750f330a9394c85e0f469f42c3584d65a29
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 113 (tip: 113, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 113/113 (100.0%) | Req: 3 | Speed: 1349.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(113):
+  Wallet Ironwood Root:  6c13b5f4c9ce7ec0e315e8d9fe733dda53961f4b20ff6cf3d2e4be62a8397d13
+  Remote ironwoodTree:   012751e889833988f826f5c33efe974ce990a1207e9300671e02a4dbc7f2fb793f001f01b39d0eca9e8cbd5e346eb6cd290197266c7073c00a538e6d079116660e63d70a000001f2bd509ac1f0fffc746aa05024e177d73595db66ac0e1f245400877dabb02531011291417a11e7be287beeb2e43e1f4544884e7b4cdf8871b44a2fa478de649a0801a772cfc93e2f2cafaa37863ca4a3d43ccff881c77cf5a35f8d209dc64c06991c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   6c13b5f4c9ce7ec0e315e8d9fe733dda53961f4b20ff6cf3d2e4be62a8397d13
 [send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
 
 ✅ Transaction broadcast successfully!
-Txid:      cf0bd7f9d05ff5003cfdc258c4936823dab1005854cc14b2ed9b629323e5efba
+Txid:      3825ae0cd01997c3719a5f73b1def34797d452b4133c2997e9f65f3bb7b6a7a5
 Fee:       0.00010000 ZEC (10000 zatoshis)
 ```
 
