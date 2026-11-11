@@ -3,7 +3,7 @@
 In this quickstart, you will scaffold a new shielded Zcash application, initialize an isolated local NU7 regtest devnet, fund an account, run the application, and simulate your first shielded payment.
 
 > [!NOTE]
-> The commands below need create-zcash-app / zcash-dev 0.1.0-alpha.4 or later (alpha.4 is the current release, featuring full NU7 stack support, `address`, `balance`, and `send` commands).
+> The commands below need create-zcash-app / zcash-dev 0.1.0-alpha.5 or later (alpha.5 is the current release, featuring full NU7 stack support, `address`, `balance`, and `send` commands).
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ In this quickstart, you will scaffold a new shielded Zcash application, initiali
 Run the scaffolder CLI to generate a new application. You can provide flags directly or walk through the interactive wizard:
 
 ```bash
-npx create-zcash-app my-shielded-app --network regtest --regtest-stack nu7 --key-source generate
+npx create-zcash-app my-shielded-app --network regtest --regtest-stack lightwalletd --key-source generate
 ```
 
 Navigate into your new project directory and install dependencies:
@@ -105,7 +105,7 @@ Output:
   Derived Remote Root:   fc49cc9d82fe07368882d114a351ba8a43958dd46510146c2a9ec8f9bc7c9633
 [send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
 
-✅ Funded successfully via NU7 stack!
+✅ Funded successfully via LIGHTWALLETD stack!
 Recipient: uregtest1u2l7u92cra0gxezjx5wawvygsts77wxjwnuudm5g75le33ejrmkycncltrqcr4k3yd9sfzs47t0p4d0u4jllf7lwt83k2k7jzuwx7m2knglnky6lm96f07wch0hus4ynrg8vdzevwpmg8xupmhz00k6w6nxx6qrsvsx9u042aj9wsn4wsvg5l993kjjq456cmpenkjz8srjdkrx2mpy
 Amount:    5.0 ZEC (500000000 zatoshis)
 Txid:      0d50c1f1eba9d290a61e343941c6c46014fba0e07028410ba7bf02a408b9baaa

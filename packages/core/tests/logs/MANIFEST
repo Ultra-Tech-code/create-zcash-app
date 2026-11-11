@@ -118,3 +118,4 @@ a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_l
 0411f0f3f1861fe4419838aaff03b9918a3a3bdb64e65bb89c967d4d2b4eb605  verify_phase_b.log  |  bash scripts/verify.sh
 4182400ab00964827a0116747730545c19afccb7f7965c678f7845b77b0efc65  verify_phase_b2.log  |  bash scripts/verify.sh
 3e1248b28e57f5d8c44e6a17cc203af711cc51c755e4bde29b3de4d2291d973d  verify_phase_b3.log  |  bash scripts/verify.sh
+74a98650a0e42473411f6540b6f764463d8e6ad3538b81ddffa24efab2d1fd24  verify_docs_nu7.log  |  bash scripts/verify.sh
