@@ -59,7 +59,7 @@ export function readOwnVersion(): string {
 }
 
 export function getRegtestAccount0MinerAddress(network: string = 'regtest'): string {
-  if (network !== 'regtest' && network !== 'regtest-nu7') {
+  if (network !== 'regtest') {
     throw new Error(
       `Security Error: Refusing miner address derivation for non-regtest network "${network}". KNOWN_TEST_MNEMONICS is strictly restricted to regtest.`
     );
@@ -144,10 +144,7 @@ export async function executeSend(
 ): Promise<SendResult> {
   const env = config ?? loadProjectEnv();
   const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-  const regtestStack = (env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
   const endpoint = options.endpoint || env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
-  const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
-  const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
   const mnemonic = (env.ZCASH_MNEMONIC ?? '').trim();
   const ufvk = (env.ZCASH_UFVK ?? '').trim();
   const accountIndex = parseInt(env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -185,9 +182,9 @@ export async function executeSend(
   }
 
   const activeMnemonic = mnemonic || (network === 'regtest' ? KNOWN_TEST_MNEMONICS[accountIndex] || KNOWN_TEST_MNEMONICS[0] : '');
-  const account = accountFromMnemonic(activeMnemonic, accountIndex, effectiveNetwork as any);
+  const account = accountFromMnemonic(activeMnemonic, accountIndex, network as any);
 
-  const client = deps?.client ?? createClient({ endpoint, network: effectiveNetwork as any });
+  const client = deps?.client ?? createClient({ endpoint, network: network as any });
   const openFn = deps?.openWalletFn ?? ((...args: Parameters<typeof WalletHandle.open>) => WalletHandle.open(...args));
   const syncFn = deps?.syncWalletFn ?? syncWallet;
   const sendFn = deps?.sendFn ?? send;
@@ -199,7 +196,7 @@ export async function executeSend(
   try {
     const wallet = openFn(
       dbPath,
-      effectiveNetwork as any,
+      network as any,
       account.getUnifiedFullViewingKey(),
       `acct${accountIndex}`,
       birthday
@@ -242,10 +239,7 @@ program
     try {
       applyProjectEnv();
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-      const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
       const endpoint = process.env.ZCASH_ENDPOINT ?? '';
-      const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
-      const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
       const rawIndex = options.index ?? process.env.ZCASH_ACCOUNT_INDEX ?? '0';
       const accountIndex = parseInt(rawIndex, 10) || 0;
       const mnemonic = (process.env.ZCASH_MNEMONIC ?? '').trim();
@@ -253,7 +247,7 @@ program
 
       if (!mnemonic && !ufvk) {
         if (network === 'regtest') {
-          const acct = dev.fixtures.account(accountIndex, effectiveNetwork as any);
+          const acct = dev.fixtures.account(accountIndex, network as any);
           console.log(`\n--- Configured Account Address ---`);
           console.log(`Network:          ${network}`);
           console.log(`Account Index:    ${accountIndex} (regtest default fixture)`);
@@ -269,7 +263,7 @@ program
       }
 
       if (mnemonic) {
-        const acct = accountFromMnemonic(mnemonic, accountIndex, effectiveNetwork as any);
+        const acct = accountFromMnemonic(mnemonic, accountIndex, network as any);
         console.log(`\n--- Configured Account Address ---`);
         console.log(`Network:          ${network}`);
         console.log(`Account Index:    ${accountIndex}`);
@@ -281,7 +275,7 @@ program
       }
 
       if (ufvk) {
-        const watchAcct = accountFromUfvk(ufvk, effectiveNetwork as any);
+        const watchAcct = accountFromUfvk(ufvk, network as any);
         console.log(`\n--- Configured Account Address (Watch-Only) ---`);
         console.log(`Network:          ${network}`);
         console.log(`Account Index:    ${accountIndex} (UFVK)`);
@@ -307,10 +301,7 @@ program
     try {
       applyProjectEnv();
       const network = (process.env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-      const regtestStack = (process.env.ZCASH_REGTEST_STACK ?? '').trim().toLowerCase();
       const endpoint = options.endpoint || process.env.ZCASH_ENDPOINT || REMOTE_ENDPOINTS[network] || '127.0.0.1:39067';
-      const isNu7Alias = network === 'regtest-nu7' || regtestStack === 'nu7';
-      const effectiveNetwork = isNu7Alias ? 'regtest-nu7' : network;
       const birthdayRaw = (process.env.ZCASH_BIRTHDAY ?? '').trim();
       const birthday = /^\d+$/.test(birthdayRaw) ? parseInt(birthdayRaw, 10) : undefined;
       const accountIndex = parseInt(process.env.ZCASH_ACCOUNT_INDEX ?? '0', 10) || 0;
@@ -319,11 +310,11 @@ program
 
       let account: any;
       if (mnemonic) {
-        account = accountFromMnemonic(mnemonic, accountIndex, effectiveNetwork as any);
+        account = accountFromMnemonic(mnemonic, accountIndex, network as any);
       } else if (ufvk) {
-        account = accountFromUfvk(ufvk, effectiveNetwork as any);
+        account = accountFromUfvk(ufvk, network as any);
       } else if (network === 'regtest') {
-        account = dev.fixtures.account(accountIndex, effectiveNetwork as any);
+        account = dev.fixtures.account(accountIndex, network as any);
       } else {
         throw new Error(
           `Neither ZCASH_MNEMONIC nor ZCASH_UFVK is configured for ${network}. Set ZCASH_MNEMONIC or ZCASH_UFVK in .env.local.`
@@ -331,7 +322,7 @@ program
       }
 
       console.log(`Querying balance on ${network} via ${redactSecretUrl(endpoint)}...`);
-      client = createClient({ endpoint, network: effectiveNetwork as any });
+      client = createClient({ endpoint, network: network as any });
       const b = await getBalance(client, account, { sinceHeight: birthday });
       console.log('\n--- Account Balance ---');
       console.log(`Network:     ${network}`);
@@ -425,7 +416,7 @@ export async function executeFund(
 ): Promise<FundResult> {
   const env = config ?? loadProjectEnv();
   const network = (env.ZCASH_NETWORK ?? 'regtest').trim().toLowerCase();
-  if (network !== 'regtest' && network !== 'regtest-nu7') {
+  if (network !== 'regtest') {
     throw new Error(`Fund is only available on regtest (current network: ${network}).`);
   }
 

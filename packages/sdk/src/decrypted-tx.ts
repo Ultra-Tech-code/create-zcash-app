@@ -13,7 +13,7 @@ import { getUpgradeName } from './consensus.js';
  * expiry height, and consensus branch ID.
  *
  * @param ufvk The Unified Full Viewing Key encoded string.
- * @param network Network name ('regtest', 'testnet', 'mainnet', 'regtest-nu7').
+ * @param network Network name ('regtest', 'testnet', 'mainnet').
  * @param rawTxBytes Raw transaction serialized bytes.
  * @param height Block height of the transaction (or target height).
  * @returns Fully decrypted transaction details with typed values and decoded memos.

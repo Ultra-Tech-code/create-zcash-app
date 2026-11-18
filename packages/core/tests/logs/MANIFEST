@@ -141,3 +141,4 @@ b37848e6ea37722988b629af810dbd6a82d7b15b8676d1f7bfd5a8dceb296630  pins_report.md
 2eba5c77802c736766fc108e352e644cb4e2724df9a6a16e8e00465fafcce67f  verify_pins.log  |  bash scripts/verify.sh
 a8a0640315228db7efee74640acbe6bd1791e003cbd752be286a990e2a856d49  verify_pins2.log  |  bash scripts/verify.sh
 80768ff791995e41d99e1f8bf7fc4aae72284bd694244fea6a22e0702df547b5  verify_pins3.log  |  bash scripts/verify.sh
+9a56fc421f678b4a8b6bf57028f14248049d3570255ea5f255e35ccf53d3ff82  verify_alpha6_cleanup.log  |  bash scripts/verify.sh

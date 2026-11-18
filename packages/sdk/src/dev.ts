@@ -7,7 +7,7 @@ import { quoteFee } from './send.js';
 export namespace dev {
   export const fixtures = {
     mnemonics: KNOWN_TEST_MNEMONICS,
-    account(index: number, network: 'regtest' | 'testnet' | 'mainnet' | 'regtest-nu7' = 'regtest'): Account {
+    account(index: number, network: 'regtest' | 'testnet' | 'mainnet' = 'regtest'): Account {
       if (network === 'mainnet' || network === 'testnet') {
         throw new Error(
           `Security Error: Test fixture mnemonics are publicly known and strictly prohibited on ${network}. Import an explicit UFVK for watch-only monitoring.`
@@ -24,7 +24,7 @@ export namespace dev {
   };
 
   export async function mine(client: ZcashClient, blocks: number): Promise<void> {
-    if (client.config.network !== 'regtest' && client.config.network !== 'regtest-nu7') {
+    if (client.config.network !== 'regtest') {
       throw new Error('mine is only available on regtest');
     }
     const rpcUrl = process.env.ZCASH_ZEBRA_RPC || 'http://127.0.0.1:39232';

@@ -20,8 +20,7 @@ zcash_scafolder/
 │   ├── dev/          # zcash-dev: Regtest helper CLI (info, mine, fund, fixtures)
 │   ├── dashboard/    # @zcash-app/dashboard: Next.js dev dashboard (App Router)
 │   └── cli/          # create-zcash-app: Interactive project scaffolder CLI
-├── templates/
-│   └── nextjs-fullstack/
+│       └── template/ # Application template for scaffolder (packages/cli/template)
 ├── pnpm-workspace.yaml
 ├── package.json
 └── Cargo.toml
@@ -33,7 +32,7 @@ zcash_scafolder/
 
 ### 1. `@zcash-app/core` (Rust Crypto Core)
 - Built with `napi-rs` to provide native Node.js bindings across macOS, Linux, and Windows.
-- Implements NU7 / NU6.3 key derivation and decryption (`orchard` 0.15, `zcash_keys` 0.16, `zcash_address` 0.13, `zcash_protocol` 0.10).
+- Implements NU7 / NU6.3 key derivation, decryption, and wallet operations (`orchard` 0.16.0, `zcash_primitives` 0.31.0, `zcash_keys` 0.17.0, `zcash_address` 0.14.0, `zcash_protocol` 0.11.0, `zcash_client_backend` 0.25.0, `shardtree` 0.8.0, `incrementalmerkletree` 0.9.0).
 - **Features**:
   - `deriveAccountFromMnemonic`: Derives Unified Address (`uregtest1...`, `utest1...`) and UFVK (`uviewregtest1...`).
   - `getAddressFromUfvk`: Derives default and diversified addresses.

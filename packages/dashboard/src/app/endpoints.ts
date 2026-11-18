@@ -4,7 +4,6 @@ export type PresetId =
   | 'regtest-lightwalletd'
   | 'regtest-zaino'
   | 'regtest-full'
-  | 'regtest-nu7'
   | 'testnet'
   | 'testnet-local'
   | 'mainnet';
@@ -51,17 +50,6 @@ export const NETWORK_PRESETS: Record<PresetId, NetworkPreset> = {
     isLocal: true,
     miningRpcUrl: 'http://127.0.0.1:39232',
     supportsZalletFaucet: true,
-  },
-  // DEPRECATED: 'regtest-nu7' preset ID is deprecated and will be removed in the next release after alpha.5. Use 'regtest-lightwalletd'.
-  'regtest-nu7': {
-    id: 'regtest-nu7',
-    label: 'Regtest - Lightwalletd (Deprecated Alias, 127.0.0.1:39067)',
-    network: 'regtest',
-    endpoint: '127.0.0.1:39067',
-    description: 'Deprecated alias for regtest-lightwalletd (will be removed in the next release after alpha.5)',
-    isLocal: true,
-    miningRpcUrl: 'http://127.0.0.1:39232',
-    supportsZalletFaucet: false,
   },
   testnet: {
     id: 'testnet',

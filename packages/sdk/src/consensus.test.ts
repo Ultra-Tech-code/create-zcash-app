@@ -64,9 +64,5 @@ describe('Consensus Upgrade Name Helper', () => {
     // Regtest default is NU7 (0x77190ad9) at height >= 2
     const regtestNu7 = getExpectedBranchId('regtest', 10);
     expect(regtestNu7).toBe('77190ad9');
-
-    // Regtest NU7 alias ('regtest-nu7')
-    const regtestNu7Alias = getExpectedBranchId('regtest-nu7', 10);
-    expect(regtestNu7Alias).toBe('77190ad9');
   });
 });

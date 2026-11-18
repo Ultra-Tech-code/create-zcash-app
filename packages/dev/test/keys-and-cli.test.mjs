@@ -968,7 +968,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
 
     const mockClient = {
       close: async () => {},
-      config: { network: 'regtest-nu7', endpoint: '127.0.0.1:39067' },
+      config: { network: 'regtest', endpoint: '127.0.0.1:39067' },
     };
 
     const res = await executeSend(
@@ -979,7 +979,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       },
       {
         ZCASH_NETWORK: 'regtest',
-        ZCASH_REGTEST_STACK: 'nu7',
+        ZCASH_REGTEST_STACK: 'lightwalletd',
         ZCASH_ENDPOINT: '127.0.0.1:39067',
       },
       {

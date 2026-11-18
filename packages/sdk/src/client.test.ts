@@ -162,31 +162,10 @@ describe('Chain Identity Guard', () => {
     await clientDefault.close();
   });
 
-  it('maps legacy "regtest-nu7" network alias to "regtest" with console.warn', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    const clientAlias = createClient({ endpoint: '127.0.0.1:39067', network: 'regtest-nu7' });
-    expect(clientAlias.config.network).toBe('regtest');
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Deprecation Warning: network "regtest-nu7" is deprecated')
-    );
-
-    vi.spyOn(clientAlias, 'getInfo').mockResolvedValue({
-      version: '7.0.0',
-      vendor: 'Zebra',
-      taddrSupport: true,
-      chainName: 'regtest',
-      saplingActivationHeight: '1',
-      consensusBranchId: '77190ad9',
-      blockHeight: '10',
-    });
-
-    const resultAlias = await clientAlias.assertChainIdentity();
-    expect(resultAlias.consensusBranchId).toBe('77190ad9');
-    expect(resultAlias.expectedBranchId).toBe('77190ad9');
-
-    await clientAlias.close();
-    warnSpy.mockRestore();
+  it('rejects removed "regtest-nu7" network alias with a clear error', () => {
+    expect(() => {
+      createClient({ endpoint: '127.0.0.1:39067', network: 'regtest-nu7' as any });
+    }).toThrow(/Invalid network: "regtest-nu7"/);
   });
 
   it('ignores deprecated "regtestNu7" configuration option with console.warn', async () => {

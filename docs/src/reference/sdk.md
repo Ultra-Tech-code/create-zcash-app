@@ -214,11 +214,10 @@ formatted in standard node and block explorer display order (byte-reversed relat
 internal Zcash wire format), matching Zebra JSON-RPC (`getrawmempool`, `getblock`,
 `getrawtransaction`) and block explorer search queries.
 
-> [!WARNING] Breaking Change
-> Prior to `[Unreleased]` (see `CHANGELOG.md`), `send()` returned `txid` in raw wire-order
-> byte serialization. `send()` now returns the display-order txid directly, eliminating the
-> need for callers to manually reverse txid bytes. Internal core APIs (such as
-> `markBroadcastWithReservation()`) continue to consume wire order.
+> [!NOTE] Display-Order TxID
+> Since `0.1.0-alpha.5` (see `CHANGELOG.md`), `send()` returns `txid` in standard node and explorer
+> display byte order, eliminating the need for callers to manually reverse txid bytes. Internal core
+> APIs (such as `markBroadcastWithReservation()`) continue to consume wire order.
 
 ```typescript
 function send(opts: SendOptions): Promise<SendResult>;
@@ -459,7 +458,7 @@ Type: `"0713a6429dc1cef50224668082022ca8881593e09a3170717e6a725491c03b96"`
 
 ### `testkit`
 
-Type: `{ fixtures: { mnemonics: readonly string[]; account(index: number, network?: "regtest" | "testnet" | "mainnet" | "regtest-nu7"): Account; }; withRegtest(fn: (ctx: { client: ZcashClient; fund: (client: ZcashClient, to: string, value: bigint) => Promise<...>; }) => Promise<...>): Promise<...>; }`
+Type: `{ fixtures: { mnemonics: readonly string[]; account(index: number, network?: "regtest" | "testnet" | "mainnet"): Account; }; withRegtest(fn: (ctx: { client: ZcashClient; fund: (client: ZcashClient, to: string, value: bigint) => Promise<...>; }) => Promise<...>): Promise<...>; }`
 
 ### `KNOWN_TEST_MNEMONICS`
 
