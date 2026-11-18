@@ -2,7 +2,8 @@ name: zcash-regtest-zaino
 
 services:
   zebra:
-    image: ${ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
+    # zfnd/zebra:7.1.0 (digest sha256:4f9536c8061e407f9f2ec81b7e0dd2f1762f81deec316abb1530dca8796a33ba)
+    image: ${ZEBRA_IMAGE:-zfnd/zebra:7.1.0}
     ports:
       - "127.0.0.1:${ZEBRA_RPC_PORT:-39232}:18232"
       - "127.0.0.1:${ZEBRA_HEALTH_PORT:-38080}:8080"

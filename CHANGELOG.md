@@ -2,6 +2,13 @@
 
 All notable changes to `create-zcash-app` and its workspace packages will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- **Zebra 7.1.0 Pin**: Pinned official `zfnd/zebra:7.1.0` (digest `sha256:4f9536c8061e407f9f2ec81b7e0dd2f1762f81deec316abb1530dca8796a33ba`) across all three regtest devnet stacks (`lightwalletd`, `zaino`, `full`).
+- **Lightwalletd v0.6.2 Pin**: Pinned official `electriccoinco/lightwalletd` v0.6.2 (digest `sha256:75e5742df686094556abef66e69c37bc114de23a0706712aee324f332ca52951`) across regtest stacks using Lightwalletd (`lightwalletd` and `full`).
+- **Full Stack Uses Stock Zebra Image**: Removed local compilation of Zebra from source (`packages/dev/docker/stacks/full/Dockerfile`). The full stack now uses the stock `zfnd/zebra:7.1.0` image, reducing startup time and eliminating the ~8-minute local container build.
+
 ## [0.1.0-alpha.5] - 2026-11-10
 
 ### Breaking Changes

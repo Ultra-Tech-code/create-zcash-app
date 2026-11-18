@@ -1,5 +1,5 @@
 # Zebra regtest configuration with NU7 activated at height 2.
-# Tier 1 (Lightwalletd) regtest stack (Zebra 7.0.0 + Lightwalletd).
+# Tier 1 (Lightwalletd) regtest stack (Zebra 7.1.0 + Lightwalletd).
 
 [network]
 network = "Regtest"

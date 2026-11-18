@@ -49,9 +49,9 @@ in preparation for the NU7-only stack restructure and three-tier regtest archite
 | File | Status | Classification & Action |
 |------|--------|-------------------------|
 | `src/cli.ts` | Modified | Restructured to support three regtest tiers: `lightwalletd` (default), `zaino` (experimental), and `full`. Removed legacy Z3 router (`:8181`) and `28137` port mappings. Replaced `z3`/`nu6` with clear migration errors. Updated `fund`, `mine`, `wipe`, `address`, `balance`, `send`, `info` commands. |
-| `docker/stacks/lightwalletd/*` | New | Tier 1 (Default): Zebra 7.0.0 (`39232:18232`, `38080:8080`) + Lightwalletd (`39067:9067`, `39068:9068`). |
-| `docker/stacks/zaino/*` | New | Tier 2 (Experimental): Zebra 7.0.0 (`39232:18232`, `38080:8080`) + Zaino `feat/nu7` (pin `aaf8122a`, built from source, `38137:8137`). |
-| `docker/stacks/full/*` | New | Tier 3 (Full): Zebra 7.0.0 indexer (`39232:18232`, `8230:8230`, `38080:8080`) + Zallet `v0.1.0-beta.4` (`8182:28232`) + Lightwalletd (`39067:9067`, `39068:9068`). |
+| `docker/stacks/lightwalletd/*` | New | Tier 1 (Default): Zebra 7.1.0 (`39232:18232`, `38080:8080`) + Lightwalletd (`39067:9067`, `39068:9068`). |
+| `docker/stacks/zaino/*` | New | Tier 2 (Experimental): Zebra 7.1.0 (`39232:18232`, `38080:8080`) + Zaino `feat/nu7` (pin `aaf8122a`, built from source, `38137:8137`). |
+| `docker/stacks/full/*` | New | Tier 3 (Full): Zebra 7.1.0 (`39232:18232`, `8230:8230`, `38080:8080`) + Zallet `v0.1.0-beta.4` (`8182:28232`) + Lightwalletd (`39067:9067`, `39068:9068`). |
 | `docker/regtest/` | Deleted | Removed obsolete Z3 regtest stack (`docker-compose.yml`, `regtest-init.sh`, `zaino.toml`, `zallet.toml`, `zebra.toml`). |
 | `docker/regtest-nu7/` | Preserved | Retained for backwards compatibility during migration. |
 | `docker/spikes/*` | Preserved | Historical spike artifacts and evidence from Phase A retained intact in repository. |

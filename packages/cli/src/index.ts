@@ -565,7 +565,7 @@ program
         if (regtestStack === 'zaino') {
           composeContent = `services:
   zebra:
-    image: zfnd/zebra:7.0.0
+    image: zfnd/zebra:7.1.0
     restart: unless-stopped
     ports:
       - "39232:18232"
@@ -592,7 +592,7 @@ program
         } else if (regtestStack === 'full') {
           composeContent = `services:
   zebra:
-    image: zfnd/zebra:7.0.0
+    image: zfnd/zebra:7.1.0
     restart: unless-stopped
     ports:
       - "39232:18232"
@@ -638,7 +638,7 @@ program
           // default: lightwalletd
           composeContent = `services:
   zebra:
-    image: zfnd/zebra:7.0.0
+    image: zfnd/zebra:7.1.0
     restart: unless-stopped
     ports:
       - "39232:18232"
@@ -674,7 +674,7 @@ program
       } else {
         composeContent = `services:
   zebra:
-    image: zfnd/zebra:7.0.0
+    image: zfnd/zebra:7.1.0
     restart: unless-stopped
     ports:
       - "18232:18232"

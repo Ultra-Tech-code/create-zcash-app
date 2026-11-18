@@ -1,0 +1,210 @@
+=== PINS VERIFICATION: LIGHTWALLETD STACK (NEW DEFAULTS) ===
+Date: 2026-11-18T11:01:06Z
+Platform: Darwin arm64
+Defaults: Zebra zfnd/zebra:7.1.0, lightwalletd electriccoinco/lightwalletd:v0.6.2
+
+--- 1. Wiping previous regtest state ---
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   zcash-regtest-lightwalletd
+   - Docker Volumes: zcash-regtest-lightwalletd_zebra-data
+   - Services:       zebra, lightwalletd
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/stacks/lightwalletd ===
+
+ Volume zcash-regtest-lightwalletd_zebra-data Removing 
+ Volume zcash-regtest-lightwalletd_zebra-data Removed 
+
+=== 🛠️  Reinitializing fresh LIGHTWALLETD chain via regtest-init.sh ===
+
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.1.0 in NU7 regtest mode...
+ Volume zcash-regtest-lightwalletd_zebra-data Creating 
+ Volume zcash-regtest-lightwalletd_zebra-data Creating 
+ Network zcash-regtest-lightwalletd_default Creating 
+ Network zcash-regtest-lightwalletd_default Creating 
+ Volume zcash-regtest-lightwalletd_zebra-data Created 
+ Volume zcash-regtest-lightwalletd_zebra-data Created 
+ Network zcash-regtest-lightwalletd_default Created 
+ Network zcash-regtest-lightwalletd_default Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Creating 
+ Container zcash-regtest-lightwalletd-zebra-1 Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Starting 
+ Container zcash-regtest-lightwalletd-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Starting lightwalletd service...
+ Container zcash-regtest-lightwalletd-zebra-1 Running 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Creating 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Waiting 
+ Container zcash-regtest-lightwalletd-zebra-1 Healthy 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Starting 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Started 
+==> Waiting for lightwalletd on port 39067...
+   lightwalletd is reachable.
+==> Tier 1 (Lightwalletd) Regtest stack initialized successfully.
+⏳ Waiting for Zebra RPC on port 39232...
+Mining 110 blocks for fresh regtest chain...
+✅ Fresh LIGHTWALLETD regtest chain created with tip height 110!
+
+
+--- 2. Starting Lightwalletd stack with defaults ---
+
+=== 🛠️  Setting up LIGHTWALLETD Regtest in /Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/stacks/lightwalletd ===
+
+✅ Using Account 0 Unified Address for mining:
+   uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+✅ Updated zebra.toml with Account 0 miner address.
+
+🐳 Starting LIGHTWALLETD Regtest containers...
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.1.0 in NU7 regtest mode...
+ Volume zcash-regtest-lightwalletd_zebra-data Creating 
+ Volume zcash-regtest-lightwalletd_zebra-data Creating 
+ Network zcash-regtest-lightwalletd_default Creating 
+ Network zcash-regtest-lightwalletd_default Creating 
+ Volume zcash-regtest-lightwalletd_zebra-data Created 
+ Volume zcash-regtest-lightwalletd_zebra-data Created 
+ Network zcash-regtest-lightwalletd_default Created 
+ Network zcash-regtest-lightwalletd_default Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Creating 
+ Container zcash-regtest-lightwalletd-zebra-1 Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Starting 
+ Container zcash-regtest-lightwalletd-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Starting lightwalletd service...
+ Container zcash-regtest-lightwalletd-zebra-1 Running 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Creating 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Created 
+ Container zcash-regtest-lightwalletd-zebra-1 Waiting 
+ Container zcash-regtest-lightwalletd-zebra-1 Healthy 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Starting 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Started 
+==> Waiting for lightwalletd on port 39067...
+   lightwalletd is reachable.
+==> Tier 1 (Lightwalletd) Regtest stack initialized successfully.
+
+⏳ Waiting for Zebra RPC on port 39232...
+Current block height: 2
+Mining 108 blocks for coinbase maturity (target tip 110)...
+✅ Mined maturity blocks.
+
+🎉 LIGHTWALLETD Regtest setup completed successfully! Stack is ready for SDK testing.
+
+
+--- 3. Container status & images ---
+NAMES                                       IMAGE                         STATUS                        PORTS
+zcash-regtest-lightwalletd-lightwalletd-1   electriccoinco/lightwalletd   Up About a minute (healthy)   127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
+zcash-regtest-lightwalletd-zebra-1          zfnd/zebra:7.1.0              Up About a minute (healthy)   127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+
+--- 4. Indexer Info (GetLightdInfo) ---
+[ZcashClient] Deprecation Warning: "regtestNu7" configuration option is deprecated and ignored. Regtest now activates NU7 by default.
+
+--- Zcash Node / Indexer Info ---
+Vendor:          ECC LightWalletD vv0.6.2
+Chain:           test
+Upgrade:         
+Consensus Branch: 77190ad9
+Block Height:    110
+t-addr Support:  Yes
+
+
+--- 5. Configured Account Address ---
+
+--- Configured Account Address ---
+Network:          regtest
+Account Index:    0 (regtest default fixture)
+Unified Address:  uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+Transparent:      tmV1zYhR2xisn6VWdCNKHpeD4S7L1U1nPH6
+
+
+--- 6. Fund Account 0 (1.0 ZEC) ---
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 110 (tip: 110, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 110/110 (100.0%) | Req: 111 | Speed: 115.2 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(110):
+  Wallet Ironwood Root:  cac63573d0b2addc47a31ef43cc26a87fa1ad187cbaa76ee99f922832789fa09
+  Remote ironwoodTree:   019d90354951cf5441b6d11eef857cd35136c32a169e031889f300918fbddb741b001f00012a2c26da715516a05971750628e04be3c330f748c0da25e2ea562c02143b371d01bcb7ed74b48efb8948569f15f5797768a829c6e4a6c59cf1c01d963806320e150001879f96e6a47c6cbc86165bc038911b8ae835de969b69625421e3be58937f541601f913b31bdf36d8a10fe4e551d76be1cabf5819561a606fccd23c712ca714c62e00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   cac63573d0b2addc47a31ef43cc26a87fa1ad187cbaa76ee99f922832789fa09
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Funded successfully via LIGHTWALLETD stack!
+Recipient: uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+Amount:    1.0 ZEC (100000000 zatoshis)
+Txid:      b6389d4d9724f54979551d81f7a90d03d3c65bc1956ee13be17fa5ff985f7dfe
+
+
+--- 7. Mine 1 block to confirm funding ---
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+
+--- 8. Check balance after funding ---
+Querying balance on regtest via 127.0.0.1:39067...
+
+--- Account Balance ---
+Network:     regtest
+Total:       229.16660630 ZEC (22916660630 zatoshis)
+Ironwood:    229.16660630 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   229.16660630 ZEC
+Pending:     0.00000000 ZEC
+
+
+--- 9. Send 0.5 ZEC from Account 0 to own UA ---
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 111/111 (100.0%) | Req: 113 | Speed: 111.7 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  92dfd18915ca3c1b6957b0fe7e0d124156b1e906d3a706354790d330acc16c03
+  Remote ironwoodTree:   017095e7ccb21d9505f2eebfcf7ca400c849455cd574adee45f9bc8e319007c5150156d85a9b162d2015f8f099bbb30ac234fdb86ee77d144ef48d80c05b0027270c1f0124e89dc6f44cee043856245db9073882fe5c25653df14ed03d98820762de9802012a2c26da715516a05971750628e04be3c330f748c0da25e2ea562c02143b371d01bcb7ed74b48efb8948569f15f5797768a829c6e4a6c59cf1c01d963806320e150001879f96e6a47c6cbc86165bc038911b8ae835de969b69625421e3be58937f541601f913b31bdf36d8a10fe4e551d76be1cabf5819561a606fccd23c712ca714c62e00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   92dfd18915ca3c1b6957b0fe7e0d124156b1e906d3a706354790d330acc16c03
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Transaction broadcast successfully!
+Txid:      6b927d87b4d0835b74de800781966f572ec4c39edb8a0e619ec81769452e0e05
+Fee:       0.00010000 ZEC (10000 zatoshis)
+
+
+--- 10. Mine 1 block to confirm send ---
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+
+--- 11. Check balance after send ---
+Querying balance on regtest via 127.0.0.1:39067...
+
+--- Account Balance ---
+Network:     regtest
+Total:       231.24987963 ZEC (23124987963 zatoshis)
+Ironwood:    231.24987963 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   231.24987963 ZEC
+Pending:     0.00000000 ZEC
+
+
+--- 12. Teardown ---
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Stopping 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Stopped 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Removing 
+ Container zcash-regtest-lightwalletd-lightwalletd-1 Removed 
+ Container zcash-regtest-lightwalletd-zebra-1 Stopping 
+ Container zcash-regtest-lightwalletd-zebra-1 Stopped 
+ Container zcash-regtest-lightwalletd-zebra-1 Removing 
+ Container zcash-regtest-lightwalletd-zebra-1 Removed 
+ Network zcash-regtest-lightwalletd_default Removing 
+ Volume zcash-regtest-lightwalletd_zebra-data Removing 
+ Volume zcash-regtest-lightwalletd_zebra-data Removed 
+ Network zcash-regtest-lightwalletd_default Removed 
+Lightwalletd stack verification complete.

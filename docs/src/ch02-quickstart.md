@@ -60,7 +60,7 @@ Transparent:      tmPjvZk15G2tbhjTamFfCygS8yvDPyfYQQR
 
 ## Step 3: Launch Local Regtest Devnet (`--stack lightwalletd`)
 
-To test locally without spending real or testnet funds, launch the isolated regtest environment (powered by Zebra 7.0.0 and lightwalletd):
+To test locally without spending real or testnet funds, launch the isolated regtest environment (powered by Zebra 7.1.0 and lightwalletd):
 
 ```bash
 npx zcash-dev regtest up --stack lightwalletd
@@ -81,7 +81,7 @@ Output:
 
 ```text
 zcash-regtest-lightwalletd-lightwalletd-1 electriccoinco/lightwalletd 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
-zcash-regtest-lightwalletd-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+zcash-regtest-lightwalletd-zebra-1 zfnd/zebra:7.1.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
 ```
 
 ---

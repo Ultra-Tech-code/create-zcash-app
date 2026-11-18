@@ -79,7 +79,7 @@ This reference documents all default network ports used across the `create-zcash
 
 ### Tier 1: Lightwalletd (Default)
 
-The Lightwalletd stack (`--stack lightwalletd`, default) runs a standalone Zebra 7.0.0 node coupled directly to a Lightwalletd indexer. NU7 activates at block 2 by default.
+The Lightwalletd stack (`--stack lightwalletd`, default) runs a standalone Zebra 7.1.0 node coupled directly to a Lightwalletd indexer. NU7 activates at block 2 by default.
 
 - **Zebra JSON-RPC**: `127.0.0.1:39232` (HTTP JSON-RPC 2.0, mining via `zcash-dev mine`)
 - **Zebra Health**: `127.0.0.1:38080` (HTTP healthcheck)
@@ -88,7 +88,7 @@ The Lightwalletd stack (`--stack lightwalletd`, default) runs a standalone Zebra
 
 ### Tier 2: Zaino (Experimental)
 
-The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from source (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) and runs it against Zebra 7.0.0 using an RPC backend (works against a remote Zebra RPC; direct state-reader mode is not offered in this stack; direct mode exists upstream and is documented only in the spike). Initial build takes ~3+ minutes.
+The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from source (pin `aaf8122a703704e05147d984f08ff82c789860ad`, Rust 1.96.0) and runs it against Zebra 7.1.0 using an RPC backend (works against a remote Zebra RPC; direct state-reader mode is not offered in this stack; direct mode exists upstream and is documented only in the spike). Initial build takes ~3+ minutes.
 
 > [!WARNING]
 > **Unencrypted Plain-Text gRPC (Regtest Only)**:
@@ -100,7 +100,7 @@ The Zaino stack (`--stack zaino`, experimental) builds Zaino `feat/nu7` from sou
 
 ### Tier 3: Full Stack (Zallet + Lightwalletd)
 
-The Full stack (`--stack full`) runs Zebra 7.0.0 in indexer mode, Zallet `v0.1.0-beta.4`, and Lightwalletd together against the same state.
+The Full stack (`--stack full`) runs Zebra 7.1.0, Zallet `v0.1.0-beta.4`, and Lightwalletd together against the same state.
 
 - **Zebra JSON-RPC**: `127.0.0.1:39232`
 - **Zebra Indexer**: `127.0.0.1:8230` (used internally by Zallet)

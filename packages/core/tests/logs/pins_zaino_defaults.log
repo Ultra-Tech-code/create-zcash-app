@@ -1,0 +1,211 @@
+=== PINS VERIFICATION: ZAINO STACK (NEW DEFAULTS) ===
+Date: 2026-11-18T11:19:25Z
+Platform: Darwin arm64
+Defaults: Zebra zfnd/zebra:7.1.0, Zaino feat/nu7 (pin aaf8122a)
+
+--- 1. Wiping previous regtest state ---
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   zcash-regtest-zaino
+   - Docker Volumes: zcash-regtest-zaino_zebra-data
+   - Services:       zebra, zaino
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/stacks/zaino ===
+
+
+=== 🛠️  Reinitializing fresh ZAINO chain via regtest-init.sh ===
+
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.1.0 in NU7 regtest mode...
+ Network zcash-regtest-zaino_default Creating 
+ Network zcash-regtest-zaino_default Creating 
+ Volume zcash-regtest-zaino_zebra-data Creating 
+ Volume zcash-regtest-zaino_zebra-data Creating 
+ Volume zcash-regtest-zaino_zebra-data Created 
+ Volume zcash-regtest-zaino_zebra-data Created 
+ Network zcash-regtest-zaino_default Created 
+ Network zcash-regtest-zaino_default Created 
+ Container zcash-regtest-zaino-zebra-1 Creating 
+ Container zcash-regtest-zaino-zebra-1 Created 
+ Container zcash-regtest-zaino-zebra-1 Starting 
+ Container zcash-regtest-zaino-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Starting zaino service...
+ Container zcash-regtest-zaino-zebra-1 Running 
+ Container zcash-regtest-zaino-zaino-1 Creating 
+ Container zcash-regtest-zaino-zaino-1 Created 
+ Container zcash-regtest-zaino-zebra-1 Waiting 
+ Container zcash-regtest-zaino-zebra-1 Healthy 
+ Container zcash-regtest-zaino-zaino-1 Starting 
+ Container zcash-regtest-zaino-zaino-1 Started 
+==> Waiting for zaino on port 38137...
+   zaino is reachable.
+==> Tier 2 (Zaino) Regtest stack initialized successfully.
+⏳ Waiting for Zebra RPC on port 39232...
+Mining 110 blocks for fresh regtest chain...
+✅ Fresh ZAINO regtest chain created with tip height 110!
+
+
+--- 2. Starting Zaino stack with defaults ---
+
+=== 🛠️  Setting up ZAINO Regtest in /Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/stacks/zaino ===
+
+✅ Using Account 0 Unified Address for mining:
+   uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+✅ Updated zebra.toml with Account 0 miner address.
+
+🐳 Starting ZAINO Regtest containers...
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.1.0 in NU7 regtest mode...
+ Volume zcash-regtest-zaino_zebra-data Creating 
+ Volume zcash-regtest-zaino_zebra-data Creating 
+ Network zcash-regtest-zaino_default Creating 
+ Network zcash-regtest-zaino_default Creating 
+ Volume zcash-regtest-zaino_zebra-data Created 
+ Volume zcash-regtest-zaino_zebra-data Created 
+ Network zcash-regtest-zaino_default Created 
+ Network zcash-regtest-zaino_default Created 
+ Container zcash-regtest-zaino-zebra-1 Creating 
+ Container zcash-regtest-zaino-zebra-1 Created 
+ Container zcash-regtest-zaino-zebra-1 Starting 
+ Container zcash-regtest-zaino-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Starting zaino service...
+ Container zcash-regtest-zaino-zebra-1 Running 
+ Container zcash-regtest-zaino-zaino-1 Creating 
+ Container zcash-regtest-zaino-zaino-1 Created 
+ Container zcash-regtest-zaino-zebra-1 Waiting 
+ Container zcash-regtest-zaino-zebra-1 Healthy 
+ Container zcash-regtest-zaino-zaino-1 Starting 
+ Container zcash-regtest-zaino-zaino-1 Started 
+==> Waiting for zaino on port 38137...
+   zaino is reachable.
+==> Tier 2 (Zaino) Regtest stack initialized successfully.
+
+⏳ Waiting for Zebra RPC on port 39232...
+Current block height: 2
+Mining 108 blocks for coinbase maturity (target tip 110)...
+✅ Mined maturity blocks.
+
+🎉 ZAINO Regtest setup completed successfully! Stack is ready for SDK testing.
+
+Zaino compact block cache indexed block 110
+
+--- 3. Container status & images ---
+NAMES                         IMAGE                STATUS                   PORTS
+zcash-regtest-zaino-zaino-1   zaino:nu7-aaf8122a   Up About a minute        127.0.0.1:38137->8137/tcp
+zcash-regtest-zaino-zebra-1   zfnd/zebra:7.1.0     Up 2 minutes (healthy)   127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+
+--- 4. Indexer Info (GetLightdInfo) ---
+[ZcashClient] Deprecation Warning: "regtestNu7" configuration option is deprecated and ignored. Regtest now activates NU7 by default.
+
+--- Zcash Node / Indexer Info ---
+Vendor:          ZingoLabs ZainoD v0.10.1
+Chain:           test
+Upgrade:         NU7
+Consensus Branch: 77190ad9
+Block Height:    110
+t-addr Support:  Yes
+
+
+--- 5. Configured Account Address ---
+
+--- Configured Account Address ---
+Network:          regtest
+Account Index:    0 (regtest default fixture)
+Unified Address:  uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+Transparent:      tmV1zYhR2xisn6VWdCNKHpeD4S7L1U1nPH6
+
+
+--- 6. Fund Account 0 (1.0 ZEC) ---
+[Sync] (http://127.0.0.1:38137) (local) Starting sync from height 2 to target 110 (tip: 110, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:38137) (local) Height: 110/110 (100.0%) | Req: 111 | Speed: 136.9 blocks/s
+[Sync] (http://127.0.0.1:38137) (local) Verified against GetTreeState(110):
+  Wallet Ironwood Root:  f6b25f27e29121887d9415483600728e9020dd3fd2e3e73bf7477c081b142126
+  Remote ironwoodTree:   016636dc1227a534ca955f2a6c1bbf9d6044c0cfd711a87c74d4c9d510ef089533001f000189b5031d82c9f790de6dad4a13da8bc2378a649de46aced3d368c0a75072180e01ee8f8094684af0baa62fcfa2cf735267053a7c45278a9f9a0a2467ffaf34f3140001b3df785f71344644d62fef008bbef6b6ff28ba403165c662b68728315c1b14200121077abded201f3743fc27f79e36560935cdc696a0009e6f784d820e0777520800000000000000000000000000000000000000000000000000
+  Derived Remote Root:   f6b25f27e29121887d9415483600728e9020dd3fd2e3e73bf7477c081b142126
+[send] (http://127.0.0.1:38137) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Funded successfully via ZAINO stack!
+Recipient: uregtest1cjtspq0p660zrmhwn8uhzugwpxwyxh3g0yznk885y808v34flmv4fzvdrx5ztsk480lrfkzmx7v0hlhttvtqhdyvc9wwq2qtk84nq20qr3qxtpmcy3tmk6365ey3e5hc48zq3g6spcqlx28j9xzq4lkmhl8d2zt99svv8vtdm9qx3lgn69xjpgwpp605tqffvaygl9kzhcc8ckt306k
+Amount:    1.0 ZEC (100000000 zatoshis)
+Txid:      1ec5bdb5b6d15427ce4d86e630ca0761e0605ae1afbc68f6f4fece2f093038f1
+
+
+--- 7. Mine 1 block to confirm funding ---
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+Zaino compact block cache indexed block 111
+
+--- 8. Check balance after funding ---
+Querying balance on regtest via 127.0.0.1:38137...
+
+--- Account Balance ---
+Network:     regtest
+Total:       229.16660630 ZEC (22916660630 zatoshis)
+Ironwood:    229.16660630 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   229.16660630 ZEC
+Pending:     0.00000000 ZEC
+
+
+--- 9. Send 0.5 ZEC from Account 0 to own UA ---
+[Sync] (http://127.0.0.1:38137) (local) Starting sync from height 2 to target 111 (tip: 111, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:38137) (local) Height: 111/111 (100.0%) | Req: 113 | Speed: 113.4 blocks/s
+[Sync] (http://127.0.0.1:38137) (local) Verified against GetTreeState(111):
+  Wallet Ironwood Root:  fe750e644410bbdbcd53a3cae25ce09c40a4573e938648763c14db1e697fc31b
+  Remote ironwoodTree:   011dbfd74b6235f7b62075743ae5c8ba0600b95a798882a4adaf67bb121f41ea2d01be3a17e7b054468edfda0135215f3a910ed9302b73c96c172dfab11dc3a9cc021f0156891b48b2a31c6747619fa361158278561b16aa69bddc0a35eb161e3ad206090189b5031d82c9f790de6dad4a13da8bc2378a649de46aced3d368c0a75072180e01ee8f8094684af0baa62fcfa2cf735267053a7c45278a9f9a0a2467ffaf34f3140001b3df785f71344644d62fef008bbef6b6ff28ba403165c662b68728315c1b14200121077abded201f3743fc27f79e36560935cdc696a0009e6f784d820e0777520800000000000000000000000000000000000000000000000000
+  Derived Remote Root:   fe750e644410bbdbcd53a3cae25ce09c40a4573e938648763c14db1e697fc31b
+[send] (http://127.0.0.1:38137) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Transaction broadcast successfully!
+Txid:      9e96577c65936c4479c2369f6cdc5c51d4123165f2661428609b2d7059a4a760
+Fee:       0.00010000 ZEC (10000 zatoshis)
+
+
+--- 10. Mine 1 block to confirm send ---
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+Zaino compact block cache indexed block 112
+
+--- 11. Check balance after send ---
+Querying balance on regtest via 127.0.0.1:38137...
+
+--- Account Balance ---
+Network:     regtest
+Total:       231.24987963 ZEC (23124987963 zatoshis)
+Ironwood:    231.24987963 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   231.24987963 ZEC
+Pending:     0.00000000 ZEC
+
+
+--- 12. Teardown ---
+ Container zcash-regtest-zaino-zaino-1 Stopping 
+ Container zcash-regtest-zaino-zaino-1 Stopped 
+ Container zcash-regtest-zaino-zaino-1 Removing 
+ Container zcash-regtest-zaino-zaino-1 Removed 
+ Container zcash-regtest-zaino-zebra-1 Stopping 
+ Container zcash-regtest-zaino-zebra-1 Stopped 
+ Container zcash-regtest-zaino-zebra-1 Removing 
+ Container zcash-regtest-zaino-zebra-1 Removed 
+ Volume zcash-regtest-zaino_zebra-data Removing 
+ Network zcash-regtest-zaino_default Removing 
+ Volume zcash-regtest-zaino_zebra-data Removed 
+ Network zcash-regtest-zaino_default Removed 
+Zaino stack verification complete.

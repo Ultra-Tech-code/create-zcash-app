@@ -134,3 +134,8 @@ aaea4b5ec343c2901348aba9426001bf9bd11e89c6e9cd46227c63dd996a432e  trial_lwd_v062
 7092beeeeb1152e2053089f4b03ade79791761e50bf7e0f715a24318f2870b8d  trial_zallet_transparent_stock.log  |  bash scripts/trial_zallet_transparent_stock.sh
 481b0da0cabaeb477a7fb7fffbeb606de8e60a9b01bff19f905faea733cd221d  trial_zallet_transparent_indexer.log  |  bash scripts/trial_zallet_transparent_indexer.sh
 e43b5b927cfdf544ef313dbdea797005fa2a2cb891f11cb147faaf2c052c9598  verify_trial3.log  |  bash scripts/verify.sh
+f9603ae8d469cbbd59514703bab983ae61eb1f2f624a990814171fff230e9b06  pins_lightwalletd_defaults.log  |  ./scripts/verify_pins_defaults.sh lightwalletd
+053cd56dfc5b2d669c933d2c45557ce3cabd66c675bba47a9f8f901d35d2ee3a  pins_zaino_defaults.log  |  ./scripts/verify_pins_defaults.sh zaino
+1b2cd96866fabcb90f09d12569e28788e199cfaacf276900dd4ee9b22eab9c66  pins_full_defaults.log  |  ./scripts/verify_pins_defaults.sh full
+b37848e6ea37722988b629af810dbd6a82d7b15b8676d1f7bfd5a8dceb296630  pins_report.md  |  report compilation
+2eba5c77802c736766fc108e352e644cb4e2724df9a6a16e8e00465fafcce67f  verify_pins.log  |  bash scripts/verify.sh
