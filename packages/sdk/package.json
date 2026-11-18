@@ -1,6 +1,6 @@
 {
   "name": "@zcash-app/sdk",
-  "version": "0.1.0-alpha.5",
+  "version": "0.1.0-alpha.6",
   "description": "TypeScript SDK for building shielded Zcash apps with NU7 and Ironwood support",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

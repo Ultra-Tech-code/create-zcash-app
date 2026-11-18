@@ -4,6 +4,8 @@ All notable changes to `create-zcash-app` and its workspace packages will be doc
 
 ## [Unreleased]
 
+## [0.1.0-alpha.6] - 2026-11-18
+
 ### Breaking
 - Removed the deprecated regtest-nu7 network alias; use regtest (NU7 is active by default).
 
