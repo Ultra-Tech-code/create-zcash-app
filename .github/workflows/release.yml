@@ -412,6 +412,32 @@ jobs:
             console.log("All publishable packages are at " + versions[0]);
           '
 
+      # Safety check: fail early if any of the packages being published already exists on npm.
+      # Prevents E403 forbidden publish errors when a version bump was omitted. Runs on both
+      # dry-run and live publish.
+      - name: Prevent duplicate version publish (npm registry collision check)
+        run: |
+          set -euo pipefail
+          failed=0
+          for dir in packages/core packages/sdk packages/dashboard packages/dev packages/cli packages/core/npm/*/; do
+            if [ -f "$dir/package.json" ]; then
+              name=$(node -p "require('./$dir/package.json').name")
+              version=$(node -p "require('./$dir/package.json').version")
+              echo -n "Checking $name@$version on npm registry... "
+              if npm view "$name@$version" version >/dev/null 2>&1; then
+                echo "ALREADY EXISTS!"
+                echo "::error::Package $name@$version already exists on npm registry. Bump package versions before releasing to prevent E403 failures."
+                failed=1
+              else
+                echo "available (not yet published)"
+              fi
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::Release aborted: one or more packages already exist on npm registry."
+            exit 1
+          fi
+
       # Publish the 10 tarballs already produced by pnpm pack in /tmp/release-packs.
       # Because they were packed by pnpm pack, all workspace:* ranges were rewritten to real versions.
       # Publishing the packed tarballs directly via npm publish with --tag next uses npm's trusted
