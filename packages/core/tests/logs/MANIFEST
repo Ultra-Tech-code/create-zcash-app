@@ -131,3 +131,6 @@ aaea4b5ec343c2901348aba9426001bf9bd11e89c6e9cd46227c63dd996a432e  trial_lwd_v062
 26f8bf95b049063d569d9bbeeabd439604585d5728c347620e112de1bd6755de  trial_report_2026-11-18.md  |  report compilation
 0aa89846fd74fca2681d1bccad8bb066da4519d897eaefcb7683c8a4aa4546f1  verify_trial.log  |  bash scripts/verify.sh
 9754c1d0dc7225fc46f4f26fa4b90d0a2af46e846a4353ffbe1c1e2e428d8c65  verify_trial2.log  |  bash scripts/verify.sh
+7092beeeeb1152e2053089f4b03ade79791761e50bf7e0f715a24318f2870b8d  trial_zallet_transparent_stock.log  |  bash scripts/trial_zallet_transparent_stock.sh
+481b0da0cabaeb477a7fb7fffbeb606de8e60a9b01bff19f905faea733cd221d  trial_zallet_transparent_indexer.log  |  bash scripts/trial_zallet_transparent_indexer.sh
+e43b5b927cfdf544ef313dbdea797005fa2a2cb891f11cb147faaf2c052c9598  verify_trial3.log  |  bash scripts/verify.sh
