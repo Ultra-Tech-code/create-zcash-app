@@ -1,0 +1,122 @@
+=== Docker Status ===
+zcash-regtest-lightwalletd-lightwalletd-1 electriccoinco/lightwalletd 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
+zcash-regtest-lightwalletd-zebra-1 zfnd/zebra:7.0.0 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+
+=== Step 1: Scaffold Application ===
+
+🚀 Scaffolding shielded Zcash app in /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-quickstart-XXXXXX.JCXtPM0LkB/my-shielded-app...
+
+🎉 Success! Created my-shielded-app at /private/var/folders/wh/kvwbmx196cg2m2dc72f_cq6c0000gn/T/cza-quickstart-XXXXXX.JCXtPM0LkB/my-shielded-app
+   Configured Network: regtest (local)
+   Indexer Endpoint:   127.0.0.1:39067
+   Zebra RPC:          http://127.0.0.1:39232
+   Key Source:         generate
+   Package range:      @zcash-app/sdk@^0.1.0-alpha.5, zcash-dev@^0.1.0-alpha.5
+   Files written:      13
+
+Next steps:
+   cd my-shielded-app
+   pnpm install
+   pnpm dev
+
+
+=== Step 2: Configured Account Address ===
+
+--- Configured Account Address ---
+Network:          regtest
+Account Index:    0
+Unified Address:  uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
+Transparent:      tmPjvZk15G2tbhjTamFfCygS8yvDPyfYQQR
+
+
+=== Step 3: Initial Balance Before Funding ===
+Querying balance on regtest via 127.0.0.1:39067...
+
+--- Account Balance ---
+Network:     regtest
+Total:       0.00000000 ZEC (0 zatoshis)
+Ironwood:    0.00000000 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   0.00000000 ZEC
+Pending:     0.00000000 ZEC
+
+
+=== Step 4: Fund Account from Miner ===
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 112/112 (100.0%) | Req: 113 | Speed: 123.9 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  0ccbfbd545b379f9cf6f1a762f9ffb89459957e2af0015be958deaaf451d023d
+  Remote ironwoodTree:   010a972047a8ab8776bb376e3135da5a2977dac561a1a7ebd2d0d17b77c836c12c001f01c7aede353ca76cc34fd173b9b87264b831db6fbc3f2c8271a134b93625789231019297a05de6ad2b28ac4df7df9188ee841c21dfd94c9afcea00c64e62fce72435013e0fb883fa871d7a71ea4e83667cb7d4588054955c8ebfce36deba9936254b2b00011291417a11e7be287beeb2e43e1f4544884e7b4cdf8871b44a2fa478de649a0801a772cfc93e2f2cafaa37863ca4a3d43ccff881c77cf5a35f8d209dc64c06991c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   0ccbfbd545b379f9cf6f1a762f9ffb89459957e2af0015be958deaaf451d023d
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Funded successfully via LIGHTWALLETD stack!
+Recipient: uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
+Amount:    5.0 ZEC (500000000 zatoshis)
+Txid:      f82252b1f01a3aa8a04214850b492e77e6a66c7c4a6af1b58292b6afca8efff7
+
+
+=== Step 5: Mine Block ===
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+
+=== Step 6: Account Balance After Funding ===
+Querying balance on regtest via 127.0.0.1:39067...
+
+--- Account Balance ---
+Network:     regtest
+Total:       5.00000000 ZEC (500000000 zatoshis)
+Ironwood:    5.00000000 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   5.00000000 ZEC
+Pending:     0.00000000 ZEC
+
+
+=== Step 7: Transaction Dry Run ===
+
+=== Transaction Dry Run ===
+Network:   regtest
+Recipient: uregtest1zchcl4t6stdjf23589hkrr3pmsslk36t8arszjz79vhj3p2gqpedfgztltegzj9phkqn6h5xdyg6n7xg9p08mg26q6932d4rhty9mnj6gzuzgsjst63m447gdzxynypht3lc5pzh5l5kj37dfscug9e2c7mn882v9wwruhxuww3u2kzvd4y8wkpckwtkkru7ympc4q2r3yqu7rlpdg4
+Amount:    0.1 ZEC (10000000 zatoshis)
+Fee:       0.00010000 ZEC (10000 zatoshis) [estimated (ZIP-317, 2 outputs assumed)]
+Endpoint:  127.0.0.1:39067
+Memo:      Coffee payment
+Status:    DRY RUN ONLY — transaction was NOT broadcast.
+Pass --yes to sign and broadcast this transaction.
+
+
+=== Step 8: Broadcast Transaction ===
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 2 to target 113 (tip: 113, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 113/113 (100.0%) | Req: 3 | Speed: 1349.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(113):
+  Wallet Ironwood Root:  6c13b5f4c9ce7ec0e315e8d9fe733dda53961f4b20ff6cf3d2e4be62a8397d13
+  Remote ironwoodTree:   012751e889833988f826f5c33efe974ce990a1207e9300671e02a4dbc7f2fb793f001f01b39d0eca9e8cbd5e346eb6cd290197266c7073c00a538e6d079116660e63d70a000001f2bd509ac1f0fffc746aa05024e177d73595db66ac0e1f245400877dabb02531011291417a11e7be287beeb2e43e1f4544884e7b4cdf8871b44a2fa478de649a0801a772cfc93e2f2cafaa37863ca4a3d43ccff881c77cf5a35f8d209dc64c06991c00000000000000000000000000000000000000000000000000
+  Derived Remote Root:   6c13b5f4c9ce7ec0e315e8d9fe733dda53961f4b20ff6cf3d2e4be62a8397d13
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+
+✅ Transaction broadcast successfully!
+Txid:      3825ae0cd01997c3719a5f73b1def34797d452b4133c2997e9f65f3bb7b6a7a5
+Fee:       0.00010000 ZEC (10000 zatoshis)
+
+
+=== Step 9: Mine Block to Confirm ===
+Mining 1 block(s) on LIGHTWALLETD regtest stack...
+✅ Successfully mined 1 block(s) on Zebra.
+
+=== Step 10: Account Balance After Send ===
+Querying balance on regtest via 127.0.0.1:39067...
+
+--- Account Balance ---
+Network:     regtest
+Total:       4.99990000 ZEC (499990000 zatoshis)
+Ironwood:    4.99990000 ZEC
+Orchard:     0.00000000 ZEC
+Sapling:     0.00000000 ZEC
+Transparent: 0.00000000 ZEC
+Confirmed:   4.99990000 ZEC
+Pending:     0.00000000 ZEC
+

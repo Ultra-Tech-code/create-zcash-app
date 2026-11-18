@@ -41,7 +41,7 @@ All notable changes to `create-zcash-app` and its workspace packages will be doc
 
 ### Documentation & Reference
 - **Ports Reference**: Added dedicated default network and ports reference page (`docs/src/reference/ports.md`) documenting all port allocations across the ecosystem (3000 scaffolded Next app, 3050 developer dashboard, 39067/39232 NU7 stack, 28137/8181/29232 Z3 stack).
-- **Build Requirements**: Documented Google Fonts build-time download requirements (`next/font/google`) for `@zcash-app/dashboard` in `RELEASING.md`, `docs/src/reference/ports.md`, and `docs/src/reference/dashboard-api.md`.
+- **Build Requirements**: Documented Google Fonts build-time download requirements (`next/font/google`) for `@zcash-app/dashboard` in `docs/src/reference/ports.md` and `docs/src/reference/dashboard-api.md`.
 
 ## [0.1.0-alpha.3] - 2026-11-05
 

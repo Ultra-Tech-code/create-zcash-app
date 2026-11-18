@@ -131,7 +131,7 @@ export class CheckoutService {
 
 ## 3. End-to-End Execution on NU7 Regtest
 
-The complete checkout lifecycle was executed against a clean NU7 regtest stack (`zcash-dev regtest up --stack nu7`).
+The complete checkout lifecycle was executed against a clean NU7 regtest stack (`zcash-dev regtest up --stack lightwalletd`).
 
 ### Machine-Captured Execution Log
 The following output is verbatim from [`packages/core/tests/logs/recipe_checkout_nu7.log`](https://github.com/Ultra-Tech-code/create-zcash-app/blob/main/packages/core/tests/logs/recipe_checkout_nu7.log) (SHA-256: `a078748788e8ede926b7fc7a914eecaa27fbbe5f52952048421ac4c177412724`):

@@ -21,6 +21,7 @@ packages/core/tests/wallet_integration_run/
 packages/sdk/scratch/
 docs/book/
 .build/
+RELEASING.md
 .env.*
 !.env.example
 !.env.sample

@@ -7,7 +7,7 @@ This guide details common failure modes encountered during development, diagnost
 ## 1. Regtest Startup Race Condition
 
 ### Symptom
-Running `zcash-dev regtest up --stack nu7` previously failed during initialization with an unhandled Node error or exit code 1 at:
+Running `zcash-dev regtest up --stack lightwalletd` previously failed during initialization with an unhandled Node error or exit code 1 at:
 ```text
 Mining 2 initial blocks to activate NU7 at height 2...
 ```
@@ -139,7 +139,7 @@ The local Docker daemon (Docker Desktop or OrbStack) is stopped or the active do
    ```bash
    docker ps
    ```
-3. Re-run `zcash-dev regtest up --stack nu7`.
+3. Re-run `zcash-dev regtest up --stack lightwalletd`.
 
 ---
 
