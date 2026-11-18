@@ -70,10 +70,7 @@ export async function GET(request: Request) {
       : undefined;
 
     // Determine network string for expected branch derivation
-    const derivationNetwork =
-      network === 'regtest' || (network as string) === 'regtest-nu7'
-        ? 'regtest'
-        : network;
+    const derivationNetwork = network;
 
     const expectedBranchId = getExpectedBranchId(derivationNetwork, blockHeight);
     const expectedUpgradeName = getUpgradeName(expectedBranchId);

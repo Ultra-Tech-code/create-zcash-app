@@ -112,13 +112,13 @@ async function runTests() {
   // 8. Custom endpoints security
   console.log('Test 8: Verify custom endpoints security...');
   // 8a: Arbitrary 127.0.0.1:* in query string is rejected
-  const arbitraryQueryRes = await fetch(`${BASE_URL}/api/status?preset=regtest-nu7&endpoint=127.0.0.1:9999`);
+  const arbitraryQueryRes = await fetch(`${BASE_URL}/api/status?preset=regtest-lightwalletd&endpoint=127.0.0.1:9999`);
   const arbitraryQueryData = await arbitraryQueryRes.json();
   assert.strictEqual(arbitraryQueryData.endpoint, '127.0.0.1:39067', 'Arbitrary query endpoint must be ignored and fallback to preset');
   console.log('✓ PASS: Arbitrary ?endpoint=127.0.0.1:9999 was rejected; preserved preset 127.0.0.1:39067');
 
   // 8b: Explicit customEndpoint is accepted
-  const explicitCustomRes = await fetch(`${BASE_URL}/api/status?preset=regtest-nu7&customEndpoint=127.0.0.1:9999`);
+  const explicitCustomRes = await fetch(`${BASE_URL}/api/status?preset=regtest-lightwalletd&customEndpoint=127.0.0.1:9999`);
   const explicitCustomData = await explicitCustomRes.json();
   assert.strictEqual(explicitCustomData.endpoint, '127.0.0.1:9999', 'Explicit customEndpoint field must be accepted');
   console.log('✓ PASS: Explicit customEndpoint field was accepted: 127.0.0.1:9999\n');

@@ -18,8 +18,7 @@ import {
 } from '@zcash-app/sdk';
 
 const ENDPOINT = process.env.ZCASH_ENDPOINT || '127.0.0.1:39067';
-const rawNetwork = process.env.ZCASH_NETWORK || 'regtest';
-const NETWORK = rawNetwork === 'regtest-nu7' ? 'regtest' : rawNetwork;
+const NETWORK = process.env.ZCASH_NETWORK || 'regtest';
 
 export async function runWatchOnlyMonitor(ufvk) {
   console.log('=== Watch-Only Monitor Service ===\n');

@@ -87,7 +87,7 @@ export interface SendResult {
    * Transaction identifier in standard node and explorer display order
    * (byte-reversed relative to internal Zcash wire format).
    * Aligns with Zebra JSON-RPC and block explorers.
-   * NOTE: Breaking change in [Unreleased]; see CHANGELOG.md.
+   * Returned in node/explorer display order since alpha.5.
    */
   txid: string;
   /** ZIP-317 computed transaction fee in zatoshis */
@@ -135,11 +135,10 @@ export function warmupProver(): void {
  * internal Zcash wire format), matching Zebra JSON-RPC (`getrawmempool`, `getblock`,
  * `getrawtransaction`) and block explorer search queries.
  *
- * > [!WARNING] Breaking Change
- * > Prior to `[Unreleased]` (see `CHANGELOG.md`), `send()` returned `txid` in raw wire-order
- * > byte serialization. `send()` now returns the display-order txid directly, eliminating the
- * > need for callers to manually reverse txid bytes. Internal core APIs (such as
- * > `markBroadcastWithReservation()`) continue to consume wire order.
+ * > [!NOTE] Display-Order TxID
+ * > Since `0.1.0-alpha.5` (see `CHANGELOG.md`), `send()` returns `txid` in standard node and explorer
+ * > display byte order, eliminating the need for callers to manually reverse txid bytes. Internal core
+ * > APIs (such as `markBroadcastWithReservation()`) continue to consume wire order.
  */
 export async function send(opts: SendOptions): Promise<SendResult> {
   const { client, wallet, to, amount: rawAmount, memo } = opts;

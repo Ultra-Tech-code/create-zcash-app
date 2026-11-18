@@ -1,5 +1,4 @@
-// DEPRECATED: 'regtest-nu7' network alias is deprecated and will be removed in the next release after alpha.5. Use 'regtest'.
-export type Network = 'regtest' | 'testnet' | 'mainnet' | 'regtest-nu7';
+export type Network = 'regtest' | 'testnet' | 'mainnet';
 
 export type VerificationEndpoint =
   | { kind: 'grpc'; url: string }

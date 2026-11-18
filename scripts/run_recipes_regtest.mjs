@@ -31,7 +31,7 @@ const LOGS_DIR = path.join(REPO_ROOT, 'packages', 'core', 'tests', 'logs');
 
 const ENDPOINT = '127.0.0.1:39067';
 const ZEBRA_RPC = 'http://127.0.0.1:39232';
-const NETWORK = 'regtest-nu7';
+const NETWORK = 'regtest';
 
 function formatZec(zatoshis) {
   const z = BigInt(zatoshis);

@@ -98,9 +98,6 @@ test('zcash-dev regtest wipe --dry-run accepts zcash-regtest-lightwalletd projec
 test('miner address helper derives Account 0 for regtest and strictly refuses non-regtest networks', async () => {
   const { getRegtestAccount0MinerAddress } = await import('../dist/cli.js');
 
-  const nu7Address = getRegtestAccount0MinerAddress('regtest-nu7');
-  assert.ok(nu7Address.startsWith('uregtest1'), `expected uregtest1 address, got: ${nu7Address}`);
-
   const regtestAddress = getRegtestAccount0MinerAddress('regtest');
   assert.ok(regtestAddress.startsWith('uregtest1'), `expected uregtest1 address, got: ${regtestAddress}`);
 
@@ -112,5 +109,10 @@ test('miner address helper derives Account 0 for regtest and strictly refuses no
   assert.throws(
     () => getRegtestAccount0MinerAddress('testnet'),
     /Refusing miner address derivation for non-regtest network "testnet"/
+  );
+
+  assert.throws(
+    () => getRegtestAccount0MinerAddress('regtest-nu7'),
+    /Refusing miner address derivation for non-regtest network "regtest-nu7"/
   );
 });

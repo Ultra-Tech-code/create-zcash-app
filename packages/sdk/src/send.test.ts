@@ -687,56 +687,17 @@ describe('P5: Async Proving, Send Pipeline, and Pending-Spend Tracking', () => {
       expect(buildSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('accepts regtest-nu7 alias when node reports 77190ad9', async () => {
-      insertMockNote(22, 500_000_000, 2, '22'.repeat(32));
-      const mockClient = createMockClient();
-      (mockClient.config as any).network = 'regtest-nu7';
-      mockClient.getInfo = vi.fn().mockResolvedValue({ blockHeight: '10', consensusBranchId: '77190ad9' });
-
-      vi.spyOn(wallet, 'getTreeRootAtHeight').mockReturnValue(Buffer.from(mockFrontierRoot, 'hex'));
-      vi.spyOn(wallet, 'querySpendableNotes').mockReturnValue([
-        {
-          id: 22,
-          recipient: 'uregtest1...',
-          valueZatoshis: 500_000_000,
-          nullifier: '22'.repeat(32),
-          height: 2,
-          treePosition: 0,
-        },
-      ]);
-      const buildSpy = vi.spyOn(wallet, 'buildAndProveTransaction').mockResolvedValue({
-        txid: '22'.repeat(32),
-        rawBytes: Buffer.from('hex', 'hex'),
-        fee: 10000,
-        numActions: 2,
-        expiryHeight: 50,
-      } as any);
-
-      const res = await send({
-        client: mockClient,
-        wallet,
-        from: 0,
-        to: 'uregtest1recipient...',
-        amount: 100_000_000n,
-      });
-
-      expect(res.txid).toBe('22'.repeat(32));
-      expect(buildSpy).toHaveBeenCalledTimes(1);
-    });
-
     it('computes correct branch default expiry delta (+40 for NU6.3, +120 for NU7) through send pipeline and core NAPI', async () => {
       // 1. Direct core NAPI getDefaultTxExpiryDelta assertions
       const nu6_3_testnet_delta = getDefaultTxExpiryDelta('testnet', 4_465_025);
       const nu7_testnet_delta = getDefaultTxExpiryDelta('testnet', 4_465_026);
       const nu7_tip_delta = getDefaultTxExpiryDelta('testnet', 4_542_238);
       const regtest_default_delta = getDefaultTxExpiryDelta('regtest', 10);
-      const regtest_nu7_delta = getDefaultTxExpiryDelta('regtest-nu7', 10);
 
       expect(nu6_3_testnet_delta).toBe(40);
       expect(nu7_testnet_delta).toBe(120);
       expect(nu7_tip_delta).toBe(120);
       expect(regtest_default_delta).toBe(120);
-      expect(regtest_nu7_delta).toBe(120);
 
       // 2. Through send() pipeline at NU6.3 height (asserts tip + 40 passed to buildReq)
       insertMockNote(30, 500_000_000, 4_465_020, '30'.repeat(32));
