@@ -139,3 +139,4 @@ f9603ae8d469cbbd59514703bab983ae61eb1f2f624a990814171fff230e9b06  pins_lightwall
 1b2cd96866fabcb90f09d12569e28788e199cfaacf276900dd4ee9b22eab9c66  pins_full_defaults.log  |  ./scripts/verify_pins_defaults.sh full
 b37848e6ea37722988b629af810dbd6a82d7b15b8676d1f7bfd5a8dceb296630  pins_report.md  |  report compilation
 2eba5c77802c736766fc108e352e644cb4e2724df9a6a16e8e00465fafcce67f  verify_pins.log  |  bash scripts/verify.sh
+a8a0640315228db7efee74640acbe6bd1791e003cbd752be286a990e2a856d49  verify_pins2.log  |  bash scripts/verify.sh
