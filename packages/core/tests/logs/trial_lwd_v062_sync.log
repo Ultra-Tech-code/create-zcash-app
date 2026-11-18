@@ -1,0 +1,51 @@
+=== LIGHTWALLETD v0.6.2 BEHAVIOUR TRIAL ===
+Date: 2026-11-18T08:23:04.605Z
+Platform: darwin arm64 (v22.22.2)
+Output log: /Users/0xblackadam/Downloads/zcash_scafolder/packages/core/tests/logs/trial_lwd_v062_sync.log
+
+--- STEP 2.1: Indexer Info & Version Verification ---
+Vendor: ECC LightWalletD
+Version: v0.6.2
+Git Commit: f8fe2cca7ede03b1f06b1d637a2ab467d151b79d
+Branch: 
+Consensus Branch ID: 77190ad9
+Block Height: 124
+Chain Name: test
+[PASS] Verified lightwalletd v0.6.2 running with commit f8fe2cca7ede03b1f06b1d637a2ab467d151b79d
+
+--- STEP 2.2: SDK Default Sync Loop Test (batchSize=1000, throttleMs=50) ---
+Target sync range: height 2 to tip 124
+Executing syncWallet with default parameters (batchSize=1000, throttleMs=50)...
+Sync completed in 423 ms
+Blocks fetched: 123
+Wallet lastScannedHeight: 124
+Tip height: 124
+Tree root hex: b847f824dcaf8c7d7adb6eeed8e8436fb0241cd224cb3126aba71f16517c2f16
+Tree state matched: true
+Total requests: 3
+[PASS] SDK default sync loop completed cleanly against lightwalletd v0.6.2 without being cut or rejected.
+
+--- STEP 2.3: Concurrency Test (--max-concurrent-recv default 32) ---
+Testing 16 concurrent getRawBlockRange requests...
+16 concurrent requests resolved successfully: counts = [19, 19, 19, 19, ...] (all 19 blocks)
+Testing 32 concurrent getRawBlockRange requests (matching default limit 32)...
+32 concurrent requests resolved successfully: counts = [19, 19, 19, 19, ...] (all 19 blocks)
+[PASS] No rejection or RESOURCE_EXHAUSTED observed under 32 concurrent stream requests.
+
+--- STEP 2.4: Stream Idle Timeout Test (--client-stream-idle-timeout default 30s) ---
+SDK sync loop uses 50 ms politeness throttle between batches.
+Since 50 ms << 30,000 ms (30s), normal streaming is completely unaffected.
+Testing short idle pause (5 seconds):
+Received first block (height 2, 278 bytes). Pausing stream consumption for 5 seconds...
+Received second block after 5s pause (height 3, 278 bytes). Stream remained healthy.
+Stream drained cleanly to completion (123 blocks total).
+[PASS] Stream idle timeout of 30s does not disrupt normal or delayed stream consumers within timeout window.
+
+--- STEP 2.5: Testnet Sync Benchmark Status ---
+Querying public testnet endpoint (testnet.zec.rocks:443)...
+Public testnet indexer version: v0.6.1
+Public testnet git commit: af8ad1bd38d1d9a9951669b4bf193409ce5768e1
+Public testnet consensus branch ID: 77190ad9
+Testnet sync benchmark on lightwalletd v0.6.2: NOT TESTED (no public or local testnet endpoint running lightwalletd v0.6.2 is available; testnet.zec.rocks:443 runs v0.6.1 commit af8ad1bd38d1).
+
+=== ALL CHECKS COMPLETED SUCCESSFULLY ===

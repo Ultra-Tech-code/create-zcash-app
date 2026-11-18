@@ -1,0 +1,302 @@
+=== TRIAL: Full Stack with Zebra 7.1.0, lightwalletd v0.6.2, and Zallet v0.1.0-beta.4 ===
+Date: 2026-11-18 08:18:24 UTC
+ZEBRA_IMAGE: zfnd/zebra:7.1.0
+LIGHTWALLETD_IMAGE: electriccoinco/lightwalletd:v0.6.2
+
+--- 1. Resetting Full Regtest Chain (wipe) ---
+
+⚠️  WARNING: You are about to permanently destroy the regtest cluster data:
+   - Project Name:   zcash-regtest-full
+   - Docker Volumes: zcash-regtest-full_zallet-data, zcash-regtest-full_zebra-data
+   - Services:       zebra, lightwalletd, zallet
+   - Chain State:    All mined blocks, commitment trees, transactions, and spent nullifiers
+   - Accounts:       All local test accounts and note balances will be wiped to genesis
+
+
+=== 🧹 Wiping Regtest Blockchain in /Users/0xblackadam/Downloads/zcash_scafolder/packages/dev/docker/stacks/full ===
+
+ Container zcash-regtest-full-zallet-1 Stopping 
+ Container zcash-regtest-full-lightwalletd-1 Stopping 
+ Container zcash-regtest-full-lightwalletd-1 Stopped 
+ Container zcash-regtest-full-lightwalletd-1 Removing 
+ Container zcash-regtest-full-lightwalletd-1 Removed 
+ Container zcash-regtest-full-zallet-1 Stopped 
+ Container zcash-regtest-full-zallet-1 Removing 
+ Container zcash-regtest-full-zallet-1 Removed 
+ Container zcash-regtest-full-zebra-1 Stopping 
+ Container zcash-regtest-full-zebra-1 Stopped 
+ Container zcash-regtest-full-zebra-1 Removing 
+ Container zcash-regtest-full-zebra-1 Removed 
+ Network zcash-regtest-full_default Removing 
+ Volume zcash-regtest-full_zallet-data Removing 
+ Volume zcash-regtest-full_zebra-data Removing 
+ Volume zcash-regtest-full_zallet-data Removed 
+ Volume zcash-regtest-full_zebra-data Removed 
+ Network zcash-regtest-full_default Removed 
+
+=== 🛠️  Reinitializing fresh FULL chain via regtest-init.sh ===
+
+==> Cleaning up previous containers and volumes...
+==> Starting Zebra 7.0.0 (indexer) in NU7 regtest mode...
+ Volume zcash-regtest-full_zebra-data Creating 
+ Volume zcash-regtest-full_zebra-data Creating 
+ Network zcash-regtest-full_default Creating 
+ Network zcash-regtest-full_default Creating 
+ Volume zcash-regtest-full_zebra-data Created 
+ Volume zcash-regtest-full_zebra-data Created 
+ Network zcash-regtest-full_default Created 
+ Network zcash-regtest-full_default Created 
+ Container zcash-regtest-full-zebra-1 Creating 
+ Container zcash-regtest-full-zebra-1 Created 
+ Container zcash-regtest-full-zebra-1 Starting 
+ Container zcash-regtest-full-zebra-1 Started 
+==> Waiting for Zebra RPC on port 39232...
+   Zebra not ready yet, retrying...
+   Zebra is ready.
+==> Mining 2 initial blocks to activate NU7 at height 2...
+   Blocks mined. NU7 is now active.
+==> Initializing Zallet encryption identity and keystore...
+ Container zcash-regtest-full-zebra-1 Running 
+ Volume zcash-regtest-full_zallet-data Creating 
+ Volume zcash-regtest-full_zallet-data Creating 
+ Volume zcash-regtest-full_zallet-data Created 
+ Volume zcash-regtest-full_zallet-data Created 
+ Container zcash-regtest-full-zebra-1 Waiting 
+ Container zcash-regtest-full-zebra-1 Healthy 
+ Container zcash-regtest-full-zallet-run-e44874bfc14e Creating 
+ Container zcash-regtest-full-zallet-run-e44874bfc14e Created 
+[2m2026-11-18T08:18:31.734690Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+Encryption identity written to /data/identity.txt
+Public key: age1nzan6enuc07knv7m2ya9w8pw6cpje800w5eau3xnpsknhryuw9dsx5f2v0
+ Container zcash-regtest-full-zebra-1 Running 
+ Container zcash-regtest-full-zebra-1 Waiting 
+ Container zcash-regtest-full-zebra-1 Healthy 
+ Container zcash-regtest-full-zallet-run-489c4f0e7b93 Creating 
+ Container zcash-regtest-full-zallet-run-489c4f0e7b93 Created 
+[2m2026-11-18T08:18:32.287982Z[0m [32m INFO[0m [2mzallet_core::commands[0m[2m:[0m Loading configuration [3mconfig[0m[2m=[0m/etc/zallet/zallet.toml
+[2m2026-11-18T08:18:32.289349Z[0m [32m INFO[0m [2mzallet_core::components::database[0m[2m:[0m Creating empty database
+[2m2026-11-18T08:18:32.291863Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Migrating everything
+[2m2026-11-18T08:18:32.291973Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bc4f5e57-d600-4b6c-990f-b3538f0bfce1 (Initialize the wallet database.)
+[2m2026-11-18T08:18:32.295129Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration be57ef3b-388e-42ea-97e2-678dafcf9754 (Add support for unified full viewing keys)
+[2m2026-11-18T08:18:32.300415Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0ddbe561-8259-4212-9ab7-66fdc4a74e1d (Adds an identifier for the account that received an internal note to the sent_notes table)
+[2m2026-11-18T08:18:32.302922Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration d956978c-9c87-4d6e-815d-fb8f088d094c (Adds the addresses table for tracking diversified UAs)
+[2m2026-11-18T08:18:32.304711Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2e0ed2e-8852-475e-b0a4-f154b15b9dbe (Add support for receiving transparent UTXOs.)
+[2m2026-11-18T08:18:32.307658Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 761884d6-30d8-44ef-b204-0b82551c4ca1 (Adds an identifier for the account that received a UTXO to the utxos table)
+[2m2026-11-18T08:18:32.309901Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 282fad2e-8372-4ca0-8bed-71821320909f (Add transaction summary views & add fee information to transactions.)
+[2m2026-11-18T08:18:32.313436Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa4d24f-51aa-4a4c-8d9b-e5b8a762865f (Fix transaction views to correctly handle double-entry accounting for change.)
+[2m2026-11-18T08:18:32.315128Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration bdcdcedc-7b29-4f1c-8307-35f937f0d32a (Rename `received_notes` to `sapling_received_notes` and make the `nf` column nullable.)
+[2m2026-11-18T08:18:32.318601Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration e2d71ac5-6a44-4c6b-a9a0-6d0a79d355f1 (Adds a lookup table for nullifiers we've observed on-chain that we haven't confirmed are not ours.)
+[2m2026-11-18T08:18:32.321395Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7da6489d-e835-4657-8be5-f512bcce6cbf (Add support for receiving storage of note commitment tree data using the `shardtree` crate.)
+[2m2026-11-18T08:18:32.323950Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration eeec0d0d-fee0-4231-8c68-5f3a7c7c2245 (Adds a birthday height for each account.)
+[2m2026-11-18T08:18:32.326903Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fa934bdc-97b6-4980-8a83-b2cb1ac465fd (Adds a view that returns the un-scanned ranges associated with each sapling note commitment tree shard.)
+[2m2026-11-18T08:18:32.329424Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c5bf7f71-2297-41ff-89e1-75e07c4e8838 (Adds views and data required to produce accurate wallet summaries.)
+[2m2026-11-18T08:18:32.332523Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ee89ed2b-c1c2-421e-9e98-c1e3e54a7fc2 (Add decryption key scope to persisted information about received notes.)
+[2m2026-11-18T08:18:32.333809Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7029b904-6557-4aa1-9da5-6904b65d2ba5 (This migration reads the wallet's raw transaction data and updates the `sent_notes` table to
+        ensure that memo entries are consistent with the decrypted transaction's outputs. The empty
+        memo is now consistently represented as a single `0xf6` byte.)
+[2m2026-11-18T08:18:32.343317Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration aa0a4168-b41b-44c5-a47d-c4c66603cfab (Updates transaction history views to fix potential errors in transparent history.)
+[2m2026-11-18T08:18:32.345393Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b3e21434-286f-41f3-8d71-44cce968ab2b (Updates v_tx_outputs to remove use of `true` and `false` constants for legacy SQLite version support.)
+[2m2026-11-18T08:18:32.347039Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b8fe5112-4365-473c-8b42-2b07c0f0adaf (Updates v_transactions to include spent UTXOs.)
+[2m2026-11-18T08:18:32.349822Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dba47c86-13b5-4601-94b2-0cde0abe1e45 (Fixes a bug in v_transactions that was omitting value from identically-valued notes.)
+[2m2026-11-18T08:18:32.351630Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d02ec76-8720-4cc6-b646-c4e2ce69221c (Replaces the `account` column in the `accounts` table with columns to support all kinds of
+         account and key types.)
+[2m2026-11-18T08:18:32.360353Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 51d7a273-aa19-4109-9325-80e4a5545048 (Add support for storage of Orchard received notes.)
+[2m2026-11-18T08:18:32.364272Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a2562b3-f174-46a1-aa8c-1d122ca2e884 (Updates transparent UTXO handling to be similar to that for shielded notes, and adds spent_note_count and is_shielding to v_transactions.)
+[2m2026-11-18T08:18:32.369910Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0e1d4274-1f8e-44e2-909d-689a4bc2967b (Record ephemeral addresses for each account.)
+[2m2026-11-18T08:18:32.371173Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3a6487f7-e068-42bb-9d12-6bb8dbe6da00 (Add support for storage of Orchard note commitment tree data using the `shardtree` crate.)
+[2m2026-11-18T08:18:32.374789Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07610aac-b0e3-4ba8-aaa6-cda606f0fd7b (Track which accounts have associated spending keys.)
+[2m2026-11-18T08:18:32.376835Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 604349c7-5ce5-4768-bea6-12d106ccda93 (Ensures that the wallet's default address contains an Orchard receiver.)
+[2m2026-11-18T08:18:32.378108Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration fec02b61-3988-4b4f-9699-98977fac9e7f (Adds tables for tracking transactions to be downloaded for transparent output and/or memo retrieval.)
+[2m2026-11-18T08:18:32.380523Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9ffe82d4-3bf5-459a-9a21-7affd9e88e95 (Adds expiration to transaction enhancement requests)
+[2m2026-11-18T08:18:32.384584Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 156d8c8f-2173-4b59-89b6-75697d5a2103 (Modifies definitions to avoid keywords that may not be available in older SQLite versions.)
+[2m2026-11-18T08:18:32.385758Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 9fa43ce0-a387-45d1-be03-57a3edc76d01 (Truncates away bad note commitment tree state for users whose wallets were broken by bad reorg handling.)
+[2m2026-11-18T08:18:32.386811Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6d36656d-533b-4b65-ae91-dcb95c4ad289 (Sets the `is_change` flag on output notes received by an internal key when input value was provided from the account corresponding to that key.)
+[2m2026-11-18T08:18:32.389059Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration cccc623f-3243-43c7-b884-ceef25149e04 (Adds a UUID for each account.)
+[2m2026-11-18T08:18:32.393749Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7f2fd1b3-1872-4b90-88ba-7d02b470090f (Adds total_spent and total_received columns to the v_transactions view.)
+[2m2026-11-18T08:18:32.395626Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c41dfc0e-e870-4859-be47-d2f572f5ca73 (Add support for general transparent gap limit handling, unifying the `addresses` and `ephemeral_addresses` tables.)
+[2m2026-11-18T08:18:32.404856Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 702cf97b-8395-4edc-b584-5c9f87f0ef35 (Ensures the existence of transparent addresses in the range 0..<default_address_idx>)
+[2m2026-11-18T08:18:32.408899Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b951587c-34fd-4f02-a313-05ff7adb6268 (Fixes the `transparent_received_outputs` table schema to not depend on feature flags)
+[2m2026-11-18T08:18:32.412453Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 54733173-5f3c-4870-831e-a48a4a93b1d7 (Fixes a possible data inconsistency how v_transactions.expired_unmined is computed.)
+[2m2026-11-18T08:18:32.415358Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 894574e0-663e-401a-8426-820b1f75149a (Updates v_tx_outputs to include addresses & diversifier indices.)
+[2m2026-11-18T08:18:32.417176Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 254d4f20-f0f6-4635-80ed-9d52c536d5df (Adds support for storing key material required for zcashd wallet import.)
+[2m2026-11-18T08:18:32.422139Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 50fd092d-97b9-44cf-ade9-86b526e4cd50 (Updates v_received_output_spends to include the account ID.)
+[2m2026-11-18T08:18:32.423612Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration ab1be47e-dbfd-439a-876a-55a7e4a0ea0b (Adds minimum observation height to transaction records.)
+[2m2026-11-18T08:18:32.427558Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 4e68277f-6269-467e-9437-f3853cc4a41f (Adds support for marking transactions as explicitly trusted.)
+[2m2026-11-18T08:18:32.430129Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 07770bfd-c549-4069-9e05-822458f81cc4 (Adds `ON DELETE CASCADE` to foreign keys to support account deletion.)
+[2m2026-11-18T08:18:32.455619Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 944f8a1e-bdfa-4d52-90ca-663dee8efc62 (Relaxes the addresses table constraint to allow standalone P2SH addresses.)
+[2m2026-11-18T08:18:32.461810Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 93278b0f-77fe-473c-b88e-7f285da38dd3 (Replaces FVK item cache columns with IVK item cache columns for collision detection.)
+[2m2026-11-18T08:18:32.465870Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 47c0e9c2-2eda-4b9c-be15-63c636c0e1c7 (Adds an index on transparent_received_outputs.value_zat for value-bounded selection.)
+[2m2026-11-18T08:18:32.468327Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 1f5420e3-f8a0-4afd-a9e5-e20fc6fae271 (Add support for storage of Ironwood note commitment tree data using the `shardtree` crate.)
+[2m2026-11-18T08:18:32.473206Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 64925567-65ae-495e-b6cf-d5f56e99e422 (Adds witness_stabilized flag to received notes for durable spendability.)
+[2m2026-11-18T08:18:32.476524Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 2aa44e8e-e8a7-4760-8de4-501956c969ac (Adds a note_version column to the orchard_received_notes table.)
+[2m2026-11-18T08:18:32.478654Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dc0d6c91-b3db-429e-9a7b-d671cc19656e (Adds tables for storage of received Ironwood notes.)
+[2m2026-11-18T08:18:32.481505Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration cc104d0d-54d6-4e07-9404-202676561d94 (Sets the `is_change` flag on Ironwood output notes received by an internal key when input value was provided from the account corresponding to that key.)
+[2m2026-11-18T08:18:32.482775Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration dab89587-cd05-43b0-a5b5-8cb64a702791 (Adds Ironwood received notes to the address-use view.)
+[2m2026-11-18T08:18:32.484524Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration b72f8199-a8a2-4a07-9dbd-18ea49d8a17d (Adds a lookup table from transparent outpoints spent on-chain to the transaction locators of the transactions that spent them.)
+[2m2026-11-18T08:18:32.488386Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 62032f4a-88b5-454d-a591-10f3d4c4d2b7 (Adds tables for tracking explicitly-retained shardtree checkpoints.)
+[2m2026-11-18T08:18:32.490209Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a1d4a28c-7582-4457-b0f4-d3f297b62a71 (Adds lock_expiry_height and lock_owner columns to received note tables for note locking.)
+[2m2026-11-18T08:18:32.497419Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration d7ab0ab2-1487-4cb7-ba74-72ece5fdba2f (Separates transaction enhancement from status observation and removes redundant status requests.)
+[2m2026-11-18T08:18:32.503681Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 97ac36a9-196f-4dd9-993d-722bde95bebc (Adds missing key scope information to the received-output and transaction-output views.)
+[2m2026-11-18T08:18:32.505504Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a6ef40c7-050a-43c6-a4e2-2f034168c979 (Adds Ironwood received notes to the received-output and spend views.)
+[2m2026-11-18T08:18:32.507009Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 856ecde7-c670-47c1-9345-b80ba5b12c4f (Reports transparent outputs in v_tx_outputs at their transparent receiver address.)
+[2m2026-11-18T08:18:32.508559Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c9c8eb79-846a-4403-b400-d7bc263765b9 (Emits the documented diversifier_index_be column from v_tx_outputs.)
+[2m2026-11-18T08:18:32.510962Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 7b2f6a41-9c3d-4e58-8a17-2f6b9d0c4e11 (Adds tables for storage of an in-progress Orchard -> Ironwood pool migration.)
+[2m2026-11-18T08:18:32.513537Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 1ab3caf9-ef1e-482c-93a3-a3f1080038df (Adds the anchor_bucket_interval column to orchard_ironwood_migrations where missing.)
+[2m2026-11-18T08:18:32.515754Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration d334a9fa-b9dc-46bd-9b31-1fba6aa47f55 (Renames the pool-migration transfer ordinal from tx_id to transfer_id, adds the unsatisfiable_at, unsatisfiable_kind, and broadcast_failure_at columns to orchard_ironwood_migration_transactions and the replan_threshold column to orchard_ironwood_migrations, and caches each transaction's real-spend nullifiers in the orchard_ironwood_migration_spend_nullifiers table.)
+[2m2026-11-18T08:18:32.542370Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration da66771b-b901-40a0-9ed8-50fa3150a5d1 (Adds uuid and committed_height to pool-migration records, and scopes their per-account uniqueness to the pending row.)
+[2m2026-11-18T08:18:32.546574Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 20091091-c736-4d1a-bd99-7adb16842951 (Removes wallet-side transaction records for never-broadcast transactions of terminal pool migrations.)
+[2m2026-11-18T08:18:32.548388Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 62ccc269-f988-4bb2-8958-2cbaaa44dea3 (Stores pool-migration transaction ids as raw bytes rather than hex text.)
+[2m2026-11-18T08:18:32.553367Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 835d61e1-5b88-4f44-92b3-746fb9173360 (Adds the `pool_crossing_value` classification column to v_transactions.)
+[2m2026-11-18T08:18:32.555594Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 0a35a9e4-6c1d-4f7a-9c02-51b8de4f7c33 (Adds a column recording each transaction's ZIP 318 classification.)
+[2m2026-11-18T08:18:32.559567Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 6f2b1c84-9a3d-4e50-b7c6-2d9f1a4e83b7 (Exposes each transaction's ZIP 318 classification through v_transactions.)
+[2m2026-11-18T08:18:32.561687Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 1060fd09-1dc8-4208-b368-295d297eb045 (Adds views exposing scheduled pool-migration transactions.)
+[2m2026-11-18T08:18:32.563255Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a7cd7bfd-2a92-4a7b-ba98-20d61893b260 (Stops v_transactions from multiplying a sending account's totals by its recipient count.)
+[2m2026-11-18T08:18:32.566954Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3d4f12d6-3da9-4ace-ac65-a0dd0a7adc32 (Adds a UNIQUE index on addresses.cached_transparent_receiver_address.)
+[2m2026-11-18T08:18:32.569059Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration c9a2c15c-5142-44f9-9485-13a6a87829f1 (Relaxes the addresses table constraint to allow standalone transparent addresses imported without key material.)
+[2m2026-11-18T08:18:32.574882Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration 3eb2409c-6b54-476e-aebc-8f769aa8950f (Restores the transparent receiver to stored unified addresses that omit it.)
+[2m2026-11-18T08:18:32.577813Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration a2b3f7ed-b2ec-4b92-a390-3f9bed3f0324 (Initializes the Zallet top-level extension tables.)
+[2m2026-11-18T08:18:32.579241Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration adfd5ac7-927f-4288-9cca-55520c4b45d1 (Initializes the Zallet keystore database.)
+[2m2026-11-18T08:18:32.581168Z[0m [32m INFO[0m [2mschemerz[0m[2m:[0m Applying migration f22680bc-a601-466f-b0d2-9328fe7c7298 (Tracks whether each mnemonic phrase's backup has been confirmed.)
+==> Importing Account 0 mnemonic into Zallet keystore...
+==> Starting zallet and lightwalletd services...
+ Container zcash-regtest-full-zebra-1 Running 
+ Container zcash-regtest-full-zallet-1 Creating 
+ Container zcash-regtest-full-lightwalletd-1 Creating 
+ Container zcash-regtest-full-zallet-1 Created 
+ Container zcash-regtest-full-lightwalletd-1 Created 
+ Container zcash-regtest-full-zebra-1 Waiting 
+ Container zcash-regtest-full-zebra-1 Healthy 
+ Container zcash-regtest-full-zallet-1 Starting 
+ Container zcash-regtest-full-lightwalletd-1 Starting 
+ Container zcash-regtest-full-zallet-1 Started 
+ Container zcash-regtest-full-lightwalletd-1 Started 
+==> Waiting for lightwalletd on port 39067...
+   lightwalletd is reachable.
+==> Waiting for zallet on port 8182...
+   zallet is reachable (seedfp: zip32seedfp1y8kn67yzcl3hlcqjk49xgzqyspyvkztc949jjwrp0kne8nxj0q2sttdegg).
+   Registered Account 0 in Zallet.
+==> Tier 3 (Full) Regtest stack initialized successfully.
+⏳ Waiting for Zebra RPC on port 39232...
+Mining 110 blocks for fresh regtest chain...
+✅ Fresh FULL regtest chain created with tip height 110!
+
+
+--- 2. Running Container Status & Versions ---
+zcash-regtest-full-zallet-1 zodlinc/zallet 127.0.0.1:8182->28232/tcp
+zcash-regtest-full-lightwalletd-1 electriccoinco/lightwalletd:v0.6.2 127.0.0.1:39067->9067/tcp, 127.0.0.1:39068->9068/tcp
+zcash-regtest-full-zebra-1 zfnd/zebra:7.1.0 127.0.0.1:8230->8230/tcp, 127.0.0.1:38080->8080/tcp, 127.0.0.1:39232->18232/tcp
+
+Zebra version:
+zebrad 7.1.0+git.534549f
+lightwalletd version:
+WARNING: The requested image's platform (linux/amd64) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+lightwalletd version:  v0.6.2
+from commit:  f8fe2cca7ede03b1f06b1d637a2ab467d151b79d
+on:  2026-11-18
+by:  root
+
+--- 3. Running Coexistence Verification (Lightwalletd + Zallet) ---
+===============================================================
+=== NU7 REGTEST STACK COEXISTENCE: LIGHTWALLETD + ZALLET ======
+===============================================================
+Date:              2026-11-18T08:20:43.836Z
+Zebra RPC:         http://127.0.0.1:39232
+Indexer gRPC:      127.0.0.1:39067
+Zallet RPC:        http://127.0.0.1:8182
+Expected Vendor:   ECC LightWalletD
+Output log:        /tmp/coexistence_trial.log
+
+--- 1. Verifying Zebra 7.0.0 Node ---
+[PASS] Zebra chain is Regtest
+[PASS] Zebra height is at least 110 (height=112)
+[PASS] NU7 consensus branch is active in Zebra (activation=2)
+
+--- 2. Connecting to Indexer gRPC Service ---
+Indexer vendor:     ECC LightWalletD
+Indexer version:    v0.6.2
+Indexer git commit: f8fe2cca7ede03b1f06b1d637a2ab467d151b79d
+Indexer branch ID:  77190ad9
+Indexer blockHeight:112
+Indexer chainName:  test
+[PASS] Consensus branch ID is 77190ad9
+[PASS] Indexer reports height >= 110 (height=112)
+[PASS] Indexer vendor matches expected (ECC LightWalletD) (vendor=ECC LightWalletD)
+
+--- 3. Verifying Zallet JSON-RPC Service ---
+Zallet seedfp:     zip32seedfp1y8kn67yzcl3hlcqjk49xgzqyspyvkztc949jjwrp0kne8nxj0q2sttdegg
+[PASS] Zallet getwalletinfo returned seedfp
+Zallet accounts:   1
+[PASS] Zallet has Account 0 registered
+Account 0 UUID:    39a63ba0-f737-4473-8475-369fa4eee07e
+Account 0 UA:      uregtest1cjtspq0p660zrmhwn8uhzug...
+
+--- 4. SDK Sync & Ironwood Tree State via Indexer ---
+Syncing Account 0 from height 1 to 112...
+[Sync] (http://127.0.0.1:39067) (local) Starting sync from height 1 to target 112 (tip: 112, batch size: 1000, throttle: 50ms)...
+[Sync] (http://127.0.0.1:39067) (local) Height: 112/112 (100.0%) | Req: 113 | Speed: 117.4 blocks/s
+[Sync] (http://127.0.0.1:39067) (local) Verified against GetTreeState(112):
+  Wallet Ironwood Root:  a3abd903f98b642f9df70a5b9e2a823f20d2908b03a7f3701ff99deb4b0ce71a
+  Remote ironwoodTree:   018bae44854542cf3d2350b278d39ab37bb5a472da801fb2402c123c0e552be61e001f01b59d5e90f7d4bac21c25362a2a7a9537e4845eea2909e6bac2ae574efaaf4a2b01b9ed56421925bc0f51f2483625136c2c98c31749156ad9952e250bfd592d992a01b12907662e925c6f4039ec42d27e3f718b7011f81fa47063c3fcc0096fd5f52b0001af51081a7a36707610b487d09fc7f9dffae0e4147d87cb2f631380f3dadc321d010a66eac8f0cc202f2da16763201c0e575f520fbcc0b5c49e45e2a8a88676643800000000000000000000000000000000000000000000000000
+  Derived Remote Root:   a3abd903f98b642f9df70a5b9e2a823f20d2908b03a7f3701ff99deb4b0ce71a
+Scanned: 112/112
+Discovered unspent notes: 111
+Spendable balance: 23124999963 zatoshis
+[PASS] Account 0 scanned to tip
+[PASS] Account 0 discovered shielded notes (notes=111)
+[PASS] Account 0 has spendable balance (balance=23124999963)
+Discovered Ironwood notes via Indexer: 111
+Sample Ironwood note: pool=ironwood, value=208333333, txid=1b6304553341b9cceaf45912970827a681d6ad4f85034b31d6efeff8152ce5e9
+[PASS] SDK discovered Ironwood note via Indexer (ironwoodNotes=111)
+GetTreeState(112) ironwoodTree: 018bae44854542cf3d2350b278d39ab37bb5a472da801fb2402c123c0e552be61e001f01b59d5e90f7d4bac21c25362a2a7a9537e4845eea2909e6bac2ae574efaaf4a2b01b9ed56421925bc0f51f2483625136c2c98c31749156ad9952e250bfd592d992a01b12907662e925c6f4039ec42d27e3f718b7011f81fa47063c3fcc0096fd5f52b0001af51081a7a36707610b487d09fc7f9dffae0e4147d87cb2f631380f3dadc321d010a66eac8f0cc202f2da16763201c0e575f520fbcc0b5c49e45e2a8a88676643800000000000000000000000000000000000000000000000000
+Decoded Ironwood root: a3abd903f98b642f9df70a5b9e2a823f20d2908b03a7f3701ff99deb4b0ce71a
+[PASS] GetTreeState returns non-empty Ironwood root (root=a3abd903f98b642f9df70a5b9e2a823f20d2908b03a7f3701ff99deb4b0ce71a)
+
+--- 5. Executing send() via Indexer ---
+[send] (http://127.0.0.1:39067) (local) Anchor verification is single-source. No secondary verification endpoints configured.
+Send TxID: ccfec3911c612e0b5730c5b60c60b53031b7d847fec6f8480f2b1e4e0596b4e0
+Send Fee:  10000 zatoshis
+[PASS] Send returned valid txid (txid=ccfec3911c612e0b5730c5b60c60b53031b7d847fec6f8480f2b1e4e0596b4e0)
+
+--- 6. Mining block on Zebra to confirm send ---
+Mined block: 1ab1d932c6ce445919d3f8d5304b2227463af6e0c467d603cf1a87bb23fb6113
+[PASS] Zebra mined block confirming send
+
+--- 7. Querying Zallet z_listunspent ---
+Zallet unspent notes count: 110
+Sample Zallet note txid:    7aa5175a9c8c7a7f4bdf963d1469782d79c931846a8a670a254c6d40a8301f6b
+Sample Zallet note pool:    ironwood
+Sample Zallet note confs:   110
+Sample Zallet note value:   2.08333333 ZEC (208333333 zatoshis)
+[PASS] Zallet z_listunspent returned unspent notes (notes=110)
+[PASS] Zallet reports Ironwood pool note in z_listunspent
+
+===============================================================
+=== COEXISTENCE SUMMARY: ALL ASSERTIONS PASSED ================
+Total assertions: 17
+Passed:           17
+Failed:           0
+===============================================================
+
+Log written to /tmp/coexistence_trial.log
+
+--- 4. Zallet z_sendmany Proving & Broadcast Test ---
+Zallet Account UA: uregtest1ycjrnf0w0l6lq94zt0djdv6rvw0f337zdvqqcm8xypugx0qus9f68schza2avm82uwkwsn5qg00k7ufrt504la83dgr3h6g7ctw9hyz380t6pv3rv9lqv4l4g35sqmvvdsge2hmc4k5dscuwgxz5zwjykftfzy6c9f80pnakuqvccd078vjrvctldvh9xhtl8rgr7w8nscm2wqzlycz
+Calling Zallet z_sendmany (0.5 ZEC to own UA)...
+z_sendmany operation ID: opid-f106f358-fc74-482f-a6b7-404d86a8172c
+Poll 0: status=executing
+Poll 1: status=executing
+Poll 2: status=executing
+Poll 3: status=executing
+Poll 4: status=success
+Zallet transaction broadcast successfully! TxID: b9f8fd070ba10e9e1226c232875cc7751603a1dca9e2adc55298cec0b1e3ad93
+Mining 1 block on Zebra to confirm Zallet transaction...
+Mined block hash: 8367bbe57f601c136a3dfaead8b1b4e3fea548f1541cb4a4eb29a2decf15c6c3
+Verifying transaction on Zebra via getrawtransaction...
+✅ PASS: Zallet transaction b9f8fd070ba10e9e1226c232875cc7751603a1dca9e2adc55298cec0b1e3ad93 confirmed in active Zebra chain!
+
+--- 5. Ironwood Anchor Tree State Verification ---
+Current chain height: 114
+{"jsonrpc":"2.0","id":1,"result":{"hash":"8367bbe57f601c136a3dfaead8b1b4e3fea548f1541cb4a4eb29a2decf15c6c3","height":114,"time":1296688623,"sapling":{"commitments":{"finalRoot":"201d24bcfedbbdacbc29594b2a52695ba3ea89a2e81b9944ab2cfaae22789f11","finalState":"013d7efa8734f6e5577d5580b72e8575cef10e422a8b82aa86879f5b3da531cc47001f00000000000000000000000000000000000000000000000000000000000000"}},"orchard":{"commitments":{"finalRoot":"ae2935f1dfd8a24aed7c70df7de3a668eb7a49b1319880dde2bbd9031ae5d82f","finalState":"000000"}},"ironwood":{"commitments":{"finalRoot":"648038d63ae770a1ae3eae93d6f4bf494b30b7485d5ff23a1bbf026ab8fe9d00","finalState":"01146d2e2fc6773f0c7ce2d7366a694714fb6212c2da2d9bf2d2b184d1e5d3e11f001f0001819f091666c325a28daf56649360275cb0e60e8331b517001f0a28fefeb7f82500014429f62f999e95d3609a828e0deebcbd86b34e6253086adad339bf9b4ae78f1f01af51081a7a36707610b487d09fc7f9dffae0e4147d87cb2f631380f3dadc321d010a66eac8f0cc202f2da16763201c0e575f520fbcc0b5c49e45e2a8a88676643800000000000000000000000000000000000000000000000000"}}}}
+✅ PASS: Zebra z_gettreestate contains valid Ironwood tree state.
+
+=== Full Stack Trial Complete: ALL PASS ===

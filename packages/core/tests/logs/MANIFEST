@@ -121,3 +121,10 @@ a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_l
 3e1248b28e57f5d8c44e6a17cc203af711cc51c755e4bde29b3de4d2291d973d  verify_phase_b3.log  |  bash scripts/verify.sh
 74a98650a0e42473411f6540b6f764463d8e6ad3538b81ddffa24efab2d1fd24  verify_docs_nu7.log  |  bash scripts/verify.sh
 63bb394a08731b0ba1e4952e8d9e764e3c7aae67caf8749a46ea9dc24e87b35d  verify_docs_nu7b.log  |  bash scripts/verify.sh
+1325d83ef410ae9e6070dcb8d3051812a36b59f4c720afb3ee36ee993b73d492  trial_artifacts_2026-11-18.log  |  docker pull zfnd/zebra:7.1.0 && git ls-remote https://github.com/ZcashFoundation/zebra refs/tags/v7.1.0 && docker pull --platform linux/amd64 electriccoinco/lightwalletd:v0.6.2
+c98776c3b44d9256bbaee442ebff8c6c26c61223261d1e962c288c3f5be128fa  trial_lightwalletd_zebra710.log  |  bash scripts/trial_lightwalletd.sh
+09ad609869f49c983234c16777cbdba4b1f2e149daec46d79889de2bf7a66a74  trial_zaino_zebra710.log  |  bash scripts/trial_zaino.sh
+944409756ddd93e557f77243659223cb17656a792b91c69ce108734373fccae4  trial_full_zebra710.log  |  bash scripts/trial_full.sh
+aaea4b5ec343c2901348aba9426001bf9bd11e89c6e9cd46227c63dd996a432e  trial_lwd_v062_sync.log  |  node scripts/trial_lwd_sync.mjs
+3766060a32861fe44001c22a3a20dd090fd26d8f37e86e3932acec322a5cb430  trial_report_2026-11-18.md  |  report compilation
+0aa89846fd74fca2681d1bccad8bb066da4519d897eaefcb7683c8a4aa4546f1  verify_trial.log  |  bash scripts/verify.sh
