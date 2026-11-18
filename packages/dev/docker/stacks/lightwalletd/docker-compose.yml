@@ -2,7 +2,8 @@ name: zcash-regtest-lightwalletd
 
 services:
   zebra:
-    image: ${ZEBRA_IMAGE:-zfnd/zebra:7.0.0}
+    # zfnd/zebra:7.1.0 (digest sha256:4f9536c8061e407f9f2ec81b7e0dd2f1762f81deec316abb1530dca8796a33ba)
+    image: ${ZEBRA_IMAGE:-zfnd/zebra:7.1.0}
     ports:
       - "127.0.0.1:${ZEBRA_RPC_PORT:-39232}:18232"
       - "127.0.0.1:${ZEBRA_HEALTH_PORT:-38080}:8080"
@@ -28,7 +29,7 @@ services:
     stop_grace_period: 15s
 
   lightwalletd:
-    image: ${LIGHTWALLETD_IMAGE:-electriccoinco/lightwalletd@sha256:abc8199dae800e050415a3459f71c7850aeefeb1ca6a681e9b9eda7249ce8613}
+    image: ${LIGHTWALLETD_IMAGE:-electriccoinco/lightwalletd@sha256:75e5742df686094556abef66e69c37bc114de23a0706712aee324f332ca52951}
     platform: linux/amd64
     depends_on:
       zebra:

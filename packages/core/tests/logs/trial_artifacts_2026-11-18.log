@@ -1,0 +1,60 @@
+=== Step 0: Resolve Upstream Artifacts for Zebra 7.1.0 and lightwalletd v0.6.2 ===
+Date: 2026-11-18
+
+--- 1. Zebra 7.1.0 Docker Artifact ---
+Command: docker pull zfnd/zebra:7.1.0
+Digest: sha256:4f9536c8061e407f9f2ec81b7e0dd2f1762f81deec316abb1530dca8796a33ba
+RepoDigest: zfnd/zebra@sha256:4f9536c8061e407f9f2ec81b7e0dd2f1762f81deec316abb1530dca8796a33ba
+
+Command: docker run --rm zfnd/zebra:7.1.0 zebrad --version
+Output:
+zebrad 7.1.0+git.534549f
+
+--- 2. Zebra Source for Full Stack ---
+Command: git ls-remote https://github.com/ZcashFoundation/zebra refs/tags/v7.1.0
+Output:
+3114775f157d809b8cd7c679edbaa82a904e7b8a	refs/tags/v7.1.0
+
+Pinned commit for tag v7.1.0: 3114775f157d809b8cd7c679edbaa82a904e7b8a
+Target Cargo features: "default-release-binaries,indexer"
+
+--- 3. lightwalletd v0.6.2 Docker Artifact ---
+Command: docker pull --platform linux/amd64 electriccoinco/lightwalletd:v0.6.2
+Digest: sha256:75e5742df686094556abef66e69c37bc114de23a0706712aee324f332ca52951
+RepoDigest: electriccoinco/lightwalletd@sha256:75e5742df686094556abef66e69c37bc114de23a0706712aee324f332ca52951
+
+Command: docker run --rm electriccoinco/lightwalletd:v0.6.2 version
+Output:
+lightwalletd version:  v0.6.2
+from commit:  f8fe2cca7ede03b1f06b1d637a2ab467d151b79d
+on:  2026-11-18
+by:  root
+
+New flags in v0.6.2:
+  --client-stream-idle-timeout uint    seconds a client-streaming RPC may stall before it is cancelled (0 to disable) (default 30)
+  --max-concurrent-recv uint           max requests being received at once, server-wide (0 for unlimited) (default 32)
+
+--- 4. GetLightdInfo Output after Startup with Zebra 7.1.0 ---
+gRPC Endpoint: 127.0.0.1:39067
+GetLightdInfo response:
+{
+  "version": "v0.6.2",
+  "vendor": "ECC LightWalletD",
+  "taddrSupport": true,
+  "chainName": "test",
+  "saplingActivationHeight": "1",
+  "consensusBranchId": "77190ad9",
+  "blockHeight": "112",
+  "gitCommit": "f8fe2cca7ede03b1f06b1d637a2ab467d151b79d",
+  "branch": "",
+  "buildDate": "2026-11-18",
+  "buildUser": "root",
+  "estimatedHeight": "19932123",
+  "zcashdBuild": "v7.1.0+git.534549f",
+  "zcashdSubversion": "/Zebra:7.1.0/",
+  "donationAddress": "",
+  "upgradeName": "",
+  "upgradeHeight": "0",
+  "lightwalletProtocolVersion": "v0.6.0"
+}
+

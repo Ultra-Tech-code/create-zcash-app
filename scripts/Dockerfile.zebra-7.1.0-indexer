@@ -1,5 +1,5 @@
-# Zebra 7.0.0 with indexer feature enabled
-# Builds Zebra release binary from upstream tag v7.0.0 (commit e8db87eb69254e0d4eedd058eadd48bdfa09065a)
+# Zebra 7.1.0 with indexer feature enabled
+# Builds Zebra release binary from upstream tag v7.1.0 (peeled commit 534549fe6b4c851b4785515fd03380cbea9e1a23)
 # with Cargo features: "default-release-binaries,indexer"
 FROM rust:1.91.0-bookworm AS builder
 
@@ -12,25 +12,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/zebra
-RUN git clone https://github.com/ZcashFoundation/zebra.git . && \
-    git checkout e8db87eb69254e0d4eedd058eadd48bdfa09065a && \
+RUN git clone --depth 1 --branch v7.1.0 https://github.com/ZcashFoundation/zebra.git . && \
+    git checkout 534549fe6b4c851b4785515fd03380cbea9e1a23 && \
     cargo build --release --locked --bin zebrad --features "default-release-binaries,indexer"
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
+    util-linux \
     && rm -rf /var/lib/apt/lists/*
 
 # Match Zebra standard non-root user (UID 10001)
 RUN addgroup --gid 10001 zebra && \
     adduser --gid 10001 --uid 10001 --home /home/zebra --disabled-password --gecos "" zebra
 
-USER zebra
+ENV UID=10001
+ENV GID=10001
+ENV HOME=/home/zebra
+ENV USER=zebra
+
 WORKDIR /home/zebra
 
 COPY --from=builder /usr/src/zebra/target/release/zebrad /usr/local/bin/zebrad
+COPY --from=builder /usr/src/zebra/docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 18232 8230 8080
-ENTRYPOINT ["zebrad"]
-
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["zebrad"]

@@ -10,7 +10,7 @@ COMPOSE="docker compose"
 echo "==> Cleaning up previous containers and volumes..."
 $COMPOSE down -v --remove-orphans 2>/dev/null || true
 
-echo "==> Starting Zebra 7.0.0 in NU7 regtest mode..."
+echo "==> Starting Zebra 7.1.0 in NU7 regtest mode..."
 $COMPOSE up -d zebra
 
 ZEBRA_PORT="${ZEBRA_RPC_PORT:-39232}"

@@ -1291,18 +1291,6 @@ regtestCmd
         console.log(`\n📦 Image "${zainoImg}" not found locally. Building Zaino feat/nu7 from source (~3+ minutes)...`);
         execSync(`cd "${regtestDir}" && docker compose build zaino`, { stdio: 'inherit' });
       }
-    } else if (stack === 'full') {
-      const zebraIndexerImg = process.env.ZEBRA_IMAGE || 'zebra:7.0.0-indexer';
-      let hasImage = false;
-      try {
-        execSync(`docker image inspect "${zebraIndexerImg}"`, { stdio: 'ignore' });
-        hasImage = true;
-      } catch {}
-      if (!hasImage) {
-        console.log(`\n📦 Image "${zebraIndexerImg}" not found locally.`);
-        console.log(`🔨 Building Zebra 7.0.0 with indexer features (~8 minutes on initial build)...`);
-        execSync(`cd "${regtestDir}" && docker compose build zebra`, { stdio: 'inherit' });
-      }
     }
 
     console.log(`\n=== 🛠️  Setting up ${stack.toUpperCase()} Regtest in ${regtestDir} ===\n`);

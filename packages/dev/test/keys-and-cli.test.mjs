@@ -874,7 +874,7 @@ describe('Private-Key & RPC Configuration (create-zcash-app & zcash-dev)', () =>
       assert.strictEqual(lwdConfig.zebraRpc, 'http://127.0.0.1:39232');
 
       const lwdCompose = fs.readFileSync(path.join(lwdDir, 'docker-compose.yml'), 'utf8');
-      assert.ok(lwdCompose.includes('zfnd/zebra:7.0.0'));
+      assert.ok(lwdCompose.includes('zfnd/zebra:7.1.0'));
       assert.ok(lwdCompose.includes('electriccoinco/lightwalletd:latest'));
       assert.ok(lwdCompose.includes('39067:9067'));
       assert.ok(lwdCompose.includes('39232:18232'));
