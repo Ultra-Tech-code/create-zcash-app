@@ -125,6 +125,9 @@ a613a66da77df319080417f53e2cee6186b7936427336ce374c5b678607a6af9  regtest_full_l
 c98776c3b44d9256bbaee442ebff8c6c26c61223261d1e962c288c3f5be128fa  trial_lightwalletd_zebra710.log  |  bash scripts/trial_lightwalletd.sh
 09ad609869f49c983234c16777cbdba4b1f2e149daec46d79889de2bf7a66a74  trial_zaino_zebra710.log  |  bash scripts/trial_zaino.sh
 944409756ddd93e557f77243659223cb17656a792b91c69ce108734373fccae4  trial_full_zebra710.log  |  bash scripts/trial_full.sh
+36e88d140890be428bf7fa14b4b723439ee7ac6961a5d74ec6bd17afeea94915  trial_full_zebra710_stock.log  |  bash scripts/trial_full_stock.sh
+ae7ac44d93297ce74e76aa3e7372a83f5cb825048bd10e92a7417d756e0e41df  trial_full_zebra710_indexer.log  |  bash scripts/trial_full_indexer.sh
 aaea4b5ec343c2901348aba9426001bf9bd11e89c6e9cd46227c63dd996a432e  trial_lwd_v062_sync.log  |  node scripts/trial_lwd_sync.mjs
-3766060a32861fe44001c22a3a20dd090fd26d8f37e86e3932acec322a5cb430  trial_report_2026-11-18.md  |  report compilation
+26f8bf95b049063d569d9bbeeabd439604585d5728c347620e112de1bd6755de  trial_report_2026-11-18.md  |  report compilation
 0aa89846fd74fca2681d1bccad8bb066da4519d897eaefcb7683c8a4aa4546f1  verify_trial.log  |  bash scripts/verify.sh
+9754c1d0dc7225fc46f4f26fa4b90d0a2af46e846a4353ffbe1c1e2e428d8c65  verify_trial2.log  |  bash scripts/verify.sh
